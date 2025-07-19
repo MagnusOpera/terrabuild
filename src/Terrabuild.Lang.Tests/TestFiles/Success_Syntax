@@ -9,8 +9,8 @@ toplevelblock {
     innerattribute = 666
   }
 
-  innerblockWithType type {
-    inner-attribute = -20 # negative number
+  innerblock_with_type type {
+    inner_attribute = -20 # negative number
   }
 }
 

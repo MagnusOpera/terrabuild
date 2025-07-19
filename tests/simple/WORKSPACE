@@ -5,8 +5,8 @@ workspace {
 
 
 locals {
-    isProd = terrabuild.configuration == "Debug"
-    configuration = local.isProd ? "Release" : "Debug"
+    is_prod = terrabuild.configuration == "Debug"
+    configuration = local.is_prod ? "Release" : "Debug"
     secret_message = "tagada"
     npm_version = "1.0.0"
     workspace = "default"

@@ -27,7 +27,7 @@ let pop (lexerMode: Stack<LexerMode>) = lexerMode.Pop()
 
 }
 
-let regularIdentifier = ['a'-'z'] (['_' '-']? ['a'-'z' 'A'-'Z' '0'-'9']+)*
+let regularIdentifier = ['a'-'z'] (['_']? ['a'-'z' '0'-'9']+)*
 let extensionIdentifier = '@' regularIdentifier
 let targetIdentifier = '^' regularIdentifier
 
