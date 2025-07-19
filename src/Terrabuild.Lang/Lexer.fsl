@@ -34,7 +34,7 @@ let targetIdentifier = '^' regularIdentifier
 let identifier = regularIdentifier | extensionIdentifier | targetIdentifier
 let keyIdentifier = regularIdentifier ':'
 
-let number = '-'? ['0'-'9']+('.'['0'-'9']+)?
+let number = '-'? ['0'-'9']+?
 let whitespace = ' ' | '\t'
 let newline = '\n' | '\r' '\n'
 
