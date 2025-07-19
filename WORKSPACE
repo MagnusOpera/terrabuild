@@ -5,8 +5,8 @@ workspace {
 
 
 locals {
-    isProd = terrabuild.configuration == "Release"
-    configuration = local.isProd ? "Release" : "Debug"
+    is_prod = terrabuild.configuration == "Release"
+    configuration = local.is_prod ? "Release" : "Debug"
 }
 
 target build {

@@ -17,9 +17,9 @@ let checkValidSyntax() =
                                    Block.Id = None
                                    Block.Attributes = [ { Attribute.Name = "innerattribute"; Value = Expr.Number 666 }]
                                    Block.Blocks = [] }
-                                 { Block.Resource = "innerblockWithType"
+                                 { Block.Resource = "innerblock_with_type"
                                    Block.Id = Some "type"
-                                   Block.Attributes = [ { Attribute.Name = "inner-attribute"; Attribute.Value = Expr.Number -20 }]
+                                   Block.Attributes = [ { Attribute.Name = "inner_attribute"; Attribute.Value = Expr.Number -20 }]
                                    Block.Blocks = [] } ] }
               { Block.Resource = "other_block_with_type"
                 Block.Id = Some "type"

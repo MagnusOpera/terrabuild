@@ -73,7 +73,7 @@ let parseProject() =
                                                                                                         Expr.Variable "local.configuration" ]) ]) ] }
                                     { Extension = "@docker"; Command = "build"
                                       Parameters = Map [ "arguments", Expr.Map (Map [ "config", Expr.String "Release"
-                                                                                      "my-variable", Expr.Number 42 ]) ] }
+                                                                                      "my_variable", Expr.Number 42 ]) ] }
                                     { Extension = "@npm"; Command = "version"
                                       Parameters = Map [ "arguments", Expr.Variable "local.npm_version"
                                                          "version", Expr.String "1.0.0" ] } ] }
