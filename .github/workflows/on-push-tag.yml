@@ -27,7 +27,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.300
+          dotnet-version: 9.0.303
 
       - name: Build & Publish
         run: make publish-all config=Release version=${{ env.BUILD_VERSION }}
