@@ -50,9 +50,7 @@
         "projects/dotnet-app:build",
         "projects/npm-app:build"
       ],
-      "outputs": [
-        "*.planfile"
-      ],
+      "outputs": [],
       "projectHash": "B7CE2B2607F969D9947CD698BD24DE8883294FBB09450C29A3836B00BBA8EBFF",
       "targetHash": "3295113E361B03753146AADD14B88E53CCA44689DFEB08C089569A25D1A48A71",
       "operations": [
@@ -82,7 +80,7 @@
         }
       ],
       "cache": 3,
-      "managed": true,
+      "managed": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
