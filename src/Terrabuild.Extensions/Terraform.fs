@@ -97,7 +97,7 @@ type Terraform() =
 
             shellOp("terraform", $"plan -out=terrabuild.planfile{vars}")
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops, true)
   
 
     /// <summary weight="4" title="Apply plan file.">
