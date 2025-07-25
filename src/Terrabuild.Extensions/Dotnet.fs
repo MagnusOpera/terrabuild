@@ -197,4 +197,4 @@ type Dotnet() =
             shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {arguments}")
         ]
 
-        execRequest(Cacheability.Local, ops, false)
+        execRequest(Cacheability.Always, ops, false)
