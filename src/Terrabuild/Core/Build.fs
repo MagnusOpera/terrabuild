@@ -282,9 +282,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | Some (_, summary) ->
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
-                // task is failed and retry requested
-                if retry && not summary.IsSuccessful then
-                    Log.Debug("{NodeId} must rebuild because node is failed and retry requested", node.Id)
+                // retry requested and task is either failed or unmanaged
+                if retry && (not summary.IsSuccessful || not node.Managed) then
+                    Log.Debug("{NodeId} must rebuild because retry requested and node is either failed or unmanaged", node.Id)
                     TaskRequest.Build, buildNode()
 
                 // task is older than children

@@ -36,13 +36,10 @@
       "targets": {
         "build": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [],
-          "managed": true,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -64,14 +61,12 @@
         },
         "dist": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": false,
           "dependsOn": [
             "^dist",
             "build"
           ],
           "outputs": [],
           "managed": false,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -107,14 +102,12 @@
       "targets": {
         "apply": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": false,
           "dependsOn": [
             "^apply",
             "plan"
           ],
           "outputs": [],
           "managed": false,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -142,8 +135,6 @@
             "dist"
           ],
           "outputs": [],
-          "managed": true,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -177,13 +168,10 @@
       "targets": {
         "build": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [],
-          "managed": true,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -205,14 +193,12 @@
         },
         "dist": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": false,
           "dependsOn": [
             "^dist",
             "build"
           ],
           "outputs": [],
           "managed": false,
-          "restore": false,
           "operations": [
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",

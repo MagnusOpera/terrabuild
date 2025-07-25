@@ -60,8 +60,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // barrier nodes are just discarded and dependencies lift level up
             match projectConfig.Targets |> Map.tryFind targetName with
             | Some target ->
-                let cache, sideEffect, ops =
-                    target.Operations |> List.fold (fun (cache, sideEffect, ops) operation ->
+                let cache, unmanaged, ops =
+                    target.Operations |> List.fold (fun (cache, unmanaged, ops) operation ->
                         let optContext = {
                             Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                             Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -95,8 +95,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.Arguments = shellOperation.Arguments })
 
                         let cache = cache &&& executionRequest.Cache
-                        let sideEffect = sideEffect || executionRequest.SideEffect
-                        cache, sideEffect, ops @ newops
+                        let unmanaged = unmanaged || executionRequest.Unmanaged
+                        cache, unmanaged, ops @ newops
                     ) (Cacheability.Always, false, [])
 
                 let opsCmds = ops |> List.map Json.Serialize
@@ -116,11 +116,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     if options.LocalOnly then Cacheability.Local
                     else target.Cache |> Option.defaultValue cache
 
-                let restore = target.Restore
+                // no restore by default unless specified
+                let restore = target.Restore |> Option.defaultValue false
 
-                let managed = target.Managed || restore
+                // managed unless specified or managed tasks only
+                let managed = restore || target.Managed |> Option.defaultValue (not unmanaged)
 
-                let rebuild = target.Rebuild || options.Force
+                // no rebuild by default unless force
+                let rebuild = target.Rebuild |> Option.defaultValue options.Force
 
                 let targetOutput =
                     if managed then target.Outputs
