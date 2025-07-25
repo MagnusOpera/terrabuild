@@ -27,12 +27,12 @@ type TargetOperation = {
 [<RequireQualifiedAccess>]
 type Target = {
     Hash: string
-    Rebuild: bool
+    Rebuild: bool option
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Managed: bool
-    Restore: bool
+    Managed: bool option
+    Restore: bool option
     Operations: TargetOperation list
 }
 
@@ -454,7 +454,6 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             let targetRebuild = 
                 target.Rebuild
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-                |> Option.defaultValue false
 
             let targetOperations =
                 target.Steps |> List.fold (fun actions step ->
@@ -529,12 +528,10 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             let targetManaged =
                 target.Managed
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-                |> Option.defaultValue true
 
             let targetRestore =
                 target.Restore
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-                |> Option.defaultValue false
 
             let targetOutputs =
                 let targetOutputs =

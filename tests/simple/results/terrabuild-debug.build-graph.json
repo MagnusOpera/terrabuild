@@ -6,15 +6,12 @@
       "target": "build",
       "configurationTarget": {
         "hash": "339771D0416B0DE57F074F35A58947EC4DF21B15E79871D2231F33753B48C98E",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [
           "*.planfile"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
@@ -96,7 +93,6 @@
       "target": "build",
       "configurationTarget": {
         "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
@@ -108,8 +104,6 @@
           "obj/*.props",
           "obj/*.targets"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
@@ -164,15 +158,12 @@
       "target": "build",
       "configurationTarget": {
         "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [
           "dist/**"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
@@ -225,13 +216,10 @@
       "target": "build",
       "configurationTarget": {
         "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -276,7 +264,6 @@
       "target": "build",
       "configurationTarget": {
         "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
@@ -288,8 +275,6 @@
           "obj/*.props",
           "obj/*.targets"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
@@ -346,15 +331,12 @@
       "target": "build",
       "configurationTarget": {
         "hash": "C6337486788B3103E3C2737C5C465A151569678B0F79EDBAF65D6409D1FDDCB4",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [
           "dist"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -430,15 +412,12 @@
       "target": "build",
       "configurationTarget": {
         "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [
           "dist/**"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
@@ -493,13 +472,10 @@
       "target": "build",
       "configurationTarget": {
         "hash": "368590893C4C4CB86F11CE435BED211B8E67BBAA776E88A26BA9786A25B48841",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
         "outputs": [],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "50D55A43B040D7588938348660FCC1E7DC7DE5F6B1BA6BBD75E552060D6FB2AC",
@@ -555,7 +531,6 @@
       "target": "build",
       "configurationTarget": {
         "hash": "5F97E6095B871F9045214CFE08ABC4C8E778379ACCA4D34A94079C508D24D5C4",
-        "rebuild": false,
         "dependsOn": [
           "^build"
         ],
@@ -563,8 +538,6 @@
           "target/debug/",
           "target/release/"
         ],
-        "managed": true,
-        "restore": false,
         "operations": [
           {
             "hash": "72FA6B2BF806E80FDF3BFC4BFCC4CF397C740DCC43ACBD7CD4D0DABE6F22C85A",
