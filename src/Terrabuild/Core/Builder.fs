@@ -48,7 +48,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 dependsOns |> Set.fold (fun (accInChildren, accOutChildren) dependsOn ->
                     match dependsOn with
                     | String.Regex "^\^(.+)$" [ parentDependsOn ] ->
-                        accInChildren, accOutChildren + projectConfig.Dependencies |> Set.collect (buildTarget parentDependsOn)
+                        accInChildren, accOutChildren + Set.collect (buildTarget parentDependsOn) projectConfig.Dependencies
                     | String.Regex "^(.+)$" [ dependsOn ] ->
                         accInChildren + buildTarget dependsOn project, accOutChildren
                     | _ -> raiseBugError "Invalid target dependency format") (Set.empty, Set.empty)
