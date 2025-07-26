@@ -60,8 +60,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // barrier nodes are just discarded and dependencies lift level up
             match projectConfig.Targets |> Map.tryFind targetName with
             | Some target ->
-                let cache, unmanaged, ops =
-                    target.Operations |> List.fold (fun (cache, unmanaged, ops) operation ->
+                let cache, ephemeral, ops =
+                    target.Operations |> List.fold (fun (cache, ephemeral, ops) operation ->
                         let optContext = {
                             Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                             Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -94,9 +94,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.Command = shellOperation.Command
                                 ContaineredShellOperation.Arguments = shellOperation.Arguments })
 
-                        let cache = cache &&& executionRequest.Cache
-                        let unmanaged = unmanaged || executionRequest.Unmanaged
-                        cache, unmanaged, ops @ newops
+                        let cache = executionRequest.Cache &&& Cacheability.Always
+                        let ephemeral = executionRequest.Cache.HasFlag Cacheability.Ephemeral
+
+                        cache, ephemeral, ops @ newops
                     ) (Cacheability.Always, false, [])
 
                 let opsCmds = ops |> List.map Json.Serialize
@@ -116,18 +117,17 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     if options.LocalOnly then Cacheability.Local
                     else target.Cache |> Option.defaultValue cache
 
-                // no restore by default unless specified
+                // restore is lazy by default
                 let restore = target.Restore |> Option.defaultValue false
-
-                // managed unless specified or managed tasks only
-                let managed = restore || target.Managed |> Option.defaultValue (not unmanaged)
 
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
 
+                let ephemeral = target.Ephemeral |> Option.defaultValue ephemeral
+
                 let targetOutput =
-                    if managed then target.Outputs
-                    else Set.empty
+                    if ephemeral then Set.empty
+                    else target.Outputs
 
                 let node =
                     { Node.Id = nodeId
@@ -138,7 +138,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.ConfigurationTarget = target
                       Node.Operations = ops
                       Node.Cache = cache
-                      Node.Managed = managed
+                      Node.Ephemeral = ephemeral
                       Node.Rebuild = rebuild
                       Node.Restore = restore
 

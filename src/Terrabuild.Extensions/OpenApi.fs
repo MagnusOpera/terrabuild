@@ -32,4 +32,4 @@ type OpenApi() =
         let ops = [
             shellOp("docker-entrypoint.sh", args)
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

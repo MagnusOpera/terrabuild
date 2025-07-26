@@ -43,7 +43,7 @@
         }
       ],
       "cache": 3,
-      "managed": true,
+      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -60,7 +60,7 @@
           "build"
         ],
         "outputs": [],
-        "managed": false,
+        "ephemeral": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -95,7 +95,7 @@
         }
       ],
       "cache": 3,
-      "managed": false,
+      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": false
@@ -112,7 +112,7 @@
           "plan"
         ],
         "outputs": [],
-        "managed": false,
+        "ephemeral": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -147,7 +147,7 @@
         }
       ],
       "cache": 3,
-      "managed": false,
+      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": false
@@ -199,7 +199,7 @@
         }
       ],
       "cache": 3,
-      "managed": true,
+      "ephemeral": false,
       "rebuild": false,
       "restore": false,
       "isLeaf": false
@@ -247,7 +247,7 @@
         }
       ],
       "cache": 3,
-      "managed": true,
+      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -264,7 +264,7 @@
           "build"
         ],
         "outputs": [],
-        "managed": false,
+        "ephemeral": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -299,7 +299,7 @@
         }
       ],
       "cache": 3,
-      "managed": false,
+      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": false

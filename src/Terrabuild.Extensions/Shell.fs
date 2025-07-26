@@ -15,4 +15,4 @@ type Shell() =
     static member __dispatch__ (context: ActionContext) (arguments: string option) =
         let arguments = arguments |> Option.defaultValue ""
         let ops = [ shellOp(context.Command, arguments) ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

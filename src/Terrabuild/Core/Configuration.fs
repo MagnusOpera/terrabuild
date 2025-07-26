@@ -31,7 +31,7 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Managed: bool option
+    Ephemeral: bool option
     Restore: bool option
     Operations: TargetOperation list
 }
@@ -318,15 +318,15 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 match targetBlock.DependsOn with
                 | Some dependsOn -> Some dependsOn
                 | _ -> workspaceTarget |> Option.bind _.DependsOn
-            let managed =
-                match targetBlock.Managed with
-                | Some managed -> Some managed
-                | _ -> workspaceTarget |> Option.bind _.Managed
+            let ephemeral =
+                match targetBlock.Ephemeral with
+                | Some ephemeral -> Some ephemeral
+                | _ -> workspaceTarget |> Option.bind _.Ephemeral
 
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Managed = managed })
+                Ephemeral = ephemeral })
 
     let includes =
         projectScripts
@@ -525,8 +525,8 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
-            let targetManaged =
-                target.Managed
+            let targetEphemeral =
+                target.Ephemeral
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetRestore =
@@ -564,7 +564,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                   Target.Restore = targetRestore
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
-                  Target.Managed = targetManaged
+                  Target.Ephemeral = targetEphemeral
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

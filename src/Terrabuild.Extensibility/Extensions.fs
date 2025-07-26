@@ -39,10 +39,11 @@ type ShellOperation = {
 
 [<Flags>]
 type Cacheability =
-    | Never = 0
-    | Local = 1
-    | Remote = 2
-    | Always = 3 // Local + Remote
+    | Never     = 0b00000000
+    | Local     = 0b00000001
+    | Remote    = 0b00000010
+    | Always    = 0b00000011 // Local + Remote
+    | Ephemeral = 0b00001000
 
 type ShellOperations = ShellOperation list
 
@@ -50,7 +51,6 @@ type ShellOperations = ShellOperation list
 type ActionExecutionRequest = {
     Cache: Cacheability
     Operations: ShellOperations
-    Unmanaged: bool
 }
 
 
@@ -58,7 +58,6 @@ let shellOp(cmd, args) =
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args }
 
-let execRequest(cache, ops, unmanaged) =
+let execRequest(cache, ops) =
     { ActionExecutionRequest.Cache = cache 
-      ActionExecutionRequest.Operations = ops
-      ActionExecutionRequest.Unmanaged = unmanaged }
+      ActionExecutionRequest.Operations = ops }

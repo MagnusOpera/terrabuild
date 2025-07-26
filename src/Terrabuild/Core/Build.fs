@@ -260,13 +260,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         notification.NodeCompleted node TaskRequest.Restore false
                         raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
-                if node.Managed then
-                    let restorable = Restorable(callback, dependencies)
-                    restorables.TryAdd(node.Id, restorable) |> ignore
-                    // invoke callback immediately if node must be restored
-                    if node.Restore then restorable.Restore()
-                else
-                    Log.Debug("{NodeId} skipping restore '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                let restorable = Restorable(callback, dependencies)
+                restorables.TryAdd(node.Id, restorable) |> ignore
+
+                // invoke callback immediately if node must be restored
+                if node.Restore then restorable.Restore()
+
                 if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                 else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
             | _ ->
@@ -282,9 +281,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | Some (_, summary) ->
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
-                // retry requested and task is either failed or unmanaged
-                if retry && (not summary.IsSuccessful || not node.Managed) then
-                    Log.Debug("{NodeId} must rebuild because retry requested and node is either failed or unmanaged", node.Id)
+                // retry requested and task is either failed or ephemeral
+                if retry && (not summary.IsSuccessful || node.Ephemeral) then
+                    Log.Debug("{NodeId} must rebuild because retry requested and node is either failed or ephemeral", node.Id)
                     TaskRequest.Build, buildNode()
 
                 // task is older than children

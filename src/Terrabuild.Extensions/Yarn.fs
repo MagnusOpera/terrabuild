@@ -34,7 +34,7 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{cmd} -- {arguments}")   
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -48,7 +48,7 @@ type Yarn() =
             | _ -> ""
 
         let ops = [ shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}") ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Local, ops)
 
 
     /// <summary>
@@ -67,7 +67,7 @@ type Yarn() =
             shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}")
             shellOp("yarn", $"build -- {args}")
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -86,7 +86,7 @@ type Yarn() =
             shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}")
             shellOp("yarn", $"test -- {args}")
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
     /// <summary>
     /// Run `run` script.
@@ -98,4 +98,4 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{command} -- {args}")
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

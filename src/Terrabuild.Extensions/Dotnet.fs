@@ -83,7 +83,7 @@ type Dotnet() =
         let arguments = $"{context.Command} {arguments}"
 
         let ops = [ shellOp("dotnet", arguments) ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary title="Build project.">
@@ -119,7 +119,7 @@ type Dotnet() =
             shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {logger} {maxcpucount} {version} {arguments}")
         ]
 
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -137,7 +137,7 @@ type Dotnet() =
             shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {arguments}")
         ]
 
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
     /// <summary>
     /// Publish a project.
@@ -168,7 +168,7 @@ type Dotnet() =
             shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {arguments}")
         ]
 
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
     /// <summary>
     /// Restore packages.
@@ -179,7 +179,7 @@ type Dotnet() =
         let arguments = arguments |> Option.defaultValue ""
 
         let ops = [ shellOp( "dotnet", $"restore {arguments}") ]
-        execRequest(Cacheability.Local, ops, false)
+        execRequest(Cacheability.Local, ops)
 
 
     /// <summary>
@@ -197,4 +197,4 @@ type Dotnet() =
             shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {arguments}")
         ]
 
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

@@ -26,7 +26,7 @@ type TargetBlock =
       Outputs: Expr option
       DependsOn: Set<string> option
       Cache: Expr option
-      Managed: Expr option
+      Ephemeral: Expr option
       Restore: Expr option
       Steps: Step list }
 

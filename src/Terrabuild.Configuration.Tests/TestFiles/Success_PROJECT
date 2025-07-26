@@ -38,7 +38,7 @@ target build {
 }
 
 target dist {
-  managed = false
+  ephemeral = false
   @dotnet build { }
   @dotnet publish { }
 }
