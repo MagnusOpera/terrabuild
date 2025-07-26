@@ -5,7 +5,6 @@
 <br>
 
 [![License](https://img.shields.io/github/license/magnusopera/terrabuild)](LICENSE.md)
-[![NuGet version](https://badge.fury.io/nu/terrabuild.svg)](https://www.nuget.org/packages/Terrabuild)
 ![build](https://github.com/magnusopera/terrabuild/actions/workflows/on-push-branch.yml/badge.svg?branch=main)
 
 # What is Terrabuild ?
