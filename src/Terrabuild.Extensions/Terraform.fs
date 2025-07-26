@@ -109,15 +109,16 @@ type Terraform() =
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
     /// <param name="no_plan" example="true">Apply without plan file.</param>
-    static member apply (context: ActionContext) (config: string option) (workspace: string option) (no_plan: bool) =
+    static member apply (context: ActionContext) (config: string option) (workspace: string option) (no_plan: bool option) =
         let config =
             match config with
             | Some config -> $" -backend-config={config}"
             | _ -> ""
 
         let planfile =
-            if no_plan then ""
-            else " terrabuild.planfile"
+            match no_plan with
+            | Some true -> ""
+            | _ -> " terrabuild.planfile"
 
         let ops = [
             shellOp("terraform", $"init -reconfigure{config}")
