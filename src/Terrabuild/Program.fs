@@ -129,32 +129,33 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let buildGraph = GraphBuilder.build options config
         if options.Debug then logGraph buildGraph "build"
 
-        if not options.WhatIf then
-            let summary =
-                let buildNotification = Notification.BuildNotification() :> Build.IBuildNotification            
-                let summary = Build.run options cache api buildNotification buildGraph
-                buildNotification.WaitCompletion()
-                summary
+        let errCode =
+            if options.WhatIf then 0
+            else
+                let summary =
+                    let buildNotification = Notification.BuildNotification() :> Build.IBuildNotification            
+                    let summary = Build.run options cache api buildNotification buildGraph
+                    buildNotification.WaitCompletion()
+                    summary
 
-            if options.Debug then
-                let jsonBuild = Json.Serialize summary
-                jsonBuild |> IO.writeTextFile (logFile "build-result.json")
+                if options.Debug then
+                    let jsonBuild = Json.Serialize summary
+                    jsonBuild |> IO.writeTextFile (logFile "build-result.json")
 
-            if log || not summary.IsSuccess then
-                Logs.dumpLogs runId options cache buildGraph summary
+                if log || not summary.IsSuccess then
+                    Logs.dumpLogs runId options cache buildGraph summary
 
-            let result =
-                if summary.IsSuccess then Ansi.Emojis.happy
-                else Ansi.Emojis.sad
-            let duration = DateTime.UtcNow - options.StartedAt
-            $"{result} Completed in {duration}" |> Terminal.writeLine
+                if summary.IsSuccess then 0
+                else 5
 
-            if summary.IsSuccess then 0
-            else 5
-        else
-            let duration = DateTime.UtcNow - options.StartedAt
-            $"{Ansi.Emojis.happy} Completed in {duration}" |> Terminal.writeLine
-            0
+        let emoji =
+            match errCode with
+            | 0 ->  Ansi.Emojis.happy
+            | _ -> Ansi.Emojis.sad
+        let duration = DateTime.UtcNow - options.StartedAt
+        $"{emoji} Completed in {duration}" |> Terminal.writeLine
+        errCode
+
 
     let scaffold (scaffoldArgs: ParseResults<ScaffoldArgs>) =
         let wsDir = scaffoldArgs.GetResult(ScaffoldArgs.Workspace, defaultValue = ".")
