@@ -14,4 +14,4 @@ type Make() =
     static member __dispatch__ (context: ActionContext) (variables: Map<string, string>) =
         let args = variables |> Seq.fold (fun acc kvp -> $"{acc} {kvp.Key}=\"{kvp.Value}\"") $"{context.Command}"
         let ops = [ shellOp("make", args) ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

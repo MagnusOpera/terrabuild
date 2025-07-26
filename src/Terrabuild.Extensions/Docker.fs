@@ -17,7 +17,7 @@ type Docker() =
         let arguments = $"{context.Command} {arguments}"
 
         let ops = [ shellOp("docker", arguments) ]
-        execRequest(Cacheability.Always, ops, true)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -50,7 +50,7 @@ type Docker() =
             if context.CI then Cacheability.Remote
             else Cacheability.Local
 
-        execRequest(cacheability, ops, true)
+        execRequest(cacheability, ops)
 
 
     /// <summary>
@@ -71,4 +71,4 @@ type Docker() =
             if context.CI then Cacheability.Remote
             else Cacheability.Local
 
-        execRequest(cacheability, ops, true)
+        execRequest(cacheability, ops)

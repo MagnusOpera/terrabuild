@@ -11,7 +11,7 @@ target test {
 
 # generate artifacts
 target dist {
-    managed = false
+    ephemeral = false
     depends_on = [ target.build
                    target.^dist ]
 }
@@ -25,7 +25,7 @@ target plan {
 
 # run deployment
 target apply {
-    managed = false
+    ephemeral = false
     depends_on = [ target.plan
                    target.^apply ]
 }

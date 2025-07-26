@@ -48,7 +48,7 @@ type Cargo() =
         let arguments = $"{context.Command} {arguments}"
 
         let ops = [ shellOp("cargo", arguments) ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary title="Build project.">
@@ -61,7 +61,7 @@ type Cargo() =
         let arguments = arguments |> Option.defaultValue ""
 
         let ops = [ shellOp("cargo", $"build --profile {profile} {arguments}") ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -74,4 +74,4 @@ type Cargo() =
         let arguments = arguments |> Option.defaultValue ""
 
         let ops = [ shellOp("cargo", $"test --profile {profile} {arguments}") ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

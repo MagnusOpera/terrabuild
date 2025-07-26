@@ -71,7 +71,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["rebuild"; "outputs"; "depends_on"; "cache"; "managed"; "restore"]
+    |> checkAllowedAttributes ["rebuild"; "outputs"; "depends_on"; "cache"; "ephemeral"; "restore"]
     |> ignore
 
     let rebuild = block |> tryFindAttribute "rebuild"
@@ -85,7 +85,7 @@ let toTarget (block: Block) =
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let cache = block |> tryFindAttribute "cache"
-    let managed = block |> tryFindAttribute "managed"
+    let ephemeral = block |> tryFindAttribute "ephemeral"
     let restore = block |> tryFindAttribute "restore"
     let steps =
         block.Blocks
@@ -113,7 +113,7 @@ let toTarget (block: Block) =
       TargetBlock.DependsOn = dependsOn
       TargetBlock.Cache = cache
       TargetBlock.Steps = steps
-      TargetBlock.Managed = managed
+      TargetBlock.Ephemeral = ephemeral
       TargetBlock.Restore = restore }
 
 

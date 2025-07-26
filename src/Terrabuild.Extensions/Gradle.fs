@@ -31,7 +31,7 @@ type Gradle() =
         let arguments = $"{context.Command} {arguments}"
 
         let ops = [ shellOp("gradle", arguments) ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
@@ -42,4 +42,4 @@ type Gradle() =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration
 
         let ops = [ shellOp("gradlew", $"assemble{configuration}") ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)

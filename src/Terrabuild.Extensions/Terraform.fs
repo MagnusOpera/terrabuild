@@ -35,7 +35,7 @@ type Terraform() =
         let arguments = $"{context.Command} {arguments}"
 
         let ops = [ shellOp("terraform", arguments) ]
-        execRequest(Cacheability.Always, ops, true)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary weight="1">
@@ -48,7 +48,7 @@ type Terraform() =
             | Some config -> $" -backend-config={config}"
             | _ -> ""
         let ops = [ shellOp("terraform", $"init -reconfigure{config}") ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Local, ops)
 
 
     /// <summary weight="2" title="Generate plan file.">
@@ -63,7 +63,7 @@ type Terraform() =
             shellOp("terraform", "init")
             shellOp("terraform", "validate")
         ]
-        execRequest(Cacheability.Always, ops, false)
+        execRequest(Cacheability.Always, ops)
 
 
     /// <summary weight="3" title="Generate plan file.">
@@ -90,14 +90,14 @@ type Terraform() =
 
         let ops = [
             shellOp("terraform", $"init -reconfigure{config}")
-            
+
             match workspace with
             | Some workspace -> shellOp("terraform", $"workspace select {create}{workspace}")
             | _ -> ()
 
             shellOp("terraform", $"plan -out=terrabuild.planfile{vars}")
         ]
-        execRequest(Cacheability.Always, ops, true)
+        execRequest(Cacheability.Always ||| Cacheability.Ephemeral, ops)
   
 
     /// <summary weight="4" title="Apply plan file.">
@@ -108,11 +108,17 @@ type Terraform() =
     /// </summary>
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
-    static member apply (context: ActionContext) (config: string option) (workspace: string option) =
+    /// <param name="no_plan" example="true">Apply without plan file.</param>
+    static member apply (context: ActionContext) (config: string option) (workspace: string option) (no_plan: bool option) =
         let config =
             match config with
             | Some config -> $" -backend-config={config}"
             | _ -> ""
+
+        let planfile =
+            match no_plan with
+            | Some true -> ""
+            | _ -> " terrabuild.planfile"
 
         let ops = [
             shellOp("terraform", $"init -reconfigure{config}")
@@ -121,9 +127,9 @@ type Terraform() =
             | Some workspace -> shellOp("terraform", $"workspace select {workspace}")
             | _ -> ()
 
-            shellOp("terraform", "apply -input=false terrabuild.planfile")
+            shellOp("terraform", $"apply -input=false{planfile}")
         ]
-        execRequest(Cacheability.Always, ops, true)
+        execRequest(Cacheability.Always, ops)
 
     /// <summary weight="4" title="Destroy the deployment.">
     /// Destroy the deployment:
@@ -150,4 +156,4 @@ type Terraform() =
 
             shellOp("terraform", $"destroy -input=false{vars}")
         ]
-        execRequest(Cacheability.Always, ops, true)
+        execRequest(Cacheability.Always, ops)
