@@ -613,6 +613,18 @@ let read (options: ConfigOptions.Options) =
         with exn ->
             raiseParserError("Failed to read WORKSPACE configuration file", exn)
 
+    // check min version requirement
+    match workspaceConfig.Workspace.Version with
+    | Some range ->
+        match SemanticVersioning.Range.TryParse range with
+        | true, range ->
+            let version = Version.version()
+            let version = SemanticVersioning.Version.Parse version
+            if range.IsSatisfied version |> not then
+                raiseInvalidArg $"Your terrabuild version '{version}' is unexpected. Use version '{range}'."
+        | _ -> raiseInvalidArg $"Version requirement '{range}' is invalid."
+    | _ -> ()
+
     let evaluationContext = buildEvaluationContext options workspaceConfig
 
     let scripts = buildScripts options workspaceConfig evaluationContext

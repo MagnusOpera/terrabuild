@@ -67,6 +67,12 @@
           "System.Text.Json": "6.0.10"
         }
       },
+      "SemanticVersioning": {
+        "type": "Direct",
+        "requested": "[3.0.0, )",
+        "resolved": "3.0.0",
+        "contentHash": "RR+8GbPQ/gjDqov/1QN1OPoUlbUruNwcL3WjWCeLw+MY7+od/ENhnkYxCfAC6rQLIu3QifaJt3kPYyP3RumqMQ=="
+      },
       "Sentry": {
         "type": "Direct",
         "requested": "[5.12.0, )",

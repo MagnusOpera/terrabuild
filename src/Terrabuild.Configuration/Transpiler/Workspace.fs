@@ -28,7 +28,7 @@ let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
 
 let toWorkspace (block: Block) =
     block
-    |> checkAllowedAttributes ["id"; "ignores"]
+    |> checkAllowedAttributes ["id"; "ignores"; "version"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -38,9 +38,13 @@ let toWorkspace (block: Block) =
     let ignores =
         block |> tryFindAttribute "ignores"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
+    let version =
+        block |> tryFindAttribute "version"
+        |> Option.bind (Eval.asStringOption << simpleEval)
 
     { WorkspaceBlock.Id = id
-      WorkspaceBlock.Ignores = ignores }
+      WorkspaceBlock.Ignores = ignores
+      WorkspaceBlock.Version = version }
 
 
 let toTarget (block: Block) =
@@ -96,7 +100,8 @@ let transpile (blocks: Block list) =
             let workspace =
                 match builder.Workspace with
                 | None -> { WorkspaceBlock.Id = None
-                            WorkspaceBlock.Ignores = None }
+                            WorkspaceBlock.Ignores = None
+                            WorkspaceBlock.Version = None }
                 | Some workspace -> workspace
 
             { WorkspaceFile.Workspace = workspace
