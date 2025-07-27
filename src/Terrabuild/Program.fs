@@ -62,6 +62,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             else loggerBuilder
         Log.Logger <- loggerBuilder.CreateLogger()
         Log.Debug("===== [Execution Start] =====")
+        Log.Debug($"Terrabuild: {Version.informalVersion()}")
         Log.Debug($"Environment: {RuntimeInformation.OSDescription}, {RuntimeInformation.OSArchitecture}, {Environment.Version}")
 
     let runTarget (options: RunTargetOptions) =
@@ -295,10 +296,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         0
 
     let version () =
-        let version =
-            match Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>() with
-            | null -> "0.0.0"
-            | fileVersion -> fileVersion.InformationalVersion
+        let version = Version.informalVersion()
         printfn $"Terrabuild v{version}"
         0
  

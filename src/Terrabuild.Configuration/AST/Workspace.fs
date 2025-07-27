@@ -7,7 +7,8 @@ open Terrabuild.Expressions
 [<RequireQualifiedAccess>]
 type WorkspaceBlock =
     { Id: string option
-      Ignores: Set<string> option }
+      Ignores: Set<string> option
+      Version: string option }
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
