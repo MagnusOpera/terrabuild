@@ -283,7 +283,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 // retry requested and task is failed
                 if retry && (not summary.IsSuccessful) then
-                    Log.Debug("{NodeId} must rebuild because retry requested and node is either failed or ephemeral", node.Id)
+                    Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     TaskRequest.Build, buildNode()
 
                 // task is older than children
