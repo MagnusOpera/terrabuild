@@ -80,7 +80,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": true,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -145,7 +144,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -203,7 +201,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -250,7 +247,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -318,7 +314,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -398,7 +393,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -459,7 +453,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -518,7 +511,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -570,7 +562,6 @@
         }
       ],
       "cache": 3,
-      "ephemeral": false,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
