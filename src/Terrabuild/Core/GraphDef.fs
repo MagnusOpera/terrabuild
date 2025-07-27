@@ -27,7 +27,6 @@ type Node = {
     TargetHash: string
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
-    Ephemeral: bool
     Rebuild: bool
     Restore: bool
 
