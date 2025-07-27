@@ -71,6 +71,8 @@ type Terraform() =
     /// * initialize Terraform
     /// * select workspace
     /// * run plan
+    ///
+    /// **WARNING: This command generate an ephemeral artifact.**
     /// </summary>
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
