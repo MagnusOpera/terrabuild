@@ -138,7 +138,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.ConfigurationTarget = target
                       Node.Operations = ops
                       Node.Cache = cache
-                      Node.Rebuild = rebuild || ephemeral
+                      Node.Rebuild = rebuild || (ephemeral && options.Retry)
                       Node.Restore = restore
 
                       Node.Dependencies = children
