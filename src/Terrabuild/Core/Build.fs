@@ -6,13 +6,12 @@ open Serilog
 open Terrabuild.PubSub
 open Environment
 open Errors
-open System.Text.RegularExpressions
 open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
-    | Restore
     | Build
+    | Restore
 
 [<RequireQualifiedAccess>]
 type TaskStatus =
@@ -271,36 +270,41 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | _ ->
                 TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
 
-        if node.Rebuild then
-            Log.Debug("{NodeId} must rebuild because force requested", node.Id)
-            TaskRequest.Build, buildNode()
+        let action =
+            if node.Rebuild then
+                Log.Debug("{NodeId} must rebuild because force requested", node.Id)
+                TaskRequest.Build
 
-        elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
-            let cacheEntryId = GraphDef.buildCacheKey node
-            match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
-            | Some (_, summary) ->
-                Log.Debug("{NodeId} has existing build summary", node.Id)
+            elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
+                let cacheEntryId = GraphDef.buildCacheKey node
+                match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
+                | Some (_, summary) ->
+                    Log.Debug("{NodeId} has existing build summary", node.Id)
 
-                // retry requested and task is failed
-                if retry && (not summary.IsSuccessful) then
-                    Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
-                    TaskRequest.Build, buildNode()
+                    // retry requested and task is failed
+                    if retry && (not summary.IsSuccessful) then
+                        Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
+                        TaskRequest.Build
 
-                // task is older than children
-                elif summary.EndedAt <= maxCompletionChildren then
-                    Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
-                    TaskRequest.Build, buildNode()
+                    // task is older than children
+                    elif summary.EndedAt <= maxCompletionChildren then
+                        Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
+                        TaskRequest.Build
 
-                // task is cached
-                else
-                    Log.Debug("{NodeId} is marked as used", node.Id)
-                    TaskRequest.Restore, restoreNode()
-            | _ ->
-                Log.Debug("{NodeId} must be build since no summary and required", node.Id)
-                TaskRequest.Build, buildNode()
-        else
-            Log.Debug("{NodeId} is not cacheable", node.Id)
-            TaskRequest.Build, buildNode()
+                    // task is cached
+                    else
+                        Log.Debug("{NodeId} is marked as used", node.Id)
+                        TaskRequest.Restore
+                | _ ->
+                    Log.Debug("{NodeId} must be build since no summary and required", node.Id)
+                    TaskRequest.Build
+            else
+                Log.Debug("{NodeId} is not cacheable", node.Id)
+                TaskRequest.Build
+
+        match action with
+        | TaskRequest.Build -> action, buildNode()
+        | TaskRequest.Restore -> action, restoreNode()
 
 
     let hub = Hub.Create(options.MaxConcurrency)
