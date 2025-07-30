@@ -246,7 +246,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _ ->
                     notification.NodeCompleted node TaskRequest.Restore false
                     raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
-                restorableSignal.Value <- DateTime.UtcNow
+                restorableSignal.Set(DateTime.UtcNow)
 
             let restorable =
                 lazy (
@@ -323,7 +323,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let maxCompletionChildren =
                         match awaitedDependencies with
                         | [ ] -> DateTime.MinValue
-                        | _ -> awaitedDependencies |> Seq.maxBy (fun dep -> dep.Value) |> (fun dep -> dep.Value)
+                        | _ ->
+                            awaitedDependencies
+                            |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
+                            |> (fun dep -> dep.Get<DateTime>())
 
                     let buildRequest = computeNodeAction node maxCompletionChildren
 
@@ -353,10 +356,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                             | _ -> raiseBugError "Unexpected pending state"
                         nodeResults[node.Id] <- (buildRequest, completionStatus)
                         notification.NodeCompleted node buildRequest success
-                        if success then nodeComputed.Value <- completionDate
+                        if success then nodeComputed.Set(completionDate)
 
-                    let awaitedSignals = awaitedDownloads |> List.map (fun entry -> entry :> ISignal)
-                    hub.Subscribe nodeId awaitedSignals onDownloadsAvailable
+                    hub.Subscribe nodeId awaitedDownloads onDownloadsAvailable
 
                 with
                     exn ->
@@ -365,8 +367,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         notification.NodeCompleted node TaskRequest.Build false
                         reraise()
 
-            let awaitedSignals = awaitedDependencies |> List.map (fun entry -> entry :> ISignal)
-            hub.Subscribe nodeId awaitedSignals onDependenciesAvailable
+            hub.Subscribe nodeId awaitedDependencies onDependenciesAvailable
 
     graph.RootNodes |> Seq.iter schedule
 

@@ -87,8 +87,10 @@ type ISignal =
     abstract Name: string
     abstract IsRaised: unit -> bool
     abstract Subscribe: SignalCompleted -> unit
+    abstract Get<'T>: unit -> 'T
+    abstract Set<'T>: 'T -> unit
 
-type ISignal<'T> =
+and ISignal<'T> =
     inherit ISignal
     abstract Value: 'T with get, set
 
@@ -105,6 +107,15 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
                 | Some _ -> eventQueue.Enqueue kind onCompleted
                 | _ -> subscribers.Enqueue(onCompleted)
             )
+        member _.Get<'Q>() =
+            match box this with
+            | :? ISignal<'Q> as signal -> signal.Value
+            | _ -> Errors.raiseBugError $"Unexpected Signal type {typeof<'Q>.Name}"
+
+        member _.Set<'Q>(value: 'Q) = 
+            match box this with
+            | :? ISignal<'Q> as signal -> signal.Value <- value
+            | _ -> Errors.raiseBugError $"Unexpected Signal type {typeof<'Q>.Name}"
 
     interface ISignal<'T> with
         member _.Value
@@ -148,7 +159,7 @@ type Status =
     | SubscriptionError of exn:Exception
 
 type IHub =
-    abstract GetSignal<'T>: name:string -> ISignal<'T>
+    abstract GetSignal<'T>: name:string -> ISignal
     abstract Subscribe: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract SubscribeBackground: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
