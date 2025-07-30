@@ -264,10 +264,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             restorables.TryAdd(node.Id, restorable) |> ignore
 
-            // invoke callback immediately if node must be restored
-            // TODO: restore but await completion
-            // if node.Restore then restorable.Restore()
-
             if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
             else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
         | _ ->
