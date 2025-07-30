@@ -198,7 +198,7 @@ let computed_must_match_type() =
     (fun () -> hub.GetSignal<int> "computed2" |> ignore) |> should throw typeof<Errors.TerrabuildException>
 
 
-// Additional test for Download kind
+
 [<Test>]
 let download_subscription_priority() =
     let hub = Hub.Create(2)

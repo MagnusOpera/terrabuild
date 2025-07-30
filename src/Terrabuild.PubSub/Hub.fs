@@ -5,21 +5,17 @@ open System.Collections.Concurrent
 open System.Threading
 
 
-type private SubscriptionKind =
-    | Task
-    | Download
-
-// Update IEventQueue to support two queues and concurrency limits
+type private Priority =
+    | Normal
+    | Background
 
 type private IEventQueue =
-    abstract Enqueue: kind:SubscriptionKind -> action:(unit -> unit) -> unit
-
-// EventQueue with prioritization and concurrency control
+    abstract Enqueue: kind:Priority -> action:(unit -> unit) -> unit
 
 type private EventQueue(maxConcurrency: int) as this =
     let completed = new ManualResetEvent(false)
-    let taskQueue = Queue<(unit -> unit)>()
-    let downloadQueue = Queue<(unit -> unit)>()
+    let normalQueue = Queue<(unit -> unit)>()
+    let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
     let mutable inFlightTasks = 0
@@ -28,12 +24,12 @@ type private EventQueue(maxConcurrency: int) as this =
 
     let rec trySchedule () =
         let totalInFlight = inFlightTasks + inFlightDownloads
-        let canScheduleTask = inFlightTasks < maxConcurrency && taskQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
-        let canScheduleDownload = inFlightDownloads < 2 * maxConcurrency && downloadQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
-        match canScheduleTask, canScheduleDownload with
+        let canScheduleNormalTask = inFlightTasks < maxConcurrency && normalQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
+        let canScheduleDownloadTask = inFlightDownloads < 2 * maxConcurrency && backgroundQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
+        match canScheduleNormalTask, canScheduleDownloadTask with
         | true, _ ->
             inFlightTasks <- inFlightTasks + 1
-            let action = taskQueue.Dequeue()
+            let action = normalQueue.Dequeue()
             async {
                 let mutable error = null
                 try action()
@@ -45,9 +41,9 @@ type private EventQueue(maxConcurrency: int) as this =
                 )
             } |> Async.Start
             trySchedule() // try to schedule more tasks if possible
-        | false, true ->
+        | _, true ->
             inFlightDownloads <- inFlightDownloads + 1
-            let action = downloadQueue.Dequeue()
+            let action = backgroundQueue.Dequeue()
             async {
                 let mutable error = null
                 try action()
@@ -67,8 +63,8 @@ type private EventQueue(maxConcurrency: int) as this =
             lock this (fun () ->
                 totalTasks <- totalTasks + 1
                 match kind with
-                | Task -> taskQueue.Enqueue(action)
-                | Download -> downloadQueue.Enqueue(action)
+                | Normal -> normalQueue.Enqueue(action)
+                | Background -> backgroundQueue.Enqueue(action)
                 if isStarted then trySchedule()
             )
 
@@ -92,7 +88,7 @@ type ISignal<'T> =
     inherit ISignal
     abstract Value: 'T with get, set
 
-type private Signal<'T>(name, eventQueue: IEventQueue, kind: SubscriptionKind) as this =
+type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
     let subscribers = Queue<SignalCompleted>()
     let mutable raised = None
 
@@ -126,7 +122,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: SubscriptionKind) a
                     notify())
 
 
-type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list, kind: SubscriptionKind) as this =
+type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list, kind: Priority) as this =
     let mutable count = signals.Length
     do
         if count = 0 then signal.Value <- ()
@@ -161,7 +157,7 @@ type Hub(maxConcurrency) =
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
     member private _.GetSignal<'T> name =
-        let getOrAdd _ = Signal<'T>(name, eventQueue, Task) :> ISignal // Default kind for signal creation
+        let getOrAdd _ = Signal<'T>(name, eventQueue, Normal) :> ISignal // Default kind for signal creation
         let signal = signals.GetOrAdd(name, getOrAdd)
         match signal with
         | :? Signal<'T> as signal -> signal
@@ -176,8 +172,8 @@ type Hub(maxConcurrency) =
 
     interface IHub with
         member this.GetSignal<'T>(name) = this.GetSignal<'T> name
-        member this.SubscribeTask label signals handler = this.Subscribe label signals Task handler
-        member this.SubscribeDownload label signals handler = this.Subscribe label signals Download handler
+        member this.SubscribeTask label signals handler = this.Subscribe label signals Normal handler
+        member this.SubscribeDownload label signals handler = this.Subscribe label signals Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
             | Some exn -> Status.SubscriptionError exn
