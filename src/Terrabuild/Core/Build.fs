@@ -165,7 +165,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let retry = options.Retry
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
-    let restorables = Concurrent.ConcurrentDictionary<string, Lazy<string list>>()
+    let restorables = Concurrent.ConcurrentDictionary<string, Lazy<string set>>()
     let hub = Hub.Create(options.MaxConcurrency)
 
     let buildNode (node: GraphDef.Node) =
@@ -228,10 +228,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
         | Some (_, summary) ->
 
-            let restorableId = $"{node.Id}-download"
+            let restorableId = $"{node.Id}+download"
             let callback() =
                 notification.NodeDownloading node
-                let restorableSignal = hub.GetSignal<DateTime> restorableId
+                let restorableSignal = hub.GetSignal<Unit> restorableId
 
                 match cache.TryGetSummary allowRemoteCache cacheEntryId with
                 | Some summary ->
@@ -246,23 +246,23 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _ ->
                     notification.NodeCompleted node TaskRequest.Restore false
                     raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
-                restorableSignal.Set(DateTime.UtcNow)
+                restorableSignal.Set<Unit>()
 
             let restorable =
                 lazy (
+                    Log.Debug("Triggering restore for {NodeId}", restorableId)
+                    hub.Subscribe restorableId [] callback
                     let dependencies =
-                        node.Dependencies |> Seq.choose (fun nodeId -> 
+                        node.Dependencies |> Set.collect (fun nodeId -> 
                             match restorables.TryGetValue nodeId with
-                            | true, restorable -> Some restorable
-                            | _ -> None)
-                        |> List.ofSeq
-
-                    let names = dependencies |> List.collect _.Value
-                    callback()
-                    restorableId :: names
+                            | true, restorable -> restorable.Value
+                            | _ -> Set.empty)
+                    dependencies |> Set.add restorableId
                 )
 
             restorables.TryAdd(node.Id, restorable) |> ignore
+
+            if node.Restore then restorable.Value |> ignore
 
             if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
             else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
@@ -332,12 +332,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                     let awaitedDownloads =
                         match buildRequest with
-                        | TaskRequest.Build
-                        | TaskRequest.Restore when node.Restore ->
-                            match restorables.TryGetValue nodeId with
-                            | true, restorable ->
-                                restorable.Value |> List.map (fun entry -> hub.GetSignal<DateTime> entry)
-                            | _ -> []
+                        | TaskRequest.Build ->
+                            let dependencies =
+                                node.Dependencies |> Set.collect (fun nodeId -> 
+                                    match restorables.TryGetValue nodeId with
+                                    | true, restorable -> restorable.Value
+                                    | _ -> Set.empty)
+                            Log.Debug("Scheduled downloads for {NodeId}: {dependencies}", node.Id, dependencies)
+                            dependencies |> Seq.map hub.GetSignal<Unit> |> List.ofSeq
                         | _ -> []
 
                     let onDownloadsAvailable() =
