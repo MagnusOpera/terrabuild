@@ -10,8 +10,8 @@ open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
-    | Build
     | Restore
+    | Build
 
 [<RequireQualifiedAccess>]
 type TaskStatus =
