@@ -22,6 +22,7 @@ type private EventQueue(maxConcurrency: int) as this =
     let mutable inFlightBackgroundTasks = 0
     let mutable lastError = null
 
+    // NOTE: always take the lock before calling trySchedule
     let rec trySchedule () =
         let totalInFlight = inFlightNormalTasks + inFlightBackgroundTasks
         let canScheduleNormalTask = inFlightNormalTasks < maxConcurrency && normalQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
@@ -71,7 +72,10 @@ type private EventQueue(maxConcurrency: int) as this =
     member _.WaitCompletion() =
         let totalTasks = lock this (fun () ->
             isStarted <- true
-            if totalTasks > 0 then async { trySchedule() } |> Async.Start
+            if totalTasks > 0 then
+                async {
+                    lock this trySchedule
+                } |> Async.Start
             totalTasks
         )
         if totalTasks > 0 then completed.WaitOne() |> ignore
