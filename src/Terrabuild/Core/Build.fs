@@ -246,6 +246,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _ ->
                     notification.NodeCompleted node TaskRequest.Restore false
                     raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
+                Log.Debug("Download of {RestorableId} completed", restorableId)
                 restorableSignal.Set<Unit>()
 
             let restorable =
