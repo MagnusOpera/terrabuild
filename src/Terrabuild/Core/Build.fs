@@ -331,14 +331,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                     let buildRequest = computeNodeAction node maxCompletionChildren
 
-                    let restorable =
+                    let awaitedDownloads =
                         match buildRequest with
                         | TaskRequest.Build
                         | TaskRequest.Restore when node.Restore ->
                             match restorables.TryGetValue nodeId with
-                            | true, restorable -> Some restorable
-                            | _ -> None
-                        | _ -> None
+                            | true, restorable ->
+                                restorable.Value |> List.map (fun entry -> hub.GetSignal<DateTime> entry)
+                            | _ -> []
+                        | _ -> []
 
                     let onDownloadsAvailable() =
                         let buildAction = 
@@ -356,13 +357,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         nodeResults[node.Id] <- (buildRequest, completionStatus)
                         notification.NodeCompleted node buildRequest success
                         if success then nodeComputed.Value <- completionDate
-
-                    let awaitedDownloads =
-                        match restorable with
-                        | Some restorable ->
-                            restorable.Value
-                            |> List.map (fun entry -> hub.GetSignal<DateTime> entry)
-                        | _ -> []
 
                     let awaitedSignals = awaitedDownloads |> List.map (fun entry -> entry :> ISignal)
                     hub.Subscribe nodeId awaitedSignals onDownloadsAvailable
