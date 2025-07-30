@@ -9,11 +9,11 @@ open System
 let successful() =
     let hub = Hub.Create(1)
 
-    let value1 = hub.GetSignal<int>("computed1")
-    let computed2 = hub.GetSignal<string>("computed2")
+    let value1 = hub.GetSignalTask<int> "computed1"
+    let computed2 = hub.GetSignalTask<string> "computed2"
 
-    let computed1 = hub.GetSignal<int>("computed1")
-    let value2 = hub.GetSignal<string>("computed2")
+    let computed1 = hub.GetSignalTask<int> "computed1"
+    let value2 = hub.GetSignalTask<string> "computed2"
 
     let mutable triggered0 = false
     let callback0() =
@@ -37,15 +37,15 @@ let successful() =
             // getting another computed lead to same value
             value1.Value |> should equal 42
             value2.Value |> should equal "tralala"
-            hub.GetSignal<int>("computed1").Value |> should equal 42
+            hub.GetSignalTask<int>("computed1").Value |> should equal 42
             triggered3 <- true
 
-        hub.Subscribe "subscription3" [ value1; value2 ] callback3
+        hub.SubscribeTask "subscription3" [ value1; value2 ] callback3
 
 
-    hub.Subscribe "callback0" [] callback0
-    hub.Subscribe "callback1" [ value1 ] callback1
-    hub.Subscribe "callback2" [ value1; value2 ] callback2
+    hub.SubscribeTask "callback0" [] callback0
+    hub.SubscribeTask "callback1" [ value1 ] callback1
+    hub.SubscribeTask "callback2" [ value1; value2 ] callback2
 
     computed1.Value <- 42
 
@@ -64,13 +64,13 @@ let successful() =
 let exception_in_callback_is_error() =
     let hub = Hub.Create(1)
 
-    let value1 = hub.GetSignal<int>("computed1")
-    let computed2 = hub.GetSignal<string>("computed2")
-    let value3 = hub.GetSignal<float>("computed3")
+    let value1 = hub.GetSignalTask<int> "computed1"
+    let computed2 = hub.GetSignalTask<string> "computed2"
+    let value3 = hub.GetSignalTask<float> "computed3"
 
-    let computed1 = hub.GetSignal<int>("computed1")
-    let value2 = hub.GetSignal<string>("computed2")
-    let computed3 = hub.GetSignal<float>("computed3")
+    let computed1 = hub.GetSignalTask<int> "computed1"
+    let value2 = hub.GetSignalTask<string> "computed2"
+    let computed3 = hub.GetSignalTask<float> "computed3"
 
     let mutable triggered1 = false
     let callback() =
@@ -84,8 +84,8 @@ let exception_in_callback_is_error() =
         triggered2 <- true
         failwith "Callback shall never be called"
 
-    hub.Subscribe "subscription1" [ value1; value2 ] callback
-    hub.Subscribe "subscription2" [ value3 ] neverCallback
+    hub.SubscribeTask "subscription1" [ value1; value2 ] callback
+    hub.SubscribeTask "subscription2" [ value3 ] neverCallback
 
     computed1.Value <- 42
     computed2.Value <- "tralala"
@@ -106,13 +106,13 @@ let exception_in_callback_is_error() =
 let unsignaled_subscription1_is_error() =
     let hub = Hub.Create(1)
 
-    let value1 = hub.GetSignal<int>("computed1")
-    let computed2 = hub.GetSignal<string>("computed2")
-    let value3 = hub.GetSignal<float>("computed3")
+    let value1 = hub.GetSignalTask<int> "computed1"
+    let computed2 = hub.GetSignalTask<string> "computed2"
+    let value3 = hub.GetSignalTask<float> "computed3"
 
-    let computed1 = hub.GetSignal<int>("computed1")
-    let value2 = hub.GetSignal<string>("computed2")
-    let computed3 = hub.GetSignal<float>("computed3")
+    let computed1 = hub.GetSignalTask<int> "computed1"
+    let value2 = hub.GetSignalTask<string> "computed2"
+    let computed3 = hub.GetSignalTask<float> "computed3"
 
     let mutable triggered1 = false
     let callback() =
@@ -125,8 +125,8 @@ let unsignaled_subscription1_is_error() =
         triggered2 <- true
         failwith "Callback shall never be called"
 
-    hub.Subscribe "subscription1" [ value1; value2 ] callback
-    hub.Subscribe "subscription2" [ value3 ] neverCallback
+    hub.SubscribeTask "subscription1" [ value1; value2 ] callback
+    hub.SubscribeTask "subscription2" [ value3 ] neverCallback
 
     computed1.Value <- 42
     computed2.Value <- "tralala"
@@ -150,13 +150,13 @@ let unsignaled_subscription1_is_error() =
 let unsignaled_subscription2_is_error() =
     let hub = Hub.Create(1)
 
-    let value1 = hub.GetSignal<int>("computed1")
-    let computed2 = hub.GetSignal<string>("computed2")
-    let value3 = hub.GetSignal<float>("computed3")
+    let value1 = hub.GetSignalTask<int> "computed1"
+    let computed2 = hub.GetSignalTask<string> "computed2"
+    let value3 = hub.GetSignalTask<float> "computed3"
 
-    let computed1 = hub.GetSignal<int>("computed1")
-    let value2 = hub.GetSignal<string>("computed2")
-    let computed3 = hub.GetSignal<float>("computed3")
+    let computed1 = hub.GetSignalTask<int> "computed1"
+    let value2 = hub.GetSignalTask<string> "computed2"
+    let computed3 = hub.GetSignalTask<float> "computed3"
 
     let mutable triggered1 = false
     let callback() =
@@ -168,8 +168,8 @@ let unsignaled_subscription2_is_error() =
         triggered2 <- true
         failwith "Callback shall never be called"
 
-    hub.Subscribe "subscription1" [ value1 ] callback
-    hub.Subscribe "subscription2" [ value2; value3 ] neverCallback
+    hub.SubscribeTask "subscription1" [ value1 ] callback
+    hub.SubscribeTask "subscription2" [ value2; value3 ] neverCallback
 
     computed1.Value <- 42
 
@@ -192,8 +192,27 @@ let unsignaled_subscription2_is_error() =
 let computed_must_match_type() =
     let hub = Hub.Create(1)
 
-    let value1 = hub.GetSignal<int>("computed1")
-    (fun () -> hub.GetSignal<string>("computed1") |> ignore) |> should throw typeof<Errors.TerrabuildException>
+    let value1 = hub.GetSignalTask<int> "computed1"
+    (fun () -> hub.GetSignalTask<string> "computed1" |> ignore) |> should throw typeof<Errors.TerrabuildException>
 
-    let computed2 = hub.GetSignal<string>("computed2")
-    (fun () -> hub.GetSignal<int>("computed2") |> ignore) |> should throw typeof<Errors.TerrabuildException>
+    let computed2 = hub.GetSignalTask<string> "computed2"
+    (fun () -> hub.GetSignalTask<int> "computed2" |> ignore) |> should throw typeof<Errors.TerrabuildException>
+
+
+// Additional test for Download kind
+[<Test>]
+let download_subscription_priority() =
+    let hub = Hub.Create(2)
+    let value1 = hub.GetSignalDownload<int> "download1"
+    let value2 = hub.GetSignalDownload<int> "download2"
+    let mutable triggered = false
+    let callback() =
+        value1.Value |> should equal 99
+        value2.Value |> should equal 100
+        triggered <- true
+    hub.SubscribeDownload "downloadSub" [ value1; value2 ] callback
+    value1.Value <- 99
+    value2.Value <- 100
+    let status = hub.WaitCompletion()
+    status |> should equal Status.Ok
+    triggered |> should equal true

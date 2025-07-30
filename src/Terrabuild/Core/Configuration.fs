@@ -423,8 +423,8 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
                 // bootstrap
                 for (KeyValue(name, value)) in evaluationContext.Data do
-                    localsHub.Subscribe name [] (fun () ->
-                        let varSignal = localsHub.GetSignal<Value> name
+                    localsHub.SubscribeTask name [] (fun () ->
+                        let varSignal = localsHub.GetSignalTask<Value> name
                         varSignal.Value <- value)
 
                 for (KeyValue(name, localExpr)) in projectDef.Locals do
@@ -432,12 +432,12 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                     let deps = Dependencies.find localExpr
                     let signalDeps =
                         deps
-                        |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep :> ISignal)
+                        |> Seq.map (fun dep -> localsHub.GetSignalTask<Value> dep :> ISignal)
                         |> List.ofSeq
-                    localsHub.Subscribe localName signalDeps (fun () ->
+                    localsHub.SubscribeTask localName signalDeps (fun () ->
                         let localValue = Eval.eval evaluationContext localExpr
                         evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
-                        let localSignal = localsHub.GetSignal<Value> localName
+                        let localSignal = localsHub.GetSignalTask<Value> localName
                         localSignal.Value <- localValue)
 
                 match localsHub.WaitCompletion() with
@@ -643,7 +643,7 @@ let read (options: ConfigOptions.Options) =
             let projectPathId = projectDir |> String.toLower
             if projectLoading.TryAdd(projectPathId, true) then
                 // parallel load of projects
-                hub.Subscribe projectDir [] (fun () ->
+                hub.SubscribeTask projectDir [] (fun () ->
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
@@ -666,17 +666,17 @@ let read (options: ConfigOptions.Options) =
                     let projectPathSignals =
                         loadedProject.Dependencies
                         |> Set.map String.toLower
-                        |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
+                        |> Seq.map (fun awaitedProjectId -> hub.GetSignalTask<Project> awaitedProjectId)
                         |> List.ofSeq
 
                     let dependsOnSignals =
                         loadedProject.DependsOn
-                        |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
+                        |> Seq.map (fun awaitedProjectId -> hub.GetSignalTask<Project> awaitedProjectId)
                         |> List.ofSeq
 
                     let awaitedProjectSignals = projectPathSignals @ dependsOnSignals
                     let awaitedSignals = awaitedProjectSignals |> List.map (fun entry -> entry :> ISignal)
-                    hub.Subscribe projectDir awaitedSignals (fun () ->
+                    hub.SubscribeTask projectDir awaitedSignals (fun () ->
                         try
                             // build task & code & notify
                             let dependsOnProjects = 
@@ -688,13 +688,13 @@ let read (options: ConfigOptions.Options) =
                             if projects.TryAdd(projectPathId, project) |> not then raiseBugError "Unexpected error"
 
                             Log.Debug($"Signaling projectPath '{projectPathId}")
-                            let loadedProjectPathIdSignal = hub.GetSignal<Project> projectPathId
+                            let loadedProjectPathIdSignal = hub.GetSignalTask<Project> projectPathId
                             loadedProjectPathIdSignal.Value <- project
 
                             match loadedProject.Id with
                             | Some projectId ->
                                 Log.Debug($"Signaling projectId '{projectId}")
-                                let loadedProjectIdSignal = hub.GetSignal<Project> $"project.{projectId}"
+                                let loadedProjectIdSignal = hub.GetSignalTask<Project> $"project.{projectId}"
                                 loadedProjectIdSignal.Value <- project
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))
