@@ -5,7 +5,7 @@ open System.Collections.Concurrent
 open System.Threading
 
 
-type SubscriptionKind =
+type private SubscriptionKind =
     | Task
     | Download
 
@@ -149,8 +149,7 @@ type Status =
     | SubscriptionError of exn:Exception
 
 type IHub =
-    abstract GetSignalTask<'T>: name:string -> ISignal<'T>
-    abstract GetSignalDownload<'T>: name:string -> ISignal<'T>
+    abstract GetSignal<'T>: name:string -> ISignal<'T>
     abstract SubscribeTask: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract SubscribeDownload: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
@@ -161,8 +160,8 @@ type Hub(maxConcurrency) =
     let signals = ConcurrentDictionary<string, ISignal>()
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
-    member private _.GetSignal<'T> kind name =
-        let getOrAdd _ = Signal<'T>(name, eventQueue, kind) :> ISignal
+    member private _.GetSignal<'T> name =
+        let getOrAdd _ = Signal<'T>(name, eventQueue, Task) :> ISignal // Default kind for signal creation
         let signal = signals.GetOrAdd(name, getOrAdd)
         match signal with
         | :? Signal<'T> as signal -> signal
@@ -171,17 +170,14 @@ type Hub(maxConcurrency) =
     member private _.Subscribe label signals kind handler =
         let name = Guid.NewGuid().ToString()
         let signal = Signal<Unit>(name, eventQueue, kind)
-        let subscription = Subscription(label, signal :> ISignal<Unit>, signals, Task)
+        let subscription = Subscription(label, signal :> ISignal<Unit>, signals, kind)
         subscriptions.TryAdd(name, subscription) |> ignore
         (signal :> ISignal).Subscribe(handler)
 
     interface IHub with
-        member this.GetSignalTask<'T> name = this.GetSignal<'T> Task name
-        member this.GetSignalDownload<'T> name = this.GetSignal<'T> Download name
-
+        member this.GetSignal<'T>(name) = this.GetSignal<'T> name
         member this.SubscribeTask label signals handler = this.Subscribe label signals Task handler
         member this.SubscribeDownload label signals handler = this.Subscribe label signals Download handler
-
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
             | Some exn -> Status.SubscriptionError exn
