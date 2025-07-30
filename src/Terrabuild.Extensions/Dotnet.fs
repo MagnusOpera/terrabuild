@@ -178,7 +178,7 @@ type Dotnet() =
     static member restore (arguments: string option) =
         let arguments = arguments |> Option.defaultValue ""
 
-        let ops = [ shellOp( "dotnet", $"restore {arguments}") ]
+        let ops = [ shellOp( "dotnet", $"restore --no-dependencies {arguments}") ]
         execRequest(Cacheability.Local, ops)
 
 
