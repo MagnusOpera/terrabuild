@@ -18,46 +18,36 @@ type private EventQueue(maxConcurrency: int) as this =
     let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
-    let mutable inFlightNormalTasks = 0
-    let mutable inFlightBackgroundTasks = 0
     let mutable lastError = null
+    let inFlightNormalTasks = ref 0
+    let inFlightBackgroundTasks = ref 0
 
     // NOTE: always take the lock before calling trySchedule
     let rec trySchedule () =
-        let totalInFlight = inFlightNormalTasks + inFlightBackgroundTasks
-        let canScheduleNormalTask = inFlightNormalTasks < maxConcurrency && normalQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
-        let canScheduleBackgroundTask = inFlightBackgroundTasks < 2 * maxConcurrency && backgroundQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
-        match canScheduleNormalTask, canScheduleBackgroundTask with
-        | true, _ ->
-            inFlightNormalTasks <- inFlightNormalTasks + 1
-            let action = normalQueue.Dequeue()
+
+        let schedule (count: ref<int>) action =
+            count.Value <- count.Value + 1
             async {
                 let mutable error = null
                 try action()
                 with ex -> error <- ex
                 lock this (fun () ->
                     if error <> null && lastError = null then lastError <- error
-                    inFlightNormalTasks <- inFlightNormalTasks - 1
+                    count.Value <- count.Value - 1
                     trySchedule()
                 )
             } |> Async.Start
             trySchedule() // try to schedule more tasks if possible
-        | _, true ->
-            inFlightBackgroundTasks <- inFlightBackgroundTasks + 1
-            let action = backgroundQueue.Dequeue()
-            async {
-                let mutable error = null
-                try action()
-                with ex -> error <- ex
-                lock this (fun () ->
-                    if error <> null && lastError = null then lastError <- error
-                    inFlightBackgroundTasks <- inFlightBackgroundTasks - 1
-                    trySchedule()
-                )
-            } |> Async.Start
-            trySchedule() // try to schedule more downloads if possible
-        | false, false when totalInFlight = 0 -> completed.Set() |> ignore
-        | _ -> ()
+
+        let totalInFlight = inFlightNormalTasks.Value + inFlightBackgroundTasks.Value
+        let canAcceptTask = totalInFlight < 2 * maxConcurrency
+        let canScheduleNormalTask = 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
+        let canScheduleBackgroundTask = 0 < backgroundQueue.Count && inFlightBackgroundTasks.Value < 2 * maxConcurrency
+
+        if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
+        elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
+        elif totalInFlight = 0 then completed.Set() |> ignore
+
 
     interface IEventQueue with
         member _.Enqueue kind action =
