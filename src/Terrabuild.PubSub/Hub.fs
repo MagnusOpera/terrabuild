@@ -5,55 +5,77 @@ open System.Collections.Concurrent
 open System.Threading
 
 
+type private Priority =
+    | Normal
+    | Background
+
 type private IEventQueue =
-    abstract Enqueue: action:(unit -> unit) -> unit
+    abstract Enqueue: kind:Priority -> action:(unit -> unit) -> unit
 
 type private EventQueue(maxConcurrency: int) as this =
     let completed = new ManualResetEvent(false)
-    let queue = Queue<( (unit -> unit) )>()
+    let normalQueue = Queue<(unit -> unit)>()
+    let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
-    let mutable inFlight = 0
+    let mutable inFlightNormalTasks = 0
+    let mutable inFlightBackgroundTasks = 0
     let mutable lastError = null
 
+    // NOTE: always take the lock before calling trySchedule
     let rec trySchedule () =
-        match queue.Count, inFlight with
-        | 0, 0 -> completed.Set() |> ignore
-        | n, _ when 0 < n && inFlight < maxConcurrency ->
-            // feed the pipe the most we can
-            let rec schedule() =
-                inFlight <- inFlight + 1
-                let action = queue.Dequeue()
-                async {
-                    let mutable error = null
-                    try action()
-                    with ex -> error <- ex
-
-                    lock this (fun () ->
-                        if error <> null && lastError = null then lastError <- error
-                        inFlight <- inFlight - 1
-                        trySchedule()
-                    )
-                } |> Async.Start
-
-                if 0 < queue.Count && inFlight < maxConcurrency then
-                    schedule()
-            schedule()
+        let totalInFlight = inFlightNormalTasks + inFlightBackgroundTasks
+        let canScheduleNormalTask = inFlightNormalTasks < maxConcurrency && normalQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
+        let canScheduleBackgroundTask = inFlightBackgroundTasks < 2 * maxConcurrency && backgroundQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
+        match canScheduleNormalTask, canScheduleBackgroundTask with
+        | true, _ ->
+            inFlightNormalTasks <- inFlightNormalTasks + 1
+            let action = normalQueue.Dequeue()
+            async {
+                let mutable error = null
+                try action()
+                with ex -> error <- ex
+                lock this (fun () ->
+                    if error <> null && lastError = null then lastError <- error
+                    inFlightNormalTasks <- inFlightNormalTasks - 1
+                    trySchedule()
+                )
+            } |> Async.Start
+            trySchedule() // try to schedule more tasks if possible
+        | _, true ->
+            inFlightBackgroundTasks <- inFlightBackgroundTasks + 1
+            let action = backgroundQueue.Dequeue()
+            async {
+                let mutable error = null
+                try action()
+                with ex -> error <- ex
+                lock this (fun () ->
+                    if error <> null && lastError = null then lastError <- error
+                    inFlightBackgroundTasks <- inFlightBackgroundTasks - 1
+                    trySchedule()
+                )
+            } |> Async.Start
+            trySchedule() // try to schedule more downloads if possible
+        | false, false when totalInFlight = 0 -> completed.Set() |> ignore
         | _ -> ()
 
-
     interface IEventQueue with
-        member _.Enqueue (action: unit -> unit) =
+        member _.Enqueue kind action =
             lock this (fun () ->
                 totalTasks <- totalTasks + 1
-                queue.Enqueue(action)
+                match kind with
+                | Normal -> normalQueue.Enqueue(action)
+                | Background -> backgroundQueue.Enqueue(action)
                 if isStarted then trySchedule()
             )
 
     member _.WaitCompletion() =
         let totalTasks = lock this (fun () ->
             isStarted <- true
-            if totalTasks > 0 then async { trySchedule() } |> Async.Start
+            if totalTasks > 0 then
+                async {
+                    lock this trySchedule
+                } |> Async.Start
             totalTasks
         )
         if totalTasks > 0 then completed.WaitOne() |> ignore
@@ -65,35 +87,42 @@ type ISignal =
     abstract Name: string
     abstract IsRaised: unit -> bool
     abstract Subscribe: SignalCompleted -> unit
+    abstract Get<'T>: unit -> 'T
+    abstract Set<'T>: 'T -> unit
 
-type ISignal<'T> =
+and ISignal<'T> =
     inherit ISignal
     abstract Value: 'T with get, set
 
-type private Signal<'T>(name, eventQueue: IEventQueue) as this =
+type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
     let subscribers = Queue<SignalCompleted>()
     let mutable raised = None
 
     interface ISignal with
         member _.Name = name
-
-        member _.IsRaised() =
-            lock this (fun () -> raised.IsSome )
-
+        member _.IsRaised() = lock this (fun () -> raised.IsSome )
         member _.Subscribe(onCompleted: SignalCompleted) =
             lock this (fun () ->
                 match raised with
-                | Some _ -> eventQueue.Enqueue(onCompleted)
+                | Some _ -> eventQueue.Enqueue kind onCompleted
                 | _ -> subscribers.Enqueue(onCompleted)
             )
+        member _.Get<'Q>() =
+            match box this with
+            | :? ISignal<'Q> as signal -> signal.Value
+            | _ -> Errors.raiseBugError $"Unexpected Signal type {typeof<'Q>.Name}"
+
+        member _.Set<'Q>(value: 'Q) = 
+            match box this with
+            | :? ISignal<'Q> as signal -> signal.Value <- value
+            | _ -> Errors.raiseBugError $"Unexpected Signal type {typeof<'Q>.Name}"
 
     interface ISignal<'T> with
         member _.Value
             with get () = lock this (fun () -> 
                 match raised with
                 | Some raised -> raised
-                | _ -> Errors.raiseBugError "Signal '{(this :> ISignal).Name}' is not raised")
-
+                | _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is not raised")
             and set value = lock this (fun () ->
                 match raised with
                 | Some _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is already raised"
@@ -101,27 +130,21 @@ type private Signal<'T>(name, eventQueue: IEventQueue) as this =
                     let rec notify() =
                         match subscribers.TryDequeue() with
                         | true, subscriber ->
-                            eventQueue.Enqueue(subscriber)
+                            eventQueue.Enqueue kind subscriber
                             notify()
                         | _ -> ()
-
                     raised <- Some value
                     notify())
 
 
 type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list) as this =
     let mutable count = signals.Length
-
     do
         if count = 0 then signal.Value <- ()
         else signals |> Seq.iter (fun signal -> signal.Subscribe(this.Callback))
-
     member _.Label = label
-
     member _.Signal = signal
-
     member _.AwaitedSignals = signals
-
     member private _.Callback() =
         let count = lock this (fun () -> count <- count - 1; count)
         match count with
@@ -136,8 +159,9 @@ type Status =
     | SubscriptionError of exn:Exception
 
 type IHub =
-    abstract GetSignal<'T>: name:string -> ISignal<'T>
+    abstract GetSignal<'T>: name:string -> ISignal
     abstract Subscribe: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
+    abstract SubscribeBackground: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
 
 
@@ -146,21 +170,24 @@ type Hub(maxConcurrency) =
     let signals = ConcurrentDictionary<string, ISignal>()
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
+    member private _.GetSignal<'T> name =
+        let getOrAdd _ = Signal<'T>(name, eventQueue, Normal) :> ISignal
+        let signal = signals.GetOrAdd(name, getOrAdd)
+        match signal with
+        | :? Signal<'T> as signal -> signal
+        | _ -> Errors.raiseBugError "Unexpected Signal type"
+
+    member private _.Subscribe label signals kind handler =
+        let name = Guid.NewGuid().ToString()
+        let signal = Signal<Unit>(name, eventQueue, kind)
+        let subscription = Subscription(label, signal :> ISignal<Unit>, signals)
+        subscriptions.TryAdd(name, subscription) |> ignore
+        (signal :> ISignal).Subscribe(handler)
+
     interface IHub with
-        member _.GetSignal<'T> name =
-            let getOrAdd _ = Signal<'T>(name, eventQueue) :> ISignal
-            let signal = signals.GetOrAdd(name, getOrAdd)
-            match signal with
-            | :? Signal<'T> as signal -> signal
-            | _ -> Errors.raiseBugError "Unexpected Signal type"
-
-        member _.Subscribe label signals handler =
-            let name = Guid.NewGuid().ToString()
-            let signal = Signal<Unit>(name, eventQueue)
-            let subscription = Subscription(label, signal, signals)
-            subscriptions.TryAdd(name, subscription) |> ignore
-            (signal :> ISignal).Subscribe(handler)
-
+        member this.GetSignal<'T>(name) = this.GetSignal<'T> name
+        member this.Subscribe label signals handler = this.Subscribe label signals Normal handler
+        member this.SubscribeBackground label signals handler = this.Subscribe label signals Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
             | Some exn -> Status.SubscriptionError exn

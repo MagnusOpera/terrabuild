@@ -425,20 +425,20 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                 for (KeyValue(name, value)) in evaluationContext.Data do
                     localsHub.Subscribe name [] (fun () ->
                         let varSignal = localsHub.GetSignal<Value> name
-                        varSignal.Value <- value)
+                        varSignal.Set(value))
 
                 for (KeyValue(name, localExpr)) in projectDef.Locals do
                     let localName = $"local.{name}"
                     let deps = Dependencies.find localExpr
                     let signalDeps =
                         deps
-                        |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep :> ISignal)
+                        |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep)
                         |> List.ofSeq
                     localsHub.Subscribe localName signalDeps (fun () ->
                         let localValue = Eval.eval evaluationContext localExpr
                         evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
                         let localSignal = localsHub.GetSignal<Value> localName
-                        localSignal.Value <- localValue)
+                        localSignal.Set(localValue))
 
                 match localsHub.WaitCompletion() with
                 | Status.Ok -> evaluationContext
@@ -674,14 +674,13 @@ let read (options: ConfigOptions.Options) =
                         |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
                         |> List.ofSeq
 
-                    let awaitedProjectSignals = projectPathSignals @ dependsOnSignals
-                    let awaitedSignals = awaitedProjectSignals |> List.map (fun entry -> entry :> ISignal)
+                    let awaitedSignals = projectPathSignals @ dependsOnSignals
                     hub.Subscribe projectDir awaitedSignals (fun () ->
                         try
                             // build task & code & notify
                             let dependsOnProjects = 
-                                awaitedProjectSignals
-                                |> Seq.map (fun projectDependency -> projectDependency.Value.Directory, projectDependency.Value)
+                                awaitedSignals
+                                |> Seq.map (fun projectDependency -> projectDependency.Get<Project>().Directory, projectDependency.Get<Project>())
                                 |> Map.ofSeq
 
                             let project = finalizeProject projectDir evaluationContext loadedProject dependsOnProjects
@@ -689,13 +688,13 @@ let read (options: ConfigOptions.Options) =
 
                             Log.Debug($"Signaling projectPath '{projectPathId}")
                             let loadedProjectPathIdSignal = hub.GetSignal<Project> projectPathId
-                            loadedProjectPathIdSignal.Value <- project
+                            loadedProjectPathIdSignal.Set(project)
 
                             match loadedProject.Id with
                             | Some projectId ->
                                 Log.Debug($"Signaling projectId '{projectId}")
                                 let loadedProjectIdSignal = hub.GetSignal<Project> $"project.{projectId}"
-                                loadedProjectIdSignal.Value <- project
+                                loadedProjectIdSignal.Set(project)
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))
 
