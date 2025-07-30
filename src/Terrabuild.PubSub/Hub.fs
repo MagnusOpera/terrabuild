@@ -126,7 +126,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
                     notify())
 
 
-type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list, kind: Priority) as this =
+type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list) as this =
     let mutable count = signals.Length
     do
         if count = 0 then signal.Value <- ()
@@ -134,7 +134,6 @@ type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal 
     member _.Label = label
     member _.Signal = signal
     member _.AwaitedSignals = signals
-    member _.Kind = kind
     member private _.Callback() =
         let count = lock this (fun () -> count <- count - 1; count)
         match count with
@@ -151,7 +150,7 @@ type Status =
 type IHub =
     abstract GetSignal<'T>: name:string -> ISignal<'T>
     abstract Subscribe: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
-    abstract SubscribeDownload: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
+    abstract SubscribeBackground: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
 
 
@@ -170,14 +169,14 @@ type Hub(maxConcurrency) =
     member private _.Subscribe label signals kind handler =
         let name = Guid.NewGuid().ToString()
         let signal = Signal<Unit>(name, eventQueue, kind)
-        let subscription = Subscription(label, signal :> ISignal<Unit>, signals, kind)
+        let subscription = Subscription(label, signal :> ISignal<Unit>, signals)
         subscriptions.TryAdd(name, subscription) |> ignore
         (signal :> ISignal).Subscribe(handler)
 
     interface IHub with
         member this.GetSignal<'T>(name) = this.GetSignal<'T> name
         member this.Subscribe label signals handler = this.Subscribe label signals Normal handler
-        member this.SubscribeDownload label signals handler = this.Subscribe label signals Background handler
+        member this.SubscribeBackground label signals handler = this.Subscribe label signals Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
             | Some exn -> Status.SubscriptionError exn

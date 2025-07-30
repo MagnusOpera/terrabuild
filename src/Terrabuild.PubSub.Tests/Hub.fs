@@ -209,7 +209,7 @@ let download_subscription_priority() =
         value1.Value |> should equal 99
         value2.Value |> should equal 100
         triggered <- true
-    hub.SubscribeDownload "downloadSub" [ value1; value2 ] callback
+    hub.SubscribeBackground "downloadSub" [ value1; value2 ] callback
     value1.Value <- 99
     value2.Value <- 100
     let status = hub.WaitCompletion()
