@@ -342,6 +342,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         | _ -> []
 
                     let onDownloadsAvailable() =
+                        Log.Debug("Downloads for {NodeId} completed", node.Id)
                         let buildAction = 
                             match buildRequest with
                             | TaskRequest.Build -> buildNode
