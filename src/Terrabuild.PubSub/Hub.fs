@@ -161,7 +161,7 @@ type Hub(maxConcurrency) =
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
     member private _.GetSignal<'T> name =
-        let getOrAdd _ = Signal<'T>(name, eventQueue, Normal) :> ISignal // Default kind for signal creation
+        let getOrAdd _ = Signal<'T>(name, eventQueue, Normal) :> ISignal
         let signal = signals.GetOrAdd(name, getOrAdd)
         match signal with
         | :? Signal<'T> as signal -> signal
