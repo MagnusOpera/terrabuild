@@ -161,34 +161,26 @@ type Hub(maxConcurrency) =
     let signals = ConcurrentDictionary<string, ISignal>()
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
+    member private _.GetSignal<'T> kind name =
+        let getOrAdd _ = Signal<'T>(name, eventQueue, kind) :> ISignal
+        let signal = signals.GetOrAdd(name, getOrAdd)
+        match signal with
+        | :? Signal<'T> as signal -> signal
+        | _ -> Errors.raiseBugError "Unexpected Signal type"
+
+    member private _.Subscribe label signals kind handler =
+        let name = Guid.NewGuid().ToString()
+        let signal = Signal<Unit>(name, eventQueue, kind)
+        let subscription = Subscription(label, signal :> ISignal<Unit>, signals, Task)
+        subscriptions.TryAdd(name, subscription) |> ignore
+        (signal :> ISignal).Subscribe(handler)
+
     interface IHub with
-        member _.GetSignalTask<'T> name =
-            let getOrAdd _ = Signal<'T>(name, eventQueue, Task) :> ISignal
-            let signal = signals.GetOrAdd(name, getOrAdd)
-            match signal with
-            | :? Signal<'T> as signal -> signal
-            | _ -> Errors.raiseBugError "Unexpected Signal type"
+        member this.GetSignalTask<'T> name = this.GetSignal<'T> Task name
+        member this.GetSignalDownload<'T> name = this.GetSignal<'T> Download name
 
-        member _.GetSignalDownload<'T> name =
-            let getOrAdd _ = Signal<'T>(name, eventQueue, Download) :> ISignal
-            let signal = signals.GetOrAdd(name, getOrAdd)
-            match signal with
-            | :? Signal<'T> as signal -> signal
-            | _ -> Errors.raiseBugError "Unexpected Signal type"
-
-        member _.SubscribeTask label signals handler =
-            let name = Guid.NewGuid().ToString()
-            let signal = Signal<Unit>(name, eventQueue, Task)
-            let subscription = Subscription(label, signal :> ISignal<Unit>, signals, Task)
-            subscriptions.TryAdd(name, subscription) |> ignore
-            (signal :> ISignal).Subscribe(handler)
-
-        member _.SubscribeDownload label signals handler =
-            let name = Guid.NewGuid().ToString()
-            let signal = Signal<Unit>(name, eventQueue, Download)
-            let subscription = Subscription(label, signal :> ISignal<Unit>, signals, Download)
-            subscriptions.TryAdd(name, subscription) |> ignore
-            (signal :> ISignal).Subscribe(handler)
+        member this.SubscribeTask label signals handler = this.Subscribe label signals Task handler
+        member this.SubscribeDownload label signals handler = this.Subscribe label signals Download handler
 
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
