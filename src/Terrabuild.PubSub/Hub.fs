@@ -14,7 +14,7 @@ type private IEventQueue =
 
 type private EventQueue(maxConcurrency: int) as this =
     let completed = new ManualResetEvent(false)
-    let normalQueue = Queue<(unit -> unit)>()
+    let taskQueue = Queue<(unit -> unit)>()
     let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
@@ -24,12 +24,12 @@ type private EventQueue(maxConcurrency: int) as this =
 
     let rec trySchedule () =
         let totalInFlight = inFlightTasks + inFlightDownloads
-        let canScheduleNormalTask = inFlightTasks < maxConcurrency && normalQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
+        let canScheduleNormalTask = inFlightTasks < maxConcurrency && taskQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
         let canScheduleDownloadTask = inFlightDownloads < 2 * maxConcurrency && backgroundQueue.Count > 0 && totalInFlight < 2 * maxConcurrency
         match canScheduleNormalTask, canScheduleDownloadTask with
         | true, _ ->
             inFlightTasks <- inFlightTasks + 1
-            let action = normalQueue.Dequeue()
+            let action = taskQueue.Dequeue()
             async {
                 let mutable error = null
                 try action()
@@ -63,7 +63,7 @@ type private EventQueue(maxConcurrency: int) as this =
             lock this (fun () ->
                 totalTasks <- totalTasks + 1
                 match kind with
-                | Normal -> normalQueue.Enqueue(action)
+                | Normal -> taskQueue.Enqueue(action)
                 | Background -> backgroundQueue.Enqueue(action)
                 if isStarted then trySchedule()
             )
