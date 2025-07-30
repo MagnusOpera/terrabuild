@@ -152,18 +152,6 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
 
 
-
-type Restorable(name: string, action: unit -> unit, dependencies: Restorable list) =
-    let restore = lazy(
-        let names = dependencies |> List.collect _.Restore()
-        action()
-        name :: names
-    )
-
-    member _.Restore() = restore.Value
-
-
-
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (notification: IBuildNotification) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
@@ -177,7 +165,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let retry = options.Retry
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
-    let restorables = Concurrent.ConcurrentDictionary<string, Restorable>()
+    let restorables = Concurrent.ConcurrentDictionary<string, Lazy<string list>>()
     let hub = Hub.Create(options.MaxConcurrency)
 
     let buildNode (node: GraphDef.Node) =
@@ -261,13 +249,18 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 restorableSignal.Value <- DateTime.UtcNow
 
             let restorable =
-                let dependencies =
-                    node.Dependencies |> Seq.choose (fun nodeId -> 
-                        match restorables.TryGetValue nodeId with
-                        | true, restorable -> Some restorable
-                        | _ -> None)
-                    |> List.ofSeq
-                Restorable(restorableId, callback, dependencies)
+                lazy (
+                    let dependencies =
+                        node.Dependencies |> Seq.choose (fun nodeId -> 
+                            match restorables.TryGetValue nodeId with
+                            | true, restorable -> Some restorable
+                            | _ -> None)
+                        |> List.ofSeq
+
+                    let names = dependencies |> List.collect _.Value
+                    callback()
+                    restorableId :: names
+                )
 
             restorables.TryAdd(node.Id, restorable) |> ignore
 
@@ -367,7 +360,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let awaitedDownloads =
                         match restorable with
                         | Some restorable ->
-                            restorable.Restore()
+                            restorable.Value
                             |> List.map (fun entry -> hub.GetSignal<DateTime> entry)
                         | _ -> []
 
