@@ -64,8 +64,10 @@ let getErrorArea (ex: Exception) =
     getErrorArea ErrorArea.Bug ex
 
 
-let tryRun ferr faction =
+let tryInvoke action =
     try
-        faction()
+        action()
+        None
     with
-        exn -> ferr exn
+        exn -> Some exn
+

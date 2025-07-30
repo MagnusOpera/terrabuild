@@ -18,7 +18,7 @@ type private EventQueue(maxConcurrency: int) as this =
     let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
-    let mutable lastError = null
+    let mutable lastError  = None
     let inFlightNormalTasks = ref 0
     let inFlightBackgroundTasks = ref 0
 
@@ -28,11 +28,9 @@ type private EventQueue(maxConcurrency: int) as this =
         let schedule (count: ref<int>) action =
             count.Value <- count.Value + 1
             async {
-                let mutable error = null
-                try action()
-                with ex -> error <- ex
+                let error = Errors.tryInvoke action
                 lock this (fun () ->
-                    if error <> null && lastError = null then lastError <- error
+                    error |> Option.iter (fun error -> lastError <- Some error)
                     count.Value <- count.Value - 1
                     trySchedule()
                 )
@@ -69,7 +67,7 @@ type private EventQueue(maxConcurrency: int) as this =
             totalTasks
         )
         if totalTasks > 0 then completed.WaitOne() |> ignore
-        lastError |> Option.ofObj
+        lastError
 
 type SignalCompleted = unit -> unit
 
