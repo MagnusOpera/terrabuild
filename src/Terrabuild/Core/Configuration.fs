@@ -423,7 +423,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
                 // bootstrap
                 for (KeyValue(name, value)) in evaluationContext.Data do
-                    localsHub.SubscribeTask name [] (fun () ->
+                    localsHub.Subscribe name [] (fun () ->
                         let varSignal = localsHub.GetSignal<Value> name
                         varSignal.Value <- value)
 
@@ -434,7 +434,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                         deps
                         |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep :> ISignal)
                         |> List.ofSeq
-                    localsHub.SubscribeTask localName signalDeps (fun () ->
+                    localsHub.Subscribe localName signalDeps (fun () ->
                         let localValue = Eval.eval evaluationContext localExpr
                         evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
                         let localSignal = localsHub.GetSignal<Value> localName
@@ -643,7 +643,7 @@ let read (options: ConfigOptions.Options) =
             let projectPathId = projectDir |> String.toLower
             if projectLoading.TryAdd(projectPathId, true) then
                 // parallel load of projects
-                hub.SubscribeTask projectDir [] (fun () ->
+                hub.Subscribe projectDir [] (fun () ->
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
@@ -676,7 +676,7 @@ let read (options: ConfigOptions.Options) =
 
                     let awaitedProjectSignals = projectPathSignals @ dependsOnSignals
                     let awaitedSignals = awaitedProjectSignals |> List.map (fun entry -> entry :> ISignal)
-                    hub.SubscribeTask projectDir awaitedSignals (fun () ->
+                    hub.Subscribe projectDir awaitedSignals (fun () ->
                         try
                             // build task & code & notify
                             let dependsOnProjects = 

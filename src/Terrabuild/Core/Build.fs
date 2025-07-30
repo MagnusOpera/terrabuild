@@ -356,7 +356,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         if success then nodeComputed.Value <- completionDate
 
                     let awaitedSignals = awaitedDownloads |> List.map (fun entry -> entry :> ISignal)
-                    hub.SubscribeTask nodeId awaitedSignals onDownloadsAvailable
+                    hub.Subscribe nodeId awaitedSignals onDownloadsAvailable
 
                 with
                     exn ->
@@ -366,7 +366,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         reraise()
 
             let awaitedSignals = awaitedDependencies |> List.map (fun entry -> entry :> ISignal)
-            hub.SubscribeTask nodeId awaitedSignals onDependenciesAvailable
+            hub.Subscribe nodeId awaitedSignals onDependenciesAvailable
 
     graph.RootNodes |> Seq.iter schedule
 

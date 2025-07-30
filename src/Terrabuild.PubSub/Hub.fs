@@ -150,7 +150,7 @@ type Status =
 
 type IHub =
     abstract GetSignal<'T>: name:string -> ISignal<'T>
-    abstract SubscribeTask: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
+    abstract Subscribe: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract SubscribeDownload: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
 
@@ -176,7 +176,7 @@ type Hub(maxConcurrency) =
 
     interface IHub with
         member this.GetSignal<'T>(name) = this.GetSignal<'T> name
-        member this.SubscribeTask label signals handler = this.Subscribe label signals Normal handler
+        member this.Subscribe label signals handler = this.Subscribe label signals Normal handler
         member this.SubscribeDownload label signals handler = this.Subscribe label signals Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
