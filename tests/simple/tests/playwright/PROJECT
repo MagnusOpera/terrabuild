@@ -1,6 +1,7 @@
 
 project playwright_test {
     labels = [ "app" ]
+    ignores = [ "test-results" ]
 
     @npm { }
 }

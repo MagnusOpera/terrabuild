@@ -587,15 +587,14 @@
     "tests/playwright": {
       "id": "playwright_test",
       "directory": "tests/playwright",
-      "hash": "A6929327633A8107F720B6749010CC1509C4D58E6D15C524DE5B4B494F2BE963",
+      "hash": "D2D665EB1F1B2F4BAE0B413850B9DE1C2E7A3096A7695413B96F1ED233A04396",
       "dependencies": [],
       "files": [
+        ".gitignore",
         "PROJECT",
         "package-lock.json",
         "package.json",
         "playwright.config.ts",
-        "test-results/.last-run.json",
-        "test-results/junit.xml",
         "tests/example.test.ts"
       ],
       "targets": {
