@@ -104,7 +104,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                         else Some $"-e {key}={expandedValue}"
                     else None)
                 |> String.join " "
-            let args = $"run -u 1001:1001 --shm-size=1gb --init --rm --net=host --name {node.TargetHash} --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+            let args = $"run --shm-size=1gb --init --rm --net=host --name {node.TargetHash} --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
             metaCommand, options.Workspace, cmd, args, operation.Container
         | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Container)
 
