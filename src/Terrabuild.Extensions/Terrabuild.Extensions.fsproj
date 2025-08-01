@@ -17,6 +17,7 @@
     <Compile Include="Null.fs" />
     <Compile Include="Shell.fs" />
     <Compile Include="OpenApi.fs" />
+    <Compile Include="Playwright.fs" />
     <Compile Include="Terraform.fs" />
     <Compile Include="Yarn.fs" />
     <Compile Include="Factory.fs" />

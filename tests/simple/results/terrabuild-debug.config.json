@@ -8,7 +8,8 @@
     "projects/make-app",
     "projects/npm-app",
     "projects/open-api",
-    "projects/rust-app"
+    "projects/rust-app",
+    "tests/playwright"
   ],
   "targets": {
     "build": [
@@ -25,6 +26,9 @@
     ],
     "push": [
       "docker"
+    ],
+    "test": [
+      "build"
     ]
   },
   "projects": {
@@ -578,6 +582,62 @@
       "labels": [
         "app",
         "rust"
+      ]
+    },
+    "tests/playwright": {
+      "id": "playwright_test",
+      "directory": "tests/playwright",
+      "hash": "A6929327633A8107F720B6749010CC1509C4D58E6D15C524DE5B4B494F2BE963",
+      "dependencies": [],
+      "files": [
+        "PROJECT",
+        "package-lock.json",
+        "package.json",
+        "playwright.config.ts",
+        "test-results/.last-run.json",
+        "test-results/junit.xml",
+        "tests/example.test.ts"
+      ],
+      "targets": {
+        "test": {
+          "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
+          "dependsOn": [
+            "build"
+          ],
+          "outputs": [
+            "dist/**"
+          ],
+          "operations": [
+            {
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+              "container": "node:20",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
+            {
+              "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
+              "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+              "containerVariables": [],
+              "extension": "@playwright",
+              "command": "test",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app"
       ]
     }
   }

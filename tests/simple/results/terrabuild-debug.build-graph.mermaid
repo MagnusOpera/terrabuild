@@ -20,6 +20,8 @@ projects/open-api:build("<b>build</b>
 projects/open-api")
 projects/rust-app:build("<b>build</b> 
 projects/rust-app")
+tests/playwright:test("<b>test playwright_test</b> 
+tests/playwright")
 deployments/terraform-deploy:build --> projects/dotnet-app:build
 deployments/terraform-deploy:build --> projects/npm-app:build
 class deployments/terraform-deploy:build ignore
@@ -34,3 +36,4 @@ projects/npm-app:build --> libraries/npm-lib:build
 class projects/npm-app:build ignore
 class projects/open-api:build ignore
 class projects/rust-app:build ignore
+class tests/playwright:test ignore

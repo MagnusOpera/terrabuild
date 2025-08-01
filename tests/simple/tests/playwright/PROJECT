@@ -1,0 +1,11 @@
+
+project playwright_test {
+    labels = [ "app" ]
+
+    @npm { }
+}
+
+target test {
+    @npm install { }
+    @playwright test { }
+}

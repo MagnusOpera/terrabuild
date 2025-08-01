@@ -16,6 +16,10 @@ target build {
   depends_on = [ target.^build ]
 }
 
+target test {
+  depends_on = [ target.build ]
+}
+
 target dist {
   depends_on = [ target.build ]
 }
@@ -62,3 +66,8 @@ extension @openapi {
   container = "openapitools/openapi-generator-cli:v7.10.0"
   platform = "linux/amd64"
 }
+
+extension @playwright {
+    container = "mcr.microsoft.com/playwright:v1.54.0-noble"
+}
+
