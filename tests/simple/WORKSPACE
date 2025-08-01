@@ -68,6 +68,6 @@ extension @openapi {
 }
 
 extension @playwright {
-    container = "mcr.microsoft.com/playwright:v1.54.0-jammy"
+    container = "mcr.microsoft.com/playwright:v1.54.0-noble"
 }
 

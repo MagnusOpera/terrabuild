@@ -572,7 +572,7 @@
       "projectDir": "tests/playwright",
       "target": "test",
       "configurationTarget": {
-        "hash": "E568C8BEFE1B1616B26E4732CDFE37E160D4E81548A200C7505E03B04F9DF5DA",
+        "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
         "dependsOn": [
           "build"
         ],
@@ -594,8 +594,8 @@
             ]
           },
           {
-            "hash": "9805ADFB4F0DCEDC1BF528FC60E702B85BFCBF72C57BED8F9D55AAFD60A6540A",
-            "container": "mcr.microsoft.com/playwright:v1.54.0-jammy",
+            "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
+            "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
             "containerVariables": [],
             "extension": "@playwright",
             "command": "test",
@@ -612,7 +612,7 @@
         "dist/**"
       ],
       "projectHash": "6B4772B564553120084BB75BE33C6D72B12FB39F3361EBA58749EDA0848A40CA",
-      "targetHash": "B05EA602224D2EF20657577B725FAB2C2038C6A20E1D749A411764F44D63F352",
+      "targetHash": "49CA80EC4647E5A8A06CEDBEE2DC06EDE74921FABC7FF7230D11514F20127E04",
       "operations": [
         {
           "container": "node:20",
@@ -623,7 +623,7 @@
           "arguments": "ci"
         },
         {
-          "container": "mcr.microsoft.com/playwright:v1.54.0-jammy",
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
