@@ -587,7 +587,7 @@
     "tests/playwright": {
       "id": "playwright_test",
       "directory": "tests/playwright",
-      "hash": "76FE75EEDEFA1EE953A63DEDDF352CFEED976D6B3028426D5C19422D9D890B05",
+      "hash": "58F728BD0772F0B5F06AF5F06FC88E1B2EE6B2205332618D25BB5416994BC348",
       "dependencies": [],
       "files": [
         ".gitignore",

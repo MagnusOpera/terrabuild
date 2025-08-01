@@ -2,13 +2,17 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   use: {
+    headless: true,
     launchOptions: {
       args: ['--no-sandbox']
     }
   },
-  reporter: [
-    ['junit', { outputFile: 'test-results/junit.xml' }]
-  ],
-  outputDir: 'test-results',
-  timeout: 30_000
+  workers: 1,
+  reporter: [['junit', { outputFile: 'test-results/junit.xml' }]],
+  projects: [
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium' }
+    }
+  ]
 })
