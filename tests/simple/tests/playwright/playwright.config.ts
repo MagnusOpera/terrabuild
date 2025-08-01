@@ -9,10 +9,10 @@ export default defineConfig({
   },
   workers: 1,
   reporter: [['junit', { outputFile: 'test-results/junit.xml' }]],
-  projects: [
+    projects: [
     {
-      name: 'chromium',
-      use: { browserName: 'chromium' }
+        name: 'firefox',
+        use: { browserName: 'firefox' }
     }
   ]
 })
