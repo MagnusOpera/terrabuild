@@ -92,7 +92,10 @@ type Terraform() =
 
     /// <summary weight="3" title="Generate plan file.">
     /// Generate the planfile.
-    /// **WARNING: This command generate an ephemeral artifact.**
+    /// 
+    /// {{&lt; callout type="warning" &gt;}}
+    /// This extension generate an [ephemeral artifact](/docs/getting-started/artifacts/#ephemeral-artifacts).
+    /// {{&lt; /callout &gt;}}
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
     /// <param name="args" example="[ &quot;-no-color&quot; ]">Arguments for command.</param>
@@ -118,7 +121,7 @@ type Terraform() =
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("terraform", $"apply -input=false{planfile} {args}")
+            shellOp("terraform", $"apply -input=false {planfile} {args}")
         ]
         ops |> execRequest Cacheability.Always
 
@@ -127,12 +130,12 @@ type Terraform() =
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
     /// <param name="args" example="[  ]">Arguments for command.</param>
-    static member destroy (variables: Map<string, string>)
+    static member destroy (variables: Map<string, string> option)
                           (args: string list option) =
-        let vars = variables |> Seq.fold (fun acc (KeyValue(key, value)) -> acc + $" -var=\"{key}={value}\"") ""
+        let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("terraform", $"destroy -input=false{vars} {args}")
+            shellOp("terraform", $"apply -destroy -input=false {vars} {args}")
         ]
         ops |> execRequest Cacheability.Always
