@@ -82,7 +82,9 @@ type Dotnet() =
                                (args: string list option) =
         let args = args |> concat_quote
 
-        let ops = [ shellOp("dotnet", $"{context.Command} {args}") ]
+        let ops = [
+            shellOp("dotnet", $"{context.Command} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -163,7 +165,9 @@ type Dotnet() =
     static member restore (args: string list option) =
         let args = args |> concat_quote
 
-        let ops = [ shellOp( "dotnet", $"restore {args}") ]
+        let ops = [
+            shellOp( "dotnet", $"restore {args}")
+        ]
         execRequest(Cacheability.Local, ops)
 
 
