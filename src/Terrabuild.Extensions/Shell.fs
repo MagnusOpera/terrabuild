@@ -19,4 +19,4 @@ type Shell() =
         let ops = [
             shellOp(context.Command, args)
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

@@ -12,7 +12,7 @@ type Docker() =
     /// Run a docker `command`.
     /// </summary>
     /// <param name="__dispatch__" example="image">Example.</param>
-    /// <param name="args" example="[ &quot;prune -f&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="[ &quot;prune&quot; &quot;-f&quot; ]">Arguments for command.</param>
     static member __dispatch__ (context: ActionContext)
                                (args: string list option) =
         let args = args |> concat_quote
@@ -20,7 +20,7 @@ type Docker() =
         let ops = [
             shellOp("docker", $"{context.Command} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
@@ -50,7 +50,7 @@ type Docker() =
             shellOp("docker", $"build --file {dockerfile} --tag {image}:{context.Hash} {arguments} {platforms} {args} .")
             if context.CI then shellOp("docker", $"push {image}:{context.Hash}")
         ]
-        execRequest(cacheability, ops)
+        ops |> execRequest cacheability
 
 
     /// <summary>
@@ -75,4 +75,4 @@ type Docker() =
             else
                 shellOp("docker", $"tag {image}:{context.Hash} {image}:{tag} {args}")
         ]
-        execRequest(cacheability, ops)
+        ops |> execRequest cacheability

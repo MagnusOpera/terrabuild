@@ -52,7 +52,7 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"{context.Command} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary title="Build project.">
@@ -68,7 +68,7 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"build {profile} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
@@ -84,4 +84,4 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"test {profile} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

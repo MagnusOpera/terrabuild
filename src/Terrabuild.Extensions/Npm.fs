@@ -38,7 +38,7 @@ type Npm() =
         let ops = [
             shellOp("npm", $"{cmd} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
@@ -51,7 +51,7 @@ type Npm() =
         let ops = [
             shellOp("npm", $"ci {force}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
@@ -64,7 +64,7 @@ type Npm() =
         let ops = [
             shellOp("npm", $"run build -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
@@ -77,7 +77,7 @@ type Npm() =
         let ops = [
             shellOp("npm", $"run test -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary>
     /// Run `run` script.
@@ -90,4 +90,4 @@ type Npm() =
         let ops = [
             shellOp("npm", $"run {command} -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

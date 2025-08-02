@@ -18,4 +18,4 @@ type Npx() =
         let ops = [
             shellOp("npx", $"--yes {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

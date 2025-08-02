@@ -58,6 +58,6 @@ let shellOp(cmd, args) =
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args }
 
-let execRequest(cache, ops) =
+let execRequest cache ops =
     { ActionExecutionRequest.Cache = cache 
       ActionExecutionRequest.Operations = ops }

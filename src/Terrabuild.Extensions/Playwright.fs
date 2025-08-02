@@ -24,4 +24,4 @@ type Playwright() =
         let ops = [
             shellOp("npx", $"playwright test {browser} {project} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

@@ -85,11 +85,11 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"{context.Command} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary title="Build project.">
-    /// Build project and ensure packages are available first.
+    /// Build project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to use to build project. Default is `Debug`.</param>
     /// <param name="parallel" example="1">Max worker processes to build the project.</param>
@@ -109,11 +109,11 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |>  execRequest Cacheability.Always
 
 
     /// <summary>
-    /// Pack a project.
+    /// Pack project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for pack command.</param>
     /// <param name="version" example="&quot;1.0.0&quot;">Version for pack command.</param>
@@ -128,16 +128,16 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary>
-    /// Publish a project.
+    /// Publish project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
     /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime for publish.</param>
     /// <param name="trim" example="true">Instruct to trim published project.</param>
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
-    /// <param name="args" example="[ &quot;--version-suffix beta&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="[ &quot;--version-suffix&quot; &quot;beta&quot; ]">Arguments for command.</param>
     static member publish (configuration: string option)
                           (runtime: string option)
                           (trim: bool option)
@@ -155,7 +155,7 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |>  execRequest Cacheability.Always
 
     /// <summary>
     /// Restore packages.
@@ -168,7 +168,7 @@ type Dotnet() =
         let ops = [
             shellOp( "dotnet", $"restore {args}")
         ]
-        execRequest(Cacheability.Local, ops)
+        ops |>  execRequest Cacheability.Local
 
 
     /// <summary>
@@ -187,4 +187,4 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |>  execRequest Cacheability.Always

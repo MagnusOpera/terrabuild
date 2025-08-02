@@ -35,45 +35,48 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{context.Command} -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    static member install (``ignore-engines``: bool option) =
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
+    static member install (``ignore-engines``: bool option)
+                          (args: string list option) =
         let ignoreEngines = ``ignore-engines`` |> map_true "--ignore-engines"
+        let args = args |> concat_quote
 
-        let ops = [ shellOp("yarn", $"install --frozen-lockfile {ignoreEngines}") ]
-        execRequest(Cacheability.Local, ops)
+        let ops = [ shellOp("yarn", $"install --frozen-lockfile {ignoreEngines} {args}") ]
+        ops |> execRequest Cacheability.Local
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
     static member build (args: string list option) =
         let args = args |> concat_quote
 
         let ops = [
             shellOp("yarn", $"build -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
     static member test (args: string list option) =
         let args = args |> concat_quote
 
         let ops = [
             shellOp("yarn", $"test -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary>
     /// Run `run` script.
@@ -86,4 +89,4 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{command} -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

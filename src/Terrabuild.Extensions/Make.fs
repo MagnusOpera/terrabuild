@@ -21,4 +21,4 @@ type Make() =
         let ops = [
             shellOp("make", $"{context.Command} {variables} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
