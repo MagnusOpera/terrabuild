@@ -172,7 +172,7 @@ smoke-test-multirefs:
 	$(call run_integration_test, tests/multirefs, run build --force --debug --parallel 2 --log --container docker)
 
 smoke-test-simple:
-	$(call run_integration_test, tests/simple, run build --force --debug --parallel 2 --log --container docker)
+	$(call run_integration_test, tests/simple, run build test --force --debug --parallel 2 --log --container docker)
 
 smoke-indirect-target:
 	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log)

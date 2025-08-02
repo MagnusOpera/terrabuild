@@ -1,0 +1,12 @@
+
+project playwright_test {
+    labels = [ "app" ]
+    ignores = [ "test-results" ]
+
+    @npm { }
+}
+
+target test {
+    @npm install { }
+    @playwright test { project = "ci" }
+}

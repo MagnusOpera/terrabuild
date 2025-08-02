@@ -565,6 +565,80 @@
       "rebuild": true,
       "restore": false,
       "isLeaf": true
+    },
+    "tests/playwright:test": {
+      "id": "tests/playwright:test",
+      "projectId": "playwright_test",
+      "projectDir": "tests/playwright",
+      "target": "test",
+      "configurationTarget": {
+        "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
+        "dependsOn": [
+          "build"
+        ],
+        "outputs": [
+          "dist/**"
+        ],
+        "operations": [
+          {
+            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+            "container": "node:20",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@npm",
+            "command": "install",
+            "script": {},
+            "context": [
+              "map",
+              {}
+            ]
+          },
+          {
+            "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
+            "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+            "containerVariables": [],
+            "extension": "@playwright",
+            "command": "test",
+            "script": {},
+            "context": [
+              "map",
+              {
+                "project": [
+                  "string",
+                  "ci"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "dependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
+      "targetHash": "EFC71B1914BD710A213A7AF0514BD337BCD7F22041799165287DD61D3ED98AD4",
+      "operations": [
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "arguments": "ci"
+        },
+        {
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+          "containerVariables": [],
+          "metaCommand": "@playwright test",
+          "command": "npx",
+          "arguments": "playwright test  --project ci "
+        }
+      ],
+      "cache": 3,
+      "rebuild": true,
+      "restore": false,
+      "isLeaf": true
     }
   },
   "rootNodes": [
@@ -576,6 +650,7 @@
     "projects/make-app:build",
     "projects/npm-app:build",
     "projects/open-api:build",
-    "projects/rust-app:build"
+    "projects/rust-app:build",
+    "tests/playwright:test"
   ]
 }
