@@ -48,7 +48,9 @@ type Npm() =
     static member install (force: bool option)=
         let force = force |> map_true "--force"
 
-        let ops = [ shellOp("npm", $"ci {force}") ]
+        let ops = [
+            shellOp("npm", $"ci {force}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 

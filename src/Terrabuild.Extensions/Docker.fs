@@ -17,7 +17,9 @@ type Docker() =
                                (args: string list option) =
         let args = args |> concat_quote
 
-        let ops = [ shellOp("docker", $"{context.Command} {args}") ]
+        let ops = [
+            shellOp("docker", $"{context.Command} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -36,22 +38,18 @@ type Docker() =
                         (arguments: Map<string, string> option)
                         (args: string list option) =
         let dockerfile = dockerfile |> or_default "Dockerfile"
-
-        let platforms = platforms |> format_space (fun platform -> $"--platform {platform}")
+        let platforms = platforms |> format_comma (fun platform -> $"{platform}") |> map_value (fun platforms -> $"--platform {platforms}")
         let arguments = arguments |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
         let args = args |> concat_quote
-
-        let ops = 
-            [
-                let buildArgs = $"build --file {dockerfile} --tag {image}:{context.Hash} {arguments} {platforms} {args} ."
-                shellOp("docker", buildArgs)
-                if context.CI then shellOp("docker", $"push {image}:{context.Hash}")
-            ]
 
         let cacheability =
             if context.CI then Cacheability.Remote
             else Cacheability.Local
 
+        let ops = [
+            shellOp("docker", $"build --file {dockerfile} --tag {image}:{context.Hash} {arguments} {platforms} {args} .")
+            if context.CI then shellOp("docker", $"push {image}:{context.Hash}")
+        ]
         execRequest(cacheability, ops)
 
 
@@ -67,16 +65,14 @@ type Docker() =
                        (args: string list option) =
         let args = args |> concat_quote
 
-        let ops =
-            [
-                if context.CI then
-                    shellOp("docker", $"buildx imagetools create -t {image}:{tag} {image}:{context.Hash} {args}")
-                else
-                    shellOp("docker", $"tag {image}:{context.Hash} {image}:{tag} {args}")
-            ]
-
         let cacheability =
             if context.CI then Cacheability.Remote
             else Cacheability.Local
 
+        let ops = [
+            if context.CI then
+                shellOp("docker", $"buildx imagetools create -t {image}:{tag} {image}:{context.Hash} {args}")
+            else
+                shellOp("docker", $"tag {image}:{context.Hash} {image}:{tag} {args}")
+        ]
         execRequest(cacheability, ops)

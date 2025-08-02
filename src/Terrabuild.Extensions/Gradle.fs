@@ -31,7 +31,9 @@ type Gradle() =
                                (args: string list option) =
         let args = args |> concat_quote
 
-        let ops = [ shellOp("gradle", $"{context.Command} {args}") ]
+        let ops = [
+            shellOp("gradle", $"{context.Command} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -45,5 +47,7 @@ type Gradle() =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration
         let args = args |> concat_quote
 
-        let ops = [ shellOp("gradlew", $"assemble {configuration} {args}") ]
+        let ops = [
+            shellOp("gradlew", $"assemble {configuration} {args}")
+        ]
         execRequest(Cacheability.Always, ops)

@@ -18,5 +18,7 @@ type Make() =
         let variables = variables |> format_space (fun kvp -> $"{kvp.Key}=\"{kvp.Value}\"")
         let args = args |> concat_quote
 
-        let ops = [ shellOp("make", $"{context.Command} {variables} {args}") ]
+        let ops = [
+            shellOp("make", $"{context.Command} {variables} {args}")
+        ]
         execRequest(Cacheability.Always, ops)

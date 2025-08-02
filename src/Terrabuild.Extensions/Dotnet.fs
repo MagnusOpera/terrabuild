@@ -107,7 +107,6 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
-
         execRequest(Cacheability.Always, ops)
 
 
@@ -127,7 +126,6 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
         ]
-
         execRequest(Cacheability.Always, ops)
 
     /// <summary>
@@ -155,7 +153,6 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
-
         execRequest(Cacheability.Always, ops)
 
     /// <summary>
@@ -186,5 +183,4 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {args}")
         ]
-
         execRequest(Cacheability.Always, ops)

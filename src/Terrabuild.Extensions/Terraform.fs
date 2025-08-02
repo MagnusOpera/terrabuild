@@ -48,7 +48,9 @@ type Terraform() =
         let config = config |> map_default (fun config -> $"-backend-config={config}")
         let args = args |> concat_quote
     
-        let ops = [ shellOp("terraform", $"init -reconfigure {config} {args}") ]
+        let ops = [
+            shellOp("terraform", $"init -reconfigure {config} {args}")
+        ]
         execRequest(Cacheability.Local, ops)
 
 

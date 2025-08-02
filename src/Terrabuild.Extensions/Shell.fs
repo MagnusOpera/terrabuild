@@ -16,5 +16,7 @@ type Shell() =
     static member __dispatch__ (context: ActionContext)
                                (args: string list option) =
         let args = args |> concat_quote
-        let ops = [ shellOp(context.Command, args) ]
+        let ops = [
+            shellOp(context.Command, args)
+        ]
         execRequest(Cacheability.Always, ops)

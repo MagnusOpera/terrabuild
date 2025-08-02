@@ -49,7 +49,9 @@ type Cargo() =
                                (args: string list option) =
         let args = args |> concat_quote
 
-        let ops = [ shellOp("cargo", $"{context.Command} {args}") ]
+        let ops = [
+            shellOp("cargo", $"{context.Command} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -63,7 +65,9 @@ type Cargo() =
         let profile = profile |> map_default (fun profile -> $"--profile {profile}")
         let args = args |> concat_quote
 
-        let ops = [ shellOp("cargo", $"build {profile} {args}") ]
+        let ops = [
+            shellOp("cargo", $"build {profile} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -77,5 +81,7 @@ type Cargo() =
         let profile = profile |> map_default (fun profile -> $"--profile {profile}")
         let args = args |> concat_quote
 
-        let ops = [ shellOp("cargo", $"test {profile} {args}") ]
+        let ops = [
+            shellOp("cargo", $"test {profile} {args}")
+        ]
         execRequest(Cacheability.Always, ops)
