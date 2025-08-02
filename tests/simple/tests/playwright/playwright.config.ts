@@ -5,8 +5,19 @@ export default defineConfig({
     workers: 1,
     projects: [
         {
+            name: 'chromium',
+            use: {
+                browserName: 'chromium',
+                launchOptions: {
+                    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+                }
+            }
+        },
+        {
             name: 'webkit',
-            use: { browserName: 'webkit' }
+            use: {
+                browserName: 'webkit'
+            }
         }
     ]
 })
