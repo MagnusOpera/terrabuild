@@ -27,7 +27,7 @@ type Yarn() =
     /// <summary>
     /// Run yarn `command`.
     /// </summary>
-    /// <param name="arguments" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
     static member __dispatch__ (context: ActionContext)
                                (args: string list option) =
         let args = args |> concat_quote

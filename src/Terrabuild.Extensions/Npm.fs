@@ -55,7 +55,7 @@ type Npm() =
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="arguments" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
     static member build (args: string list option) =
         let args = args |> concat_quote
 
@@ -68,7 +68,7 @@ type Npm() =
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="arguments" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
     static member test (args: string list option) =
         let args = args |> concat_quote
 
@@ -80,8 +80,9 @@ type Npm() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="arguments" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
-    static member run (command: string) (args: string list option) =
+    /// <param name="srgs" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    static member run (command: string)
+                      (args: string list option) =
         let args = args |> concat_quote
 
         let ops = [
