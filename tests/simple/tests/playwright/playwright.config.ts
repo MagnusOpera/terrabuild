@@ -5,8 +5,8 @@ export default defineConfig({
     workers: 1,
     projects: [
         {
-            name: 'chromium',
-            use: { browserName: 'chromium' }
+            name: 'webkit',
+            use: { browserName: 'webkit' }
         }
     ]
 })
