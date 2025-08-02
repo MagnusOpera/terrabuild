@@ -1,54 +1,6 @@
 namespace Terrabuild.Extensions
-
 open Terrabuild.Extensibility
-open System.Xml.Linq
 open Converters
-
-
-#nowarn "0077" // op_Explicit
-
-module DotnetHelpers =
-    open Errors
-
-    let private NsNone = XNamespace.None
-
-    let inline (!>) (x : ^a) : ^b = (((^a or ^b) : (static member op_Explicit : ^a -> ^b) x))
-
-    let private ext2projType = Map [ (".csproj",  "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC")
-                                     (".fsproj",  "F2A71F9B-5D33-465A-A702-920D77279786")
-                                     (".vbproj",  "F184B08F-C81C-45F6-A57F-5ABD9991F28F") 
-                                     (".pssproj", "F5034706-568F-408A-B7B3-4D38C6DB8A32")
-                                     (".sqlproj", "00D1A9C2-B5F0-4AF3-8072-F6C62B433612")
-                                     (".dcproj",  "E53339B2-1760-4266-BCC7-CA923CBCF16C")]
-
-
-
-    let findProjectFile (directory: string) =
-        let projects =
-            ext2projType.Keys
-            |> Seq.map (fun k -> $"*{k}")
-            |> Seq.collect (fun ext -> System.IO.Directory.EnumerateFiles(directory, ext))
-            |> List.ofSeq
-        match projects with
-        | [ project ] -> project
-        | [] -> raiseInvalidArg "No project found"
-        | _ -> raiseInvalidArg "Multiple projects found"
-
-    let findDependencies (projectFile: string) =
-        let xdoc = XDocument.Load (projectFile)
-        let refs =
-            xdoc.Descendants() 
-            |> Seq.filter (fun x -> x.Name.LocalName = "ProjectReference")
-            |> Seq.map (fun x -> !> x.Attribute(NsNone + "Include") : string | null)
-            |> Seq.choose Option.ofObj
-            |> Seq.map (fun x -> x.Replace("\\", "/"))
-            |> Seq.map (Option.get << FS.parentDirectory)
-            |> Seq.distinct
-            |> List.ofSeq
-        Set refs 
-
-    [<Literal>]
-    let defaultConfiguration = "Debug"
 
 
 /// <summary>
@@ -85,20 +37,20 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary>
     /// Restore packages.
     /// </summary>
     /// <param name="projectfile" example="&quot;project.fsproj&quot;">Force usage of project file for publish.</param>
-    /// <param name="no_dependencies" example="&quot;true&quot;">No dependencies restore.</param>
+    /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
     /// <param name="locked" example="&quot;true&quot;">Locked mode restore.</param>
     /// <param name="args" example="[ &quot;--no-dependencies&quot; ]">Arguments for command.</param>
-    static member restore (no_dependencies: bool option)
+    static member restore (dependencies: bool option)
                           (locked: bool option)
                           (args: string list option) =
-        let no_dependencies = no_dependencies |> map_true "--no-dependencies"
+        let no_dependencies = dependencies |> map_false "--no-dependencies"
         let locked = locked |> map_true "--locked-mode"
         let args = args |> concat_quote
 
@@ -182,10 +134,7 @@ type Dotnet() =
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
         let no_restore = restore |> map_false "--no-restore"
         let no_build = build |> map_false "--no-build"
-        let runtime =
-            match runtime with
-            | Some identifier -> $" -r {identifier}"
-            | _ -> " --no-restore --no-build"
+        let runtime = runtime |> map_value (fun runtime -> $"-r {runtime}")
         let trim = trim |> map_true "-p:PublishTrimmed=true"
         let single = single |> map_true "--self-contained"
         let args = args |> concat_quote

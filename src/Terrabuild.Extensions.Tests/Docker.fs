@@ -7,6 +7,30 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+
+[<Test>]
+let ``dispatch some``() =
+    let expected =
+        execRequest Cacheability.Never
+                    [ shellOp("docker", "ci-command \"--opt1\" \"--opt2\"") ]
+
+    Docker.__dispatch__ ciContext someArgs
+    |> normalize
+    |> should equal expected
+
+
+[<Test>]
+let ``dispatch none``() =
+    let expected =
+        execRequest Cacheability.Never
+                    [ shellOp("docker", "local-command") ]
+
+    Docker.__dispatch__ localContext noneArgs
+    |> normalize
+    |> should equal expected
+
+
+
 [<Test>]
 let ``build some ci``() =
     let expected =
@@ -15,10 +39,10 @@ let ``build some ci``() =
                       shellOp("docker", "push ghcr.io/magnusopera/test:ABCDEF123456789") ]
 
     Docker.build ciContext
-                 "ghcr.io/magnusopera/test"
-                 (Some "my-docker-file")
-                 (Some ["linux/arm64"; "linux/amd64"])
-                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some)
+                 "ghcr.io/magnusopera/test" // image
+                 (Some "my-docker-file") // dockerfile
+                 (Some ["linux/arm64"; "linux/amd64"]) // platforms
+                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // arguments
                  someArgs
     |> normalize
     |> should equal expected
@@ -30,10 +54,10 @@ let ``build some local``() =
                     [ shellOp("docker", "build --file my-docker-file --tag ghcr.io/magnusopera/test:123456789ABCDEF --build-arg arg1=\"value1\" --build-arg arg2=\"value2\" --platform linux/arm64,linux/amd64 \"--opt1\" \"--opt2\" .") ]
 
     Docker.build localContext
-                 "ghcr.io/magnusopera/test"
-                 (Some "my-docker-file")
-                 (Some ["linux/arm64"; "linux/amd64"])
-                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some)
+                 "ghcr.io/magnusopera/test" // image
+                 (Some "my-docker-file") // dockerfile
+                 (Some ["linux/arm64"; "linux/amd64"]) // platforms
+                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // arguments
                  someArgs
     |> normalize
     |> should equal expected
@@ -46,10 +70,10 @@ let ``build none``() =
                       shellOp("docker", "push ghcr.io/magnusopera/test:ABCDEF123456789") ]
 
     Docker.build ciContext
-                 "ghcr.io/magnusopera/test"
-                 None
-                 None
-                 None
+                 "ghcr.io/magnusopera/test" // image
+                 None // dockerfile
+                 None // platforms
+                 None // arguments
                  noneArgs
     |> normalize
     |> should equal expected
@@ -64,8 +88,8 @@ let ``push some ci``() =
                     [ shellOp("docker", "buildx imagetools create -t ghcr.io/magnusopera/test:my-tag ghcr.io/magnusopera/test:ABCDEF123456789 \"--opt1\" \"--opt2\"") ]
 
     Docker.push ciContext
-                "ghcr.io/magnusopera/test"
-                "my-tag"
+                "ghcr.io/magnusopera/test" // image
+                "my-tag" // tag
                 someArgs
     |> normalize
     |> should equal expected
@@ -77,8 +101,8 @@ let ``push some local``() =
                     [ shellOp("docker", "tag ghcr.io/magnusopera/test:123456789ABCDEF ghcr.io/magnusopera/test:my-tag \"--opt1\" \"--opt2\"") ]
 
     Docker.push localContext
-                "ghcr.io/magnusopera/test"
-                "my-tag"
+                "ghcr.io/magnusopera/test" // image
+                "my-tag" // tag
                 someArgs
     |> normalize
     |> should equal expected
@@ -90,8 +114,8 @@ let ``push none``() =
                     [ shellOp("docker", "tag ghcr.io/magnusopera/test:123456789ABCDEF ghcr.io/magnusopera/test:my-tag") ]
 
     Docker.push localContext
-                "ghcr.io/magnusopera/test"
-                "my-tag"
+                "ghcr.io/magnusopera/test" // image
+                "my-tag" // tag
                 noneArgs
     |> normalize
     |> should equal expected

@@ -13,9 +13,8 @@
     <Compile Include="Helpers/Dotnet.fs" /> -->
     <Compile Include="Cargo.fs" />
     <Compile Include="Docker.fs" />
-
-<!-- 
     <Compile Include="Dotnet.fs" />
+<!-- 
     <Compile Include="Gradle.fs" />
     <Compile Include="Make.fs" />
     <Compile Include="Npm.fs" />

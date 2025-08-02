@@ -52,7 +52,7 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary title="Build project.">

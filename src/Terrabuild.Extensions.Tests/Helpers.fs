@@ -13,11 +13,11 @@ let normalize (request: Terrabuild.Extensibility.ActionExecutionRequest) =
 let ciContext =
     { ActionContext.Debug = true
       ActionContext.CI = true
-      ActionContext.Command = "toto"
+      ActionContext.Command = "ci-command"
       ActionContext.Hash = "ABCDEF123456789" }
 
 let localContext =
     { ActionContext.Debug = false
       ActionContext.CI = false
-      ActionContext.Command = "titi"
+      ActionContext.Command = "local-command"
       ActionContext.Hash = "123456789ABCDEF" }

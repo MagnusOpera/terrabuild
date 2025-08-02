@@ -20,20 +20,20 @@ type Docker() =
         let ops = [
             shellOp("docker", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary>
     /// Build a Dockerfile.
     /// </summary>
-    /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
+    /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
     /// <param name="arguments" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
     /// <param name="args" example="[ &quot;--debug&quot; ]">Arguments for command.</param>
     static member build (context: ActionContext)
-                        (dockerfile: string option)
                         (image: string)
+                        (dockerfile: string option)
                         (platforms: string list option)
                         (arguments: Map<string, string> option)
                         (args: string list option) =
