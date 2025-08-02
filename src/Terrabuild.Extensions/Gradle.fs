@@ -48,6 +48,6 @@ type Gradle() =
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("gradlew", $"assemble {configuration} {args}")
+            shellOp("gradle", $"assemble {configuration} {args}")
         ]
         ops |> execRequest Cacheability.Always
