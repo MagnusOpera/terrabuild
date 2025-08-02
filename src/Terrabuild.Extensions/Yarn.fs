@@ -35,20 +35,23 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{context.Command} -- {args}")   
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
+    /// <param name="update" example="true">Restore and update lock file.</param> 
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
     /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
-    static member install (``ignore-engines``: bool option)
+    static member install (update: bool option)
+                          (``ignore-engines``: bool option)
                           (args: string list option) =
+        let update = update |> map_false "--frozen-lockfile"
         let ignoreEngines = ``ignore-engines`` |> map_true "--ignore-engines"
         let args = args |> concat_quote
 
-        let ops = [ shellOp("yarn", $"install --frozen-lockfile {ignoreEngines} {args}") ]
+        let ops = [ shellOp("yarn", $"install {update} {ignoreEngines} {args}") ]
         ops |> execRequest Cacheability.Local
 
 
@@ -89,4 +92,4 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{command} -- {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Local
