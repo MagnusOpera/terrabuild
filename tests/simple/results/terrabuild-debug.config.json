@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "B7CE2B2607F969D9947CD698BD24DE8883294FBB09450C29A3836B00BBA8EBFF",
+      "hash": "CE2D7226EBC1012DBB460A2AC5EA501E831FC8667156E72A8B9409B642E0D101",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -72,11 +72,11 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "A6B3EFDD388EBBFEE6A8CC40CB4125F4E31189737D8AE74B87F1A363CC1E5400"
+                        "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771"
                       ],
                       "npm_app_version": [
                         "string",
-                        "D4E260C3DCFF3605A0B2B0C53BC2EE0CAF780B385DDE9F7FCD6BBF4529A4F88B"
+                        "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6"
                       ]
                     }
                   ],
@@ -125,7 +125,7 @@
     },
     "libraries/dotnet-lib": {
       "directory": "libraries/dotnet-lib",
-      "hash": "2DCC3A4D5681DD60329704AE104430AAC29AE50AD63E193047C0EE62002FCC26",
+      "hash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
       "dependencies": [],
       "files": [
         "Class1.cs",
@@ -134,7 +134,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
+          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "dependsOn": [
             "^build"
           ],
@@ -147,6 +147,24 @@
             "obj/*.targets"
           ],
           "operations": [
+            {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "configuration": [
+                    "string",
+                    "Debug"
+                  ]
+                }
+              ]
+            },
             {
               "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -172,7 +190,7 @@
     },
     "libraries/npm-lib": {
       "directory": "libraries/npm-lib",
-      "hash": "42251A3FE94834989EE0F135BEDEF76023512E5F5A0DB7D15DF0270B34802DE6",
+      "hash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
       "dependencies": [],
       "files": [
         "PROJECT",
@@ -185,7 +203,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
+          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
           "dependsOn": [
             "^build"
           ],
@@ -193,6 +211,19 @@
             "dist/**"
           ],
           "operations": [
+            {
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+              "container": "node:20",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
               "container": "node:20",
@@ -215,7 +246,7 @@
     },
     "libraries/shell-lib": {
       "directory": "libraries/shell-lib",
-      "hash": "17163E3CEBFDD94D511D906EAE915397691F2E8F0E0ECEFCF63AEF1C8EF4D0FF",
+      "hash": "E1EA319AF6B9D2E9908E79B1FC233AA31B5ED5C052F580ED4204BD6ABD281D4C",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -237,9 +268,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "building library1"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "building library1"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -252,7 +288,7 @@
     "projects/dotnet-app": {
       "id": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "A6B3EFDD388EBBFEE6A8CC40CB4125F4E31189737D8AE74B87F1A363CC1E5400",
+      "hash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
       "dependencies": [
         "libraries/dotnet-lib"
       ],
@@ -265,7 +301,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
+          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "dependsOn": [
             "^build"
           ],
@@ -278,6 +314,24 @@
             "obj/*.targets"
           ],
           "operations": [
+            {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "configuration": [
+                    "string",
+                    "Debug"
+                  ]
+                }
+              ]
+            },
             {
               "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -299,7 +353,7 @@
           ]
         },
         "dist": {
-          "hash": "490913BE8F9E3EDDB6106E0FCEF40BA44D2714E82FE78D6F52111B5DE21316FF",
+          "hash": "71B04C660C84F005AA77AE72F1B798B933FC718D638C3DEEBC029BA8451DCA24",
           "dependsOn": [
             "build"
           ],
@@ -312,6 +366,24 @@
             "obj/*.targets"
           ],
           "operations": [
+            {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "configuration": [
+                    "string",
+                    "Debug"
+                  ]
+                }
+              ]
+            },
             {
               "hash": "83FFC378D8A4DE3E63A64813B19826BB598ECF58D153327B42418E1DB2483301",
               "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -381,7 +453,7 @@
     },
     "projects/make-app": {
       "directory": "projects/make-app",
-      "hash": "814D331D5CFDB8D8B65F761C69352AB9D66EA0300014FB990FC9D91684A5DEA5",
+      "hash": "26EA9217291A79C2BA5ADA74B9BD656F5EC9AC3A41B7A58D15DE84B1E1C3B85D",
       "dependencies": [
         "libraries/shell-lib"
       ],
@@ -408,9 +480,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "building project1"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "building project1"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -446,7 +523,7 @@
     "projects/npm-app": {
       "id": "npm_app",
       "directory": "projects/npm-app",
-      "hash": "D4E260C3DCFF3605A0B2B0C53BC2EE0CAF780B385DDE9F7FCD6BBF4529A4F88B",
+      "hash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
       "dependencies": [
         "libraries/npm-lib"
       ],
@@ -466,7 +543,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
+          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
           "dependsOn": [
             "^build"
           ],
@@ -474,6 +551,19 @@
             "dist/**"
           ],
           "operations": [
+            {
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+              "container": "node:20",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
               "container": "node:20",

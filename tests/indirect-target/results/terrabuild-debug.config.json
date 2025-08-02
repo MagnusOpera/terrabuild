@@ -28,7 +28,7 @@
     "a": {
       "id": "a",
       "directory": "A",
-      "hash": "93E239570E6B9FFE2C7437AD6F8DD19EC71F63DB6B04A2AEB2A47C1E4D9F7B73",
+      "hash": "33A749C7C546CCB87889879C087E398332D325A893974C472DD2A7EDE303BA8F",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -50,9 +50,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "build A"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "build A"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -77,9 +82,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "dist A"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "dist A"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -92,7 +102,7 @@
     "b": {
       "id": "b",
       "directory": "B",
-      "hash": "0D4635FF9549E163EEA450E6A2494A005BB7ED398C6B51DF80D2B527AD51415D",
+      "hash": "624B403512753E1A9C674872270128E880D0828ED3D60BCC20BAFEB412993BE3",
       "dependencies": [
         "a"
       ],
@@ -118,9 +128,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "apply B"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "apply B"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -145,9 +160,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "plan B"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "plan B"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -160,7 +180,7 @@
     "c": {
       "id": "c",
       "directory": "C",
-      "hash": "23F451E7CA600359C540B37D910F0F1135AB887915AE8BB5B31FA1E303961E2A",
+      "hash": "17CF635B3B032A16280660DED945A1AD2650807B1B06158E30F6398A02DE4B18",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -182,9 +202,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "build C"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "build C"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -209,9 +234,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "dist C"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "dist C"
+                      ]
+                    ]
                   ]
                 }
               ]

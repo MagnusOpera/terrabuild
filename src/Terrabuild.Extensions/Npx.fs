@@ -1,5 +1,6 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
+open Converters
 
 
 /// <summary>
@@ -10,11 +11,11 @@ type Npx() =
     /// <summary>
     /// Run an npx command.
     /// </summary>
-    /// <param name="arguments" example="&quot;hello-world-npm&quot;">Arguments to pass to npx.</param> 
-    static member run (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;hello-world-npm&quot; ]">Arguments to pass to npx.</param> 
+    static member run (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("npx", $"--yes {arguments}")
+            shellOp("npx", $"--yes {args}")
         ]
         execRequest(Cacheability.Always, ops)

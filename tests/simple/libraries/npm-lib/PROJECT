@@ -6,5 +6,6 @@ project {
 }
 
 target build {
+    @npm install { }
     @npm build { }
 }

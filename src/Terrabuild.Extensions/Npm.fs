@@ -1,6 +1,7 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
 open Errors
+open Converters
 
 /// <summary>
 /// Provides support for `npm`.
@@ -28,13 +29,14 @@ type Npm() =
     /// <summary>
     /// Run npm command.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
+    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    static member __dispatch__ (context: ActionContext)
+                               (args: string list option) =
         let cmd = context.Command
-        let arguments = arguments |> Option.defaultValue ""
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("npm", $"{cmd} {arguments}")
+            shellOp("npm", $"{cmd} {args}")
         ]
         execRequest(Cacheability.Always, ops)
 
@@ -42,21 +44,22 @@ type Npm() =
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
-    static member install (context: ActionContext) (force: bool option)=
-        let force = if force = Some true then " --force" else ""
-        let ops = [ shellOp("npm", $"ci{force}") ]
+    /// <param name="args" example="[ &quot;--install-strategy&quot; &quot;hoisted&quot; ]">Arguments to pass to target.</param> 
+    static member install (force: bool option)=
+        let force = force |> map_true "--force"
+
+        let ops = [ shellOp("npm", $"ci {force}") ]
         execRequest(Cacheability.Always, ops)
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member build (context: ActionContext) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
+    /// <param name="arguments" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    static member build (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("npm", "ci")
             shellOp("npm", $"run build -- {args}")   
         ]
         execRequest(Cacheability.Always, ops)
@@ -65,12 +68,11 @@ type Npm() =
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member test (context: ActionContext) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
+    /// <param name="arguments" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    static member test (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("npm", "ci")
             shellOp("npm", $"run test -- {args}")   
         ]
         execRequest(Cacheability.Always, ops)
@@ -78,9 +80,9 @@ type Npm() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
-    static member run (context: ActionContext) (command: string) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
+    /// <param name="arguments" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    static member run (command: string) (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
             shellOp("npm", $"run {command} -- {args}")

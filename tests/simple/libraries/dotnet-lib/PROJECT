@@ -4,5 +4,6 @@ project {
 }
 
 target build {
+  @dotnet restore { }
   @dotnet build { configuration = local.configuration }
 }

@@ -20,9 +20,14 @@
             "context": [
               "map",
               {
-                "arguments": [
-                  "string",
-                  "building A"
+                "args": [
+                  "list",
+                  [
+                    [
+                      "string",
+                      "building A"
+                    ]
+                  ]
                 ]
               }
             ]
@@ -34,14 +39,14 @@
         "c:build"
       ],
       "outputs": [],
-      "projectHash": "F881857ECAB5D1A330D0DF9FC5A8FD215D783A411B0E4965FD73B228CFC63F45",
-      "targetHash": "B9410345685BAE8BA08232BFCF4ABC17C213A09F9676104E668CBDFE3B2D9006",
+      "projectHash": "7B2D882369DC2B76D48305C2F6D8B0CD4A0B2A9FA54CCEC701D963DCCFB1C83E",
+      "targetHash": "810281C4F0503AC108AEA035493A3CC29F0C449252A619C22C732402ED0736FE",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building A"
+          "arguments": "\u0022building A\u0022"
         }
       ],
       "cache": 3,
@@ -69,9 +74,14 @@
             "context": [
               "map",
               {
-                "arguments": [
-                  "string",
-                  "building B"
+                "args": [
+                  "list",
+                  [
+                    [
+                      "string",
+                      "building B"
+                    ]
+                  ]
                 ]
               }
             ]
@@ -82,14 +92,14 @@
         "c:build"
       ],
       "outputs": [],
-      "projectHash": "9BD751EC513D9E50502E483A848655DF3B85F43D6455635965FFD9A02F9CE475",
-      "targetHash": "3B5827F869B648A1EB7D9E8576BB2BAD09A30B8FC8FB23C5717F2C882B32EB2E",
+      "projectHash": "9BB4965D4C1C0DA311073552AD7C449CEAFAAD867066562A76F2634176FE868B",
+      "targetHash": "26A604A79D0359C6D3178A2949213BC21CAED5F95C1BA3EFD6C78DBAF20C5B8C",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building B"
+          "arguments": "\u0022building B\u0022"
         }
       ],
       "cache": 3,
@@ -117,9 +127,14 @@
             "context": [
               "map",
               {
-                "arguments": [
-                  "string",
-                  "building C"
+                "args": [
+                  "list",
+                  [
+                    [
+                      "string",
+                      "building C"
+                    ]
+                  ]
                 ]
               }
             ]
@@ -128,14 +143,14 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "A65A35476A6AA51DCC6FDAE15D0DB103E9B3A055ACB8D133FD2E0801E295C18C",
-      "targetHash": "A00896C3A838867AA21A81C893957AAECA1AECFA64F603644E2189F87A884C4C",
+      "projectHash": "CF68EED9B182D3510E780FF816CCCEC5D91C4C5C56522E891D695524430618B0",
+      "targetHash": "7ED9B28BC99FBD79C98ECBFCEEBEBC4999520D94F23727F3397A4417F9C2B3F1",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building C"
+          "arguments": "\u0022building C\u0022"
         }
       ],
       "cache": 3,

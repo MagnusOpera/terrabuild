@@ -2,7 +2,7 @@ namespace Terrabuild.Extensions
 
 open Terrabuild.Extensibility
 open System.Xml.Linq
-open System.IO
+open Converters
 
 
 #nowarn "0077" // op_Explicit
@@ -77,12 +77,12 @@ type Dotnet() =
     /// Run a dotnet `command`.
     /// </summary>
     /// <param name="__dispatch__" example="run">Example.</param>
-    /// <param name="arguments" example="&quot;-v&quot;">Arguments for command.</param>
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
-        let arguments = $"{context.Command} {arguments}"
+    /// <param name="args" example="[ &quot;-v&quot; ]">Arguments for command.</param>
+    static member __dispatch__ (context: ActionContext)
+                               (args: string list option) =
+        let args = args |> concat_quote
 
-        let ops = [ shellOp("dotnet", arguments) ]
+        let ops = [ shellOp("dotnet", $"{context.Command} {args}") ]
         execRequest(Cacheability.Always, ops)
 
 
@@ -92,31 +92,20 @@ type Dotnet() =
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to use to build project. Default is `Debug`.</param>
     /// <param name="parallel" example="1">Max worker processes to build the project.</param>
     /// <param name="log" example="true">Enable binlog for the build.</param>
-    /// <param name="arguments" example="&quot;--no-incremental&quot;">Arguments for command.</param>
-    static member build (context: ActionContext) (configuration: string option) (``parallel``: int option) (log: bool option) (version: string option) (arguments: string option) =
-        let configuration =
-            configuration
-            |> Option.defaultValue DotnetHelpers.defaultConfiguration
-
-        let logger =
-            match log with
-            | Some true -> " -bl"
-            | _ -> ""
-
-        let maxcpucount =
-            match ``parallel`` with
-            | Some maxcpucount -> $" -maxcpucount:{maxcpucount}"
-            | _ -> ""
-
-        let version =
-            match version with
-            | Some version -> $" -p:Version={version}"
-            | _ -> ""
-
-        let arguments = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;--no-incremental&quot; ]">Arguments for command.</param>
+    static member build (configuration: string option)
+                        (``parallel``: int option)
+                        (log: bool option)
+                        (version: string option)
+                        (args: string list option) =
+        let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
+        let log = log |> map_true "-bl"
+        let maxcpucount = ``parallel`` |> map_default (fun maxcpucount -> $"-maxcpucount:{maxcpucount}")
+        let version = version |> map_default (fun version -> $"-p:Version={version}")
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {logger} {maxcpucount} {version} {arguments}")
+            shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
 
         execRequest(Cacheability.Always, ops)
@@ -127,14 +116,16 @@ type Dotnet() =
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for pack command.</param>
     /// <param name="version" example="&quot;1.0.0&quot;">Version for pack command.</param>
-    /// <param name="arguments" example="&quot;--include-symbols&quot;">Arguments for command.</param>
-    static member pack (context: ActionContext) (configuration: string option) (version: string option) (arguments: string option)=
-        let configuration = configuration |> Option.defaultValue DotnetHelpers.defaultConfiguration
-        let version = version |> Option.defaultValue "0.0.0"
-        let arguments = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;--include-symbols&quot; ]">Arguments for command.</param>
+    static member pack (configuration: string option)
+                       (version: string option)
+                       (args: string list option)=
+        let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
+        let version = version |> or_default "0.0.0"
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {arguments}")
+            shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
         ]
 
         execRequest(Cacheability.Always, ops)
@@ -146,26 +137,23 @@ type Dotnet() =
     /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime for publish.</param>
     /// <param name="trim" example="true">Instruct to trim published project.</param>
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
-    /// <param name="arguments" example="&quot;--version-suffix beta&quot;">Arguments for command.</param>
-    static member publish (context: ActionContext) (configuration: string option) (runtime: string option) (trim: bool option) (single: bool option) (arguments: string option) =
-        let configuration = configuration |> Option.defaultValue DotnetHelpers.defaultConfiguration
-
+    /// <param name="args" example="[ &quot;--version-suffix beta&quot; ]">Arguments for command.</param>
+    static member publish (configuration: string option)
+                          (runtime: string option)
+                          (trim: bool option)
+                          (single: bool option)
+                          (args: string list option) =
+        let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
         let runtime =
             match runtime with
             | Some identifier -> $" -r {identifier}"
             | _ -> " --no-restore --no-build"
-        let trim =
-            match trim with
-            | Some true -> " -p:PublishTrimmed=true"
-            | _ -> ""
-        let single =
-            match single with
-            | Some true -> " --self-contained"
-            | _ -> ""
-        let arguments = arguments |> Option.defaultValue ""
+        let trim = trim |> map_true "-p:PublishTrimmed=true"
+        let single = single |> map_true "--self-contained"
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {arguments}")
+            shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
 
         execRequest(Cacheability.Always, ops)
@@ -174,11 +162,11 @@ type Dotnet() =
     /// Restore packages.
     /// </summary>
     /// <param name="projectfile" example="&quot;project.fsproj&quot;">Force usage of project file for publish.</param>
-    /// <param name="arguments" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
-    static member restore (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;--no-dependencies&quot; ]">Arguments for command.</param>
+    static member restore (args: string list option) =
+        let args = args |> concat_quote
 
-        let ops = [ shellOp( "dotnet", $"restore {arguments}") ]
+        let ops = [ shellOp( "dotnet", $"restore {args}") ]
         execRequest(Cacheability.Local, ops)
 
 
@@ -187,14 +175,16 @@ type Dotnet() =
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
-    /// <param name="arguments" example="&quot;--blame-hang&quot;">Arguments for command.</param>
-    static member test (context: ActionContext) (configuration: string option) (filter: string option) (arguments: string option) =
-        let configuration = configuration |> Option.defaultValue DotnetHelpers.defaultConfiguration
-        let filter = filter |> Option.map (fun filter -> $" --filter \"{filter}\"") |> Option.defaultValue ""
-        let arguments = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;--blame-hang&quot; ]">Arguments for command.</param>
+    static member test (configuration: string option)
+                       (filter: string option)
+                       (args: string list option) =
+        let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
+        let filter = filter |> map_default (fun filter -> $"--filter \"{filter}\"")
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {arguments}")
+            shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {args}")
         ]
 
         execRequest(Cacheability.Always, ops)
