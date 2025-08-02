@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "CE2D7226EBC1012DBB460A2AC5EA501E831FC8667156E72A8B9409B642E0D101",
+      "hash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -48,7 +48,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "339771D0416B0DE57F074F35A58947EC4DF21B15E79871D2231F33753B48C98E",
+          "hash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
           "dependsOn": [
             "^build"
           ],
@@ -56,6 +56,24 @@
             "*.planfile"
           ],
           "operations": [
+            {
+              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
+              "container": "hashicorp/terraform:1.10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@terraform",
+              "command": "init",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "workspace": [
+                    "string",
+                    "default"
+                  ]
+                }
+              ]
+            },
             {
               "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
               "container": "hashicorp/terraform:1.10",
@@ -90,7 +108,7 @@
           ]
         },
         "deploy": {
-          "hash": "9024EC87B1F492B8125D95C6A80AEBB627F102F67167B86230F4767A3AB8C3C1",
+          "hash": "B3E1E648F36E350D97062C1E7799E556783366AC32DB75B59BCD8ADF32A7A696",
           "dependsOn": [
             "push"
           ],
@@ -98,6 +116,24 @@
             "*.planfile"
           ],
           "operations": [
+            {
+              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
+              "container": "hashicorp/terraform:1.10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@terraform",
+              "command": "init",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "workspace": [
+                    "string",
+                    "default"
+                  ]
+                }
+              ]
+            },
             {
               "hash": "1AE28706B2980A4E84699A2D289D729BE4C880376A9313AFA12C32E1520F3B20",
               "container": "hashicorp/terraform:1.10",
