@@ -1,0 +1,14 @@
+
+project {
+    @dotnet { }
+}
+
+target build {
+    @dotnet restore { }
+    @dotnet build { }
+}
+
+target test {
+    @dotnet restore { }
+    @dotnet test { }
+}

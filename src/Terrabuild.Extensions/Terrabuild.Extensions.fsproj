@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="Helpers/Npm.fs" />
+    <Compile Include="Helpers/Dotnet.fs" />
     <Compile Include="Cargo.fs" />
     <Compile Include="Docker.fs" />
     <Compile Include="Dotnet.fs" />
