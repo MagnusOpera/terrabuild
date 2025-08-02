@@ -20,7 +20,6 @@ type Playwright() =
         let args = args |> Option.map (String.join " ") |> Option.defaultValue ""
 
         let ops = [
-            shellOp("npx", "playwright install")
             shellOp("npx", $"playwright test {browser} {args}")
         ]
         execRequest(Cacheability.Always, ops)
