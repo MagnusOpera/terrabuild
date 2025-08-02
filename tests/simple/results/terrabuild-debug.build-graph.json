@@ -602,7 +602,12 @@
             "script": {},
             "context": [
               "map",
-              {}
+              {
+                "project": [
+                  "string",
+                  "webkit"
+                ]
+              }
             ]
           }
         ]
@@ -611,8 +616,8 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "91A809A4BEC11CB540214AA511195385967BD4E4B065943BA336C5D7EADDC394",
-      "targetHash": "862A3AAFCD895939CFBB61CAADA6CC7C2F070D4D49FD8E91A71DC58A0C68468C",
+      "projectHash": "E2A8307630E330103A0DBC2C9D2444A4D0CB497994C8233009E50DC61A3E26BE",
+      "targetHash": "7476A2C7CAE13010ED8B408A398C2B81FF339D35A51008D432C7AA15B0749108",
       "operations": [
         {
           "container": "node:20",
@@ -627,7 +632,7 @@
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
-          "arguments": "playwright test  "
+          "arguments": "playwright test  --project webkit "
         }
       ],
       "cache": 3,
