@@ -53,7 +53,7 @@ type Npm() =
         let ops = [
             shellOp("npm", $"ci {force} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Local
 
 
     /// <summary>

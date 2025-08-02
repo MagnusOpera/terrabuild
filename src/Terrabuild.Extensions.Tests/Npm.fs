@@ -32,7 +32,7 @@ let ``dispatch none``() =
 [<Test>]
 let ``install some``() =
     let expected =
-        execRequest Cacheability.Always
+        execRequest Cacheability.Local
                     [ shellOp("npm", "ci --force \"--opt1\" \"--opt2\"") ]
 
     Npm.install (Some true) // force
@@ -44,7 +44,7 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        execRequest Cacheability.Always
+        execRequest Cacheability.Local
                     [ shellOp("npm", "ci") ]
 
     Npm.install None
