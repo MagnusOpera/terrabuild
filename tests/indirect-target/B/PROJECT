@@ -3,9 +3,9 @@ project b {
 }
 
 target plan {
-    @shell echo { arguments = "plan B" }
+    @shell echo { args = [ "plan B" ] }
 }
 
 target apply {
-    @shell echo { arguments = "apply B" }
+    @shell echo { args = [ "apply B" ] }
 }

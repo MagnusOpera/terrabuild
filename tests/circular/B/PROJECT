@@ -4,5 +4,5 @@ project {
 }
 
 target build {
-    @shell echo { arguments = "building B" }
+    @shell echo { args = [ "building" "B" ] }
 }

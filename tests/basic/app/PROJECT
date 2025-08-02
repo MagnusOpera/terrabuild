@@ -7,5 +7,5 @@ project app {
 }
 
 target build {
-    @shell echo { arguments = "building app with lib version: ${project.lib.version}" }
+    @shell echo { args = [ "building" "app" "with" "lib" "version:" "${project.lib.version}" ] }
 }

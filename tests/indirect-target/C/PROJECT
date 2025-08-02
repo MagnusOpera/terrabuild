@@ -1,9 +1,9 @@
 project c { }
 
 target build {
-    @shell echo { arguments = "build C" }
+    @shell echo { args = [ "build C" ] }
 }
 
 target dist {
-    @shell echo { arguments = "dist C" }
+    @shell echo { args = [ "dist C"] }
 }

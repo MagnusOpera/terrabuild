@@ -6,6 +6,6 @@ project {
 }
 
 target build {
-    @shell echo { arguments = "building project1" }
+    @shell echo { args = [ "building project1" ] }
     @make build { variables = { secret: local.secret_message } }
 }

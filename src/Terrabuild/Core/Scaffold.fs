@@ -67,7 +67,7 @@ let extConfigs =
     Map [ 
         ExtensionType.Dotnet, { Container = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
                                 Defaults = Map [ "configuration", "local.config" ]
-                                Actions = Map [ Target.Build, [ "build"; "publish" ] ] }
+                                Actions = Map [ Target.Build, [ "restore"; "build"; "publish" ] ] }
 
         ExtensionType.Gradle, { Container = None //Some "gradle:jdk21"
                                 Defaults = Map [ "configuration", "local.configuration" ]
@@ -75,7 +75,7 @@ let extConfigs =
 
         ExtensionType.Npm, { Container = None //Some "node:20"
                              Defaults = Map.empty
-                             Actions = Map [ Target.Build, [ "build" ] ] }
+                             Actions = Map [ Target.Build, [ "install"; "build" ] ] }
 
         ExtensionType.Make, { Container = None
                               Defaults = Map.empty
@@ -89,8 +89,8 @@ let extConfigs =
 
         ExtensionType.Terraform, { Container = None //Some "hashicorp/terraform:1.7"
                                    Defaults = Map.empty
-                                   Actions = Map [ Target.Build, [ "plan" ]
-                                                   Target.Deploy, [ "apply" ] ] }
+                                   Actions = Map [ Target.Build, [ "init"; "plan" ]
+                                                   Target.Deploy, [ "init"; "apply" ] ] }
 
         ExtensionType.Cargo, { Container = None // Some "rust:1.79.0"
                                Defaults = Map [ "profile", "local.configuration" ]

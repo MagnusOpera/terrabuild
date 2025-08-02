@@ -1,5 +1,6 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
+open Converters
 
 
 /// <summary>
@@ -26,76 +27,66 @@ type Yarn() =
     /// <summary>
     /// Run yarn `command`.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
-        let cmd = context.Command
+    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    static member __dispatch__ (context: ActionContext)
+                               (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("yarn", $"{cmd} -- {arguments}")   
+            shellOp("yarn", $"{context.Command} -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    static member install (context: ActionContext) (``ignore-engines``: bool option) =
-        let ignoreEngines =
-            match ``ignore-engines`` with
-            | Some true -> " --ignore-engines"
-            | _ -> ""
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
+    static member install (``ignore-engines``: bool option)
+                          (args: string list option) =
+        let ignoreEngines = ``ignore-engines`` |> map_true "--ignore-engines"
+        let args = args |> concat_quote
 
-        let ops = [ shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}") ]
-        execRequest(Cacheability.Local, ops)
+        let ops = [ shellOp("yarn", $"install --frozen-lockfile {ignoreEngines} {args}") ]
+        ops |> execRequest Cacheability.Local
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    static member build (context: ActionContext) (arguments: string option) (``ignore-engines``: bool option) =
-        let args = arguments |> Option.defaultValue ""
-        let ignoreEngines =
-            match ``ignore-engines`` with
-            | Some true -> " --ignore-engines"
-            | _ -> ""
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
+    static member build (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}")
             shellOp("yarn", $"build -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    static member test (context: ActionContext) (arguments: string option) (``ignore-engines``: bool option) =
-        let args = arguments |> Option.defaultValue ""
-        let ignoreEngines =
-            match ``ignore-engines`` with
-            | Some true -> " --ignore-engines"
-            | _ -> ""
+    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
+    static member test (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("yarn", $"install --frozen-lockfile{ignoreEngines}")
             shellOp("yarn", $"test -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
-    static member run (context: ActionContext) (command: string) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
+    /// <param name="args" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    static member run (command: string)
+                      (args: string list option) =
+        let args = args |> concat_quote
 
         let ops = [
             shellOp("yarn", $"{command} -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

@@ -7,11 +7,13 @@ project {
 }
 
 target build {
+    @dotnet restore { }
     @dotnet build { version = terrabuild.tag }
 }
 
 target dist {
     outputs = []
 
+    @dotnet restore { }
     @dotnet pack { }
 }

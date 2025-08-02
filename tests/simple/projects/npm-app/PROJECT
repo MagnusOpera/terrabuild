@@ -6,6 +6,7 @@ project npm_app {
 }
 
 target build {
-#    @npm version { arguments = local.npm_version }
+#    @npm version { args = local.npm_version }
+    @npm install { }
     @npm build { }
 }

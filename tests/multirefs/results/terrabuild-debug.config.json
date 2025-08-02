@@ -22,7 +22,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "F881857ECAB5D1A330D0DF9FC5A8FD215D783A411B0E4965FD73B228CFC63F45",
+      "hash": "7B2D882369DC2B76D48305C2F6D8B0CD4A0B2A9FA54CCEC701D963DCCFB1C83E",
       "dependencies": [
         "b",
         "c"
@@ -47,9 +47,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "building A"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "building A"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -61,7 +66,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "9BD751EC513D9E50502E483A848655DF3B85F43D6455635965FFD9A02F9CE475",
+      "hash": "9BB4965D4C1C0DA311073552AD7C449CEAFAAD867066562A76F2634176FE868B",
       "dependencies": [
         "c"
       ],
@@ -85,9 +90,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "building B"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "building B"
+                      ]
+                    ]
                   ]
                 }
               ]
@@ -99,7 +109,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "A65A35476A6AA51DCC6FDAE15D0DB103E9B3A055ACB8D133FD2E0801E295C18C",
+      "hash": "CF68EED9B182D3510E780FF816CCCEC5D91C4C5C56522E891D695524430618B0",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -121,9 +131,14 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
-                    "string",
-                    "building C"
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "building C"
+                      ]
+                    ]
                   ]
                 }
               ]
