@@ -1,7 +1,6 @@
 module NpmHelpers
 
 open System.Text.Json.Serialization
-open System.Text.Json
 open System.Collections.Generic
 open Errors
 

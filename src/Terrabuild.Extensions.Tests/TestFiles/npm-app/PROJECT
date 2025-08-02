@@ -1,0 +1,12 @@
+
+project npm_app {
+    labels = [ "app" ]
+
+    @npm { }
+}
+
+target build {
+#    @npm version { args = local.npm_version }
+    @npm install { }
+    @npm build { }
+}
