@@ -38,18 +38,20 @@ type Npm() =
         let ops = [
             shellOp("npm", $"{cmd} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
     /// <param name="args" example="[ &quot;--install-strategy&quot; &quot;hoisted&quot; ]">Arguments to pass to target.</param> 
-    static member install (force: bool option)=
+    static member install (force: bool option)
+                          (args: string list option) =
         let force = force |> map_true "--force"
+        let args = args |> concat_quote
 
         let ops = [
-            shellOp("npm", $"ci {force}")
+            shellOp("npm", $"ci {force} {args}")
         ]
         ops |> execRequest Cacheability.Always
 
@@ -90,4 +92,5 @@ type Npm() =
         let ops = [
             shellOp("npm", $"run {command} -- {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Local
+
