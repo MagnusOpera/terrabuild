@@ -611,8 +611,8 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "9ACDF3BD6A41EA657B735FF72A2E766E9891C4E81F4FA3B4D672090BE57CEC40",
-      "targetHash": "A1439395C18A211DEF1B289C0D5E27E139CEED2ECC95E1575DEAA99002CB9F44",
+      "projectHash": "3A1509E11BA331CACF760B45FAE18E567BE9C7BC5C1AAE9BB2291B944F63A3EF",
+      "targetHash": "42FA04776A4DC5D99D64257EABD43F86DCFBC2A573592E06032813986A68012E",
       "operations": [
         {
           "container": "node:20",
@@ -621,6 +621,13 @@
           "metaCommand": "@npm install",
           "command": "npm",
           "arguments": "ci"
+        },
+        {
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+          "containerVariables": [],
+          "metaCommand": "@playwright test",
+          "command": "npx",
+          "arguments": "playwright install"
         },
         {
           "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
