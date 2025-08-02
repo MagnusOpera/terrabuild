@@ -122,3 +122,27 @@ let ``run none``() =
              noneArgs
     |> normalize
     |> should equal expected
+
+
+[<Test>]
+let ``exec some``() =
+    let expected =
+        execRequest Cacheability.Local
+                    [ shellOp("npm", "exec -- my-package \"--opt1\" \"--opt2\"") ]
+
+    Npm.exec "my-package" // command
+             someArgs
+    |> normalize
+    |> should equal expected
+
+
+[<Test>]
+let ``exec none``() =
+    let expected =
+        execRequest Cacheability.Local
+                    [ shellOp("npm", "exec -- my-package") ]
+
+    Npm.exec "my-package" // command
+             noneArgs
+    |> normalize
+    |> should equal expected

@@ -11,9 +11,10 @@ open TestHelpers
 let ``run some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npx", "--yes \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npx", "--yes -- my-package \"--opt1\" \"--opt2\"") ]
 
-    Npx.run someArgs
+    Npx.run "my-package" // package
+            someArgs
     |> normalize
     |> should equal expected
 
@@ -22,8 +23,9 @@ let ``run some``() =
 let ``run none``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npx", "--yes") ]
+                    [ shellOp("npx", "--yes -- my-package") ]
 
-    Npx.run noneArgs
+    Npx.run "my-package" // package
+            noneArgs
     |> normalize
     |> should equal expected

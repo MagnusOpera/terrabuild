@@ -94,3 +94,15 @@ type Npm() =
         ]
         ops |> execRequest Cacheability.Local
 
+    /// <summary>
+    /// Run `exec` script.
+    /// </summary>
+    /// <param name="srgs" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    static member exec (package: string)
+                       (args: string list option) =
+        let args = args |> concat_quote
+
+        let ops = [
+            shellOp("npm", $"exec -- {package} {args}")
+        ]
+        ops |> execRequest Cacheability.Local
