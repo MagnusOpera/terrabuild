@@ -1,0 +1,33 @@
+
+extension @docker {
+    defaults {
+        image = "ghcr.io/magnusopera/dotnet-app"
+        arguments = { configuration: local.configuration }
+    }
+}
+
+project dotnet_app {
+    labels = [ "app"
+               "dotnet" ]
+
+    includes = [ "**/*"
+                 "../shared-folder/**/*" ]
+
+    @dotnet { }
+}
+
+target build {
+#    @shell echo { arguments: "Building project"}
+    @dotnet restore { }
+    @dotnet build { }
+#    @shell echo { arguments: "Building done"}
+}
+
+target dist {
+    @dotnet restore { }
+    @dotnet publish { }
+}
+
+target docker {
+    @docker build { }
+}

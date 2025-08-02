@@ -1,0 +1,9 @@
+
+project {
+    @dotnet { }
+}
+
+target build {
+  @dotnet restore { }
+  @dotnet build { configuration = local.configuration }
+}

@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <Compile Include="Helpers.fs" />
-    <!-- <Compile Include="Helpers/Npm.fs" />
-    <Compile Include="Helpers/Dotnet.fs" /> -->
+    <!-- <Compile Include="Helpers/Npm.fs" /> -->
+    <Compile Include="Helpers/Dotnet.fs" />
     <Compile Include="Cargo.fs" />
     <Compile Include="Docker.fs" />
     <Compile Include="Dotnet.fs" />
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="TestFiles/*">
+    <Content Include="TestFiles/**/*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
