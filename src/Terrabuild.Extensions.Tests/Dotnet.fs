@@ -179,12 +179,12 @@ let ``test some``() =
 let ``test none``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug") ]
 
     Dotnet.test None // configuration
                 None // restore
                 None // build
                 None // filter
-                someArgs
+                noneArgs
     |> normalize
     |> should equal expected
