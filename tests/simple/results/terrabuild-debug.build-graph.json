@@ -605,7 +605,7 @@
               {
                 "project": [
                   "string",
-                  "webkit"
+                  "ci"
                 ]
               }
             ]
@@ -616,8 +616,8 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "E2A8307630E330103A0DBC2C9D2444A4D0CB497994C8233009E50DC61A3E26BE",
-      "targetHash": "7476A2C7CAE13010ED8B408A398C2B81FF339D35A51008D432C7AA15B0749108",
+      "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
+      "targetHash": "EFC71B1914BD710A213A7AF0514BD337BCD7F22041799165287DD61D3ED98AD4",
       "operations": [
         {
           "container": "node:20",
@@ -632,7 +632,7 @@
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
-          "arguments": "playwright test  --project webkit "
+          "arguments": "playwright test  --project ci "
         }
       ],
       "cache": 3,

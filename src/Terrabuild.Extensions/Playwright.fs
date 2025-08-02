@@ -10,8 +10,10 @@ type Playwright() =
     /// <summary>
     /// Run tests.
     /// </summary>
-    /// <param name="args" example="[ &quot;--debug&quot; ]">Arguments to pass to npx.</param> 
-    static member test (context: ActionContext) (browser: string option) (project: string option) (args: string list option) =
+    /// <param name="browser" example="&quot;webkit&quot;">Browser to use.</param> 
+    /// <param name="project" example="&quot;ci&quot;">Project to use.</param> 
+    /// <param name="args" example="[ &quot;--debug&quot; ]">Arguments to pass to playwright.</param> 
+    static member test (browser: string option) (project: string option) (args: string list option) =
         let browser =
             match browser with
             | Some browser -> $"--browser {browser}"

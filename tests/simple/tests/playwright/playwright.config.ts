@@ -5,7 +5,7 @@ export default defineConfig({
     workers: 1,
     projects: [
         {
-            name: 'chromium',
+            name: 'local',
             use: {
                 browserName: 'chromium',
                 launchOptions: {
@@ -14,7 +14,7 @@ export default defineConfig({
             }
         },
         {
-            name: 'webkit',
+            name: 'ci',
             use: {
                 browserName: 'webkit'
             }

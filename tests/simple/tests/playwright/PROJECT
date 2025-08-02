@@ -8,5 +8,5 @@ project playwright_test {
 
 target test {
     @npm install { }
-    @playwright test { project = "webkit" }
+    @playwright test { project = "ci" }
 }
