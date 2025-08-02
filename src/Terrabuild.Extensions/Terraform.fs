@@ -35,7 +35,7 @@ type Terraform() =
         let args = args |> concat_quote
 
         let ops = [ shellOp("terraform", $"{context.Command} {args}") ]
-        ops |> execRequest Cacheability.Always
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary weight="1">

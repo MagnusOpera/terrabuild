@@ -21,3 +21,9 @@ let localContext =
       ActionContext.CI = false
       ActionContext.Command = "local-command"
       ActionContext.Hash = "123456789ABCDEF" }
+
+let someMap = [ "prm1", "val1"
+                "prm2", "val2" ] |> Map |> Some
+
+let noneMap = None
+
