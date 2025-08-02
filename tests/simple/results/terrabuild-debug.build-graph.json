@@ -70,7 +70,7 @@
       ],
       "outputs": [],
       "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
-      "targetHash": "E11C6FA55B6E798D001AF0367A17B65DC2983AD87CBEAEACE01506A40713F0F1",
+      "targetHash": "1A62D3B055C4365C56D242F632FF9EF1411ACB15D802A627675E01B8E9F974AE",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -160,7 +160,7 @@
         "obj/*.targets"
       ],
       "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
-      "targetHash": "9435A05449AA27279BD2344CDA9905A304B33D034E5C835FF5CD6D82BA6AFF51",
+      "targetHash": "2C1746E4C585834A39C53DB62391E01EB88234B7DEA80069B3F6DB3A3E0F61B7",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -168,7 +168,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -300,7 +300,7 @@
           "arguments": "\u0022building library1\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -374,7 +374,7 @@
         "obj/*.targets"
       ],
       "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
-      "targetHash": "B2D007CE2F96295583016BF15C7E7B94E4F14D28459B10A9DD16D2325BCFB6BA",
+      "targetHash": "65867C0BD025DB614141FBD31BC7721ABD45E84DF346CD77725EAEAC271989FB",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -382,7 +382,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -477,7 +477,7 @@
           "arguments": "build secret=\u0022tagada\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true

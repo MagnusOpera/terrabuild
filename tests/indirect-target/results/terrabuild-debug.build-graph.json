@@ -47,7 +47,7 @@
           "arguments": "\u0022build A\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -103,7 +103,7 @@
           "arguments": "\u0022dist A\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": false
@@ -159,7 +159,7 @@
           "arguments": "\u0022apply B\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": false
@@ -215,7 +215,7 @@
           "arguments": "\u0022plan B\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": false,
       "restore": false,
       "isLeaf": false
@@ -267,7 +267,7 @@
           "arguments": "\u0022build C\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -323,7 +323,7 @@
           "arguments": "\u0022dist C\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": false

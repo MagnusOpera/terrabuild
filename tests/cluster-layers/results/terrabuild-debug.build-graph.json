@@ -75,7 +75,7 @@
         "obj/*.targets"
       ],
       "projectHash": "EDD6B18413032BCE8DCCE2DB04BEFE7C576946F10210E8235816CD8F037155F0",
-      "targetHash": "F8A6D178D80D43563CCB511AB08D172AEF7323AE36EF2D9607D2A08DBFC18E71",
+      "targetHash": "EDD150CE95180E4DA21023EB67C9D5E4DE553349AF28452D4EDE69DB27F72023",
       "operations": [
         {
           "containerVariables": [],
@@ -88,7 +88,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -178,7 +178,7 @@
         "obj/*.targets"
       ],
       "projectHash": "0355E16B91C1910DEF1029F4232B105A8BBBC26032CC2FA69F2A0798BBE51342",
-      "targetHash": "FB5E8AB620361705F8B0A5B7E44276450F08401420A83BBB94D2F7FC842B8213",
+      "targetHash": "3910285F955314D1C0BB0F7189A8737507DE66568D44979C136B6445FC145114",
       "operations": [
         {
           "containerVariables": [],
@@ -191,7 +191,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -278,7 +278,7 @@
         "dist/**"
       ],
       "projectHash": "483A0F8D7FF8A34341508BF01C6CBF711BD0925D3F97F456BF746EC613DF665A",
-      "targetHash": "C9A29498CB766BA3744286B8EE3E389B15504077AFF4C99FE89A1BA159EE58D0",
+      "targetHash": "C59BDF42AE04FB55C0AD60747592F5CE4C6359B6100C235F7D9217E23EB121D4",
       "operations": [
         {
           "containerVariables": [],
@@ -362,14 +362,14 @@
         "obj/*.targets"
       ],
       "projectHash": "913D6774C78D18B9F01A809695286D6EAAF6D00ED876FEB768D6F0A81BBF4476",
-      "targetHash": "6709AF551C39E8BD2ED129D72D1C9D476B44C823F39AE8F18E73E349BE258B96",
+      "targetHash": "6B37D8A8926CC81E7CAE6ED92D057768AF577200DFAFFAC2BFE7BD51F2C5B183",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -440,14 +440,14 @@
         "obj/*.targets"
       ],
       "projectHash": "8E10B6E11D1F156BD5F07EA4D0D1D3D08810470C3CEFBF457CA01714F082562D",
-      "targetHash": "4407F9C7E6158FB3A23C2E659A3A0530D14D3601D0E4D424662D6F75086F94C9",
+      "targetHash": "3A9E0A4BDDF6384566E90C2A6EB8C1B9BFC900AACCDFD3F37090B922A19D5051",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore"
+          "arguments": "restore --no-dependencies"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -509,7 +509,7 @@
         "dist/**"
       ],
       "projectHash": "42394627A59A6FCF6A2E73676B41F43DF4DE3E3F79139884C1329FC4C861F81E",
-      "targetHash": "359B5572555403E4DE32B143D79E52A0E3F81B6422408A2AAE47ECDD6BA82594",
+      "targetHash": "1F8B0E0AE5F7939ACC2585C51C6755D2DDE74952D8706F363675E2AC126816EB",
       "operations": [
         {
           "container": "node:20",
@@ -577,7 +577,7 @@
         "dist/**"
       ],
       "projectHash": "FDDADE88B7C4FA707FAC2742F40FE9613958E5F3CC9C6F3939B0F0E70580EEFC",
-      "targetHash": "0610E5B0E97B08427F848610CEA033F952F529C0FE1E061DF65D8266F71F816C",
+      "targetHash": "EB2097F8B4D47A5566FC83E210FDDF8F624A5D203646AB977BBA271E0462BAF2",
       "operations": [
         {
           "container": "node:20",
