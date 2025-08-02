@@ -62,7 +62,7 @@ type Cargo() =
     /// <param name="args" example="[ &quot;--keep-going&quot; ]">Arguments for command.</param>
     static member build (profile: string option)
                         (args: string list option) =
-        let profile = profile |> map_default (fun profile -> $"--profile {profile}")
+        let profile = profile |> map_value (fun profile -> $"--profile {profile}")
         let args = args |> concat_quote
 
         let ops = [
@@ -78,7 +78,7 @@ type Cargo() =
     /// <param name="args" example="[ &quot;--blame-hang&quot; ]">Arguments for command.</param>
     static member test (profile: string option)
                        (args: string list option) =
-        let profile = profile |> map_default (fun profile -> $"--profile {profile}")
+        let profile = profile |> map_value (fun profile -> $"--profile {profile}")
         let args = args |> concat_quote
 
         let ops = [

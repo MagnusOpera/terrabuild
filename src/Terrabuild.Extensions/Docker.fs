@@ -38,7 +38,7 @@ type Docker() =
                         (arguments: Map<string, string> option)
                         (args: string list option) =
         let dockerfile = dockerfile |> or_default "Dockerfile"
-        let platforms = platforms |> format_comma (fun platform -> $"{platform}") |> map_value (fun platforms -> $"--platform {platforms}")
+        let platforms = platforms |> format_comma (fun platform -> $"{platform}") |> map_non_empty (fun platforms -> $"--platform {platforms}")
         let arguments = arguments |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
         let args = args |> concat_quote
 

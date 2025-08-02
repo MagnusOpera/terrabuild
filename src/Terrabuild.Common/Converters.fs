@@ -31,12 +31,12 @@ let map_false value arg =
     | Some true -> ""
     | _ -> value
 
-let map_default f arg =
+let map_value f arg =
     match arg with
     | Some arg -> f arg
     | _ -> ""
 
-let map_value f arg =
+let map_non_empty f arg =
     match arg with
     | "" -> ""
     | arg -> f arg

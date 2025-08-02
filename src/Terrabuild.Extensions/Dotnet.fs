@@ -88,26 +88,52 @@ type Dotnet() =
         ops |> execRequest Cacheability.Always
 
 
+    /// <summary>
+    /// Restore packages.
+    /// </summary>
+    /// <param name="projectfile" example="&quot;project.fsproj&quot;">Force usage of project file for publish.</param>
+    /// <param name="no_dependencies" example="&quot;true&quot;">No dependencies restore.</param>
+    /// <param name="locked" example="&quot;true&quot;">Locked mode restore.</param>
+    /// <param name="args" example="[ &quot;--no-dependencies&quot; ]">Arguments for command.</param>
+    static member restore (no_dependencies: bool option)
+                          (locked: bool option)
+                          (args: string list option) =
+        let no_dependencies = no_dependencies |> map_true "--no-dependencies"
+        let locked = locked |> map_true "--locked-mode"
+        let args = args |> concat_quote
+
+        let ops = [
+            shellOp( "dotnet", $"restore {no_dependencies} {locked} {args}")
+        ]
+        ops |>  execRequest Cacheability.Local
+
+
     /// <summary title="Build project.">
     /// Build project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to use to build project. Default is `Debug`.</param>
     /// <param name="parallel" example="1">Max worker processes to build the project.</param>
     /// <param name="log" example="true">Enable binlog for the build.</param>
+    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
+    /// <param name="dependencies" example="true">Restore dependencies as well.</param>
     /// <param name="args" example="[ &quot;--no-incremental&quot; ]">Arguments for command.</param>
     static member build (configuration: string option)
                         (``parallel``: int option)
                         (log: bool option)
+                        (restore: bool option)
                         (version: string option)
+                        (dependencies: bool option)
                         (args: string list option) =
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
         let log = log |> map_true "-bl"
-        let maxcpucount = ``parallel`` |> map_default (fun maxcpucount -> $"-maxcpucount:{maxcpucount}")
-        let version = version |> map_default (fun version -> $"-p:Version={version}")
+        let no_restore = restore |> map_false "--no-restore"
+        let maxcpucount = ``parallel`` |> map_value (fun maxcpucount -> $"-maxcpucount:{maxcpucount}")
+        let version = version |> map_value (fun version -> $"-p:Version={version}")
+        let no_dependencies = dependencies |> map_false "--no-dependencies"
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"build --no-dependencies --configuration {configuration} {log} {maxcpucount} {version} {args}")
+            shellOp("dotnet", $"build {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
         ops |>  execRequest Cacheability.Always
 
@@ -116,17 +142,23 @@ type Dotnet() =
     /// Pack project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for pack command.</param>
+    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
+    /// <param name="build" example="&quot;true&quot;">Build project.</param>
     /// <param name="version" example="&quot;1.0.0&quot;">Version for pack command.</param>
     /// <param name="args" example="[ &quot;--include-symbols&quot; ]">Arguments for command.</param>
     static member pack (configuration: string option)
                        (version: string option)
+                       (restore: bool option)
+                       (build: bool option)
                        (args: string list option)=
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
         let version = version |> or_default "0.0.0"
+        let no_restore = restore |> map_false "--no-restore"
+        let no_build = build |> map_false "--no-build"
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"pack --no-build --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
+            shellOp("dotnet", $"pack {no_restore} {no_build} --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
         ]
         ops |> execRequest Cacheability.Always
 
@@ -134,16 +166,22 @@ type Dotnet() =
     /// Publish project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
+    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
+    /// <param name="build" example="&quot;true&quot;">Build project.</param>
     /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime for publish.</param>
     /// <param name="trim" example="true">Instruct to trim published project.</param>
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
     /// <param name="args" example="[ &quot;--version-suffix&quot; &quot;beta&quot; ]">Arguments for command.</param>
     static member publish (configuration: string option)
+                          (restore: bool option)
+                          (build: bool option)
                           (runtime: string option)
                           (trim: bool option)
                           (single: bool option)
                           (args: string list option) =
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
+        let no_restore = restore |> map_false "--no-restore"
+        let no_build = build |> map_false "--no-build"
         let runtime =
             match runtime with
             | Some identifier -> $" -r {identifier}"
@@ -153,38 +191,30 @@ type Dotnet() =
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"publish --no-dependencies --configuration {configuration} {runtime} {trim} {single} {args}")
+            shellOp("dotnet", $"publish {no_restore} {no_build} --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
         ops |>  execRequest Cacheability.Always
-
-    /// <summary>
-    /// Restore packages.
-    /// </summary>
-    /// <param name="projectfile" example="&quot;project.fsproj&quot;">Force usage of project file for publish.</param>
-    /// <param name="args" example="[ &quot;--no-dependencies&quot; ]">Arguments for command.</param>
-    static member restore (args: string list option) =
-        let args = args |> concat_quote
-
-        let ops = [
-            shellOp( "dotnet", $"restore {args}")
-        ]
-        ops |>  execRequest Cacheability.Local
-
 
     /// <summary>
     /// Test project.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
+    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
+    /// <param name="build" example="&quot;true&quot;">Build project.</param>
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
     /// <param name="args" example="[ &quot;--blame-hang&quot; ]">Arguments for command.</param>
     static member test (configuration: string option)
+                       (restore: bool option)
+                       (build: bool option)
                        (filter: string option)
                        (args: string list option) =
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
-        let filter = filter |> map_default (fun filter -> $"--filter \"{filter}\"")
+        let no_restore = restore |> map_false "--no-restore"
+        let no_build = build |> map_false "--no-build"
+        let filter = filter |> map_value (fun filter -> $"--filter \"{filter}\"")
         let args = args |> concat_quote
 
         let ops = [
-            shellOp("dotnet", $"test --no-build --configuration {configuration} {filter} {args}")
+            shellOp("dotnet", $"test {no_restore} {no_build} --configuration {configuration} {filter} {args}")
         ]
         ops |>  execRequest Cacheability.Always

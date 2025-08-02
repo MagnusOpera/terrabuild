@@ -1,5 +1,6 @@
 module Terrabuild.Extensibility
 open System
+open System.Text
 
 [<RequireQualifiedAccess>]
 type ExtensionContext = {

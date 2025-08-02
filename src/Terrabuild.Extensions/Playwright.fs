@@ -17,8 +17,8 @@ type Playwright() =
     static member test (browser: string option)
                        (project: string option)
                        (args: string list option) =
-        let browser = browser |> map_default (fun browser -> $"--browser {browser}")
-        let project = project |> map_default (fun project -> $"--project {project}")
+        let browser = browser |> map_value (fun browser -> $"--browser {browser}")
+        let project = project |> map_value (fun project -> $"--project {project}")
         let args = args |> concat_quote
 
         let ops = [

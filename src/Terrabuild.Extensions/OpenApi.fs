@@ -22,7 +22,7 @@ type OpenApi() =
                            (output: string)
                            (properties: Map<string, string> option)
                            (args: string list option) =
-        let properties = properties |> format_comma (fun kvp -> $"{kvp.Key}={kvp.Value}") |> map_value (fun x -> "--additional-properties={x}")
+        let properties = properties |> format_comma (fun kvp -> $"{kvp.Key}={kvp.Value}") |> map_non_empty (fun x -> "--additional-properties={x}")
         let args = args |> concat_quote
 
         let ops = [

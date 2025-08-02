@@ -70,7 +70,7 @@
       ],
       "outputs": [],
       "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
-      "targetHash": "5944401589CCB1B5A9C370F4F74AD61380B7A873852620308BB11398631C6331",
+      "targetHash": "E11C6FA55B6E798D001AF0367A17B65DC2983AD87CBEAEACE01506A40713F0F1",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -78,7 +78,7 @@
           "containerVariables": [],
           "metaCommand": "@terraform init",
           "command": "terraform",
-          "arguments": "init -reconfigure  "
+          "arguments": "init -reconfigure"
         },
         {
           "container": "hashicorp/terraform:1.10",
@@ -86,7 +86,7 @@
           "containerVariables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022 "
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
         }
       ],
       "cache": 3,
@@ -160,7 +160,7 @@
         "obj/*.targets"
       ],
       "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
-      "targetHash": "8C5C77D0FC79CD4B3412ADC1E0F48E688C0ED67726517AFEF3798230E0A55439",
+      "targetHash": "9435A05449AA27279BD2344CDA9905A304B33D034E5C835FF5CD6D82BA6AFF51",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -168,7 +168,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -176,7 +176,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -230,7 +230,7 @@
         "dist/**"
       ],
       "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
-      "targetHash": "5CE92E66136E1ADE971530244BBCA3CB54A79C669E323BBA9D3B61C5653ECEAF",
+      "targetHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
       "operations": [
         {
           "container": "node:20",
@@ -238,7 +238,7 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "node:20",
@@ -246,7 +246,7 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -374,7 +374,7 @@
         "obj/*.targets"
       ],
       "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
-      "targetHash": "3006923E8B668A91F0D78FA4A1314881FC76A2B6826CD32721E5FAE67518A3F5",
+      "targetHash": "B2D007CE2F96295583016BF15C7E7B94E4F14D28459B10A9DD16D2325BCFB6BA",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -382,7 +382,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -390,7 +390,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -462,7 +462,7 @@
         "dist"
       ],
       "projectHash": "26EA9217291A79C2BA5ADA74B9BD656F5EC9AC3A41B7A58D15DE84B1E1C3B85D",
-      "targetHash": "D8AB0A19A9EBC51165FFA5211DCB265015B68E103C6BC4F1229882AE9C6D64D0",
+      "targetHash": "3D9F5114656E4E1166C4A9D59CA70DD12A51870FE5F3B526D673D83E41355C3C",
       "operations": [
         {
           "containerVariables": [],
@@ -474,7 +474,7 @@
           "containerVariables": [],
           "metaCommand": "@make build",
           "command": "make",
-          "arguments": "build secret=\u0022tagada\u0022 "
+          "arguments": "build secret=\u0022tagada\u0022"
         }
       ],
       "cache": 3,
@@ -531,7 +531,7 @@
         "dist/**"
       ],
       "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
-      "targetHash": "8626B77897AE3A8B63E21971450DF8BEEC0CEAB14C143C58B802AB41FA849588",
+      "targetHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
       "operations": [
         {
           "container": "node:20",
@@ -539,7 +539,7 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "node:20",
@@ -547,7 +547,7 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -597,7 +597,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
-      "targetHash": "5CFFDD6077D5923DA20E25A08CE805328B1D267CCA844C0AA249E778A703F678",
+      "targetHash": "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F",
       "operations": [
         {
           "container": "openapitools/openapi-generator-cli:v7.10.0",
@@ -605,7 +605,7 @@
           "containerVariables": [],
           "metaCommand": "@openapi generate",
           "command": "docker-entrypoint.sh",
-          "arguments": "generate -i api.json -g typescript-axios -o src  "
+          "arguments": "generate -i api.json -g typescript-axios -o src"
         }
       ],
       "cache": 3,
@@ -648,7 +648,7 @@
         "target/release/"
       ],
       "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
-      "targetHash": "6FBFD43E3B841F5AA22FAA0450793CF7D04A2C9DEA8AE2E74F26FEB2616A5C25",
+      "targetHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
       "operations": [
         {
           "container": "rust:1.81.0-slim",
@@ -656,7 +656,7 @@
           "containerVariables": [],
           "metaCommand": "@cargo build",
           "command": "cargo",
-          "arguments": "build  "
+          "arguments": "build"
         }
       ],
       "cache": 3,
@@ -715,7 +715,7 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "5161E1205078C03C82FF46E3941664F44E622E0E86FAFFCCE9367F0271677492",
+      "targetHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
       "operations": [
         {
           "container": "node:20",
@@ -723,14 +723,14 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
-          "arguments": "playwright test  --project ci "
+          "arguments": "playwright test --project ci"
         }
       ],
       "cache": 3,

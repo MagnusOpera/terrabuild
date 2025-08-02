@@ -75,7 +75,7 @@
         "obj/*.targets"
       ],
       "projectHash": "EDD6B18413032BCE8DCCE2DB04BEFE7C576946F10210E8235816CD8F037155F0",
-      "targetHash": "FA682343326EF63F4F5AF408A57F16F6AAC6B21D9D4D4A56B5A373493DC00D36",
+      "targetHash": "F8A6D178D80D43563CCB511AB08D172AEF7323AE36EF2D9607D2A08DBFC18E71",
       "operations": [
         {
           "containerVariables": [],
@@ -88,14 +88,14 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -178,7 +178,7 @@
         "obj/*.targets"
       ],
       "projectHash": "0355E16B91C1910DEF1029F4232B105A8BBBC26032CC2FA69F2A0798BBE51342",
-      "targetHash": "F1CF7100458506F0D67733BF377E15E26A9C1E1553FAA4421429EB20DDF79D65",
+      "targetHash": "FB5E8AB620361705F8B0A5B7E44276450F08401420A83BBB94D2F7FC842B8213",
       "operations": [
         {
           "containerVariables": [],
@@ -191,14 +191,14 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -278,7 +278,7 @@
         "dist/**"
       ],
       "projectHash": "483A0F8D7FF8A34341508BF01C6CBF711BD0925D3F97F456BF746EC613DF665A",
-      "targetHash": "88B91D3A28D3177EB95479C1FC389EE511B8375D524FF785FCB596AEA4C6EFF4",
+      "targetHash": "C9A29498CB766BA3744286B8EE3E389B15504077AFF4C99FE89A1BA159EE58D0",
       "operations": [
         {
           "containerVariables": [],
@@ -291,14 +291,14 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -362,21 +362,21 @@
         "obj/*.targets"
       ],
       "projectHash": "913D6774C78D18B9F01A809695286D6EAAF6D00ED876FEB768D6F0A81BBF4476",
-      "targetHash": "D6758375520C84705223185DE8A60AF53E49EE08473F94745F45705B128CB4D9",
+      "targetHash": "6709AF551C39E8BD2ED129D72D1C9D476B44C823F39AE8F18E73E349BE258B96",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -440,21 +440,21 @@
         "obj/*.targets"
       ],
       "projectHash": "8E10B6E11D1F156BD5F07EA4D0D1D3D08810470C3CEFBF457CA01714F082562D",
-      "targetHash": "F161C57D53F4ABE634B1C5560D6785251A4F47B6604FA2D7431CCFBFFA453512",
+      "targetHash": "4407F9C7E6158FB3A23C2E659A3A0530D14D3601D0E4D424662D6F75086F94C9",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore "
+          "arguments": "restore"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -509,21 +509,21 @@
         "dist/**"
       ],
       "projectHash": "42394627A59A6FCF6A2E73676B41F43DF4DE3E3F79139884C1329FC4C861F81E",
-      "targetHash": "E4F201364DE7EF63847434B27C645BEB1BF1B24983092A8220BE98349E22144D",
+      "targetHash": "359B5572555403E4DE32B143D79E52A0E3F81B6422408A2AAE47ECDD6BA82594",
       "operations": [
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -577,21 +577,21 @@
         "dist/**"
       ],
       "projectHash": "FDDADE88B7C4FA707FAC2742F40FE9613958E5F3CC9C6F3939B0F0E70580EEFC",
-      "targetHash": "B3C58DE3888E3558D2ED81705CF215FB60AC421DFBAD990DC7844C6F625AB40E",
+      "targetHash": "0610E5B0E97B08427F848610CEA033F952F529C0FE1E061DF65D8266F71F816C",
       "operations": [
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci "
+          "arguments": "ci"
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,

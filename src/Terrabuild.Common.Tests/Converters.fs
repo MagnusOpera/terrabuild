@@ -42,5 +42,5 @@ let ``map false``() =
 
 [<Test>]
 let ``map default``() =
-    None |> map_default (fun item -> $"item{item}") |> should equal ""
-    "X" |> Some |> map_default (fun item -> $"item{item}") |> should equal "itemX"
+    None |> map_value (fun item -> $"item{item}") |> should equal ""
+    "X" |> Some |> map_value (fun item -> $"item{item}") |> should equal "itemX"

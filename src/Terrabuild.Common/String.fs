@@ -1,8 +1,8 @@
 module String
 
 open System
-open System.IO
 open System.Text.RegularExpressions
+open System.Text
 
 
 let toLower (s : string) =
@@ -37,3 +37,24 @@ let trim (s: string) =
 
 let replace (substring: string) (value: string) (s: string) =
     s.Replace(substring, value)
+
+let normalizeShellArgs (input: string) : string =
+    let sb = StringBuilder()
+    let mutable inQuotes = false
+    let mutable lastWasSpace = false
+
+    for ch in input do
+        match ch with
+        | '"' ->
+            inQuotes <- not inQuotes
+            sb.Append(ch) |> ignore
+            lastWasSpace <- false
+        | ' ' when not inQuotes ->
+            if not lastWasSpace then
+                sb.Append(' ') |> ignore
+                lastWasSpace <- true
+        | _ ->
+            sb.Append(ch) |> ignore
+            lastWasSpace <- false
+
+    sb.ToString().Trim()

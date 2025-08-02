@@ -45,7 +45,7 @@ type Terraform() =
     /// <param name="args" example="[ &quot;-upgrade&quot; ]">Arguments for command.</param>
     static member init (config: string option)
                        (args: string list option) =
-        let config = config |> map_default (fun config -> $"-backend-config={config}")
+        let config = config |> map_value (fun config -> $"-backend-config={config}")
         let args = args |> concat_quote
     
         let ops = [
