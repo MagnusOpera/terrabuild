@@ -78,7 +78,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     containerHome
                 | _ ->
                     // discover USER
-                    let args = $"run --init --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
+                    let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
                     let containerHome =
                         Log.Debug("Identifying USER for {container}", container)
                         match Exec.execCaptureOutput options.Workspace cmd args with
@@ -104,7 +104,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                         else Some $"-e {key}={expandedValue}"
                     else None)
                 |> String.join " "
-            let args = $"run --shm-size=1gb --init --rm --net=host --name {node.TargetHash} --pid=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+            let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
             metaCommand, options.Workspace, cmd, args, operation.Container
         | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Container)
 
