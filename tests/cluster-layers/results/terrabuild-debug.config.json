@@ -16,7 +16,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "EDD6B18413032BCE8DCCE2DB04BEFE7C576946F10210E8235816CD8F037155F0",
+      "hash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -48,13 +48,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building project"
-                      ]
-                    ]
+                    "string",
+                    "building project"
                   ]
                 }
               ]
@@ -90,7 +85,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "0355E16B91C1910DEF1029F4232B105A8BBBC26032CC2FA69F2A0798BBE51342",
+      "hash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -122,13 +117,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building project"
-                      ]
-                    ]
+                    "string",
+                    "building project"
                   ]
                 }
               ]
@@ -164,7 +154,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "483A0F8D7FF8A34341508BF01C6CBF711BD0925D3F97F456BF746EC613DF665A",
+      "hash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
       "dependencies": [
         "a",
         "b"
@@ -194,17 +184,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building"
-                      ],
-                      [
-                        "string",
-                        "project"
-                      ]
-                    ]
+                    "string",
+                    "building project"
                   ]
                 }
               ]
@@ -240,7 +221,7 @@
     },
     "d": {
       "directory": "D",
-      "hash": "913D6774C78D18B9F01A809695286D6EAAF6D00ED876FEB768D6F0A81BBF4476",
+      "hash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
       "dependencies": [
         "c"
       ],
@@ -295,7 +276,7 @@
     },
     "e": {
       "directory": "E",
-      "hash": "8E10B6E11D1F156BD5F07EA4D0D1D3D08810470C3CEFBF457CA01714F082562D",
+      "hash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
       "dependencies": [
         "c"
       ],
@@ -350,7 +331,7 @@
     },
     "f": {
       "directory": "F",
-      "hash": "42394627A59A6FCF6A2E73676B41F43DF4DE3E3F79139884C1329FC4C861F81E",
+      "hash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
       "dependencies": [
         "d",
         "e"
@@ -401,7 +382,7 @@
     },
     "g": {
       "directory": "G",
-      "hash": "FDDADE88B7C4FA707FAC2742F40FE9613958E5F3CC9C6F3939B0F0E70580EEFC",
+      "hash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
       "dependencies": [
         "c"
       ],

@@ -27,10 +27,10 @@ type Yarn() =
     /// <summary>
     /// Run yarn `command`.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
     static member __dispatch__ (context: ActionContext)
-                               (args: string list option) =
-        let args = args |> concat_quote
+                               (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"{context.Command} -- {args}")   
@@ -43,13 +43,13 @@ type Yarn() =
     /// </summary>
     /// <param name="update" example="true">Restore and update lock file.</param> 
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
     static member install (update: bool option)
                           (``ignore-engines``: bool option)
-                          (args: string list option) =
+                          (args: string option) =
         let update = update |> map_false "--frozen-lockfile"
         let ignoreEngines = ``ignore-engines`` |> map_true "--ignore-engines"
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [ shellOp("yarn", $"install {update} {ignoreEngines} {args}") ]
         ops |> execRequest Cacheability.Local
@@ -58,9 +58,9 @@ type Yarn() =
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
-    static member build (args: string list option) =
-        let args = args |> concat_quote
+    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    static member build (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"build -- {args}")
@@ -72,9 +72,9 @@ type Yarn() =
     /// Run `test` script.
     /// </summary>
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    /// <param name="args" example="[ &quot;--verbose&quot; ]">Arguments to pass to target.</param> 
-    static member test (args: string list option) =
-        let args = args |> concat_quote
+    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    static member test (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"test -- {args}")
@@ -84,10 +84,10 @@ type Yarn() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     static member run (command: string)
-                      (args: string list option) =
-        let args = args |> concat_quote
+                      (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"{command} -- {args}")

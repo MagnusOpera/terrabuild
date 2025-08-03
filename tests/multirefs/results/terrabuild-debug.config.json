@@ -22,7 +22,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "7B2D882369DC2B76D48305C2F6D8B0CD4A0B2A9FA54CCEC701D963DCCFB1C83E",
+      "hash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
       "dependencies": [
         "b",
         "c"
@@ -48,13 +48,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building A"
-                      ]
-                    ]
+                    "string",
+                    "building A"
                   ]
                 }
               ]
@@ -66,7 +61,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "9BB4965D4C1C0DA311073552AD7C449CEAFAAD867066562A76F2634176FE868B",
+      "hash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
       "dependencies": [
         "c"
       ],
@@ -91,13 +86,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building B"
-                      ]
-                    ]
+                    "string",
+                    "building B"
                   ]
                 }
               ]
@@ -109,7 +99,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "CF68EED9B182D3510E780FF816CCCEC5D91C4C5C56522E891D695524430618B0",
+      "hash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -132,13 +122,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building C"
-                      ]
-                    ]
+                    "string",
+                    "building C"
                   ]
                 }
               ]

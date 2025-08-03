@@ -29,11 +29,11 @@ type Npm() =
     /// <summary>
     /// Run npm command.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
     static member __dispatch__ (context: ActionContext)
-                               (args: string list option) =
+                               (args: string option) =
         let cmd = context.Command
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("npm", $"{cmd} {args}")
@@ -44,11 +44,11 @@ type Npm() =
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
-    /// <param name="args" example="[ &quot;--install-strategy&quot; &quot;hoisted&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
     static member install (force: bool option)
-                          (args: string list option) =
+                          (args: string option) =
         let force = force |> map_true "--force"
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("npm", $"ci {force} {args}")
@@ -59,10 +59,9 @@ type Npm() =
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
-    static member build (args: string list option) =
-        let args = args |> concat_quote
-
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    static member build (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run build -- {args}")   
         ]
@@ -72,10 +71,9 @@ type Npm() =
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="args" example="[ &quot;--port=1337&quot; ]">Arguments to pass to target.</param> 
-    static member test (args: string list option) =
-        let args = args |> concat_quote
-
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    static member test (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run test -- {args}")   
         ]
@@ -84,11 +82,10 @@ type Npm() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="srgs" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     static member run (command: string)
-                      (args: string list option) =
-        let args = args |> concat_quote
-
+                      (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run {command} -- {args}")
         ]
@@ -97,11 +94,10 @@ type Npm() =
     /// <summary>
     /// Run `exec` script.
     /// </summary>
-    /// <param name="srgs" example="[ &quot;build-prod&quot; ]">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     static member exec (package: string)
-                       (args: string list option) =
-        let args = args |> concat_quote
-
+                       (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"exec -- {package} {args}")
         ]

@@ -1,9 +1,9 @@
 project a { }
 
 target build {
-    @shell echo { args = [ "build A" ] }
+    @shell echo { args = "build A" }
 }
 
 target dist {
-    @shell echo { args = [ "dist A" ] }
+    @shell echo { args = "dist A" }
 }

@@ -13,13 +13,13 @@ type Playwright() =
     /// </summary>
     /// <param name="browser" example="&quot;webkit&quot;">Browser to use.</param> 
     /// <param name="project" example="&quot;ci&quot;">Project to use.</param> 
-    /// <param name="args" example="[ &quot;--debug&quot; ]">Arguments to pass to playwright.</param> 
+    /// <param name="args" example="&quot;--debug&quot;">Arguments to pass to playwright.</param> 
     static member test (browser: string option)
                        (project: string option)
-                       (args: string list option) =
+                       (args: string option) =
         let browser = browser |> map_value (fun browser -> $"--browser {browser}")
         let project = project |> map_value (fun project -> $"--project {project}")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("npx", $"playwright test {browser} {project} {args}")

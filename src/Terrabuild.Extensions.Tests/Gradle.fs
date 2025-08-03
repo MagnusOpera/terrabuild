@@ -11,7 +11,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("gradle", "ci-command \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("gradle", "ci-command --opt1 --opt2") ]
 
     Gradle.__dispatch__ ciContext someArgs
     |> normalize
@@ -34,7 +34,7 @@ let ``dispatch none``() =
 let ``build some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("gradle", "assemble dev \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("gradle", "assemble dev --opt1 --opt2") ]
 
     Gradle.build (Some "dev") // configuration
                  someArgs

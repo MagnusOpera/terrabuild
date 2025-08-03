@@ -16,14 +16,14 @@ type OpenApi() =
     /// <param name="input" required="true" example="&quot;src/api.json&quot;">Relative path to api json file</param>
     /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path.</param>
     /// <param name="properties" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional properties for generator.</param>
-    /// <param name="args" example="[ &quot;--type-mappings&quot; &quot;ClassA=ClassB&quot; ]">Additional arguments for generator.</param>
+    /// <param name="args" example="&quot;--type-mappings ClassA=ClassB&quot;">Additional arguments for generator.</param>
     static member generate (generator: string)
                            (input: string)
                            (output: string)
                            (properties: Map<string, string> option)
-                           (args: string list option) =
+                           (args: string option) =
         let properties = properties |> format_comma (fun kvp -> $"{kvp.Key}={kvp.Value}") |> map_non_empty (fun x -> "--additional-properties={x}")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("docker-entrypoint.sh", $"generate -i {input} -g {generator} -o {output} {properties} {args}")

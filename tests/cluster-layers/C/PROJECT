@@ -5,7 +5,7 @@ project {
 }
 
 target build {
-    @shell echo { args = [ "building" "project" ] }
+    @shell echo { args = "building project" }
     @npm install { }
     @npm build { }
 }

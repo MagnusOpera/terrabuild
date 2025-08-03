@@ -11,7 +11,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("ci-command", "\"--opt1\" \"--opt2\"") ]
+                    [ shellOp("ci-command", "--opt1 --opt2") ]
 
     Shell.__dispatch__ ciContext someArgs
     |> normalize

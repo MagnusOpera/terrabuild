@@ -11,7 +11,7 @@ open TestHelpers
 let ``test some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("npx", "playwright test --browser webkit --project my-project \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npx", "playwright test --browser webkit --project my-project --opt1 --opt2") ]
 
     Playwright.test (Some "webkit") // browser
                     (Some "my-project") // project

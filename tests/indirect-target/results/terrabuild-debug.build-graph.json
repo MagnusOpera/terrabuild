@@ -22,13 +22,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "build A"
-                    ]
-                  ]
+                  "string",
+                  "build A"
                 ]
               }
             ]
@@ -37,14 +32,14 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "33A749C7C546CCB87889879C087E398332D325A893974C472DD2A7EDE303BA8F",
-      "targetHash": "610CE1AB403E6A59810A8D5EF30DD5C0450E0F3B81EB328B7B9DF4E9A9306F08",
+      "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
+      "targetHash": "FCDF7168FA7FCA5DA8B8CF13E5334080A9C811ADBCFC55266CC50FAE3B700D5E",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022build A\u0022"
+          "arguments": "build A"
         }
       ],
       "cache": 0,
@@ -76,13 +71,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "dist A"
-                    ]
-                  ]
+                  "string",
+                  "dist A"
                 ]
               }
             ]
@@ -93,14 +83,14 @@
         "a:build"
       ],
       "outputs": [],
-      "projectHash": "33A749C7C546CCB87889879C087E398332D325A893974C472DD2A7EDE303BA8F",
-      "targetHash": "AAA83A636C3085E6A6DAB269FCAC5F0C27496246AB400731AC0CEC77C08CDF50",
+      "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
+      "targetHash": "50F5F31C8F99596F8E1E420A060A506196FCD6248BF7AD58EE006D3EC84A570B",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022dist A\u0022"
+          "arguments": "dist A"
         }
       ],
       "cache": 0,
@@ -132,13 +122,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "apply B"
-                    ]
-                  ]
+                  "string",
+                  "apply B"
                 ]
               }
             ]
@@ -149,14 +134,14 @@
         "b:plan"
       ],
       "outputs": [],
-      "projectHash": "624B403512753E1A9C674872270128E880D0828ED3D60BCC20BAFEB412993BE3",
-      "targetHash": "623659477B1A4D06F69DE0B15988E373B346E5E381DB369FB5F1EE3BD9741F7F",
+      "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
+      "targetHash": "5B1E3A6B67518D428A8866B441FD4BD50A7599BB73514A1C8CB1D5A3D362DB9D",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022apply B\u0022"
+          "arguments": "apply B"
         }
       ],
       "cache": 0,
@@ -188,13 +173,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "plan B"
-                    ]
-                  ]
+                  "string",
+                  "plan B"
                 ]
               }
             ]
@@ -205,14 +185,14 @@
         "a:dist"
       ],
       "outputs": [],
-      "projectHash": "624B403512753E1A9C674872270128E880D0828ED3D60BCC20BAFEB412993BE3",
-      "targetHash": "FB26CC75342162EFB1A4F627578C43AE5612DFA16C4AECCE7F41DDC7C1C4B7AA",
+      "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
+      "targetHash": "7B87E97A91FEB653E59685702413244279D3C23DCAD0BB317C4F24F0D69382BB",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022plan B\u0022"
+          "arguments": "plan B"
         }
       ],
       "cache": 0,
@@ -242,13 +222,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "build C"
-                    ]
-                  ]
+                  "string",
+                  "build C"
                 ]
               }
             ]
@@ -257,14 +232,14 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "17CF635B3B032A16280660DED945A1AD2650807B1B06158E30F6398A02DE4B18",
-      "targetHash": "FBEF8A02CAD982904A6C449955F01765A37061955CC50ED00432C3FFA427C5DE",
+      "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
+      "targetHash": "9A769291EAFDA038EEDA9A7295C91A80201C06F6D108B6F1860F9D737D0FA2CE",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022build C\u0022"
+          "arguments": "build C"
         }
       ],
       "cache": 0,
@@ -296,13 +271,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "dist C"
-                    ]
-                  ]
+                  "string",
+                  "dist C"
                 ]
               }
             ]
@@ -313,14 +283,14 @@
         "c:build"
       ],
       "outputs": [],
-      "projectHash": "17CF635B3B032A16280660DED945A1AD2650807B1B06158E30F6398A02DE4B18",
-      "targetHash": "C56EFE667775EBF49D40F76F20993B2542E44604BEC2A2D0D1120BCFFDE53BBD",
+      "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
+      "targetHash": "530F9C5E56668D23CBFF3BE3917BF657EE0E1A4DCB587721669C2C0927E7AA5C",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022dist C\u0022"
+          "arguments": "dist C"
         }
       ],
       "cache": 0,

@@ -11,7 +11,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("terraform", "ci-command \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "ci-command --opt1 --opt2") ]
 
     Terraform.__dispatch__ ciContext someArgs
     |> normalize
@@ -34,7 +34,7 @@ let ``dispatch none``() =
 let ``init some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("terraform", "init -reconfigure -backend-config=gcp-dev \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "init -reconfigure -backend-config=gcp-dev --opt1 --opt2") ]
 
     Terraform.init (Some "gcp-dev")
                    someArgs
@@ -59,7 +59,7 @@ let ``init none``() =
 let ``validate some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("terraform", "validate \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "validate --opt1 --opt2") ]
 
     Terraform.validate someArgs
     |> normalize
@@ -81,7 +81,7 @@ let ``validate none``() =
 let ``select some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("terraform", "workspace select -or-create dev \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "workspace select -or-create dev --opt1 --opt2") ]
 
     Terraform.select (Some "dev") // workspace
                      (Some true) // create
@@ -108,7 +108,7 @@ let ``select none``() =
 let ``plan some``() =
     let expected =
         execRequest (Cacheability.Always ||| Cacheability.Ephemeral)
-                    [ shellOp("terraform", "plan -out=terrabuild.planfile -var=\"prm1=val1\" -var=\"prm2=val2\" \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "plan -out=terrabuild.planfile -var=\"prm1=val1\" -var=\"prm2=val2\" --opt1 --opt2") ]
 
     Terraform.plan someMap // variables
                    someArgs
@@ -132,7 +132,7 @@ let ``plan none``() =
 let ``apply some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("terraform", "apply -input=false \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "apply -input=false --opt1 --opt2") ]
 
     Terraform.apply (Some true) // no_plan
                     someArgs
@@ -156,7 +156,7 @@ let ``apply none``() =
 let ``destroy some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("terraform", "apply -destroy -input=false -var=\"prm1=val1\" -var=\"prm2=val2\" \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("terraform", "apply -destroy -input=false -var=\"prm1=val1\" -var=\"prm2=val2\" --opt1 --opt2") ]
 
     Terraform.destroy someMap // no_plan
                       someArgs

@@ -4,5 +4,5 @@ project {
 }
 
 target build {
-  @shell echo { args = ["building" "C" ] }
+  @shell echo { args = "building C" }
 }

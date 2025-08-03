@@ -11,7 +11,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("cargo", "ci-command \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("cargo", "ci-command --opt1 --opt2") ]
 
     Cargo.__dispatch__ ciContext someArgs
     |> normalize
@@ -34,7 +34,7 @@ let ``dispatch none``() =
 let ``build some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("cargo", "build --profile dev \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("cargo", "build --profile dev --opt1 --opt2") ]
 
     Cargo.build (Some "dev") // profile
                 someArgs

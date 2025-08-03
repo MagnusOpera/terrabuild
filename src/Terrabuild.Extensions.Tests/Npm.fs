@@ -10,7 +10,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("npm", "ci-command \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "ci-command --opt1 --opt2") ]
 
     Npm.__dispatch__ ciContext someArgs
     |> normalize
@@ -33,7 +33,7 @@ let ``dispatch none``() =
 let ``install some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npm", "ci --force \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "ci --force --opt1 --opt2") ]
 
     Npm.install (Some true) // force
                 someArgs
@@ -59,7 +59,7 @@ let ``install none``() =
 let ``build some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("npm", "run build -- \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "run build -- --opt1 --opt2") ]
 
     Npm.build someArgs
     |> normalize
@@ -82,7 +82,7 @@ let ``build none``() =
 let ``test some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("npm", "run test -- \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "run test -- --opt1 --opt2") ]
 
     Npm.test someArgs
     |> normalize
@@ -104,7 +104,7 @@ let ``test none``() =
 let ``run some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npm", "run my-command -- \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "run my-command -- --opt1 --opt2") ]
 
     Npm.run "my-command" // command
              someArgs
@@ -128,7 +128,7 @@ let ``run none``() =
 let ``exec some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npm", "exec -- my-package \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npm", "exec -- my-package --opt1 --opt2") ]
 
     Npm.exec "my-package" // command
              someArgs

@@ -26,11 +26,10 @@ type Gradle() =
     /// Run a gradle `command`.
     /// </summary>
     /// <param name="__dispatch__" example="clean">Example.</param>
-    /// <param name="args" example="[ &quot;&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
     static member __dispatch__ (context: ActionContext)
-                               (args: string list option) =
-        let args = args |> concat_quote
-
+                               (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("gradle", $"{context.Command} {args}")
         ]
@@ -41,11 +40,11 @@ type Gradle() =
     /// Invoke build task `assemble` for `configuration`.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
-    /// <param name="args" example="[ &quot;&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
     static member build (configuration: string option)
-                        (args: string list option) =
+                        (args: string option) =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("gradle", $"assemble {configuration} {args}")

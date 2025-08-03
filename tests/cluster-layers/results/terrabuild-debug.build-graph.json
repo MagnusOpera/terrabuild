@@ -28,13 +28,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "building project"
-                    ]
-                  ]
+                  "string",
+                  "building project"
                 ]
               }
             ]
@@ -74,14 +69,14 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "EDD6B18413032BCE8DCCE2DB04BEFE7C576946F10210E8235816CD8F037155F0",
-      "targetHash": "EDD150CE95180E4DA21023EB67C9D5E4DE553349AF28452D4EDE69DB27F72023",
+      "projectHash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
+      "targetHash": "D8814A5659AB7F0C2E085219AA98A1A279531576031779CCDDA469E6EA3CA8F8",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022building project\u0022"
+          "arguments": "building project"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -131,13 +126,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "building project"
-                    ]
-                  ]
+                  "string",
+                  "building project"
                 ]
               }
             ]
@@ -177,14 +167,14 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "0355E16B91C1910DEF1029F4232B105A8BBBC26032CC2FA69F2A0798BBE51342",
-      "targetHash": "3910285F955314D1C0BB0F7189A8737507DE66568D44979C136B6445FC145114",
+      "projectHash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
+      "targetHash": "00D387E2E120376B7BFC810D19D55D98B276A6A2799B224F45EA15FFAD6CDBCF",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022building project\u0022"
+          "arguments": "building project"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -229,17 +219,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "building"
-                    ],
-                    [
-                      "string",
-                      "project"
-                    ]
-                  ]
+                  "string",
+                  "building project"
                 ]
               }
             ]
@@ -277,14 +258,14 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "483A0F8D7FF8A34341508BF01C6CBF711BD0925D3F97F456BF746EC613DF665A",
-      "targetHash": "C59BDF42AE04FB55C0AD60747592F5CE4C6359B6100C235F7D9217E23EB121D4",
+      "projectHash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
+      "targetHash": "B57DDEE3CED9CFFC6A842E5E755FB2A11842AB364506EEE495806C22C76BD308",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022building\u0022 \u0022project\u0022"
+          "arguments": "building project"
         },
         {
           "container": "node:20",
@@ -361,8 +342,8 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "913D6774C78D18B9F01A809695286D6EAAF6D00ED876FEB768D6F0A81BBF4476",
-      "targetHash": "6B37D8A8926CC81E7CAE6ED92D057768AF577200DFAFFAC2BFE7BD51F2C5B183",
+      "projectHash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
+      "targetHash": "02E55ECCD453F8F6A94CF8827A37A60B945A0E36488F79FDA50B0F16E40B807A",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -439,8 +420,8 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "8E10B6E11D1F156BD5F07EA4D0D1D3D08810470C3CEFBF457CA01714F082562D",
-      "targetHash": "3A9E0A4BDDF6384566E90C2A6EB8C1B9BFC900AACCDFD3F37090B922A19D5051",
+      "projectHash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
+      "targetHash": "C410406173F3F2121CA8498DEE6646A1218F8DA5216BC70BB857B17D69735D1F",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -508,8 +489,8 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "42394627A59A6FCF6A2E73676B41F43DF4DE3E3F79139884C1329FC4C861F81E",
-      "targetHash": "1F8B0E0AE5F7939ACC2585C51C6755D2DDE74952D8706F363675E2AC126816EB",
+      "projectHash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
+      "targetHash": "FAD2CE174B4486A91D1D4462E491FCDDB37D0012954D146544831EF8D591BA42",
       "operations": [
         {
           "container": "node:20",
@@ -576,8 +557,8 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "FDDADE88B7C4FA707FAC2742F40FE9613958E5F3CC9C6F3939B0F0E70580EEFC",
-      "targetHash": "EB2097F8B4D47A5566FC83E210FDDF8F624A5D203646AB977BBA271E0462BAF2",
+      "projectHash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
+      "targetHash": "B895541ADCDFDA59C288332BE43188D655C2D48E15152DF64AFB9CC2A45D9869",
       "operations": [
         {
           "container": "node:20",

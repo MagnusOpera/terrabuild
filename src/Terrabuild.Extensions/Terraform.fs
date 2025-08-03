@@ -31,8 +31,8 @@ type Terraform() =
     /// <param name="__dispatch__" example="fmt">Example.</param>
     /// <param name="args" example="[ &quot;-write=false&quot; ]">Arguments for command.</param>
     static member __dispatch__ (context: ActionContext)
-                               (args: string list option) =
-        let args = args |> concat_quote
+                               (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [ shellOp("terraform", $"{context.Command} {args}") ]
         ops |> execRequest Cacheability.Never
@@ -42,11 +42,11 @@ type Terraform() =
     /// Init Terraform.
     /// </summary>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
-    /// <param name="args" example="[ &quot;-upgrade&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;-upgrade&quot;">Arguments for command.</param>
     static member init (config: string option)
-                       (args: string list option) =
+                       (args: string option) =
         let config = config |> map_value (fun config -> $"-backend-config={config}")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
     
         let ops = [
             shellOp("terraform", $"init -reconfigure {config} {args}")
@@ -58,9 +58,9 @@ type Terraform() =
     /// Validate project.
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    /// <param name="args" example="[ &quot;-no-color&quot; ]">Arguments for command.</param>
-    static member validate (args: string list option) =
-        let args = args |> concat_quote
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    static member validate (args: string option) =
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("terraform", $"validate {args}")
@@ -75,12 +75,12 @@ type Terraform() =
     /// </summary>
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
     /// <param name="create" example="true">Create workspace if it does not exist.</param>
-    /// <param name="args" example="[ &quot;-no-color&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
     static member select (workspace: string option)
                          (create: bool option)
-                         (args: string list option) =
+                         (args: string option) =
         let create = create |> map_true "-or-create"
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             match workspace with
@@ -98,11 +98,11 @@ type Terraform() =
     /// {{&lt; /callout &gt;}}
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    /// <param name="args" example="[ &quot;-no-color&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
     static member plan (variables: Map<string, string> option)
-                       (args: string list option) =
+                       (args: string option) =
         let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("terraform", $"plan -out=terrabuild.planfile {vars} {args}")
@@ -114,11 +114,11 @@ type Terraform() =
     /// Apply the plan file.
     /// </summary>
     /// <param name="no_plan" example="true">Apply without plan file.</param>
-    /// <param name="args" example="[ &quot;-no-color&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
     static member apply (no_plan: bool option)
-                        (args: string list option) =
+                        (args: string option) =
         let planfile = no_plan |> map_false "terrabuild.planfile"
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("terraform", $"apply -input=false {planfile} {args}")
@@ -129,11 +129,11 @@ type Terraform() =
     /// Destroy the deployment.
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    /// <param name="args" example="[  ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
     static member destroy (variables: Map<string, string> option)
-                          (args: string list option) =
+                          (args: string option) =
         let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let ops = [
             shellOp("terraform", $"apply -destroy -input=false {vars} {args}")

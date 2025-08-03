@@ -11,7 +11,7 @@ open TestHelpers
 let ``run some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("npx", "--yes -- my-package \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("npx", "--yes -- my-package --opt1 --opt2") ]
 
     Npx.run "my-package" // package
             someArgs

@@ -282,7 +282,7 @@
     },
     "libraries/shell-lib": {
       "directory": "libraries/shell-lib",
-      "hash": "E1EA319AF6B9D2E9908E79B1FC233AA31B5ED5C052F580ED4204BD6ABD281D4C",
+      "hash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -305,13 +305,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building library1"
-                      ]
-                    ]
+                    "string",
+                    "building library1"
                   ]
                 }
               ]
@@ -489,7 +484,7 @@
     },
     "projects/make-app": {
       "directory": "projects/make-app",
-      "hash": "26EA9217291A79C2BA5ADA74B9BD656F5EC9AC3A41B7A58D15DE84B1E1C3B85D",
+      "hash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
       "dependencies": [
         "libraries/shell-lib"
       ],
@@ -517,13 +512,8 @@
                 "map",
                 {
                   "args": [
-                    "list",
-                    [
-                      [
-                        "string",
-                        "building project1"
-                      ]
-                    ]
+                    "string",
+                    "building project1"
                   ]
                 }
               ]

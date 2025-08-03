@@ -11,7 +11,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("make", "ci-command arg1=\"value1\" arg2=\"value2\" \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("make", "ci-command arg1=\"value1\" arg2=\"value2\" --opt1 --opt2") ]
 
     Make.__dispatch__ ciContext
                      (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // variables

@@ -2,7 +2,7 @@
 module TestHelpers
 open Terrabuild.Extensibility
 
-let someArgs = Some [ "--opt1"; "--opt2" ]
+let someArgs = Some "--opt1 --opt2"
 let noneArgs = None
 
 let normalize (request: Terrabuild.Extensibility.ActionExecutionRequest) =

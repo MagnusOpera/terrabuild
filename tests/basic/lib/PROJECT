@@ -8,5 +8,5 @@ locals {
 }
 
 target build {
-    @shell echo { args = [ "building" "library1" "with" "value" "${3 + local.a * 2 + 1 * 5}" ] }
+    @shell echo { args = "building library1 with value ${3 + local.a * 2 + 1 * 5}" }
 }

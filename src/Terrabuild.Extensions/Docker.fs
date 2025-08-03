@@ -12,11 +12,10 @@ type Docker() =
     /// Run a docker `command`.
     /// </summary>
     /// <param name="__dispatch__" example="image">Example.</param>
-    /// <param name="args" example="[ &quot;prune&quot; &quot;-f&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;prune -f&quot;">Arguments for command.</param>
     static member __dispatch__ (context: ActionContext)
-                               (args: string list option) =
-        let args = args |> concat_quote
-
+                               (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("docker", $"{context.Command} {args}")
         ]
@@ -30,17 +29,17 @@ type Docker() =
     /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
     /// <param name="arguments" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
-    /// <param name="args" example="[ &quot;--debug&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;--debug&quot;">Arguments for command.</param>
     static member build (context: ActionContext)
                         (image: string)
                         (dockerfile: string option)
                         (platforms: string list option)
                         (arguments: Map<string, string> option)
-                        (args: string list option) =
+                        (args: string option) =
         let dockerfile = dockerfile |> or_default "Dockerfile"
         let platforms = platforms |> format_comma (fun platform -> $"{platform}") |> map_non_empty (fun platforms -> $"--platform {platforms}")
         let arguments = arguments |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
-        let args = args |> concat_quote
+        let args = args |> or_default ""
 
         let cacheability =
             if context.CI then Cacheability.Remote
@@ -58,13 +57,12 @@ type Docker() =
     /// </summary>
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Apply tag on image (use branch or tag otherwise).</param>
-    /// <param name="args" example="[ &quot;--disable-content-trust&quot; ]">Arguments for command.</param>
+    /// <param name="args" example="&quot;--disable-content-trust&quot;">Arguments for command.</param>
     static member push (context: ActionContext)
                        (image: string)
                        (tag: string)
-                       (args: string list option) =
-        let args = args |> concat_quote
-
+                       (args: string option) =
+        let args = args |> or_default ""
         let cacheability =
             if context.CI then Cacheability.Remote
             else Cacheability.Local

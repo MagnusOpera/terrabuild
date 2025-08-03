@@ -12,11 +12,10 @@ type Npx() =
     /// Run an npx command.
     /// </summary>
     /// <param name="package" example="&quot;hello-world-npm&quot;">Package to exec.</param> 
-    /// <param name="args" example="[ ]">Arguments to pass to npx.</param> 
+    /// <param name="args" example="&quot;&quot;">Arguments to pass to npx.</param> 
     static member run (package: string)
-                      (args: string list option) =
-        let args = args |> concat_quote
-
+                      (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npx", $"--yes -- {package} {args}")
         ]

@@ -275,13 +275,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "building library1"
-                    ]
-                  ]
+                  "string",
+                  "building library1"
                 ]
               }
             ]
@@ -290,14 +285,14 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "E1EA319AF6B9D2E9908E79B1FC233AA31B5ED5C052F580ED4204BD6ABD281D4C",
-      "targetHash": "2C07DE1A027D05F864FD2CD76E9642BE4423FAB6A28125AA0DE40F7D96DC42A7",
+      "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
+      "targetHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022building library1\u0022"
+          "arguments": "building library1"
         }
       ],
       "cache": 0,
@@ -421,13 +416,8 @@
               "map",
               {
                 "args": [
-                  "list",
-                  [
-                    [
-                      "string",
-                      "building project1"
-                    ]
-                  ]
+                  "string",
+                  "building project1"
                 ]
               }
             ]
@@ -461,14 +451,14 @@
       "outputs": [
         "dist"
       ],
-      "projectHash": "26EA9217291A79C2BA5ADA74B9BD656F5EC9AC3A41B7A58D15DE84B1E1C3B85D",
-      "targetHash": "3D9F5114656E4E1166C4A9D59CA70DD12A51870FE5F3B526D673D83E41355C3C",
+      "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
+      "targetHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "\u0022building project1\u0022"
+          "arguments": "building project1"
         },
         {
           "containerVariables": [],

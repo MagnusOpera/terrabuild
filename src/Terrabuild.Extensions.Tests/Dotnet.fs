@@ -10,7 +10,7 @@ open TestHelpers
 let ``dispatch some``() =
     let expected =
         execRequest Cacheability.Never
-                    [ shellOp("dotnet", "ci-command \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "ci-command --opt1 --opt2") ]
 
     Dotnet.__dispatch__ ciContext someArgs
     |> normalize
@@ -33,7 +33,7 @@ let ``dispatch none``() =
 let ``restore some``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("dotnet", "restore --locked-mode \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "restore --locked-mode --opt1 --opt2") ]
 
     Dotnet.restore (Some true) // dependencies
                    (Some true) // locked
@@ -62,7 +62,7 @@ let ``restore none``() =
 let ``build some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 --opt1 --opt2") ]
 
     Dotnet.build (Some "Release") // configuration
                  (Some 9) // parallel
@@ -97,7 +97,7 @@ let ``build none``() =
 let ``pack some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("dotnet", "pack --configuration Release /p:Version=1.2.3 /p:TargetsForTfmSpecificContentInPackage= \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "pack --configuration Release /p:Version=1.2.3 /p:TargetsForTfmSpecificContentInPackage= --opt1 --opt2") ]
 
     Dotnet.pack (Some "Release") // configuration
                 (Some "1.2.3") // version
@@ -129,7 +129,7 @@ let ``pack none``() =
 let ``publish some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("dotnet", "publish --configuration Release -r linux-arm64 -p:PublishTrimmed=true --self-contained \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "publish --configuration Release -r linux-arm64 -p:PublishTrimmed=true --self-contained --opt1 --opt2") ]
 
     Dotnet.publish (Some "Release") // configuration
                    (Some true) // restore
@@ -164,7 +164,7 @@ let ``publish none``() =
 let ``test some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" --opt1 --opt2") ]
 
     Dotnet.test (Some "Release") // configuration
                 (Some true) // restore

@@ -11,7 +11,7 @@ open TestHelpers
 let ``generate some``() =
     let expected =
         execRequest Cacheability.Always
-                    [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client --additional-properties={x} \"--opt1\" \"--opt2\"") ]
+                    [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client --additional-properties={x} --opt1 --opt2") ]
 
     OpenApi.generate "typescript-axios" // generator
                      "api.json" // input
