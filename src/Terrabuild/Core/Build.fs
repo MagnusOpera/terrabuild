@@ -183,7 +183,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             else IO.createSnapshot node.Outputs projectDirectory
 
         let cacheEntryId = GraphDef.buildCacheKey node
-        let cacheEntry = cache.GetEntry true cacheEntryId
+        let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
         let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory homeDir tmpDir
 
         // keep only new or modified files
