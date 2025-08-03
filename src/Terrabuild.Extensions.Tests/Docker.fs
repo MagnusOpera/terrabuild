@@ -35,14 +35,14 @@ let ``dispatch none``() =
 let ``build some ci``() =
     let expected =
         execRequest Cacheability.Remote
-                    [ shellOp("docker", "build --file my-docker-file --tag ghcr.io/magnusopera/test:ABCDEF123456789 --build-arg arg1=\"value1\" --build-arg arg2=\"value2\" --platform linux/arm64,linux/amd64 --opt1 --opt2 .")
+                    [ shellOp("docker", "build --file my-docker-file --tag ghcr.io/magnusopera/test:ABCDEF123456789 --build-arg prm1=\"val1\" --build-arg prm2=\"val2\" --platform linux/arm64,linux/amd64 --opt1 --opt2 .")
                       shellOp("docker", "push ghcr.io/magnusopera/test:ABCDEF123456789") ]
 
     Docker.build ciContext
                  "ghcr.io/magnusopera/test" // image
                  (Some "my-docker-file") // dockerfile
                  (Some ["linux/arm64"; "linux/amd64"]) // platforms
-                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // arguments
+                 someMap // build_args
                  someArgs
     |> normalize
     |> should equal expected
@@ -51,13 +51,13 @@ let ``build some ci``() =
 let ``build some local``() =
     let expected =
         execRequest Cacheability.Local
-                    [ shellOp("docker", "build --file my-docker-file --tag ghcr.io/magnusopera/test:123456789ABCDEF --build-arg arg1=\"value1\" --build-arg arg2=\"value2\" --platform linux/arm64,linux/amd64 --opt1 --opt2 .") ]
+                    [ shellOp("docker", "build --file my-docker-file --tag ghcr.io/magnusopera/test:123456789ABCDEF --build-arg prm1=\"val1\" --build-arg prm2=\"val2\" --platform linux/arm64,linux/amd64 --opt1 --opt2 .") ]
 
     Docker.build localContext
                  "ghcr.io/magnusopera/test" // image
                  (Some "my-docker-file") // dockerfile
                  (Some ["linux/arm64"; "linux/amd64"]) // platforms
-                 (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // arguments
+                 someMap // build_args
                  someArgs
     |> normalize
     |> should equal expected
@@ -73,7 +73,7 @@ let ``build none``() =
                  "ghcr.io/magnusopera/test" // image
                  None // dockerfile
                  None // platforms
-                 None // arguments
+                 noneMap // build_args
                  noneArgs
     |> normalize
     |> should equal expected

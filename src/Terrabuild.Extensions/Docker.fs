@@ -34,11 +34,11 @@ type Docker() =
                         (image: string)
                         (dockerfile: string option)
                         (platforms: string list option)
-                        (arguments: Map<string, string> option)
+                        (build_args: Map<string, string> option)
                         (args: string option) =
         let dockerfile = dockerfile |> or_default "Dockerfile"
         let platforms = platforms |> format_comma (fun platform -> $"{platform}") |> map_non_empty (fun platforms -> $"--platform {platforms}")
-        let arguments = arguments |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
+        let build_args = build_args |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
         let args = args |> or_default ""
 
         let cacheability =
@@ -46,7 +46,7 @@ type Docker() =
             else Cacheability.Local
 
         let ops = [
-            shellOp("docker", $"build --file {dockerfile} --tag {image}:{context.Hash} {arguments} {platforms} {args} .")
+            shellOp("docker", $"build --file {dockerfile} --tag {image}:{context.Hash} {build_args} {platforms} {args} .")
             if context.CI then shellOp("docker", $"push {image}:{context.Hash}")
         ]
         ops |> execRequest cacheability
