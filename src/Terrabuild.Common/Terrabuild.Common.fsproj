@@ -15,6 +15,7 @@
     <Compile Include="Compression.fs" />
     <Compile Include="Json.fs" />
     <Compile Include="Environment.fs" />
+    <Compile Include="Converters.fs" />
   </ItemGroup>
 
   <ItemGroup>

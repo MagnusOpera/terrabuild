@@ -28,7 +28,7 @@
     "a": {
       "id": "a",
       "directory": "A",
-      "hash": "93E239570E6B9FFE2C7437AD6F8DD19EC71F63DB6B04A2AEB2A47C1E4D9F7B73",
+      "hash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -50,7 +50,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "build A"
                   ]
@@ -77,7 +77,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "dist A"
                   ]
@@ -92,7 +92,7 @@
     "b": {
       "id": "b",
       "directory": "B",
-      "hash": "0D4635FF9549E163EEA450E6A2494A005BB7ED398C6B51DF80D2B527AD51415D",
+      "hash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
       "dependencies": [
         "a"
       ],
@@ -118,7 +118,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "apply B"
                   ]
@@ -145,7 +145,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "plan B"
                   ]
@@ -160,7 +160,7 @@
     "c": {
       "id": "c",
       "directory": "C",
-      "hash": "23F451E7CA600359C540B37D910F0F1135AB887915AE8BB5B31FA1E303961E2A",
+      "hash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -182,7 +182,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "build C"
                   ]
@@ -209,7 +209,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "dist C"
                   ]

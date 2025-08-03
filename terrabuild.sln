@@ -41,6 +41,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Terrabuild.Lang", "src\Terr
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Terrabuild.Lang.Tests", "src\Terrabuild.Lang.Tests\Terrabuild.Lang.Tests.fsproj", "{859ACB96-6A72-4089-B426-E816AC88DFC3}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Terrabuild.Extensions.Tests", "src\Terrabuild.Extensions.Tests\Terrabuild.Extensions.Tests.fsproj", "{F643E548-5A9F-4A77-890C-17020625AF54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,18 @@ Global
 		{859ACB96-6A72-4089-B426-E816AC88DFC3}.Release|x64.Build.0 = Release|Any CPU
 		{859ACB96-6A72-4089-B426-E816AC88DFC3}.Release|x86.ActiveCfg = Release|Any CPU
 		{859ACB96-6A72-4089-B426-E816AC88DFC3}.Release|x86.Build.0 = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|x64.Build.0 = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Debug|x86.Build.0 = Debug|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|x64.ActiveCfg = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|x64.Build.0 = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|x86.ActiveCfg = Release|Any CPU
+		{F643E548-5A9F-4A77-890C-17020625AF54}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -277,5 +291,6 @@ Global
 		{29F6CE22-5D22-4DE2-BBE0-7E9EE989A49F} = {95B29BFC-EDC1-4700-A95B-D4D545D4505B}
 		{9A082AD9-9E0E-4D2D-A64C-12ABEEDA2508} = {95B29BFC-EDC1-4700-A95B-D4D545D4505B}
 		{859ACB96-6A72-4089-B426-E816AC88DFC3} = {95B29BFC-EDC1-4700-A95B-D4D545D4505B}
+		{F643E548-5A9F-4A77-890C-17020625AF54} = {95B29BFC-EDC1-4700-A95B-D4D545D4505B}
 	EndGlobalSection
 EndGlobal

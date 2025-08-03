@@ -13,6 +13,7 @@
     <Compile Include="Collections.fs" />
     <Compile Include="Hash.fs" />
     <Compile Include="String.fs" />
+    <Compile Include="Converters.fs" />
   </ItemGroup>
 
   <ItemGroup>

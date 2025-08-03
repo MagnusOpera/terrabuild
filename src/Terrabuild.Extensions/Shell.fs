@@ -1,5 +1,6 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
+open Converters
 
 
 /// <summary>
@@ -11,8 +12,12 @@ type Shell() =
     /// Run a shell `command` using provided arguments.
     /// </summary>
     /// <param name="__dispatch__" example="echo">Example.</param>
-    /// <param name="arguments" example="&quot;Hello Terrabuild&quot;">Arguments to pass to command.</param>
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
-        let ops = [ shellOp(context.Command, arguments) ]
-        execRequest(Cacheability.Always, ops)
+    /// <param name="args" example="&quot;Hello Terrabuild&quot;">Arguments to pass to command.</param>
+    static member __dispatch__ (context: ActionContext)
+                               (args: string option) =
+        let args = args |> or_default ""
+
+        let ops = [
+            shellOp(context.Command, args)
+        ]
+        ops |> execRequest Cacheability.Never

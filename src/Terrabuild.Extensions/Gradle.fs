@@ -1,5 +1,6 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
+open Converters
 
 module GradleHelpers =
 
@@ -25,21 +26,27 @@ type Gradle() =
     /// Run a gradle `command`.
     /// </summary>
     /// <param name="__dispatch__" example="clean">Example.</param>
-    /// <param name="arguments" example="&quot;&quot;">Arguments for command.</param>
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
-        let arguments = $"{context.Command} {arguments}"
-
-        let ops = [ shellOp("gradle", arguments) ]
-        execRequest(Cacheability.Always, ops)
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    static member __dispatch__ (context: ActionContext)
+                               (args: string option) =
+        let args = args |> or_default ""
+        let ops = [
+            shellOp("gradle", $"{context.Command} {args}")
+        ]
+        ops |>  execRequest Cacheability.Never
 
 
     /// <summary>
     /// Invoke build task `assemble` for `configuration`.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
-    static member build (context: ActionContext) (configuration: string option) =
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    static member build (configuration: string option)
+                        (args: string option) =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration
+        let args = args |> or_default ""
 
-        let ops = [ shellOp("gradlew", $"assemble{configuration}") ]
-        execRequest(Cacheability.Always, ops)
+        let ops = [
+            shellOp("gradle", $"assemble {configuration} {args}")
+        ]
+        ops |> execRequest Cacheability.Always

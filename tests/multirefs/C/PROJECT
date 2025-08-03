@@ -1,5 +1,5 @@
 
 target build {
-    @shell echo { arguments = "building C" }
+    @shell echo { args = "building C" }
 }
 

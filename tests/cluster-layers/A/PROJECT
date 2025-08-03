@@ -5,6 +5,7 @@ project {
 }
 
 target build {
-    @shell echo { arguments = "building project" }
+    @shell echo { args = "building project" }
+    @dotnet restore { }
     @dotnet build { }
 }

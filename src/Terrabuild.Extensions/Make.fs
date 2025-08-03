@@ -1,6 +1,6 @@
 namespace Terrabuild.Extensions
-
 open Terrabuild.Extensibility
+open Converters
 
 /// <summary>
 /// Add support for Makefile.
@@ -11,7 +11,14 @@ type Make() =
     /// Invoke make target.
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables to pass to make target.</param>
-    static member __dispatch__ (context: ActionContext) (variables: Map<string, string>) =
-        let args = variables |> Seq.fold (fun acc kvp -> $"{acc} {kvp.Key}=\"{kvp.Value}\"") $"{context.Command}"
-        let ops = [ shellOp("make", args) ]
-        execRequest(Cacheability.Always, ops)
+    /// <param name="args" example="&quot;-d&quot;">Arguments for command.</param>
+    static member __dispatch__ (context: ActionContext)
+                               (variables: Map<string, string> option)
+                               (args: string option) =
+        let variables = variables |> format_space (fun kvp -> $"{kvp.Key}=\"{kvp.Value}\"")
+        let args = args |> or_default ""
+
+        let ops = [
+            shellOp("make", $"{context.Command} {variables} {args}")
+        ]
+        ops |> execRequest Cacheability.Never

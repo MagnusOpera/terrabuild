@@ -20,7 +20,7 @@
             "context": [
               "map",
               {
-                "arguments": [
+                "args": [
                   "string",
                   "building A"
                 ]
@@ -34,8 +34,8 @@
         "c:build"
       ],
       "outputs": [],
-      "projectHash": "F881857ECAB5D1A330D0DF9FC5A8FD215D783A411B0E4965FD73B228CFC63F45",
-      "targetHash": "B9410345685BAE8BA08232BFCF4ABC17C213A09F9676104E668CBDFE3B2D9006",
+      "projectHash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
+      "targetHash": "7030004D6285E5B5F245BC73815C20BBD25599127CF3EBA22B136FE1FFE6E6C1",
       "operations": [
         {
           "containerVariables": [],
@@ -44,7 +44,7 @@
           "arguments": "building A"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -69,7 +69,7 @@
             "context": [
               "map",
               {
-                "arguments": [
+                "args": [
                   "string",
                   "building B"
                 ]
@@ -82,8 +82,8 @@
         "c:build"
       ],
       "outputs": [],
-      "projectHash": "9BD751EC513D9E50502E483A848655DF3B85F43D6455635965FFD9A02F9CE475",
-      "targetHash": "3B5827F869B648A1EB7D9E8576BB2BAD09A30B8FC8FB23C5717F2C882B32EB2E",
+      "projectHash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
+      "targetHash": "E8CEFB2E1D7304FB1ACDDE096082BBFB3B24058170F7E3020DACCACD73FD220A",
       "operations": [
         {
           "containerVariables": [],
@@ -92,7 +92,7 @@
           "arguments": "building B"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -117,7 +117,7 @@
             "context": [
               "map",
               {
-                "arguments": [
+                "args": [
                   "string",
                   "building C"
                 ]
@@ -128,8 +128,8 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "A65A35476A6AA51DCC6FDAE15D0DB103E9B3A055ACB8D133FD2E0801E295C18C",
-      "targetHash": "A00896C3A838867AA21A81C893957AAECA1AECFA64F603644E2189F87A884C4C",
+      "projectHash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
+      "targetHash": "52C06EC2270280F7A2A0E84FDAC2D0BF48AB9B5782CCD6DA68FB6421DC0392EF",
       "operations": [
         {
           "containerVariables": [],
@@ -138,7 +138,7 @@
           "arguments": "building C"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true

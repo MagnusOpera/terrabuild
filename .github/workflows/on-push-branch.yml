@@ -37,6 +37,17 @@ jobs:
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
           make self config=Release
 
+      - name: Create Test Report
+        uses: magnusopera/test-reporter@main
+        if: always()
+        with:
+          name: Unit Tests Report
+          path: '**/*.trx'
+          reporter: dotnet-trx
+          fail-on-error: false
+          fail-on-empty: false
+          use-actions-summary: true
+
       - name: Self Integration Tests
         run: make smoke-tests terrabuild=$PWD/.out/dotnet/terrabuild
 
@@ -62,14 +73,3 @@ jobs:
           name: Terrabuild Debug
           path: |
             **/terrabuild-debug.*
-
-      - name: Create Test Report
-        uses: magnusopera/test-reporter@main
-        if: always()
-        with:
-          name: Unit Tests Report
-          path: '**/*.trx'
-          reporter: dotnet-trx
-          fail-on-error: false
-          fail-on-empty: false
-          use-actions-summary: true

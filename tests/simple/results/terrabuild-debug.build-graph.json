@@ -5,7 +5,7 @@
       "projectDir": "deployments/terraform-deploy",
       "target": "build",
       "configurationTarget": {
-        "hash": "339771D0416B0DE57F074F35A58947EC4DF21B15E79871D2231F33753B48C98E",
+        "hash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
         "dependsOn": [
           "^build"
         ],
@@ -13,6 +13,24 @@
           "*.planfile"
         ],
         "operations": [
+          {
+            "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
+            "container": "hashicorp/terraform:1.10",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@terraform",
+            "command": "init",
+            "script": {},
+            "context": [
+              "map",
+              {
+                "workspace": [
+                  "string",
+                  "default"
+                ]
+              }
+            ]
+          },
           {
             "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
             "container": "hashicorp/terraform:1.10",
@@ -29,11 +47,11 @@
                   {
                     "dotnet_app_version": [
                       "string",
-                      "A6B3EFDD388EBBFEE6A8CC40CB4125F4E31189737D8AE74B87F1A363CC1E5400"
+                      "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771"
                     ],
                     "npm_app_version": [
                       "string",
-                      "D4E260C3DCFF3605A0B2B0C53BC2EE0CAF780B385DDE9F7FCD6BBF4529A4F88B"
+                      "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6"
                     ]
                   }
                 ],
@@ -51,14 +69,14 @@
         "projects/npm-app:build"
       ],
       "outputs": [],
-      "projectHash": "B7CE2B2607F969D9947CD698BD24DE8883294FBB09450C29A3836B00BBA8EBFF",
-      "targetHash": "3295113E361B03753146AADD14B88E53CCA44689DFEB08C089569A25D1A48A71",
+      "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
+      "targetHash": "1A62D3B055C4365C56D242F632FF9EF1411ACB15D802A627675E01B8E9F974AE",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
           "containerPlatform": "linux/amd64",
           "containerVariables": [],
-          "metaCommand": "@terraform plan",
+          "metaCommand": "@terraform init",
           "command": "terraform",
           "arguments": "init -reconfigure"
         },
@@ -68,15 +86,7 @@
           "containerVariables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "workspace select default"
-        },
-        {
-          "container": "hashicorp/terraform:1.10",
-          "containerPlatform": "linux/amd64",
-          "containerVariables": [],
-          "metaCommand": "@terraform plan",
-          "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=A6B3EFDD388EBBFEE6A8CC40CB4125F4E31189737D8AE74B87F1A363CC1E5400\u0022 -var=\u0022npm_app_version=D4E260C3DCFF3605A0B2B0C53BC2EE0CAF780B385DDE9F7FCD6BBF4529A4F88B\u0022"
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
         }
       ],
       "cache": 3,
@@ -89,7 +99,7 @@
       "projectDir": "libraries/dotnet-lib",
       "target": "build",
       "configurationTarget": {
-        "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
+        "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
         "dependsOn": [
           "^build"
         ],
@@ -102,6 +112,24 @@
           "obj/*.targets"
         ],
         "operations": [
+          {
+            "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
+            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@dotnet",
+            "command": "restore",
+            "script": {},
+            "context": [
+              "map",
+              {
+                "configuration": [
+                  "string",
+                  "Debug"
+                ]
+              }
+            ]
+          },
           {
             "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
             "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -131,16 +159,24 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "2DCC3A4D5681DD60329704AE104430AAC29AE50AD63E193047C0EE62002FCC26",
-      "targetHash": "B1C91B0B9313B2539325180112D965766A4D1EB0685AB734FB9FA29D26E12F4E",
+      "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
+      "targetHash": "2C1746E4C585834A39C53DB62391E01EB88234B7DEA80069B3F6DB3A3E0F61B7",
       "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore --no-dependencies"
+        },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerPlatform": "linux/amd64",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -153,7 +189,7 @@
       "projectDir": "libraries/npm-lib",
       "target": "build",
       "configurationTarget": {
-        "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
+        "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
         "dependsOn": [
           "^build"
         ],
@@ -161,6 +197,19 @@
           "dist/**"
         ],
         "operations": [
+          {
+            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+            "container": "node:20",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@npm",
+            "command": "install",
+            "script": {},
+            "context": [
+              "map",
+              {}
+            ]
+          },
           {
             "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
             "container": "node:20",
@@ -180,14 +229,14 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "42251A3FE94834989EE0F135BEDEF76023512E5F5A0DB7D15DF0270B34802DE6",
-      "targetHash": "38A9925655E1512C8A073B86268BFA8E40C82BBD353329DF6458CE6C0302666A",
+      "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
+      "targetHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
       "operations": [
         {
           "container": "node:20",
           "containerPlatform": "linux/amd64",
           "containerVariables": [],
-          "metaCommand": "@npm build",
+          "metaCommand": "@npm install",
           "command": "npm",
           "arguments": "ci"
         },
@@ -197,7 +246,7 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -225,7 +274,7 @@
             "context": [
               "map",
               {
-                "arguments": [
+                "args": [
                   "string",
                   "building library1"
                 ]
@@ -236,8 +285,8 @@
       },
       "dependencies": [],
       "outputs": [],
-      "projectHash": "17163E3CEBFDD94D511D906EAE915397691F2E8F0E0ECEFCF63AEF1C8EF4D0FF",
-      "targetHash": "52B9514434F15797D9631AB4DCF0CFFE90EC65D75C0D8D03E2E48DEBB92A12AA",
+      "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
+      "targetHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
       "operations": [
         {
           "containerVariables": [],
@@ -246,7 +295,7 @@
           "arguments": "building library1"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -257,7 +306,7 @@
       "projectDir": "projects/dotnet-app",
       "target": "build",
       "configurationTarget": {
-        "hash": "80456575F34E04D1425875BF90F22EBAB1F3D70EC046398D85B2E66FE96E3FED",
+        "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
         "dependsOn": [
           "^build"
         ],
@@ -270,6 +319,24 @@
           "obj/*.targets"
         ],
         "operations": [
+          {
+            "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
+            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@dotnet",
+            "command": "restore",
+            "script": {},
+            "context": [
+              "map",
+              {
+                "configuration": [
+                  "string",
+                  "Debug"
+                ]
+              }
+            ]
+          },
           {
             "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
             "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -301,16 +368,24 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "A6B3EFDD388EBBFEE6A8CC40CB4125F4E31189737D8AE74B87F1A363CC1E5400",
-      "targetHash": "71CE4F2DF95C40D0401F5D959BE127207B5BD9C2FE21C11F5AAAA31ECB0D04D8",
+      "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
+      "targetHash": "65867C0BD025DB614141FBD31BC7721ABD45E84DF346CD77725EAEAC271989FB",
       "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore --no-dependencies"
+        },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerPlatform": "linux/amd64",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-dependencies --configuration Debug    "
+          "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
       "cache": 3,
@@ -340,7 +415,7 @@
             "context": [
               "map",
               {
-                "arguments": [
+                "args": [
                   "string",
                   "building project1"
                 ]
@@ -376,8 +451,8 @@
       "outputs": [
         "dist"
       ],
-      "projectHash": "814D331D5CFDB8D8B65F761C69352AB9D66EA0300014FB990FC9D91684A5DEA5",
-      "targetHash": "88BA94C0027788AA8CC780F1EE26429328D0D5CA7ED61BD5A5E6541322600DC2",
+      "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
+      "targetHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
       "operations": [
         {
           "containerVariables": [],
@@ -392,7 +467,7 @@
           "arguments": "build secret=\u0022tagada\u0022"
         }
       ],
-      "cache": 3,
+      "cache": 0,
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -403,7 +478,7 @@
       "projectDir": "projects/npm-app",
       "target": "build",
       "configurationTarget": {
-        "hash": "A16A69B69BAAD8E5F7446EDA76618622CBB09F32BB4E2CBCFA87748838A6BF30",
+        "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
         "dependsOn": [
           "^build"
         ],
@@ -411,6 +486,19 @@
           "dist/**"
         ],
         "operations": [
+          {
+            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
+            "container": "node:20",
+            "platform": "linux/amd64",
+            "containerVariables": [],
+            "extension": "@npm",
+            "command": "install",
+            "script": {},
+            "context": [
+              "map",
+              {}
+            ]
+          },
           {
             "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
             "container": "node:20",
@@ -432,14 +520,14 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "D4E260C3DCFF3605A0B2B0C53BC2EE0CAF780B385DDE9F7FCD6BBF4529A4F88B",
-      "targetHash": "4762F2622230B69FD3ACE7059BE3BD013D7B435A87179771989930761F3C54A7",
+      "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
+      "targetHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
       "operations": [
         {
           "container": "node:20",
           "containerPlatform": "linux/amd64",
           "containerVariables": [],
-          "metaCommand": "@npm build",
+          "metaCommand": "@npm install",
           "command": "npm",
           "arguments": "ci"
         },
@@ -449,7 +537,7 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build -- "
+          "arguments": "run build --"
         }
       ],
       "cache": 3,
@@ -550,7 +638,7 @@
         "target/release/"
       ],
       "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
-      "targetHash": "D1CBAC8B7323FE0A99FDF65B8D9C6865AC905B176A723C18AEF54D1A231977C3",
+      "targetHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
       "operations": [
         {
           "container": "rust:1.81.0-slim",
@@ -558,7 +646,7 @@
           "containerVariables": [],
           "metaCommand": "@cargo build",
           "command": "cargo",
-          "arguments": "build --profile dev "
+          "arguments": "build"
         }
       ],
       "cache": 3,
@@ -617,7 +705,7 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "EFC71B1914BD710A213A7AF0514BD337BCD7F22041799165287DD61D3ED98AD4",
+      "targetHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
       "operations": [
         {
           "container": "node:20",
@@ -632,7 +720,7 @@
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
-          "arguments": "playwright test  --project ci "
+          "arguments": "playwright test --project ci"
         }
       ],
       "cache": 3,

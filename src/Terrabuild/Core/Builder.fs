@@ -92,7 +92,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
                                 ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                                 ContaineredShellOperation.Command = shellOperation.Command
-                                ContaineredShellOperation.Arguments = shellOperation.Arguments })
+                                ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
                         let cache = executionRequest.Cache &&& Cacheability.Always
                         let ephemeral = executionRequest.Cache.HasFlag Cacheability.Ephemeral

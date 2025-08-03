@@ -1,6 +1,7 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
 open Errors
+open Converters
 
 /// <summary>
 /// Provides support for `npm`.
@@ -28,61 +29,76 @@ type Npm() =
     /// <summary>
     /// Run npm command.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    static member __dispatch__ (context: ActionContext)
+                               (args: string option) =
         let cmd = context.Command
-        let arguments = arguments |> Option.defaultValue ""
+        let args = args |> or_default ""
 
         let ops = [
-            shellOp("npm", $"{cmd} {arguments}")
+            shellOp("npm", $"{cmd} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
-    static member install (context: ActionContext) (force: bool option)=
-        let force = if force = Some true then " --force" else ""
-        let ops = [ shellOp("npm", $"ci{force}") ]
-        execRequest(Cacheability.Always, ops)
+    /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
+    static member install (force: bool option)
+                          (args: string option) =
+        let force = force |> map_true "--force"
+        let args = args |> or_default ""
+
+        let ops = [
+            shellOp("npm", $"ci {force} {args}")
+        ]
+        ops |> execRequest Cacheability.Local
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member build (context: ActionContext) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
-
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    static member build (args: string option) =
+        let args = args |> or_default ""
         let ops = [
-            shellOp("npm", "ci")
             shellOp("npm", $"run build -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
-    static member test (context: ActionContext) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
-
+    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    static member test (args: string option) =
+        let args = args |> or_default ""
         let ops = [
-            shellOp("npm", "ci")
             shellOp("npm", $"run test -- {args}")   
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary>
     /// Run `run` script.
     /// </summary>
-    /// <param name="arguments" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
-    static member run (context: ActionContext) (command: string) (arguments: string option) =
-        let args = arguments |> Option.defaultValue ""
-
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    static member run (command: string)
+                      (args: string option) =
+        let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run {command} -- {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Local
+
+    /// <summary>
+    /// Run `exec` script.
+    /// </summary>
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    static member exec (package: string)
+                       (args: string option) =
+        let args = args |> or_default ""
+        let ops = [
+            shellOp("npm", $"exec -- {package} {args}")
+        ]
+        ops |> execRequest Cacheability.Local

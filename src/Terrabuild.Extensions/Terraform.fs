@@ -1,6 +1,6 @@
 namespace Terrabuild.Extensions
-
 open Terrabuild.Extensibility
+open Converters
 
 
 /// <summary>
@@ -29,133 +29,113 @@ type Terraform() =
     /// Run a terraform `command`.
     /// </summary>
     /// <param name="__dispatch__" example="fmt">Example.</param>
-    /// <param name="arguments" example="&quot;-write=false&quot;">Arguments for command.</param>
-    static member __dispatch__ (context: ActionContext) (arguments: string option) =
-        let arguments = arguments |> Option.defaultValue ""
-        let arguments = $"{context.Command} {arguments}"
+    /// <param name="args" example="&quot;-write=false&quot;">Arguments for command.</param>
+    static member __dispatch__ (context: ActionContext)
+                               (args: string option) =
+        let args = args |> or_default ""
 
-        let ops = [ shellOp("terraform", arguments) ]
-        execRequest(Cacheability.Always, ops)
+        let ops = [ shellOp("terraform", $"{context.Command} {args}") ]
+        ops |> execRequest Cacheability.Never
 
 
     /// <summary weight="1">
     /// Init Terraform.
     /// </summary>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
-    static member init (context: ActionContext) (config: string option) =
-        let config =
-            match config with
-            | Some config -> $" -backend-config={config}"
-            | _ -> ""
-        let ops = [ shellOp("terraform", $"init -reconfigure{config}") ]
-        execRequest(Cacheability.Local, ops)
+    /// <param name="args" example="&quot;-upgrade&quot;">Arguments for command.</param>
+    static member init (config: string option)
+                       (args: string option) =
+        let config = config |> map_value (fun config -> $"-backend-config={config}")
+        let args = args |> or_default ""
+    
+        let ops = [
+            shellOp("terraform", $"init -reconfigure {config} {args}")
+        ]
+        ops |> execRequest Cacheability.Local
 
 
     /// <summary weight="2" title="Generate plan file.">
-    /// This command validates the project:
-    /// * initialize Terraform
-    /// * select workspace
-    /// * run validate
+    /// Validate project.
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    static member validate (context: ActionContext) =
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    static member validate (args: string option) =
+        let args = args |> or_default ""
+
         let ops = [
-            shellOp("terraform", "init")
-            shellOp("terraform", "validate")
+            shellOp("terraform", $"validate {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
 
-    /// <summary weight="3" title="Generate plan file.">
-    /// This command generates the planfile:
-    /// * initialize Terraform
-    /// * select workspace
-    /// * run plan
-    ///
-    /// **WARNING: This command generate an ephemeral artifact.**
+
+
+    /// <summary weight="2" title="Select workspace.">
+    /// Select a workspace.
     /// </summary>
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
-    /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
     /// <param name="create" example="true">Create workspace if it does not exist.</param>
-    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    static member plan (context: ActionContext) (config: string option) (workspace: string option) (create: bool option) (variables: Map<string, string>) =
-        let vars = variables |> Seq.fold (fun acc (KeyValue(key, value)) -> acc + $" -var=\"{key}={value}\"") ""
-        let config =
-            match config with
-            | Some config -> $" -backend-config={config}"
-            | _ -> ""
-
-        let create =
-            match create with
-            | Some true -> "-or-create "
-            | _ -> ""
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    static member select (workspace: string option)
+                         (create: bool option)
+                         (args: string option) =
+        let create = create |> map_true "-or-create"
+        let args = args |> or_default ""
 
         let ops = [
-            shellOp("terraform", $"init -reconfigure{config}")
-
             match workspace with
-            | Some workspace -> shellOp("terraform", $"workspace select {create}{workspace}")
+            | Some workspace -> shellOp("terraform", $"workspace select {create} {workspace} {args}")
             | _ -> ()
-
-            shellOp("terraform", $"plan -out=terrabuild.planfile{vars}")
         ]
-        execRequest(Cacheability.Always ||| Cacheability.Ephemeral, ops)
+        ops |> execRequest Cacheability.Local
+  
+
+    /// <summary weight="3" title="Generate plan file.">
+    /// Generate the planfile.
+    /// 
+    /// {{&lt; callout type="warning" &gt;}}
+    /// This extension generate an [ephemeral artifact](/docs/getting-started/artifacts/#ephemeral-artifacts).
+    /// {{&lt; /callout &gt;}}
+    /// </summary>
+    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    static member plan (variables: Map<string, string> option)
+                       (args: string option) =
+        let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
+        let args = args |> or_default ""
+
+        let ops = [
+            shellOp("terraform", $"plan -out=terrabuild.planfile {vars} {args}")
+        ]
+        ops |> execRequest (Cacheability.Always ||| Cacheability.Ephemeral)
   
 
     /// <summary weight="4" title="Apply plan file.">
-    /// Apply the plan file:
-    /// * initialize Terraform
-    /// * select workspace
-    /// * apply plan
+    /// Apply the plan file.
     /// </summary>
-    /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
-    /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
     /// <param name="no_plan" example="true">Apply without plan file.</param>
-    static member apply (context: ActionContext) (config: string option) (workspace: string option) (no_plan: bool option) =
-        let config =
-            match config with
-            | Some config -> $" -backend-config={config}"
-            | _ -> ""
-
-        let planfile =
-            match no_plan with
-            | Some true -> ""
-            | _ -> " terrabuild.planfile"
+    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    static member apply (no_plan: bool option)
+                        (args: string option) =
+        let planfile = no_plan |> map_false "terrabuild.planfile"
+        let args = args |> or_default ""
 
         let ops = [
-            shellOp("terraform", $"init -reconfigure{config}")
-            
-            match workspace with
-            | Some workspace -> shellOp("terraform", $"workspace select {workspace}")
-            | _ -> ()
-
-            shellOp("terraform", $"apply -input=false{planfile}")
+            shellOp("terraform", $"apply -input=false {planfile} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always
 
     /// <summary weight="4" title="Destroy the deployment.">
-    /// Destroy the deployment:
-    /// * initialize Terraform
-    /// * select workspace
-    /// * destroy
+    /// Destroy the deployment.
     /// </summary>
-    /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
-    /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    static member destroy (context: ActionContext) (config: string option) (workspace: string option) (variables: Map<string, string>) =
-        let vars = variables |> Seq.fold (fun acc (KeyValue(key, value)) -> acc + $" -var=\"{key}={value}\"") ""
-        let config =
-            match config with
-            | Some config -> $" -backend-config={config}"
-            | _ -> ""
+    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    static member destroy (variables: Map<string, string> option)
+                          (args: string option) =
+        let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
+        let args = args |> or_default ""
 
         let ops = [
-            shellOp("terraform", $"init -reconfigure{config}")
-            
-            match workspace with
-            | Some workspace -> shellOp("terraform", $"workspace select {workspace}")
-            | _ -> ()
-
-            shellOp("terraform", $"destroy -input=false{vars}")
+            shellOp("terraform", $"apply -destroy -input=false {vars} {args}")
         ]
-        execRequest(Cacheability.Always, ops)
+        ops |> execRequest Cacheability.Always

@@ -16,7 +16,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "16375FBCD618F235A8DC80F4A2CD7C5BC4EBDFA7A2F8274A8F479A15286ABDC8",
+      "hash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -25,7 +25,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "34215119A4D68DB3B1137C90704FFA326799B219AE86B2DE93A123F6FEDCF68B",
+          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
           "dependsOn": [
             "^build"
           ],
@@ -47,11 +47,23 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building project"
                   ]
                 }
+              ]
+            },
+            {
+              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {}
               ]
             },
             {
@@ -73,7 +85,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "A079DA881A30356C5A77521E6EC10CB432FEA35A24583D79C7D921F70176F11E",
+      "hash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -82,7 +94,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "34215119A4D68DB3B1137C90704FFA326799B219AE86B2DE93A123F6FEDCF68B",
+          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
           "dependsOn": [
             "^build"
           ],
@@ -104,11 +116,23 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building project"
                   ]
                 }
+              ]
+            },
+            {
+              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {}
               ]
             },
             {
@@ -130,7 +154,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "3DC1B9707AF0FA2661896DE7082135A8FA417F2B31CB90E01439372D01B09EF0",
+      "hash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
       "dependencies": [
         "a",
         "b"
@@ -142,7 +166,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "E970FB6D3CCDCEE5AB6C4BAAB40D38439BDA75E6635D1B81F9A9DF7AFA6286C4",
+          "hash": "23CD6C07165F99D32FB02EF8EC9817467A787E3C2040F3FC9CB0AEC056F3E478",
           "dependsOn": [
             "^build"
           ],
@@ -159,11 +183,23 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building project"
                   ]
                 }
+              ]
+            },
+            {
+              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "container": "node:20",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
               ]
             },
             {
@@ -185,7 +221,7 @@
     },
     "d": {
       "directory": "D",
-      "hash": "85D4813279B49BAD56867F1B5AC4A48439454B3A0FE6A2D1788C3872AB167427",
+      "hash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
       "dependencies": [
         "c"
       ],
@@ -196,7 +232,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "F9B0B5708DFC227889BB22353D3EC4D1C1A57C07439470229E286568F031D11A",
+          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
           "dependsOn": [
             "^build"
           ],
@@ -209,6 +245,18 @@
             "obj/*.targets"
           ],
           "operations": [
+            {
+              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
               "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -228,7 +276,7 @@
     },
     "e": {
       "directory": "E",
-      "hash": "C6D2D5781D712A3EB2B66AA3DA4F14575AD77B36B8E990696B873AB8F973B323",
+      "hash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
       "dependencies": [
         "c"
       ],
@@ -239,7 +287,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "F9B0B5708DFC227889BB22353D3EC4D1C1A57C07439470229E286568F031D11A",
+          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
           "dependsOn": [
             "^build"
           ],
@@ -252,6 +300,18 @@
             "obj/*.targets"
           ],
           "operations": [
+            {
+              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "containerVariables": [],
+              "extension": "@dotnet",
+              "command": "restore",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
               "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -271,7 +331,7 @@
     },
     "f": {
       "directory": "F",
-      "hash": "CB773BECA36F4951320274EAB6524B4AE465FEC201920F8571D61A82AFD4E60C",
+      "hash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
       "dependencies": [
         "d",
         "e"
@@ -283,7 +343,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "8F9422FFE2A136EC80F0C31D42C172CA05826D7DAFBB18BBCE27B1719A82AE1E",
+          "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
           "dependsOn": [
             "^build"
           ],
@@ -291,6 +351,18 @@
             "dist/**"
           ],
           "operations": [
+            {
+              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "container": "node:20",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
               "container": "node:20",
@@ -310,7 +382,7 @@
     },
     "g": {
       "directory": "G",
-      "hash": "6AEBBE5C6B199DBC2B4153C3368BF0B5AF90E433A07D73DB8D8B5EE359B5F6BF",
+      "hash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
       "dependencies": [
         "c"
       ],
@@ -321,7 +393,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "8F9422FFE2A136EC80F0C31D42C172CA05826D7DAFBB18BBCE27B1719A82AE1E",
+          "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
           "dependsOn": [
             "^build"
           ],
@@ -329,6 +401,18 @@
             "dist/**"
           ],
           "operations": [
+            {
+              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "container": "node:20",
+              "containerVariables": [],
+              "extension": "@npm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
             {
               "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
               "container": "node:20",

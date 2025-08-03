@@ -22,7 +22,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "F881857ECAB5D1A330D0DF9FC5A8FD215D783A411B0E4965FD73B228CFC63F45",
+      "hash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
       "dependencies": [
         "b",
         "c"
@@ -47,7 +47,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building A"
                   ]
@@ -61,7 +61,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "9BD751EC513D9E50502E483A848655DF3B85F43D6455635965FFD9A02F9CE475",
+      "hash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
       "dependencies": [
         "c"
       ],
@@ -85,7 +85,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building B"
                   ]
@@ -99,7 +99,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "A65A35476A6AA51DCC6FDAE15D0DB103E9B3A055ACB8D133FD2E0801E295C18C",
+      "hash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -121,7 +121,7 @@
               "context": [
                 "map",
                 {
-                  "arguments": [
+                  "args": [
                     "string",
                     "building C"
                   ]

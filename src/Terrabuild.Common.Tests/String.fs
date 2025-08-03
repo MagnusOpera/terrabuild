@@ -10,3 +10,10 @@ let ``Match regex``() =
         | String.Regex "(@?[a-z](?:[_-]?[a-z0-9]+)*)" [identifier] -> identifier
         | _ -> Errors.raiseParseError $"Invalid resource name: {s}"
     r |> should equal "extension"
+
+
+[<Test>]
+let ``remove extra shell arg spaces``() =
+    "  build   --no-restore --no-dependencies   \"--configuration\"   Debug    "
+    |> String.normalizeShellArgs
+    |> should equal "build --no-restore --no-dependencies \"--configuration\" Debug"

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <!-- <EnableNUnitRunner>true</EnableNUnitRunner> -->
+    <!-- <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Helpers.fs" />
+    <Compile Include="Helpers/Npm.fs" />
+    <Compile Include="Helpers/Dotnet.fs" />
+    <Compile Include="Helpers/Cargo.fs" />
+    <Compile Include="Cargo.fs" />
+    <Compile Include="Docker.fs" />
+    <Compile Include="Dotnet.fs" />
+    <Compile Include="Gradle.fs" />
+    <Compile Include="Make.fs" />
+    <Compile Include="Npm.fs" />
+    <Compile Include="Npx.fs" />
+    <Compile Include="OpenApi.fs" />
+    <Compile Include="Playwright.fs" />
+    <Compile Include="Shell.fs" />
+    <Compile Include="Yarn.fs" />
+    <Compile Include="Terraform.fs" />
+<!-- 
+    <Compile Include="Null.fs" />
+    <Compile Include="Factory.fs" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsUnit" Version="7.1.1" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Terrabuild.Extensions/Terrabuild.Extensions.fsproj" />
+    <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestFiles/**/*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+</Project>
