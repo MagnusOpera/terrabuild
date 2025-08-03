@@ -136,9 +136,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                 let ephemeral = target.Ephemeral |> Option.defaultValue ephemeral
 
-                let targetOutput =
-                    if ephemeral then Set.empty
-                    else target.Outputs
+                let targetOutput = target.Outputs
 
                 let node =
                     { Node.Id = nodeId

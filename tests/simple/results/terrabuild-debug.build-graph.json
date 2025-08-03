@@ -68,7 +68,9 @@
         "projects/dotnet-app:build",
         "projects/npm-app:build"
       ],
-      "outputs": [],
+      "outputs": [
+        "*.planfile"
+      ],
       "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
       "targetHash": "1A62D3B055C4365C56D242F632FF9EF1411ACB15D802A627675E01B8E9F974AE",
       "operations": [
