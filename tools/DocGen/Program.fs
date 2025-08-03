@@ -1,6 +1,8 @@
 ﻿open System.IO
 open System.Text.RegularExpressions
 open FSharp.Data
+open System.Reflection
+open Terrabuild.Extensibility
 
 
 type Documentation = XmlProvider<"Examples/Terrabuild.Extensions.xml">
@@ -22,6 +24,7 @@ type Command = {
     Name: string
     Weight: int option
     Title: string option
+    Cacheability: Cacheability option
     Summary: string
     mutable Parameters: Parameter list
 }
@@ -49,8 +52,13 @@ let (|Extension|Command|) s =
     | _ -> failwith $"Unknown member kind: {s}"
 
 
+let getCacheInfo (methodInfo: MethodInfo) =
+    match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
+    | :? CacheableAttribute as attr -> Some attr.Cacheability
+    | _ -> None
 
-let buildExtensions (members: Documentation.Member seq) =
+
+let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
     // first find extensions
     let extensions =
         members
@@ -66,6 +74,15 @@ let buildExtensions (members: Documentation.Member seq) =
     |> Seq.iter (fun m ->
         match m.Name with
         | Command (extension, name) ->
+            let fullTypename = "terrabuild.extensions." + extension
+            let extensionType = assembly.GetTypes() |> Seq.find (fun t -> t.FullName.ToLowerInvariant() = fullTypename)
+            let methodInfo = extensionType.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static)
+            let methodArgs =
+                methodInfo.GetParameters() |> Seq.map (fun p -> p.Name) |> Set.ofSeq
+                |> Set.remove "context"
+
+            let cacheability = getCacheInfo methodInfo
+
             match extensions |> Map.tryFind extension with
             | None -> if extension <> "null" then failwith $"Extension {extension} does not exist"
             | Some ext ->
@@ -78,9 +95,18 @@ let buildExtensions (members: Documentation.Member seq) =
                                              Required = prm.Required |> Option.defaultValue false
                                              Example = prm.Example.Value })
                     |> List.ofSeq
+
+                let prmNames =
+                    prms |> List.map (fun prm -> prm.Name) |> Set.ofList
+                    |> Set.remove "__dispatch__"
+                    |> Set.remove "context"
+                if name <> "__defaults__" && prmNames <> methodArgs then
+                    failwith $"Undocumented members on {extension}.{name}"
+
                 let cmd = { Name = name
                             Title = m.Summary.Title
                             Summary = m.Summary.Value.Trim()
+                            Cacheability = cacheability
                             Parameters = prms
                             Weight = m.Summary.Weight }
                 ext.Commands <- ext.Commands @ [cmd]
@@ -94,6 +120,43 @@ let buildExtensions (members: Documentation.Member seq) =
 
 
 let writeCommand extensionDir (command: Command) (batchCommand: Command option) (extension: Extension) =
+
+    let cacheabilityInfo =
+        match command.Cacheability with
+        | None -> []
+        | Some Cacheability.Never ->
+            [
+                ""
+                "{{< callout type=\"exclamation\" >}}"
+                "This command is **not cacheable**."
+                "{{< /callout >}}"
+                ""
+            ]
+        | Some Cacheability.Local ->
+            [
+                ""
+                "{{< callout type=\"info\" >}}"
+                "This command is **locally cacheable** only."
+                "{{< /callout >}}"
+                ""
+            ]
+        | Some Cacheability.Remote ->
+            [
+                ""
+                "{{< callout type=\"info\" >}}"
+                "This command is **fully cacheable**."
+                "{{< /callout >}}"
+                ""
+            ]
+        | Some Cacheability.Ephemeral ->
+            [
+                ""
+                "{{< callout type=\"warning\" >}}"
+                "This command is **fully cacheable** but is **ephemeral**."
+                "{{< /callout >}}"
+                ""
+            ]
+
     match command.Name with
     | "__defaults__" -> ()
     | _ ->
@@ -106,6 +169,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
             if command.Weight |> Option.isSome then $"weight: {command.Weight.Value}"
             "---"
             ""
+            yield! cacheabilityInfo
             command.Summary
 
             let name =
@@ -235,7 +299,9 @@ let main args =
     if doc.Assembly.Name <> "Terrabuild.Extensions" then failwith "Expecting documentation for Terrabuild.Extensions"
 
     let members = doc.Members |> Option.ofObj |> Option.defaultValue Array.empty
-    let extensions = buildExtensions members
+    let assemblyFile = Path.ChangeExtension(args[0], "dll")
+    let assembly = System.Reflection.Assembly.LoadFrom assemblyFile
+    let extensions = buildExtensions assembly members
 
     // generate files
     printfn "Generating docs"

@@ -43,7 +43,6 @@ type Dotnet() =
     /// <summary>
     /// Restore packages.
     /// </summary>
-    /// <param name="projectfile" example="&quot;project.fsproj&quot;">Force usage of project file for publish.</param>
     /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
     /// <param name="locked" example="&quot;true&quot;">Locked mode restore.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
@@ -68,6 +67,7 @@ type Dotnet() =
     /// <param name="parallel" example="1">Max worker processes to build the project.</param>
     /// <param name="log" example="true">Enable binlog for the build.</param>
     /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
+    /// <param name="version" example="&quot;1.2.3&quot;">Build version.</param>
     /// <param name="dependencies" example="true">Restore dependencies as well.</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]

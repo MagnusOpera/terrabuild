@@ -43,6 +43,19 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
+        },
+        {
+            "name": "DocGen",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/tools/DocGen/bin/Debug/net9.0/DocGen.dll",
+            "args": [
+                "src/Terrabuild.Extensions/bin/Debug/net9.0/Terrabuild.Extensions.xml", "../terrabuild.io/content/docs/extensions"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole",
         }
    ]
 }
