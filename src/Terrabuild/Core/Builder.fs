@@ -100,9 +100,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
                         let cache =
-                            if options.Run.IsSome then cacheability &&& Cacheability.Remote
-                            else cacheability &&& Cacheability.Local
-                        let ephemeral = cacheability.HasFlag Cacheability.Ephemeral
+                            match cacheability, options.Run.IsSome with
+                            | Cacheability.Never, _ -> Cacheability.Never
+                            | Cacheability.Local, _ -> Cacheability.Local
+                            | Cacheability.Remote, false -> Cacheability.Local
+                            | Cacheability.Remote, true -> Cacheability.Remote
+                            | Cacheability.Ephemeral, false -> Cacheability.Local
+                            | Cacheability.Ephemeral, true -> Cacheability.Remote
+                        let ephemeral = cacheability = Cacheability.Ephemeral
 
                         cache, ephemeral, ops @ newops
                     ) (Cacheability.Never, false, [])

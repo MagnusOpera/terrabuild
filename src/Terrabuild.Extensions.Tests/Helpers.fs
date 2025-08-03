@@ -3,6 +3,7 @@ module TestHelpers
 open Terrabuild.Extensibility
 
 open System.Reflection
+open FsUnit
 
 let getCacheInfo<'T> name =
     match typeof<'T>.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static) with
@@ -36,4 +37,3 @@ let someMap = [ "prm1", "val1"
                 "prm2", "val2" ] |> Map |> Some
 
 let noneMap = None
-

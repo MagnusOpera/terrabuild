@@ -40,12 +40,12 @@ type ShellOperation = {
 
 type ShellOperations = ShellOperation list
 
-[<Flags>]
+[<RequireQualifiedAccess>]
 type Cacheability =
-    | Never     = 0b00000000
-    | Local     = 0b00000001
-    | Remote    = 0b00000010
-    | Ephemeral = 0b00000100
+    | Never
+    | Local
+    | Remote
+    | Ephemeral
 
 let shellOp(cmd, args) = 
     { ShellOperation.Command = cmd
@@ -58,10 +58,10 @@ type CacheableAttribute(cacheability: Cacheability) =
     member _.Cacheability = cacheability
 
 type EphemeralCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Ephemeral ||| Cacheability.Remote ||| Cacheability.Local)
+    inherit CacheableAttribute(Cacheability.Ephemeral)
 
 type RemoteCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Remote ||| Cacheability.Local)
+    inherit CacheableAttribute(Cacheability.Remote)
 
 type LocalCacheAttribute() =
     inherit CacheableAttribute(Cacheability.Local)

@@ -89,7 +89,7 @@
           "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -179,7 +179,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -249,7 +249,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -295,7 +295,7 @@
           "arguments": "building library1"
         }
       ],
-      "cache": 0,
+      "cache": "never",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -388,7 +388,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -467,7 +467,7 @@
           "arguments": "build secret=\u0022tagada\u0022"
         }
       ],
-      "cache": 0,
+      "cache": "never",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -540,7 +540,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -598,7 +598,7 @@
           "arguments": "generate -i api.json -g typescript-axios -o src"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -649,7 +649,7 @@
           "arguments": "build"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -723,7 +723,7 @@
           "arguments": "playwright test --project ci"
         }
       ],
-      "cache": 1,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
