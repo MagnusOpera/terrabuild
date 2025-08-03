@@ -100,13 +100,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
                         let cache =
-                            match cacheability, options.Run.IsSome with
+                            match cacheability, options.LocalOnly with
                             | Cacheability.Never, _ -> Cacheability.Never
                             | Cacheability.Local, _ -> Cacheability.Local
-                            | Cacheability.Remote, false -> Cacheability.Local
-                            | Cacheability.Remote, true -> Cacheability.Remote
-                            | Cacheability.Ephemeral, false -> Cacheability.Local
-                            | Cacheability.Ephemeral, true -> Cacheability.Remote
+                            | Cacheability.Remote, true -> Cacheability.Local
+                            | Cacheability.Remote, false -> Cacheability.Remote
+                            | Cacheability.Ephemeral, true -> Cacheability.Local
+                            | Cacheability.Ephemeral, false -> Cacheability.Remote
                         let ephemeral = cacheability = Cacheability.Ephemeral
 
                         cache, ephemeral, ops @ newops
@@ -125,9 +125,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                 Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {hash}")
 
-                let cache = 
-                    if options.LocalOnly then Cacheability.Local
-                    else target.Cache |> Option.defaultValue cache
+                // cacheability can be overriden by the target
+                let cache = target.Cache |> Option.defaultValue cache
 
                 // restore is lazy by default
                 let restore = target.Restore |> Option.defaultValue false
