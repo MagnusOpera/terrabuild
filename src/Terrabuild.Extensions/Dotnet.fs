@@ -30,13 +30,14 @@ type Dotnet() =
     /// </summary>
     /// <param name="__dispatch__" example="run">Example.</param>
     /// <param name="args" example="&quot;-v&quot;">Arguments for command.</param>
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("dotnet", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Never
+        ops
 
 
     /// <summary>
@@ -46,6 +47,7 @@ type Dotnet() =
     /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
     /// <param name="locked" example="&quot;true&quot;">Locked mode restore.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
+    [<LocalCacheAttribute>]
     static member restore (dependencies: bool option)
                           (locked: bool option)
                           (args: string option) =
@@ -56,7 +58,7 @@ type Dotnet() =
         let ops = [
             shellOp( "dotnet", $"restore {no_dependencies} {locked} {args}")
         ]
-        ops |>  execRequest Cacheability.Local
+        ops
 
 
     /// <summary title="Build project.">
@@ -68,6 +70,7 @@ type Dotnet() =
     /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
     /// <param name="dependencies" example="true">Restore dependencies as well.</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member build (configuration: string option)
                         (``parallel``: int option)
                         (log: bool option)
@@ -86,7 +89,7 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"build {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
-        ops |>  execRequest Cacheability.Always
+        ops
 
 
     /// <summary>
@@ -97,6 +100,7 @@ type Dotnet() =
     /// <param name="build" example="&quot;true&quot;">Build project.</param>
     /// <param name="version" example="&quot;1.0.0&quot;">Version for pack command.</param>
     /// <param name="args" example="&quot;--include-symbols&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member pack (configuration: string option)
                        (version: string option)
                        (restore: bool option)
@@ -111,7 +115,7 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"pack {no_restore} {no_build} --configuration {configuration} /p:Version={version} /p:TargetsForTfmSpecificContentInPackage= {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
     /// <summary>
     /// Publish project.
@@ -123,6 +127,7 @@ type Dotnet() =
     /// <param name="trim" example="true">Instruct to trim published project.</param>
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
     /// <param name="args" example="&quot;--version-suffix beta&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member publish (configuration: string option)
                           (restore: bool option)
                           (build: bool option)
@@ -141,7 +146,7 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"publish {no_restore} {no_build} --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
-        ops |>  execRequest Cacheability.Always
+        ops
 
     /// <summary>
     /// Test project.
@@ -151,6 +156,7 @@ type Dotnet() =
     /// <param name="build" example="&quot;true&quot;">Build project.</param>
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member test (configuration: string option)
                        (restore: bool option)
                        (build: bool option)
@@ -165,4 +171,4 @@ type Dotnet() =
         let ops = [
             shellOp("dotnet", $"test {no_restore} {no_build} --configuration {configuration} {filter} {args}")
         ]
-        ops |>  execRequest Cacheability.Always
+        ops

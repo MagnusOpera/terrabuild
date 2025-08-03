@@ -549,7 +549,6 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                 | Some "never" -> Some Cacheability.Never
                 | Some "local" -> Some Cacheability.Local
                 | Some "remote" -> Some Cacheability.Remote
-                | Some "always" -> Some Cacheability.Always
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
 
@@ -752,3 +751,4 @@ let read (options: ConfigOptions.Options) =
       Workspace.SelectedProjects = selectedProjects
       Workspace.Projects = projects |> Map.ofDict
       Workspace.Targets = targets }
+

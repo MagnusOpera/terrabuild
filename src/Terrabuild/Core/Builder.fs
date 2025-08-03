@@ -79,14 +79,19 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                         Log.Debug($"{hash}: Invoking extension '{operation.Extension}::{operation.Command}' with args {parameters}")
 
-                        let executionRequest =
-                            match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ActionExecutionRequest> optContext.Command parameters (Some operation.Script) with
+                        let cacheability =
+                            match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
+                            | Some attr -> attr.Cacheability
+                            | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
+
+                        let shellOperations =
+                            match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
                             | Extensions.InvocationResult.Success executionRequest -> executionRequest
                             | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
                             | _ -> raiseExternalError $"{hash}: Failed to get shell operation (extension error)"
 
                         let newops =
-                            executionRequest.Operations |> List.map (fun shellOperation -> {
+                            shellOperations |> List.map (fun shellOperation -> {
                                 ContaineredShellOperation.Container = operation.Container
                                 ContaineredShellOperation.ContainerPlatform = operation.Platform
                                 ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
@@ -94,11 +99,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                                 ContaineredShellOperation.Command = shellOperation.Command
                                 ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
-                        let cache = executionRequest.Cache &&& Cacheability.Always
-                        let ephemeral = executionRequest.Cache.HasFlag Cacheability.Ephemeral
+                        let cache =
+                            if options.Run.IsSome then cacheability &&& Cacheability.Remote
+                            else cacheability &&& Cacheability.Local
+                        let ephemeral = cacheability.HasFlag Cacheability.Ephemeral
 
                         cache, ephemeral, ops @ newops
-                    ) (Cacheability.Always, false, [])
+                    ) (Cacheability.Never, false, [])
 
                 let opsCmds = ops |> List.map Json.Serialize
 

@@ -6,11 +6,16 @@ open FsUnit
 open Terrabuild.Extensibility
 open TestHelpers
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Dotnet> "__dispatch__" |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("dotnet", "ci-command --opt1 --opt2") ]
+        [ shellOp("dotnet", "ci-command --opt1 --opt2") ]
 
     Dotnet.__dispatch__ ciContext someArgs
     |> normalize
@@ -18,22 +23,24 @@ let ``dispatch some``() =
 
 
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("dotnet", "local-command") ]
+        [ shellOp("dotnet", "local-command") ]
 
     Dotnet.__dispatch__ localContext noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``restore cacheability``() =
+    getCacheInfo<Dotnet> "restore" |> should equal Cacheability.Local
 
 [<Test>]
 let ``restore some``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("dotnet", "restore --locked-mode --opt1 --opt2") ]
+        [ shellOp("dotnet", "restore --locked-mode --opt1 --opt2") ]
 
     Dotnet.restore (Some true) // dependencies
                    (Some true) // locked
@@ -45,8 +52,7 @@ let ``restore some``() =
 [<Test>]
 let ``restore none``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("dotnet", "restore --no-dependencies") ]
+        [ shellOp("dotnet", "restore --no-dependencies") ]
 
     Dotnet.restore None // dependencies
                    None // locked
@@ -54,15 +60,16 @@ let ``restore none``() =
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
-
-
+[<Test>]
+let ``build cacheability``() =
+    getCacheInfo<Dotnet> "build" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 --opt1 --opt2") ]
+        [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 --opt1 --opt2") ]
 
     Dotnet.build (Some "Release") // configuration
                  (Some 9) // parallel
@@ -78,8 +85,7 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "build --no-restore --no-dependencies --configuration Debug") ]
+        [ shellOp("dotnet", "build --no-restore --no-dependencies --configuration Debug") ]
 
     Dotnet.build None // configuration
                  None // parallel
@@ -91,13 +97,16 @@ let ``build none``() =
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``pack cacheability``() =
+    getCacheInfo<Dotnet> "pack" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``pack some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "pack --configuration Release /p:Version=1.2.3 /p:TargetsForTfmSpecificContentInPackage= --opt1 --opt2") ]
+        [ shellOp("dotnet", "pack --configuration Release /p:Version=1.2.3 /p:TargetsForTfmSpecificContentInPackage= --opt1 --opt2") ]
 
     Dotnet.pack (Some "Release") // configuration
                 (Some "1.2.3") // version
@@ -111,8 +120,7 @@ let ``pack some``() =
 [<Test>]
 let ``pack none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "pack --no-restore --no-build --configuration Debug /p:Version=0.0.0 /p:TargetsForTfmSpecificContentInPackage=") ]
+        [ shellOp("dotnet", "pack --no-restore --no-build --configuration Debug /p:Version=0.0.0 /p:TargetsForTfmSpecificContentInPackage=") ]
 
     Dotnet.pack None // configuration
                 None // version
@@ -122,14 +130,16 @@ let ``pack none``() =
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
-
+[<Test>]
+let ``publish cacheability``() =
+    getCacheInfo<Dotnet> "publish" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``publish some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "publish --configuration Release -r linux-arm64 -p:PublishTrimmed=true --self-contained --opt1 --opt2") ]
+        [ shellOp("dotnet", "publish --configuration Release -r linux-arm64 -p:PublishTrimmed=true --self-contained --opt1 --opt2") ]
 
     Dotnet.publish (Some "Release") // configuration
                    (Some true) // restore
@@ -141,12 +151,10 @@ let ``publish some``() =
     |> normalize
     |> should equal expected
 
-
 [<Test>]
 let ``publish none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "publish --no-restore --no-build --configuration Debug") ]
+        [ shellOp("dotnet", "publish --no-restore --no-build --configuration Debug") ]
 
     Dotnet.publish None // configuration
                    None // restore
@@ -158,13 +166,16 @@ let ``publish none``() =
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``test cacheability``() =
+    getCacheInfo<Dotnet> "test" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``test some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" --opt1 --opt2") ]
+        [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" --opt1 --opt2") ]
 
     Dotnet.test (Some "Release") // configuration
                 (Some true) // restore
@@ -174,12 +185,10 @@ let ``test some``() =
     |> normalize
     |> should equal expected
 
-
 [<Test>]
 let ``test none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug") ]
+        [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug") ]
 
     Dotnet.test None // configuration
                 None // restore

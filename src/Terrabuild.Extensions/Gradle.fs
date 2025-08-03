@@ -27,13 +27,14 @@ type Gradle() =
     /// </summary>
     /// <param name="__dispatch__" example="clean">Example.</param>
     /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("gradle", $"{context.Command} {args}")
         ]
-        ops |>  execRequest Cacheability.Never
+        ops
 
 
     /// <summary>
@@ -41,6 +42,7 @@ type Gradle() =
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
     /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member build (configuration: string option)
                         (args: string option) =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration
@@ -49,4 +51,4 @@ type Gradle() =
         let ops = [
             shellOp("gradle", $"assemble {configuration} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops

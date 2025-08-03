@@ -72,3 +72,14 @@ let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option
                 | _ -> invokeScriptMethod "__dispatch__"
 
         invokeScriptMethod method
+
+let getScriptAttribute<'a when 'a :> Attribute> (method: string) (script: Script option) =
+    match script with
+    | None -> None
+    | Some script ->
+        match script.GetAttribute<'a> method with
+        | Some attr -> Some attr
+        | _ -> 
+            match method with
+            | method when method.StartsWith("__") -> None
+            | _ -> script.GetAttribute<'a> "__dispatch__"

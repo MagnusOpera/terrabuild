@@ -17,6 +17,7 @@ type OpenApi() =
     /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path.</param>
     /// <param name="properties" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional properties for generator.</param>
     /// <param name="args" example="&quot;--type-mappings ClassA=ClassB&quot;">Additional arguments for generator.</param>
+    [<RemoteCacheAttribute>]
     static member generate (generator: string)
                            (input: string)
                            (output: string)
@@ -28,4 +29,4 @@ type OpenApi() =
         let ops = [
             shellOp("docker-entrypoint.sh", $"generate -i {input} -g {generator} -o {output} {properties} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops

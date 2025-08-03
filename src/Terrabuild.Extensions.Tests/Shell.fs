@@ -7,11 +7,16 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Shell> "__dispatch__" |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("ci-command", "--opt1 --opt2") ]
+        [ shellOp("ci-command", "--opt1 --opt2") ]
 
     Shell.__dispatch__ ciContext someArgs
     |> normalize
@@ -19,10 +24,9 @@ let ``dispatch some``() =
 
 
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("local-command", "") ]
+        [ shellOp("local-command", "") ]
 
     Shell.__dispatch__ localContext noneArgs
     |> normalize

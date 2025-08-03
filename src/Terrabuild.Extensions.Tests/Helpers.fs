@@ -2,13 +2,23 @@
 module TestHelpers
 open Terrabuild.Extensibility
 
+open System.Reflection
+
+let getCacheInfo<'T> name =
+    match typeof<'T>.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static) with
+    | NonNull methodInfo ->
+        match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
+        | :? CacheableAttribute as attr -> attr.Cacheability
+        | _ -> failwithf "Failed to get CacheableAttribute"
+    | _ -> failwithf "expression is not a method"
+
 let someArgs = Some "--opt1 --opt2"
 let noneArgs = None
 
-let normalize (request: Terrabuild.Extensibility.ActionExecutionRequest) =
-    { request with
-        Operations = request.Operations |> List.map (fun op -> 
-            { op with Arguments = op.Arguments |> String.normalizeShellArgs }) }
+let normalize (ops: Terrabuild.Extensibility.ShellOperations) =
+    ops |> List.map (fun op -> 
+        { op with Arguments = op.Arguments |> String.normalizeShellArgs })
+
 
 let ciContext =
     { ActionContext.Debug = true
