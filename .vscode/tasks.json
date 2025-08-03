@@ -9,6 +9,7 @@
                 "build",
                 "${workspaceFolder}/Terrabuild.sln",
                 "/property:GenerateFullPaths=true",
+                "/property:GenerateDocumentationFile=true",
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"

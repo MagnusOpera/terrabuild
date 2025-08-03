@@ -14,4 +14,8 @@
     <PackageReference Include="FSharp.Data" Version="6.6.0" />
  </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
+  </ItemGroup>
+
 </Project>

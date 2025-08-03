@@ -74,7 +74,6 @@ type Yarn() =
     /// <summary>
     /// Run `test` script.
     /// </summary>
-    /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
     /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
     [<RemoteCacheAttribute>]
     static member test (args: string option) =
@@ -88,6 +87,7 @@ type Yarn() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
+    /// <param name="command" example="&quot;build-prod&quot;">Command to run.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
     static member run (command: string)

@@ -45,6 +45,7 @@ type Npm() =
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
+    /// <param name="force" example="true">Force install.</param> 
     /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
     static member install (force: bool option)
@@ -86,19 +87,21 @@ type Npm() =
     /// <summary>
     /// Run `run` script.
     /// </summary>
+    /// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
-    static member run (command: string)
+    static member run (target: string)
                       (args: string option) =
         let args = args |> or_default ""
         let ops = [
-            shellOp("npm", $"run {command} -- {args}")
+            shellOp("npm", $"run {target} -- {args}")
         ]
         ops
 
     /// <summary>
     /// Run `exec` script.
     /// </summary>
+    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to exec.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
     static member exec (package: string)

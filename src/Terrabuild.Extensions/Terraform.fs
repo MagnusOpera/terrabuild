@@ -59,7 +59,6 @@ type Terraform() =
     /// <summary weight="2" title="Generate plan file.">
     /// Validate project.
     /// </summary>
-    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
     /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
     static member validate (args: string option) =
@@ -96,10 +95,6 @@ type Terraform() =
 
     /// <summary weight="3" title="Generate plan file.">
     /// Generate the planfile.
-    /// 
-    /// {{&lt; callout type="warning" &gt;}}
-    /// This extension generate an [ephemeral artifact](/docs/getting-started/artifacts/#ephemeral-artifacts).
-    /// {{&lt; /callout &gt;}}
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
     /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
