@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..//dotnet-lib/dotnet-lib.csproj" />
+    <ProjectReference Include="../dotnet-lib/dotnet-lib.csproj" />
   </ItemGroup>
 
 </Project>
