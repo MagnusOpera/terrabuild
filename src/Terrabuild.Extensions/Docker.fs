@@ -24,7 +24,7 @@ type Docker() =
 
 
     /// <summary>
-    /// Build a Dockerfile.
+    /// Build a Dockerfile. Push the image to registry if CI.
     /// </summary>
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
