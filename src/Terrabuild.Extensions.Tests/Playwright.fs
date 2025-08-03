@@ -7,11 +7,16 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``test cacheability``() =
+    getCacheInfo<Playwright> "test" |> should equal Cacheability.Remote
+
 [<Test>]
 let ``test some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("npx", "playwright test --browser webkit --project my-project --opt1 --opt2") ]
+        [ shellOp("npx", "playwright test --browser webkit --project my-project --opt1 --opt2") ]
 
     Playwright.test (Some "webkit") // browser
                     (Some "my-project") // project
@@ -19,12 +24,10 @@ let ``test some``() =
     |> normalize
     |> should equal expected
 
-
 [<Test>]
 let ``test none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("npx", "playwright test") ]
+        [ shellOp("npx", "playwright test") ]
 
     Playwright.test None // browser
                     None // project

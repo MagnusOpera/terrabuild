@@ -13,6 +13,7 @@ type Shell() =
     /// </summary>
     /// <param name="__dispatch__" example="echo">Example.</param>
     /// <param name="args" example="&quot;Hello Terrabuild&quot;">Arguments to pass to command.</param>
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -20,4 +21,4 @@ type Shell() =
         let ops = [
             shellOp(context.Command, args)
         ]
-        ops |> execRequest Cacheability.Never
+        ops

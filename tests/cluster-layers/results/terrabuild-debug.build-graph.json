@@ -93,7 +93,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -191,7 +191,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -282,7 +282,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -360,7 +360,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -438,7 +438,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -507,7 +507,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true
@@ -575,7 +575,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": 3,
+      "cache": "local",
       "rebuild": true,
       "restore": false,
       "isLeaf": true

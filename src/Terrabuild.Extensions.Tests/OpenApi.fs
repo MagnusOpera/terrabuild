@@ -6,12 +6,16 @@ open FsUnit
 open Terrabuild.Extensibility
 open TestHelpers
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``generate cacheability``() =
+    getCacheInfo<OpenApi> "generate" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``generate some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client --additional-properties={x} --opt1 --opt2") ]
+        [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client --additional-properties={x} --opt1 --opt2") ]
 
     OpenApi.generate "typescript-axios" // generator
                      "api.json" // input
@@ -25,8 +29,7 @@ let ``generate some``() =
 [<Test>]
 let ``generate none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client") ]
+        [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client") ]
 
     OpenApi.generate "typescript-axios" // generator
                      "api.json" // input

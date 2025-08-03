@@ -6,11 +6,16 @@ open FsUnit
 open Terrabuild.Extensibility
 open TestHelpers
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Yarn> "__dispatch__" |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("yarn", "ci-command -- --opt1 --opt2") ]
+        [ shellOp("yarn", "ci-command -- --opt1 --opt2") ]
 
     Yarn.__dispatch__ ciContext someArgs
     |> normalize
@@ -18,22 +23,24 @@ let ``dispatch some``() =
 
 
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("yarn", "local-command --") ]
+        [ shellOp("yarn", "local-command --") ]
 
     Yarn.__dispatch__ localContext noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``install cacheability``() =
+    getCacheInfo<Yarn> "install" |> should equal Cacheability.Local
 
 [<Test>]
 let ``install some``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("yarn", "install --ignore-engines --opt1 --opt2") ]
+        [ shellOp("yarn", "install --ignore-engines --opt1 --opt2") ]
 
     Yarn.install (Some true) // update
                  (Some true) // ignore-engines
@@ -45,8 +52,7 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("yarn", "install --frozen-lockfile") ]
+        [ shellOp("yarn", "install --frozen-lockfile") ]
 
     Yarn.install None // update
                  None // ignore-engines
@@ -54,14 +60,16 @@ let ``install none``() =
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
-
+[<Test>]
+let ``build cacheability``() =
+    getCacheInfo<Yarn> "build" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("yarn", "build -- --opt1 --opt2") ]
+        [ shellOp("yarn", "build -- --opt1 --opt2") ]
 
     Yarn.build someArgs
     |> normalize
@@ -71,20 +79,23 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("yarn", "build --") ]
+        [ shellOp("yarn", "build --") ]
 
     Yarn.build noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``test cacheability``() =
+    getCacheInfo<Yarn> "test" |> should equal Cacheability.Remote
 
 
 [<Test>]
 let ``test some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("yarn", "test -- --opt1 --opt2") ]
+        [ shellOp("yarn", "test -- --opt1 --opt2") ]
 
     Yarn.test someArgs
     |> normalize
@@ -94,19 +105,22 @@ let ``test some``() =
 [<Test>]
 let ``test none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("yarn", "test --") ]
+        [ shellOp("yarn", "test --") ]
 
     Yarn.test noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``run cacheability``() =
+    getCacheInfo<Yarn> "run" |> should equal Cacheability.Local
 
 [<Test>]
 let ``run some``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("yarn", "my-command -- --opt1 --opt2") ]
+        [ shellOp("yarn", "my-command -- --opt1 --opt2") ]
 
     Yarn.run "my-command" // command
               someArgs
@@ -117,8 +131,7 @@ let ``run some``() =
 [<Test>]
 let ``run none``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("yarn", "my-command --") ]
+        [ shellOp("yarn", "my-command --") ]
 
     Yarn.run "my-command" // command
               noneArgs

@@ -7,11 +7,17 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Cargo> "__dispatch__"
+    |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("cargo", "ci-command --opt1 --opt2") ]
+        [ shellOp("cargo", "ci-command --opt1 --opt2") ]
 
     Cargo.__dispatch__ ciContext someArgs
     |> normalize
@@ -19,34 +25,35 @@ let ``dispatch some``() =
 
 
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("cargo", "local-command") ]
+        [ shellOp("cargo", "local-command") ]
 
     Cargo.__dispatch__ localContext noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``build cacheability``() =
+    getCacheInfo<Cargo> "build"
+    |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("cargo", "build --profile dev --opt1 --opt2") ]
+        [ shellOp("cargo", "build --profile dev --opt1 --opt2") ]
 
     Cargo.build (Some "dev") // profile
                 someArgs
     |> normalize
     |> should equal expected
 
-
 [<Test>]
 let ``build none``() =
     let expected = 
-        execRequest Cacheability.Always
-                    [ shellOp("cargo", "build") ]
+        [ shellOp("cargo", "build") ]
 
     Cargo.build None // profile
                 noneArgs

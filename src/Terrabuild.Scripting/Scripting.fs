@@ -121,8 +121,17 @@ type Invocable(method: MethodInfo) =
 type Script(mainType: Type) =
     member _.GetMethod(name: string) =
         match mainType.GetMethod(name, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
-        | null -> None
-        | mi -> Invocable(mi) |> Some
+        | Null -> None
+        | NonNull mi -> Invocable(mi) |> Some
+
+    member _.GetAttribute<'a when 'a :> Attribute>(name: string) =
+        match mainType.GetMethod(name, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
+        | Null -> None
+        | NonNull mi ->
+            match mi.GetCustomAttribute(typeof<'a>) with
+            | NonNull attr -> attr :?> 'a |> Some
+            | _ -> None
+
 
 let loadScript (references: string list) (scriptFile) =
     let scriptFile = Path.GetFullPath(scriptFile)

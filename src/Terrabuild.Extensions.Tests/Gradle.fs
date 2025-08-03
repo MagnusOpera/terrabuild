@@ -7,34 +7,40 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Gradle> "__dispatch__" |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("gradle", "ci-command --opt1 --opt2") ]
+        [ shellOp("gradle", "ci-command --opt1 --opt2") ]
 
     Gradle.__dispatch__ ciContext someArgs
     |> normalize
     |> should equal expected
 
-
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("gradle", "local-command") ]
+        [ shellOp("gradle", "local-command") ]
 
     Gradle.__dispatch__ localContext noneArgs
     |> normalize
     |> should equal expected
 
+// ------------------------------------------------------------------------------------------------
 
+[<Test>]
+let ``build cacheability``() =
+    getCacheInfo<Gradle> "build" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build some``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("gradle", "assemble dev --opt1 --opt2") ]
+        [ shellOp("gradle", "assemble dev --opt1 --opt2") ]
 
     Gradle.build (Some "dev") // configuration
                  someArgs
@@ -45,8 +51,7 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        execRequest Cacheability.Always
-                    [ shellOp("gradle", "assemble dev") ]
+        [ shellOp("gradle", "assemble dev") ]
 
     Gradle.build (Some "dev") // configuration
                  noneArgs

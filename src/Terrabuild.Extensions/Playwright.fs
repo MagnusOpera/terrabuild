@@ -14,6 +14,7 @@ type Playwright() =
     /// <param name="browser" example="&quot;webkit&quot;">Browser to use.</param> 
     /// <param name="project" example="&quot;ci&quot;">Project to use.</param> 
     /// <param name="args" example="&quot;--debug&quot;">Arguments to pass to playwright.</param> 
+    [<RemoteCacheAttribute>]
     static member test (browser: string option)
                        (project: string option)
                        (args: string option) =
@@ -24,4 +25,4 @@ type Playwright() =
         let ops = [
             shellOp("npx", $"playwright test {browser} {project} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops

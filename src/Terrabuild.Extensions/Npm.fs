@@ -30,6 +30,7 @@ type Npm() =
     /// Run npm command.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let cmd = context.Command
@@ -38,13 +39,14 @@ type Npm() =
         let ops = [
             shellOp("npm", $"{cmd} {args}")
         ]
-        ops |> execRequest Cacheability.Never
+        ops
 
 
     /// <summary>
     /// Install packages using lock file.
     /// </summary>
     /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
+    [<LocalCacheAttribute>]
     static member install (force: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
@@ -53,52 +55,56 @@ type Npm() =
         let ops = [
             shellOp("npm", $"ci {force} {args}")
         ]
-        ops |> execRequest Cacheability.Local
+        ops
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run build -- {args}")   
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
 
     /// <summary>
     /// Run `test` script.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    [<RemoteCacheAttribute>]
     static member test (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run test -- {args}")   
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
     /// <summary>
     /// Run `run` script.
     /// </summary>
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    [<LocalCacheAttribute>]
     static member run (command: string)
                       (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"run {command} -- {args}")
         ]
-        ops |> execRequest Cacheability.Local
+        ops
 
     /// <summary>
     /// Run `exec` script.
     /// </summary>
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    [<LocalCacheAttribute>]
     static member exec (package: string)
                        (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("npm", $"exec -- {package} {args}")
         ]
-        ops |> execRequest Cacheability.Local
+        ops

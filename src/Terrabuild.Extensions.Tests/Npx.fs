@@ -7,11 +7,16 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``run cacheability``() =
+    getCacheInfo<Npx> "run" |> should equal Cacheability.Local
+
 [<Test>]
 let ``run some``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("npx", "--yes -- my-package --opt1 --opt2") ]
+        [ shellOp("npx", "--yes -- my-package --opt1 --opt2") ]
 
     Npx.run "my-package" // package
             someArgs
@@ -22,8 +27,7 @@ let ``run some``() =
 [<Test>]
 let ``run none``() =
     let expected =
-        execRequest Cacheability.Local
-                    [ shellOp("npx", "--yes -- my-package") ]
+        [ shellOp("npx", "--yes -- my-package") ]
 
     Npx.run "my-package" // package
             noneArgs

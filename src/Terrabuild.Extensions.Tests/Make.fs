@@ -7,11 +7,16 @@ open Terrabuild.Extensibility
 open TestHelpers
 
 
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
-let ``dispatch some``() =
+let ``__dispatch__ cacheability``() =
+    getCacheInfo<Make> "__dispatch__" |> should equal Cacheability.Never
+
+[<Test>]
+let ``__dispatch__ some``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("make", "ci-command arg1=\"value1\" arg2=\"value2\" --opt1 --opt2") ]
+        [ shellOp("make", "ci-command arg1=\"value1\" arg2=\"value2\" --opt1 --opt2") ]
 
     Make.__dispatch__ ciContext
                      (["arg1", "value1"; "arg2", "value2"] |> Map |> Some) // variables
@@ -21,10 +26,9 @@ let ``dispatch some``() =
 
 
 [<Test>]
-let ``dispatch none``() =
+let ``__dispatch__ none``() =
     let expected =
-        execRequest Cacheability.Never
-                    [ shellOp("make", "local-command") ]
+        [ shellOp("make", "local-command") ]
 
     Make.__dispatch__ localContext
                       None // variables

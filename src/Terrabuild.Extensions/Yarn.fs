@@ -28,6 +28,7 @@ type Yarn() =
     /// Run yarn `command`.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -35,7 +36,7 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{context.Command} -- {args}")   
         ]
-        ops |> execRequest Cacheability.Never
+        ops
 
 
     /// <summary>
@@ -44,6 +45,7 @@ type Yarn() =
     /// <param name="update" example="true">Restore and update lock file.</param> 
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
     /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    [<LocalCacheAttribute>]
     static member install (update: bool option)
                           (``ignore-engines``: bool option)
                           (args: string option) =
@@ -52,20 +54,21 @@ type Yarn() =
         let args = args |> or_default ""
 
         let ops = [ shellOp("yarn", $"install {update} {ignoreEngines} {args}") ]
-        ops |> execRequest Cacheability.Local
+        ops
 
 
     /// <summary>
     /// Run `build` script.
     /// </summary>
     /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"build -- {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
 
     /// <summary>
@@ -73,18 +76,20 @@ type Yarn() =
     /// </summary>
     /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
     /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    [<RemoteCacheAttribute>]
     static member test (args: string option) =
         let args = args |> or_default ""
 
         let ops = [
             shellOp("yarn", $"test -- {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
     /// <summary>
     /// Run `run` script.
     /// </summary>
     /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    [<LocalCacheAttribute>]
     static member run (command: string)
                       (args: string option) =
         let args = args |> or_default ""
@@ -92,4 +97,4 @@ type Yarn() =
         let ops = [
             shellOp("yarn", $"{command} -- {args}")
         ]
-        ops |> execRequest Cacheability.Local
+        ops

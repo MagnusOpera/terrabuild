@@ -13,13 +13,14 @@ type Docker() =
     /// </summary>
     /// <param name="__dispatch__" example="image">Example.</param>
     /// <param name="args" example="&quot;prune -f&quot;">Arguments for command.</param>
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("docker", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Never
+        ops
 
 
     /// <summary>
@@ -30,6 +31,7 @@ type Docker() =
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
     /// <param name="build_args" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
     /// <param name="args" example="&quot;--debug&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member build (context: ActionContext)
                         (image: string)
                         (dockerfile: string option)
@@ -41,15 +43,11 @@ type Docker() =
         let build_args = build_args |> format_space (fun kvp -> $"--build-arg {kvp.Key}=\"{kvp.Value}\"")
         let args = args |> or_default ""
 
-        let cacheability =
-            if context.CI then Cacheability.Remote
-            else Cacheability.Local
-
         let ops = [
             shellOp("docker", $"build --file {dockerfile} --tag {image}:{context.Hash} {build_args} {platforms} {args} .")
             if context.CI then shellOp("docker", $"push {image}:{context.Hash}")
         ]
-        ops |> execRequest cacheability
+        ops
 
 
     /// <summary>
@@ -58,14 +56,12 @@ type Docker() =
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Apply tag on image (use branch or tag otherwise).</param>
     /// <param name="args" example="&quot;--disable-content-trust&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member push (context: ActionContext)
                        (image: string)
                        (tag: string)
                        (args: string option) =
         let args = args |> or_default ""
-        let cacheability =
-            if context.CI then Cacheability.Remote
-            else Cacheability.Local
 
         let ops = [
             if context.CI then
@@ -73,4 +69,4 @@ type Docker() =
             else
                 shellOp("docker", $"tag {image}:{context.Hash} {image}:{tag} {args}")
         ]
-        ops |> execRequest cacheability
+        ops

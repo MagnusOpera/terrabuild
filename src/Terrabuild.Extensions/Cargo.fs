@@ -31,13 +31,14 @@ type Cargo() =
     /// </summary>
     /// <param name="__dispatch__" example="format">Example.</param>
     /// <param name="args" example="&quot;check&quot;">Arguments for command.</param>
+    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
         let ops = [
             shellOp("cargo", $"{context.Command} {args}")
         ]
-        ops |> execRequest Cacheability.Never
+        ops
 
 
     /// <summary title="Build project.">
@@ -45,6 +46,7 @@ type Cargo() =
     /// </summary>
     /// <param name="profile" example="&quot;release&quot;">Profile to use to build project. Default is `dev`.</param>
     /// <param name="args" example="&quot;--keep-going&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member build (profile: string option)
                         (args: string option) =
         let profile = profile |> map_value (fun profile -> $"--profile {profile}")
@@ -53,7 +55,7 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"build {profile} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops
 
 
     /// <summary>
@@ -61,6 +63,7 @@ type Cargo() =
     /// </summary>
     /// <param name="profile" example="&quot;release&quot;">Profile for test command.</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
+    [<RemoteCacheAttribute>]
     static member test (profile: string option)
                        (args: string option) =
         let profile = profile |> map_value (fun profile -> $"--profile {profile}")
@@ -69,4 +72,4 @@ type Cargo() =
         let ops = [
             shellOp("cargo", $"test {profile} {args}")
         ]
-        ops |> execRequest Cacheability.Always
+        ops

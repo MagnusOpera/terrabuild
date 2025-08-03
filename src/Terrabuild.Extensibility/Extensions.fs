@@ -38,27 +38,33 @@ type ShellOperation = {
     Arguments: string
 }
 
-[<Flags>]
-type Cacheability =
-    | Never     = 0b00000000
-    | Local     = 0b00000001
-    | Remote    = 0b00000010
-    | Always    = 0b00000011 // Local + Remote
-    | Ephemeral = 0b00001000
-
 type ShellOperations = ShellOperation list
 
 [<RequireQualifiedAccess>]
-type ActionExecutionRequest = {
-    Cache: Cacheability
-    Operations: ShellOperations
-}
-
+type Cacheability =
+    | Never
+    | Local
+    | Remote
+    | Ephemeral
 
 let shellOp(cmd, args) = 
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args }
 
-let execRequest cache ops =
-    { ActionExecutionRequest.Cache = cache 
-      ActionExecutionRequest.Operations = ops }
+[<AbstractClass>]
+[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+type CacheableAttribute(cacheability: Cacheability) =
+    inherit Attribute()
+    member _.Cacheability = cacheability
+
+type EphemeralCacheAttribute() =
+    inherit CacheableAttribute(Cacheability.Ephemeral)
+
+type RemoteCacheAttribute() =
+    inherit CacheableAttribute(Cacheability.Remote)
+
+type LocalCacheAttribute() =
+    inherit CacheableAttribute(Cacheability.Local)
+
+type NoCacheAttribute() =
+    inherit CacheableAttribute(Cacheability.Never)

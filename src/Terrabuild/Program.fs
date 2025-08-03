@@ -3,7 +3,6 @@ open CLI
 open System
 open Serilog
 open Errors
-open System.Reflection
 open Collections
 open Environment
 open System.Runtime.InteropServices
