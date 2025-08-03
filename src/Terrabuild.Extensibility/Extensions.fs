@@ -58,10 +58,10 @@ type CacheableAttribute(cacheability: Cacheability) =
     member _.Cacheability = cacheability
 
 type EphemeralCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Ephemeral)
+    inherit CacheableAttribute(Cacheability.Ephemeral ||| Cacheability.Remote ||| Cacheability.Local)
 
 type RemoteCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Remote)
+    inherit CacheableAttribute(Cacheability.Remote ||| Cacheability.Local)
 
 type LocalCacheAttribute() =
     inherit CacheableAttribute(Cacheability.Local)
