@@ -1,0 +1,11 @@
+
+project {
+    labels = [ "app"
+               "rust" ]
+
+    @cargo { }
+}
+
+target build {
+    @cargo build { }
+}
