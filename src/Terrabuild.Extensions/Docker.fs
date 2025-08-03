@@ -28,7 +28,7 @@ type Docker() =
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
-    /// <param name="arguments" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
+    /// <param name="build_args" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
     /// <param name="args" example="&quot;--debug&quot;">Arguments for command.</param>
     static member build (context: ActionContext)
                         (image: string)
