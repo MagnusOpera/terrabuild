@@ -122,7 +122,7 @@ type Dotnet() =
     /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime for publish.</param>
     /// <param name="trim" example="true">Instruct to trim published project.</param>
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
-    /// <param name="args" example="&quot;--version-suffix&quot; &quot;beta&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;--version-suffix beta&quot;">Arguments for command.</param>
     static member publish (configuration: string option)
                           (restore: bool option)
                           (build: bool option)
