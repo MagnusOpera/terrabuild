@@ -173,7 +173,7 @@ let ``destroy cacheability``() =
 [<Test>]
 let ``destroy some``() =
     let expected =
-        [ shellOp("terraform", "apply -destroy -input=false -var=\"prm1=val1\" -var=\"prm2=val2\" --opt1 --opt2") ]
+        [ shellOp("terraform", "destroy -input=false -var=\"prm1=val1\" -var=\"prm2=val2\" --opt1 --opt2") ]
 
     Terraform.destroy someMap // no_plan
                       someArgs
@@ -184,7 +184,7 @@ let ``destroy some``() =
 [<Test>]
 let ``destroy none``() =
     let expected =
-        [ shellOp("terraform", "apply -destroy -input=false")]
+        [ shellOp("terraform", "destroy -input=false")]
 
     Terraform.destroy noneMap // no_plan
                       noneArgs

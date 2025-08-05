@@ -138,6 +138,6 @@ type Terraform() =
         let args = args |> or_default ""
 
         let ops = [
-            shellOp("terraform", $"apply -destroy -input=false {vars} {args}")
+            shellOp("terraform", $"destroy -input=false {vars} {args}")
         ]
         ops
