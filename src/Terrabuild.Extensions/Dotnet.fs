@@ -43,7 +43,7 @@ type Dotnet() =
     /// <summary>
     /// Run a dotnet tool.
     /// </summary>
-    /// <param name="args" example="install MagnusOpera.OpenApiGen">Example.</param>
+    /// <param name="args" example="&quot;install MagnusOpera.OpenApiGen&quot;">Example.</param>
     [<LocalCacheAttribute>]
     static member tool (args: string option) =
         let args = args |> or_default ""
