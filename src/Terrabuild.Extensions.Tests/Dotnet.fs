@@ -33,6 +33,33 @@ let ``__dispatch__ none``() =
 
 // ------------------------------------------------------------------------------------------------
 
+// ------------------------------------------------------------------------------------------------
+
+[<Test>]
+let ``tool__ cacheability``() =
+    getCacheInfo<Dotnet> "tool" |> should equal Cacheability.Local
+
+[<Test>]
+let ``tool_some``() =
+    let expected =
+        [ shellOp("dotnet", "tool --opt1 --opt2") ]
+
+    Dotnet.tool someArgs
+    |> normalize
+    |> should equal expected
+
+
+[<Test>]
+let ``tool_none``() =
+    let expected =
+        [ shellOp("dotnet", "tool") ]
+
+    Dotnet.tool noneArgs
+    |> normalize
+    |> should equal expected
+
+// ------------------------------------------------------------------------------------------------
+
 [<Test>]
 let ``restore cacheability``() =
     getCacheInfo<Dotnet> "restore" |> should equal Cacheability.Local

@@ -41,6 +41,19 @@ type Dotnet() =
 
 
     /// <summary>
+    /// Run a dotnet tool.
+    /// </summary>
+    /// <param name="args" example="install MagnusOpera.OpenApiGen">Example.</param>
+    [<LocalCacheAttribute>]
+    static member tool (args: string option) =
+        let args = args |> or_default ""
+        let ops = [
+            shellOp("dotnet", $"tool {args}")
+        ]
+        ops
+
+
+    /// <summary>
     /// Restore packages.
     /// </summary>
     /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
