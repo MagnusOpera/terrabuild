@@ -26,7 +26,7 @@ target publish {
 }
 
 extension @dotnet {
-    container = "mcr.microsoft.com/dotnet/sdk:9.0.303"
+    container = "mcr.microsoft.com/dotnet/sdk:9.0.304"
     defaults {
         configuration = local.configuration
     }

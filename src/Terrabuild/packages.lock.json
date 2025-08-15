@@ -37,9 +37,9 @@
       },
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[9.0.300, )",
-        "resolved": "9.0.300",
-        "contentHash": "2ZDoF/N7WPidmaflrTnPucUJfaV5XkIHCh4h77yET7ihuv2dR2ksSsIiiDd34Z9YmwyYEQocpDl1r6RXFr0DMg=="
+        "requested": "[9.0.303, )",
+        "resolved": "9.0.303",
+        "contentHash": "6JlV8aD8qQvcmfoe/PMOxCHXc0uX4lR23u0fAyQtnVQxYULLoTZgwgZHSnRcuUHOvS3wULFWcwdnP1iwslH60g=="
       },
       "FSharp.Data": {
         "type": "Direct",
@@ -75,9 +75,9 @@
       },
       "Sentry": {
         "type": "Direct",
-        "requested": "[5.12.0, )",
-        "resolved": "5.12.0",
-        "contentHash": "m3C9urnnPhvk+Ua+771NF6+qw4mLY9QKBwM9IaJFNvqslh6Yb+EBFckwP0V4jaMHdgyPBAjegcBE1lR9vJ6kAw=="
+        "requested": "[5.14.1, )",
+        "resolved": "5.14.1",
+        "contentHash": "hB1zDDOAwk9lIDOR5sLS6fNiNDKgFpn/QA9kJyj0p84I38NCn7CDkdDikaDynb1WcYCH2a5c6Ab2/GRVeTuysw=="
       },
       "Serilog.Sinks.File": {
         "type": "Direct",
@@ -120,16 +120,16 @@
       },
       "FSharp.Compiler.Service": {
         "type": "Transitive",
-        "resolved": "43.9.300",
-        "contentHash": "yFSAIVNn9HpIVJh1D58GLVGr0ew6s48knf4nWOBt6SYse2DTB+vRPkEXpKmnVqVCwRoXO9Ml4ClaIRdp5Opnew==",
+        "resolved": "43.9.303",
+        "contentHash": "Cl5C77FaCqg8gTLHoUnE+JCVR1fPOKaDIpdnB5eDxS8FWrGAWNjeu+ekSYi6xa+N5zwtW+p/o+wHRCI38iOVNA==",
         "dependencies": {
-          "FSharp.Core": "[9.0.300]",
+          "FSharp.Core": "[9.0.303]",
           "System.Buffers": "4.6.0",
-          "System.Collections.Immutable": "8.0.0",
-          "System.Diagnostics.DiagnosticSource": "8.0.0",
-          "System.Memory": "4.5.5",
+          "System.Collections.Immutable": "9.0.0",
+          "System.Diagnostics.DiagnosticSource": "9.0.0",
+          "System.Memory": "4.6.0",
           "System.Reflection.Emit": "4.7.0",
-          "System.Reflection.Metadata": "8.0.0",
+          "System.Reflection.Metadata": "9.0.0",
           "System.Runtime.CompilerServices.Unsafe": "6.1.0"
         }
       },
@@ -243,8 +243,8 @@
       },
       "Microsoft.Extensions.FileSystemGlobbing": {
         "type": "Transitive",
-        "resolved": "9.0.7",
-        "contentHash": "5VKpTH2ME0SSs0lrtkpKgjCeHzXR5ka/H+qThPwuWi78wHubApZ/atD7w69FDt0OOM7UMV6LIbkqEQgoby4IXA=="
+        "resolved": "9.0.8",
+        "contentHash": "96Ub5LmwYfIGVoXkbe4kjs+ivK6fLBTwKJAOMfUNV0R+AkZRItlgROFqXEWMUlXBTPM1/kKu26Ueu5As6RDzJA=="
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
@@ -501,8 +501,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "AurL6Y5BA1WotzlEvVaIDpqzpIPvYnnldxru8oXJU2yFxFUy3+pNXjXd1ymO+RA0rq0+590Q8gaz2l3Sr7fmqg=="
+        "resolved": "9.0.0",
+        "contentHash": "QhkXUl2gNrQtvPmtBTQHb0YsUrDiDQ2QS09YbtTTiSjGcf7NBqtYbrG/BE06zcBPCKEwQGzIv13IVdXNOSub2w=="
       },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
@@ -536,8 +536,8 @@
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "c9xLpVz6PL9lp/djOWtk5KPDZq3cSYpmXoJQY524EOtuFl5z9ZtsotpsyrDW40U1DRnQSYvcPKEUV0X//u6gkQ=="
+        "resolved": "9.0.0",
+        "contentHash": "ddppcFpnbohLWdYKr/ZeLZHmmI+DXFgZ3Snq+/E7SwcdW4UnvxmaugkwGywvGVWkHPGCSZjCP+MLzu23AL5SDw=="
       },
       "System.Diagnostics.Tools": {
         "type": "Transitive",
@@ -709,8 +709,8 @@
       },
       "System.Memory": {
         "type": "Transitive",
-        "resolved": "4.5.5",
-        "contentHash": "XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw=="
+        "resolved": "4.6.0",
+        "contentHash": "OEkbBQoklHngJ8UD8ez2AERSk2g+/qpAaSWWCBFbpH727HxDq5ydVkuncBaKcKfwRqXGWx64dS6G1SUScMsitg=="
       },
       "System.Memory.Data": {
         "type": "Transitive",
@@ -854,11 +854,8 @@
       },
       "System.Reflection.Metadata": {
         "type": "Transitive",
-        "resolved": "8.0.0",
-        "contentHash": "ptvgrFh7PvWI8bcVqG5rsA/weWM09EnthFHR5SCnS6IN+P4mj6rE1lBDC4U8HL9/57htKAqy4KQ3bBj84cfYyQ==",
-        "dependencies": {
-          "System.Collections.Immutable": "8.0.0"
-        }
+        "resolved": "9.0.0",
+        "contentHash": "ANiqLu3DxW9kol/hMmTWbt3414t9ftdIuiIU7j80okq2YzAueo120M442xk1kDJWtmZTqWQn7wHDvMRipVOEOQ=="
       },
       "System.Reflection.Primitives": {
         "type": "Transitive",
@@ -1227,70 +1224,70 @@
       "terrabuild.common": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
-          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.7, )",
+          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
           "System.Text.Json": "[9.0.0, )"
         }
       },
       "terrabuild.configuration": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Expressions": "[1.0.0, )",
-          "Terrabuild.Lang": "[1.0.0, )"
+          "Terrabuild.Expressions": "[0.0.0, )",
+          "Terrabuild.Lang": "[0.0.0, )"
         }
       },
       "terrabuild.expressions": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Common": "[1.0.0, )"
+          "Terrabuild.Common": "[0.0.0, )"
         }
       },
       "terrabuild.extensibility": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )"
         }
       },
       "terrabuild.extensions": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Common": "[1.0.0, )",
-          "Terrabuild.Extensibility": "[1.0.0, )"
+          "Terrabuild.Common": "[0.0.0, )",
+          "Terrabuild.Extensibility": "[0.0.0, )"
         }
       },
       "terrabuild.lang": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "FsLexYacc": "[11.3.0, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Common": "[1.0.0, )",
-          "Terrabuild.Expressions": "[1.0.0, )"
+          "Terrabuild.Common": "[0.0.0, )",
+          "Terrabuild.Expressions": "[0.0.0, )"
         }
       },
       "terrabuild.pubsub": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Common": "[1.0.0, )"
+          "Terrabuild.Common": "[0.0.0, )"
         }
       },
       "terrabuild.scripting": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Compiler.Service": "[43.9.300, )",
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Compiler.Service": "[43.9.303, )",
+          "FSharp.Core": "[9.0.303, )",
           "System.Text.Json": "[9.0.0, )",
-          "Terrabuild.Expressions": "[1.0.0, )"
+          "Terrabuild.Expressions": "[0.0.0, )"
         }
       }
     },
