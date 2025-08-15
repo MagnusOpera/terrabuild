@@ -16,6 +16,7 @@ target dist {
   depends_on = [ target.build ]
   ephemeral = false
   rebuild = true
+  cache = "never"
 }
 
 target dummy { }

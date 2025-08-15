@@ -322,11 +322,16 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 match targetBlock.Ephemeral with
                 | Some ephemeral -> Some ephemeral
                 | _ -> workspaceTarget |> Option.bind _.Ephemeral
+            let cache =
+                match targetBlock.Cache with
+                | Some cache -> Some cache
+                | _ -> workspaceTarget |> Option.bind _.Cache
 
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Ephemeral = ephemeral })
+                Ephemeral = ephemeral
+                Cache = cache })
 
     let includes =
         projectScripts
