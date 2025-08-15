@@ -4,9 +4,9 @@
     "net9.0": {
       "FSharp.Core": {
         "type": "Direct",
-        "requested": "[9.0.300, )",
-        "resolved": "9.0.300",
-        "contentHash": "2ZDoF/N7WPidmaflrTnPucUJfaV5XkIHCh4h77yET7ihuv2dR2ksSsIiiDd34Z9YmwyYEQocpDl1r6RXFr0DMg=="
+        "requested": "[9.0.303, )",
+        "resolved": "9.0.303",
+        "contentHash": "6JlV8aD8qQvcmfoe/PMOxCHXc0uX4lR23u0fAyQtnVQxYULLoTZgwgZHSnRcuUHOvS3wULFWcwdnP1iwslH60g=="
       },
       "System.Text.Json": {
         "type": "Direct",
@@ -25,15 +25,15 @@
       },
       "Microsoft.Extensions.FileSystemGlobbing": {
         "type": "Transitive",
-        "resolved": "9.0.7",
-        "contentHash": "5VKpTH2ME0SSs0lrtkpKgjCeHzXR5ka/H+qThPwuWi78wHubApZ/atD7w69FDt0OOM7UMV6LIbkqEQgoby4IXA=="
+        "resolved": "9.0.8",
+        "contentHash": "96Ub5LmwYfIGVoXkbe4kjs+ivK6fLBTwKJAOMfUNV0R+AkZRItlgROFqXEWMUlXBTPM1/kKu26Ueu5As6RDzJA=="
       },
       "terrabuild.common": {
         "type": "Project",
         "dependencies": {
-          "FSharp.Core": "[9.0.300, )",
+          "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
-          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.7, )",
+          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
           "System.Text.Json": "[9.0.0, )"
         }
       }
