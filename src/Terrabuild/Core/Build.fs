@@ -242,8 +242,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
             match summary.IsSuccessful, node.Idempotent with
-            | true, true -> TaskStatus.Success DateTime.MinValue
             | true, false -> TaskStatus.Success summary.EndedAt
+            | true, true -> TaskStatus.Success DateTime.MinValue
             | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
         | _ ->
             TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
