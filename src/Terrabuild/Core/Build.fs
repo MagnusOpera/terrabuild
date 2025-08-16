@@ -10,14 +10,14 @@ open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
-    | Restore
     | Build
+    | Restore
 
 [<RequireQualifiedAccess>]
 type TaskStatus =
     | Success of completionDate:DateTime
     | Failure of completionDate:DateTime * message:string
-    | Pending
+    | Deferred
 
 [<RequireQualifiedAccess>]
 type NodeInfo = {
@@ -165,7 +165,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let retry = options.Retry
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
-    let restorables = Concurrent.ConcurrentDictionary<string, Lazy<string set>>()
+    let deferreds = Concurrent.ConcurrentDictionary<string, Lazy<Unit>>()
     let hub = Hub.Create(options.MaxConcurrency)
 
     let buildNode (node: GraphDef.Node) =
@@ -227,41 +227,20 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let cacheEntryId = GraphDef.buildCacheKey node
         match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
         | Some (_, summary) ->
-
-            let restorableId = $"{node.Id}+download"
-            let callback() =
-                notification.NodeDownloading node
-                let restorableSignal = hub.GetSignal<Unit> restorableId
-
-                match cache.TryGetSummary allowRemoteCache cacheEntryId with
-                | Some summary ->
-                    Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
-                    match summary.Outputs with
-                    | Some outputs ->
-                        let files = IO.enumerateFiles outputs
-                        IO.copyFiles projectDirectory outputs files |> ignore
-                        api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                    | _ -> ()
-                    notification.NodeCompleted node TaskRequest.Restore true
-                | _ ->
-                    notification.NodeCompleted node TaskRequest.Restore false
-                    raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
-                Log.Debug("Download of {RestorableId} completed", restorableId)
-                restorableSignal.Set<Unit>()
-
-            let restorable =
-                lazy (
-                    Log.Debug("Triggering restore for {NodeId}", restorableId)
-                    hub.Subscribe restorableId [] callback
-                    let dependencies =
-                        node.Dependencies |> Set.collect (fun nodeId -> 
-                            match restorables.TryGetValue nodeId with
-                            | true, restorable -> restorable.Value
-                            | _ -> Set.empty)
-                    dependencies |> Set.add restorableId
-                )
-
-            restorables.TryAdd(node.Id, restorable) |> ignore
+            notification.NodeDownloading node
+            match cache.TryGetSummary allowRemoteCache cacheEntryId with
+            | Some summary ->
+                Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                match summary.Outputs with
+                | Some outputs ->
+                    let files = IO.enumerateFiles outputs
+                    IO.copyFiles projectDirectory outputs files |> ignore
+                    api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                | _ -> ()
+                notification.NodeCompleted node TaskRequest.Restore true
+            | _ ->
+                notification.NodeCompleted node TaskRequest.Restore false
+                raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
             if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
             else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
@@ -305,20 +284,22 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
 
     let rec schedule nodeId =
-        if nodeResults.TryAdd(nodeId, (TaskRequest.Build, TaskStatus.Pending)) then
+        if nodeResults.TryAdd(nodeId, (TaskRequest.Build, TaskStatus.Deferred)) then
             let node = graph.Nodes[nodeId]
-            let nodeComputed = hub.GetSignal<DateTime> nodeId
 
-            // await dependencies
-            let awaitedDependencies =
-                node.Dependencies
-                |> Seq.map (fun awaitedProjectId ->
-                    schedule awaitedProjectId
-                    hub.GetSignal<DateTime> awaitedProjectId)
-                |> List.ofSeq
+            // register a deferred task - once invoked it can register a real job
+            let deferred = lazy(
+                let nodeComputed = hub.GetSignal<DateTime> nodeId
 
-            let onDependenciesAvailable () =
-                try
+                // await dependencies
+                let awaitedDependencies =
+                    node.Dependencies
+                    |> Seq.map (fun awaitedProjectId ->
+                        schedule awaitedProjectId
+                        hub.GetSignal<DateTime> awaitedProjectId)
+                    |> List.ofSeq
+
+                let onDependenciesAvailable () =
                     let maxCompletionChildren =
                         match awaitedDependencies with
                         | [ ] -> DateTime.MinValue
@@ -328,47 +309,26 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                             |> (fun dep -> dep.Get<DateTime>())
 
                     let buildRequest = computeNodeAction node maxCompletionChildren
-
-                    let awaitedDownloads =
+                    let buildAction = 
                         match buildRequest with
-                        | TaskRequest.Build ->
-                            let dependencies =
-                                node.Dependencies |> Set.collect (fun nodeId -> 
-                                    match restorables.TryGetValue nodeId with
-                                    | true, restorable -> restorable.Value
-                                    | _ -> Set.empty)
-                            Log.Debug("Scheduled downloads for {NodeId}: {dependencies}", node.Id, dependencies)
-                            dependencies |> Seq.map hub.GetSignal<Unit> |> List.ofSeq
-                        | _ -> []
+                        | TaskRequest.Build -> buildNode
+                        | TaskRequest.Restore -> restoreNode
+                    let completionStatus = buildAction node
+                    Log.Debug("{NodeId} completed request {Request} with status {Status}", node.Id, buildRequest, completionStatus)
+                    let success, completionDate =
+                        match completionStatus with
+                        | TaskStatus.Success completionDate -> true, completionDate
+                        | TaskStatus.Failure (completionDate, _) -> false, completionDate
+                        | _ -> raiseBugError "Unexpected pending state"
+                    nodeResults[node.Id] <- (buildRequest, completionStatus)
+                    notification.NodeCompleted node buildRequest success
+                    if success then nodeComputed.Set(completionDate)
 
-                    let onDownloadsAvailable() =
-                        Log.Debug("Downloads for {NodeId} completed", node.Id)
-                        let buildAction = 
-                            match buildRequest with
-                            | TaskRequest.Build -> buildNode
-                            | TaskRequest.Restore -> restoreNode
-                        let completionStatus = buildAction node 
+                hub.Subscribe nodeId awaitedDependencies onDependenciesAvailable
+            )
 
-                        Log.Debug("{NodeId} completed request {Request} with status {Status}", node.Id, buildRequest, completionStatus)
-                        let success, completionDate =
-                            match completionStatus with
-                            | TaskStatus.Success completionDate -> true, completionDate
-                            | TaskStatus.Failure (completionDate, _) -> false, completionDate
-                            | _ -> raiseBugError "Unexpected pending state"
-                        nodeResults[node.Id] <- (buildRequest, completionStatus)
-                        notification.NodeCompleted node buildRequest success
-                        if success then nodeComputed.Set(completionDate)
-
-                    hub.Subscribe nodeId awaitedDownloads onDownloadsAvailable
-
-                with
-                    exn ->
-                        Log.Fatal(exn, "{NodeId} unexpected failure while building", node.Id)
-                        nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, exn.Message))
-                        notification.NodeCompleted node TaskRequest.Build false
-                        reraise()
-
-            hub.Subscribe nodeId awaitedDependencies onDependenciesAvailable
+            deferreds.TryAdd(nodeId, deferred) |> ignore
+            if node.Deferred |> not then deferred.Force()
 
     graph.RootNodes |> Seq.iter schedule
 

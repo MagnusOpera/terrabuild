@@ -9,8 +9,14 @@ locals {
     configuration = local.is_prod ? "Release" : "Debug"
 }
 
+target install {
+    cache = "local"
+    deferred = true
+}
+
 target build {
-    depends_on = [ target.^build ]
+    depends_on = [ target.install
+                   target.^build ]
 }
 
 target test {

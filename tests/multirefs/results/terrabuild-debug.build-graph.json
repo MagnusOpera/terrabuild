@@ -46,7 +46,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
       "deferred": false,
       "isLeaf": true
     },
@@ -95,7 +94,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
       "deferred": false,
       "isLeaf": true
     },
@@ -142,7 +140,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
       "deferred": false,
       "isLeaf": true
     }
