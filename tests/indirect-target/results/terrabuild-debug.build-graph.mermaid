@@ -17,8 +17,10 @@ C")
 class a:build ignore
 a:dist --> a:build
 class a:dist ignore
+b:apply --> a:dist
 b:apply --> b:plan
 class b:apply ignore
+b:plan --> a:build
 b:plan --> a:dist
 class b:plan ignore
 class c:build ignore
