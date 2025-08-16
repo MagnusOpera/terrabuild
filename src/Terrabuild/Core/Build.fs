@@ -211,8 +211,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let files = cacheEntry.Complete summary
         api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
-        match lastStatusCode with
-        | 0 -> TaskStatus.Success endedAt
+        match lastStatusCode, node.Idempotent with
+        | 0, false -> TaskStatus.Success endedAt
+        | 0, true -> TaskStatus.Success DateTime.MinValue
         | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
 
     let restoreNode (node: GraphDef.Node) =
