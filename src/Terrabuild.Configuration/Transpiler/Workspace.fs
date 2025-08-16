@@ -49,7 +49,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "rebuild"; "ephemeral"; "restore"; "cache"; "deferred"]
+    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"; "deferred"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -62,14 +62,10 @@ let toTarget (block: Block) =
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let rebuild = block |> tryFindAttribute "rebuild"
-    let ephemeral = block |> tryFindAttribute "ephemeral"
-    let restore = block |> tryFindAttribute "restore"
     let cache = block |> tryFindAttribute "cache"
     let deferred = block |> tryFindAttribute "deferred"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
-      TargetBlock.Ephemeral = ephemeral
-      TargetBlock.Restore = restore
       TargetBlock.Cache = cache
       TargetBlock.Deferred = deferred }
 

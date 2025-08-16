@@ -31,8 +31,6 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Ephemeral: bool option
-    Restore: bool option
     Deferred: bool option
     Operations: TargetOperation list
 }
@@ -314,16 +312,12 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
             let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
-            let ephemeral = targetBlock.Ephemeral |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Ephemeral)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
-            let restore = targetBlock.Restore |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Restore)
             let deferred = targetBlock.Deferred |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Deferred)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Ephemeral = ephemeral
                 Cache = cache
-                Restore = restore
                 Deferred = deferred })
 
     let includes =
@@ -523,14 +517,6 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
-            let targetEphemeral =
-                target.Ephemeral
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-
-            let targetRestore =
-                target.Restore
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-
             let targetOutputs =
                 let targetOutputs =
                     target.Outputs
@@ -561,11 +547,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             let target =
                 { Target.Hash = targetHash
                   Target.Rebuild = targetRebuild
-                  Target.Restore = targetRestore
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Deferred = targetDeferred
-                  Target.Ephemeral = targetEphemeral
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

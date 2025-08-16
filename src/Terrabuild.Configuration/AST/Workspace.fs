@@ -14,8 +14,6 @@ type WorkspaceBlock =
 type TargetBlock =
     { DependsOn: Set<string> option
       Rebuild: Expr option
-      Ephemeral: Expr option
-      Restore: Expr option
       Cache: Expr option
       Deferred: Expr option }
 

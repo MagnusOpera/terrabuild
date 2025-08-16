@@ -128,15 +128,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 // cacheability can be overriden by the target
                 let cache = target.Cache |> Option.defaultValue cache
 
-                // restore is lazy by default
-                let restore = target.Restore |> Option.defaultValue false
-
-                let deferred = target.Deferred |> Option.defaultValue false
+                // if the target is explicitely requested then do not defer the node
+                let deferred = target.Deferred |> Option.defaultValue (options.Targets |> Set.contains targetName |> not)
 
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
-
-                let ephemeral = target.Ephemeral |> Option.defaultValue ephemeral
 
                 let targetOutput = target.Outputs
 
@@ -150,7 +146,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.Operations = ops
                       Node.Cache = cache
                       Node.Rebuild = rebuild || (ephemeral && options.Retry)
-                      Node.Restore = restore
                       Node.Deferred = deferred
 
                       Node.Dependencies = children
