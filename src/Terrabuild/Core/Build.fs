@@ -213,7 +213,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         match lastStatusCode with
         | 0 -> TaskStatus.Success endedAt
-        | _ -> TaskStatus.Failure (DateTime.UtcNow, $"{node.Id} failed with exit code {lastStatusCode}")
+        | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
 
     let restoreNode (node: GraphDef.Node) =
         notification.NodeDownloading node
@@ -241,8 +241,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 notification.NodeCompleted node TaskRequest.Restore false
                 raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
-            if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
-            else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
+            match summary.IsSuccessful, node.Idempotent with
+            | true, true -> TaskStatus.Success DateTime.MinValue
+            | true, false -> TaskStatus.Success summary.EndedAt
+            | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
         | _ ->
             TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
 

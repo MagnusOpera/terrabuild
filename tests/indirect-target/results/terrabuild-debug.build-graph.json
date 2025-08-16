@@ -45,6 +45,7 @@
       "cache": "never",
       "rebuild": true,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": true
     },
     "a:dist": {
@@ -96,6 +97,7 @@
       "cache": "never",
       "rebuild": true,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": false
     },
     "b:apply": {
@@ -148,6 +150,7 @@
       "cache": "never",
       "rebuild": true,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": false
     },
     "b:plan": {
@@ -200,6 +203,7 @@
       "cache": "never",
       "rebuild": false,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": false
     },
     "c:build": {
@@ -247,6 +251,7 @@
       "cache": "never",
       "rebuild": true,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": true
     },
     "c:dist": {
@@ -298,6 +303,7 @@
       "cache": "never",
       "rebuild": true,
       "deferred": false,
+      "idempotent": false,
       "isLeaf": false
     }
   },
