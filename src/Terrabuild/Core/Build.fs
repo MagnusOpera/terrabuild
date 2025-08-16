@@ -211,9 +211,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let files = cacheEntry.Complete summary
         api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
-        match lastStatusCode, node.Idempotent with
-        | 0, false -> TaskStatus.Success endedAt
-        | 0, true -> TaskStatus.Success DateTime.MinValue
+        match lastStatusCode with
+        | 0 -> TaskStatus.Success endedAt
         | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
 
     let restoreNode (node: GraphDef.Node) =
@@ -242,9 +241,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 notification.NodeCompleted node TaskRequest.Restore false
                 raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
-            match summary.IsSuccessful, node.Idempotent with
-            | true, false -> TaskStatus.Success summary.EndedAt
-            | true, true -> TaskStatus.Success DateTime.MinValue
+            match summary.IsSuccessful with
+            | true -> TaskStatus.Success summary.EndedAt
             | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
         | _ ->
             TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
@@ -321,9 +319,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let completionStatus = buildAction node
                     Log.Debug("{NodeId} completed request {Request} with status {Status}", node.Id, buildRequest, completionStatus)
                     let success, completionDate =
-                        match completionStatus with
-                        | TaskStatus.Success completionDate -> true, completionDate
-                        | TaskStatus.Failure (completionDate, _) -> false, completionDate
+                        match completionStatus, node.Idempotent with
+                        | TaskStatus.Success completionDate, false -> true, completionDate
+                        | TaskStatus.Success _, true -> true, DateTime.MinValue
+                        | TaskStatus.Failure (completionDate, _), _ -> false, completionDate
                         | _ -> raiseBugError "Unexpected pending state"
                     nodeResults[node.Id] <- (buildRequest, completionStatus)
                     notification.NodeCompleted node buildRequest success
