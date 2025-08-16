@@ -287,48 +287,61 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if nodeResults.TryAdd(nodeId, (TaskRequest.Build, TaskStatus.Deferred)) then
             let node = graph.Nodes[nodeId]
 
+            let triggerDependencies idempotent =
+                node.Dependencies
+                |> Seq.filter (fun projectId -> graph.Nodes[projectId].Idempotent = idempotent)
+                |> Seq.map (fun projectId ->
+                    schedule projectId
+                    deferreds[projectId].Force()
+                    hub.GetSignal<DateTime> projectId)
+                |> List.ofSeq
+
             // register a deferred task - once invoked it can register a real job
             let dispatchTargetExecution() =
                 Log.Debug("Running {NodeId}", nodeId)
                 let nodeComputed = hub.GetSignal<DateTime> nodeId
 
-                // await dependencies
-                let awaitedDependencies =
-                    node.Dependencies
-                    |> Seq.map (fun awaitedProjectId ->
-                        schedule awaitedProjectId
-                        deferreds[awaitedProjectId].Force()
-                        hub.GetSignal<DateTime> awaitedProjectId)
-                    |> List.ofSeq
+                // await non-idempotent dependencies: this way, the action on the target can be determined quicker
+                let nonIdempotentDeps = triggerDependencies false
 
-                let onDependenciesAvailable () =
-                    notification.NodeScheduled node
+                let onNonIdempotentDepsAvailable() =
                     let maxCompletionChildren =
-                        match awaitedDependencies with
+                        match nonIdempotentDeps with
                         | [ ] -> DateTime.MinValue
                         | _ ->
-                            awaitedDependencies
+                            nonIdempotentDeps
                             |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
                             |> (fun dep -> dep.Get<DateTime>())
 
                     let buildRequest = computeNodeAction node maxCompletionChildren
-                    let buildAction = 
-                        match buildRequest with
-                        | TaskRequest.Build -> buildNode
-                        | TaskRequest.Restore -> restoreNode
-                    let completionStatus = buildAction node
-                    Log.Debug("{NodeId} completed request {Request} with status {Status}", node.Id, buildRequest, completionStatus)
-                    let success, completionDate =
-                        match completionStatus, node.Idempotent with
-                        | TaskStatus.Success completionDate, false -> true, completionDate
-                        | TaskStatus.Success _, true -> true, DateTime.MinValue
-                        | TaskStatus.Failure (completionDate, _), _ -> false, completionDate
-                        | _ -> raiseBugError "Unexpected pending state"
-                    nodeResults[node.Id] <- (buildRequest, completionStatus)
-                    notification.NodeCompleted node buildRequest success
-                    if success then nodeComputed.Set(completionDate)
 
-                hub.Subscribe nodeId awaitedDependencies onDependenciesAvailable
+                    // only restore idempotent dependencies if we are building
+                    let idempotentDeps =
+                        match buildRequest with
+                        | TaskRequest.Build -> triggerDependencies true
+                        | TaskRequest.Restore -> []
+
+                    let onIdempotentDepsAvailable() =
+                        notification.NodeScheduled node
+                        let buildAction =
+                            match buildRequest with
+                            | TaskRequest.Build -> buildNode
+                            | TaskRequest.Restore -> restoreNode
+                        let completionStatus = buildAction node
+                        Log.Debug("{NodeId} completed request {Request} with status {Status}", node.Id, buildRequest, completionStatus)
+                        let success, completionDate =
+                            match completionStatus, node.Idempotent with
+                            | TaskStatus.Success completionDate, false -> true, completionDate
+                            | TaskStatus.Success _, true -> true, DateTime.MinValue
+                            | TaskStatus.Failure (completionDate, _), _ -> false, completionDate
+                            | _ -> raiseBugError "Unexpected pending state"
+                        nodeResults[node.Id] <- (buildRequest, completionStatus)
+                        notification.NodeCompleted node buildRequest success
+                        if success then nodeComputed.Set(completionDate)
+
+                    hub.Subscribe nodeId idempotentDeps onIdempotentDepsAvailable
+
+                hub.Subscribe nodeId nonIdempotentDeps onNonIdempotentDepsAvailable
 
             let deferred = lazy(dispatchTargetExecution())
             deferreds.TryAdd(nodeId, deferred) |> ignore
