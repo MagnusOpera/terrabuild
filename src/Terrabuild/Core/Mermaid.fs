@@ -30,8 +30,9 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
 
         for (KeyValue(_, node)) in graph.Nodes do
             for dependency in node.Dependencies do
-                let dstNode = graph.Nodes |> Map.find dependency
-                $"{node.Id} --> {dstNode.Id}"
+                match graph.Nodes |> Map.tryFind dependency with
+                | Some dstNode -> $"{node.Id} --> {dstNode.Id}"
+                | _ -> ()
 
             let origin =
                 getOrigin
