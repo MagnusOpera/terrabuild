@@ -6,7 +6,7 @@ open Microsoft.Extensions.FileSystemGlobbing
 open Errors
 
 
-[<RequireQualifiedAccess>]
+// [<RequireQualifiedAccess>]
 type ExtensionType =
     | Dotnet
     | Gradle
@@ -16,11 +16,14 @@ type ExtensionType =
     | Terraform
     | Cargo
 
-[<RequireQualifiedAccess>]
-type Target =
+// [<RequireQualifiedAccess>]
+type Goal =
+    | Install
     | Build
+    | Test
     | Publish
-    | Deploy
+    | Plan
+    | Apply
 
 
 type Project = {
@@ -30,19 +33,22 @@ type Project = {
 }
 
 
+
 type Extension = {
     Container: string option
     Defaults: Map<string, string>
-    Actions: Map<Target, string list>
+    Actions: Map<Goal, string list>
 }
-
 
 
 let targetConfigs =
     Map [
-        Target.Build, [ "target.^build" ]
-        Target.Publish, [ "target.build" ]
-        Target.Deploy, [ "target.publish" ]
+        Install, ([], [])
+        Build, ([ "cache = \"local\"" ], [ "target.install"; "target.^build" ])
+        Test, ([], [ "target.install" ])
+        Publish, ([], [ "target.build" ])
+        Plan, ([ "rebuild = terrabuild.retry" ], [ "target.install"; "target.^plan"; "target.publish" ])
+        Apply, ([], [ "target.^apply"; "target.plan" ])
     ]
 
 let localConfigs =
@@ -53,48 +59,54 @@ let localConfigs =
 
 // NOTE: order is important, first found is main extension
 let extMarkers = [
-    ExtensionType.Dotnet, "*.*proj"
-    ExtensionType.Gradle, "build.gradle"
-    ExtensionType.Npm, "package.json"
-    ExtensionType.Make, "Makefile"
-    ExtensionType.Docker, "Dockerfile"
-    ExtensionType.Terraform, ".terraform.lock.hcl"
-    ExtensionType.Cargo, "Cargo.toml"
+    Dotnet, "*.*proj"
+    Gradle, "build.gradle"
+    Npm, "package.json"
+    Make, "Makefile"
+    Docker, "Dockerfile"
+    Terraform, ".terraform.lock.hcl"
+    Cargo, "Cargo.toml"
 ]
 
 
 let extConfigs =
     Map [ 
-        ExtensionType.Dotnet, { Container = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
-                                Defaults = Map [ "configuration", "local.config" ]
-                                Actions = Map [ Target.Build, [ "restore"; "build"; "publish" ] ] }
+        Dotnet, { Container = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
+                  Defaults = Map [ "configuration", "local.config" ]
+                  Actions = Map [ Install, [ "restore"]
+                                  Build, [ "build" ]
+                                  Publish, [ "publish" ]
+                                  Test, [ "test" ] ] }
 
-        ExtensionType.Gradle, { Container = None //Some "gradle:jdk21"
-                                Defaults = Map [ "configuration", "local.configuration" ]
-                                Actions = Map [ Target.Build, [ "build" ]] }
+        Gradle, { Container = None //Some "gradle:jdk21"
+                  Defaults = Map [ "configuration", "local.configuration" ]
+                  Actions = Map [ Build, [ "build" ] ] }
 
-        ExtensionType.Npm, { Container = None //Some "node:20"
-                             Defaults = Map.empty
-                             Actions = Map [ Target.Build, [ "install"; "build" ] ] }
+        Npm, { Container = None //Some "node:20"
+               Defaults = Map.empty
+               Actions = Map [ Install, [ "install" ]
+                               Build, [ "build" ]
+                               Test, [ "test" ] ] }
 
-        ExtensionType.Make, { Container = None
-                              Defaults = Map.empty
-                              Actions = Map [ Target.Build, [ "build" ] ] }
+        Make, { Container = None
+                Defaults = Map.empty
+                Actions = Map [ Build, [ "build" ] ] }
 
-        ExtensionType.Docker, { Container = None //Some "docker:25.0"
-                                Defaults = Map [ "image", "\"ghcr.io/example/${ terrabuild.project }\""
-                                                 "arguments", "{ configuration: local.config }" ]
-                                Actions = Map [ Target.Build, [ "build" ]
-                                                Target.Publish, [ "push" ] ] }
-
-        ExtensionType.Terraform, { Container = None //Some "hashicorp/terraform:1.7"
-                                   Defaults = Map.empty
-                                   Actions = Map [ Target.Build, [ "init"; "plan" ]
-                                                   Target.Deploy, [ "init"; "apply" ] ] }
-
-        ExtensionType.Cargo, { Container = None // Some "rust:1.79.0"
-                               Defaults = Map [ "profile", "local.configuration" ]
-                               Actions = Map [ Target.Build, [ "build" ]] }
+        Docker, { Container = None //Some "docker:25.0"
+                  Defaults = Map [ "image", "\"ghcr.io/example/${terrabuild.project_slug}\""
+                                   "arguments", "{ configuration: local.config }" ]
+                  Actions = Map [ Publish, [ "build" ] ] }
+  
+        Terraform, { Container = None //Some "hashicorp/terraform:1.7"
+                     Defaults = Map.empty
+                     Actions = Map [
+                         Install, [ "init" ]
+                         Plan, [ "plan" ]
+                         Apply, [ "apply" ] ] }
+ 
+        Cargo, { Container = None // Some "rust:1.79.0"
+                 Defaults = Map [ "profile", "local.configuration" ]
+                 Actions = Map [ Build, [ "build" ] ] }
     ]
 
 
@@ -132,10 +144,11 @@ let toExtension (pt: ExtensionType) = pt |> toLower
 
 let genWorkspace (extensions: ExtensionType set) =
     seq {
-        for (KeyValue(target, dependsOn)) in targetConfigs do
+        for (KeyValue(target, (attributes, dependsOn))) in targetConfigs do
             ""
             $"target {target |> toLower} {{"
             let listDependsOn = String.concat " " dependsOn
+            for attribute in attributes do $"  {attribute}"
             $"  depends_on = [ {listDependsOn} ]"
             "}"
 
@@ -185,7 +198,7 @@ let genProject (project: Project) =
         yield "}"
 
         // generate targets
-        let allTargets =
+        let allCommands =
             extensions
             |> List.collect (fun ext ->
                 extConfigs[ext].Actions
@@ -195,7 +208,7 @@ let genProject (project: Project) =
             |> Map.ofList
             |> Map.map (fun _ l -> l |> List.map snd)
 
-        for (KeyValue(targetType, cmds)) in allTargets do
+        for (KeyValue(targetType, cmds)) in allCommands do
             yield ""
             yield $"target {targetType |> toLower} {{"
             for (projType, cmd) in cmds do

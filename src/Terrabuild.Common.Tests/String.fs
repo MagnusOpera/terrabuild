@@ -17,3 +17,13 @@ let ``remove extra shell arg spaces``() =
     "  build   --no-restore --no-dependencies   \"--configuration\"   Debug    "
     |> String.normalizeShellArgs
     |> should equal "build --no-restore --no-dependencies \"--configuration\" Debug"
+
+[<Test>]
+let ``slugify path``() =
+    "libs/project.dir/path123"
+    |> String.slugify
+    |> should equal "libs-project-dir-path123"
+
+    "./libs/project.dir/path123/"
+    |> String.slugify
+    |> should equal "libs-project-dir-path123"
