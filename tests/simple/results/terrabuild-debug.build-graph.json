@@ -94,6 +94,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "libraries/dotnet-lib:build": {
@@ -184,6 +185,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "libraries/npm-lib:build": {
@@ -254,6 +256,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "libraries/shell-lib:build": {
@@ -300,6 +303,7 @@
       "cache": "never",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "projects/dotnet-app:build": {
@@ -393,6 +397,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "projects/make-app:build": {
@@ -472,6 +477,7 @@
       "cache": "never",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "projects/npm-app:build": {
@@ -545,6 +551,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "projects/open-api:build": {
@@ -603,6 +610,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "projects/rust-app:build": {
@@ -654,6 +662,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "tests/playwright:test": {
@@ -728,6 +737,7 @@
       "cache": "local",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     }
   },

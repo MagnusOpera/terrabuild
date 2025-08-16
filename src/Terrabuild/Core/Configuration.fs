@@ -33,6 +33,7 @@ type Target = {
     Cache: Cacheability option
     Ephemeral: bool option
     Restore: bool option
+    Deferred: bool option
     Operations: TargetOperation list
 }
 
@@ -548,6 +549,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                 | Some "remote" -> Some Cacheability.Remote
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
+            let targetDeferred =
+                target.Deferred
+                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -560,6 +564,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                   Target.Restore = targetRestore
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
+                  Target.Deferred = targetDeferred
                   Target.Ephemeral = targetEphemeral
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }

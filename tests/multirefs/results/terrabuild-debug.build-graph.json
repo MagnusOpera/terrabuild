@@ -47,6 +47,7 @@
       "cache": "never",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "b:build": {
@@ -95,6 +96,7 @@
       "cache": "never",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "c:build": {
@@ -141,6 +143,7 @@
       "cache": "never",
       "rebuild": true,
       "restore": false,
+      "deferred": false,
       "isLeaf": true
     }
   },

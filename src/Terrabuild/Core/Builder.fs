@@ -131,6 +131,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 // restore is lazy by default
                 let restore = target.Restore |> Option.defaultValue false
 
+                let deferred = target.Deferred |> Option.defaultValue false
+
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
 
@@ -149,6 +151,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.Cache = cache
                       Node.Rebuild = rebuild || (ephemeral && options.Retry)
                       Node.Restore = restore
+                      Node.Deferred = deferred
 
                       Node.Dependencies = children
                       Node.Outputs = targetOutput
