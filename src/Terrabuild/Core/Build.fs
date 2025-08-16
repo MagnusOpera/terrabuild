@@ -216,7 +216,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         | _ -> TaskStatus.Failure (DateTime.UtcNow, $"{node.Id} failed with exit code {lastStatusCode}")
 
     let restoreNode (node: GraphDef.Node) =
-        notification.NodeScheduled node
+        notification.NodeDownloading node
 
         let projectDirectory =
             match node.ProjectDir with
@@ -227,7 +227,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let cacheEntryId = GraphDef.buildCacheKey node
         match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
         | Some (_, summary) ->
-            notification.NodeDownloading node
             match cache.TryGetSummary allowRemoteCache cacheEntryId with
             | Some summary ->
                 Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
@@ -302,6 +301,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     |> List.ofSeq
 
                 let onDependenciesAvailable () =
+                    notification.NodeScheduled node
                     let maxCompletionChildren =
                         match awaitedDependencies with
                         | [ ] -> DateTime.MinValue
