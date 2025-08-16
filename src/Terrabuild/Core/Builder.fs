@@ -156,7 +156,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
                 Set.singleton nodeId
             | _ ->
-                outChildren
+                inChildren + outChildren
 
         if processedNodes.TryAdd(nodeId, true) then
             let children = processNode()
@@ -167,9 +167,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             node2children[nodeId]
 
     let rootNodes =
-        configuration.SelectedProjects |> Seq.collect (fun dependency -> 
-            options.Targets |> Seq.collect (fun target ->
-                buildTarget target dependency))
+        configuration.SelectedProjects |> Seq.collect (fun project ->
+            options.Targets |> Seq.choose (fun target ->
+                buildTarget target project |> ignore
+
+                // identify root target
+                configuration.Projects[project].Targets |> Map.tryFind target
+                |> Option.map (fun _ -> $"{project}:{target}")))
         |> Set
 
     let endedAt = DateTime.UtcNow
