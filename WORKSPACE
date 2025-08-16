@@ -11,7 +11,6 @@ locals {
 
 target install {
     cache = "local"
-    deferred = true
 }
 
 target build {

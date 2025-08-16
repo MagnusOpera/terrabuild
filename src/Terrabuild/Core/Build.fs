@@ -288,7 +288,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let node = graph.Nodes[nodeId]
 
             // register a deferred task - once invoked it can register a real job
-            let deferred = lazy(
+            let dispatchTargetExecution() =
+                Log.Debug("Running {NodeId}", nodeId)
                 let nodeComputed = hub.GetSignal<DateTime> nodeId
 
                 // await dependencies
@@ -296,6 +297,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     node.Dependencies
                     |> Seq.map (fun awaitedProjectId ->
                         schedule awaitedProjectId
+                        deferreds[awaitedProjectId].Force()
                         hub.GetSignal<DateTime> awaitedProjectId)
                     |> List.ofSeq
 
@@ -325,10 +327,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     if success then nodeComputed.Set(completionDate)
 
                 hub.Subscribe nodeId awaitedDependencies onDependenciesAvailable
-            )
 
+            let deferred = lazy(dispatchTargetExecution())
             deferreds.TryAdd(nodeId, deferred) |> ignore
-            if node.Deferred |> not then deferred.Force()
+            if node.Deferred |> not then
+                Log.Debug("Eagerly dispatching {NodeId}", nodeId)
+                deferred.Force()
 
     graph.RootNodes |> Seq.iter schedule
 
