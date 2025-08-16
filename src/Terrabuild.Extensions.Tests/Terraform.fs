@@ -114,7 +114,7 @@ let ``select none``() =
 
 [<Test>]
 let ``plan cacheability``() =
-    getCacheInfo<Terraform> "plan" |> should equal Cacheability.Ephemeral
+    getCacheInfo<Terraform> "plan" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``plan some``() =

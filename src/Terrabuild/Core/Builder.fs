@@ -60,8 +60,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // barrier nodes are just discarded and dependencies lift level up
             match projectConfig.Targets |> Map.tryFind targetName with
             | Some target ->
-                let cache, ephemeral, ops =
-                    target.Operations |> List.fold (fun (cache, ephemeral, ops) operation ->
+                let cache, ops =
+                    target.Operations |> List.fold (fun (cache, ops) operation ->
                         let optContext = {
                             Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                             Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -105,12 +105,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             | Cacheability.Local, _ -> Cacheability.Local
                             | Cacheability.Remote, true -> Cacheability.Local
                             | Cacheability.Remote, false -> Cacheability.Remote
-                            | Cacheability.Ephemeral, true -> Cacheability.Local
-                            | Cacheability.Ephemeral, false -> Cacheability.Remote
-                        let ephemeral = cacheability = Cacheability.Ephemeral
 
-                        cache, ephemeral, ops @ newops
-                    ) (Cacheability.Never, false, [])
+                        cache, ops @ newops
+                    ) (Cacheability.Never, [])
 
                 let opsCmds = ops |> List.map Json.Serialize
 
@@ -145,7 +142,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.ConfigurationTarget = target
                       Node.Operations = ops
                       Node.Cache = cache
-                      Node.Rebuild = rebuild || (ephemeral && options.Retry)
+                      Node.Rebuild = rebuild
                       Node.Deferred = deferred
 
                       Node.Dependencies = children
