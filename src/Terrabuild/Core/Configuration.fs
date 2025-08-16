@@ -309,29 +309,21 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     let projectTargets =
         // apply target override
         projectConfig.Targets |> Map.map (fun targetName targetBlock ->
+            // apply workspace default value
             let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
-            let rebuild =
-                match targetBlock.Rebuild with
-                | Some expr -> Some expr
-                | _ -> workspaceTarget |> Option.bind _.Rebuild
-            let dependsOn =
-                match targetBlock.DependsOn with
-                | Some dependsOn -> Some dependsOn
-                | _ -> workspaceTarget |> Option.bind _.DependsOn
-            let ephemeral =
-                match targetBlock.Ephemeral with
-                | Some ephemeral -> Some ephemeral
-                | _ -> workspaceTarget |> Option.bind _.Ephemeral
-            let cache =
-                match targetBlock.Cache with
-                | Some cache -> Some cache
-                | _ -> workspaceTarget |> Option.bind _.Cache
-
+            let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
+            let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
+            let ephemeral = targetBlock.Ephemeral |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Ephemeral)
+            let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+            let restore = targetBlock.Restore |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Restore)
+            let deferred = targetBlock.Deferred |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Deferred)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
                 Ephemeral = ephemeral
-                Cache = cache })
+                Cache = cache
+                Restore = restore
+                Deferred = deferred })
 
     let includes =
         projectScripts
