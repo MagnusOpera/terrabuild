@@ -49,7 +49,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "rebuild"; "ephemeral"; "restore"; "cache"]
+    |> checkAllowedAttributes ["depends_on"; "rebuild"; "ephemeral"; "restore"; "cache"; "deferred"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -65,11 +65,13 @@ let toTarget (block: Block) =
     let ephemeral = block |> tryFindAttribute "ephemeral"
     let restore = block |> tryFindAttribute "restore"
     let cache = block |> tryFindAttribute "cache"
+    let deferred = block |> tryFindAttribute "deferred"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
       TargetBlock.Ephemeral = ephemeral
       TargetBlock.Restore = restore
-      TargetBlock.Cache = cache }
+      TargetBlock.Cache = cache
+      TargetBlock.Deferred = deferred }
 
     
 let toVariable (block: Block) =

@@ -49,6 +49,7 @@ let parseProject() =
               TargetBlock.Cache = None
               TargetBlock.Ephemeral = None
               TargetBlock.Restore = Expr.True |> Some
+              TargetBlock.Deferred = Expr.True |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
             { TargetBlock.DependsOn = None
@@ -57,6 +58,7 @@ let parseProject() =
               TargetBlock.Cache = None
               TargetBlock.Ephemeral = Expr.False |> Some
               TargetBlock.Restore = None
+              TargetBlock.Deferred = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
@@ -66,6 +68,7 @@ let parseProject() =
               TargetBlock.Cache = "always" |> Expr.String |> Some
               TargetBlock.Ephemeral = None
               TargetBlock.Restore = None
+              TargetBlock.Deferred = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
                                                                                      [ Expr.Function (Function.Plus,
@@ -123,6 +126,7 @@ let parseProject2() =
               TargetBlock.Cache = None
               TargetBlock.Ephemeral = None
               TargetBlock.Restore = None
+              TargetBlock.Deferred = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
 
         let locals = 

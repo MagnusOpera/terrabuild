@@ -16,7 +16,8 @@ type TargetBlock =
       Rebuild: Expr option
       Ephemeral: Expr option
       Restore: Expr option
-      Cache: Expr option }
+      Cache: Expr option
+      Deferred: Expr option }
 
 [<RequireQualifiedAccess>]
 type WorkspaceFile =
