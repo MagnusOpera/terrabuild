@@ -27,6 +27,7 @@ type TargetBlock =
       Rebuild: Expr option
       Cache: Expr option
       Deferred: Expr option
+      Idempotent: Expr option
       Steps: Step list }
 
 [<RequireQualifiedAccess>]

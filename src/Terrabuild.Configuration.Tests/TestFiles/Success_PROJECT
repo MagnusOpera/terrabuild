@@ -33,6 +33,7 @@ project id {
 target build {
   depends_on = [ target.dist ]
   deferred = true
+  idempotent = true
 
   @dotnet build { }
 }

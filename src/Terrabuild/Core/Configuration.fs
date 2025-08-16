@@ -32,6 +32,7 @@ type Target = {
     Outputs: string set
     Cache: Cacheability option
     Deferred: bool option
+    Idempotent: bool option
     Operations: TargetOperation list
 }
 
@@ -314,11 +315,13 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
             let deferred = targetBlock.Deferred |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Deferred)
+            let idempotent = targetBlock.Idempotent |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Idempotent)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
                 Cache = cache
-                Deferred = deferred })
+                Deferred = deferred
+                Idempotent = idempotent })
 
     let includes =
         projectScripts
@@ -539,6 +542,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             let targetDeferred =
                 target.Deferred
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
+            let targetIdempotent =
+                target.Idempotent
+                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -551,6 +557,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Deferred = targetDeferred
+                  Target.Idempotent = targetIdempotent
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

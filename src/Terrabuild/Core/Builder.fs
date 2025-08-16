@@ -131,6 +131,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
 
+                let idempotent = target.Idempotent |> Option.defaultValue false
+
                 let targetOutput = target.Outputs
 
                 let node =
@@ -144,6 +146,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.Cache = cache
                       Node.Rebuild = rebuild
                       Node.Deferred = deferred
+                      Node.Idempotent = idempotent
 
                       Node.Dependencies = children
                       Node.Outputs = targetOutput
