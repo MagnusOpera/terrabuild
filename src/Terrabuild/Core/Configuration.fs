@@ -31,8 +31,7 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Ephemeral: bool option
-    Restore: bool option
+    Deferred: bool option
     Operations: TargetOperation list
 }
 
@@ -309,29 +308,17 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     let projectTargets =
         // apply target override
         projectConfig.Targets |> Map.map (fun targetName targetBlock ->
+            // apply workspace default value
             let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
-            let rebuild =
-                match targetBlock.Rebuild with
-                | Some expr -> Some expr
-                | _ -> workspaceTarget |> Option.bind _.Rebuild
-            let dependsOn =
-                match targetBlock.DependsOn with
-                | Some dependsOn -> Some dependsOn
-                | _ -> workspaceTarget |> Option.bind _.DependsOn
-            let ephemeral =
-                match targetBlock.Ephemeral with
-                | Some ephemeral -> Some ephemeral
-                | _ -> workspaceTarget |> Option.bind _.Ephemeral
-            let cache =
-                match targetBlock.Cache with
-                | Some cache -> Some cache
-                | _ -> workspaceTarget |> Option.bind _.Cache
-
+            let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
+            let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
+            let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+            let deferred = targetBlock.Deferred |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Deferred)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Ephemeral = ephemeral
-                Cache = cache })
+                Cache = cache
+                Deferred = deferred })
 
     let includes =
         projectScripts
@@ -530,14 +517,6 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
-            let targetEphemeral =
-                target.Ephemeral
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-
-            let targetRestore =
-                target.Restore
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-
             let targetOutputs =
                 let targetOutputs =
                     target.Outputs
@@ -556,6 +535,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
                 | Some "remote" -> Some Cacheability.Remote
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
+            let targetDeferred =
+                target.Deferred
+                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -565,10 +547,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             let target =
                 { Target.Hash = targetHash
                   Target.Rebuild = targetRebuild
-                  Target.Restore = targetRestore
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
-                  Target.Ephemeral = targetEphemeral
+                  Target.Deferred = targetDeferred
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

@@ -45,7 +45,6 @@ type Cacheability =
     | Never
     | Local
     | Remote
-    | Ephemeral
 
 let shellOp(cmd, args) = 
     { ShellOperation.Command = cmd
@@ -56,9 +55,6 @@ let shellOp(cmd, args) =
 type CacheableAttribute(cacheability: Cacheability) =
     inherit Attribute()
     member _.Cacheability = cacheability
-
-type EphemeralCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Ephemeral)
 
 type RemoteCacheAttribute() =
     inherit CacheableAttribute(Cacheability.Remote)

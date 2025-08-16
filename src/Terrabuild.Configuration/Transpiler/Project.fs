@@ -71,10 +71,9 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["rebuild"; "outputs"; "depends_on"; "cache"; "ephemeral"; "restore"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"; "deferred" ]
     |> ignore
 
-    let rebuild = block |> tryFindAttribute "rebuild"
     let outputs = block |> tryFindAttribute "outputs"
     let dependsOn =
         block |> tryFindAttribute "depends_on"
@@ -84,9 +83,9 @@ let toTarget (block: Block) =
                 match dependency with
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
+    let rebuild = block |> tryFindAttribute "rebuild"
     let cache = block |> tryFindAttribute "cache"
-    let ephemeral = block |> tryFindAttribute "ephemeral"
-    let restore = block |> tryFindAttribute "restore"
+    let deferred = block |> tryFindAttribute "deferred"
     let steps =
         block.Blocks
         |> List.map (fun step ->
@@ -108,13 +107,12 @@ let toTarget (block: Block) =
               Command = command
               Parameters = parameters })
 
-    { TargetBlock.Rebuild = rebuild
-      TargetBlock.Outputs = outputs
+    { TargetBlock.Outputs = outputs
       TargetBlock.DependsOn = dependsOn
+      TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache
-      TargetBlock.Steps = steps
-      TargetBlock.Ephemeral = ephemeral
-      TargetBlock.Restore = restore }
+      TargetBlock.Deferred = deferred
+      TargetBlock.Steps = steps }
 
 
 

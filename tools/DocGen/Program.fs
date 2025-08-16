@@ -148,14 +148,6 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 "{{< /callout >}}"
                 ""
             ]
-        | Some Cacheability.Ephemeral ->
-            [
-                ""
-                "{{< callout type=\"warning\" >}}"
-                "This command is **fully cacheable** but is **ephemeral**."
-                "{{< /callout >}}"
-                ""
-            ]
 
     match command.Name with
     | "__defaults__" -> ()

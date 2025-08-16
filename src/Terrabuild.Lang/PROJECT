@@ -3,7 +3,10 @@ project {
     @dotnet { }
 }
 
-target build {
+target install {
     @dotnet restore { }
+}
+
+target build {
     @dotnet build { }
 }

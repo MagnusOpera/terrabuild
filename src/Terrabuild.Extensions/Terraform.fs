@@ -98,7 +98,7 @@ type Terraform() =
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
     /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
-    [<EphemeralCacheAttribute>]
+    [<RemoteCache>]
     static member plan (variables: Map<string, string> option)
                        (args: string option) =
         let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")

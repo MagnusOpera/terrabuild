@@ -44,7 +44,7 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "a:dist": {
@@ -59,7 +59,7 @@
           "build"
         ],
         "outputs": [],
-        "ephemeral": false,
+        "deferred": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -95,7 +95,7 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
+      "deferred": false,
       "isLeaf": false
     },
     "b:apply": {
@@ -110,7 +110,7 @@
           "plan"
         ],
         "outputs": [],
-        "ephemeral": false,
+        "deferred": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -131,11 +131,12 @@
         ]
       },
       "dependencies": [
+        "a:dist",
         "b:plan"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "5B1E3A6B67518D428A8866B441FD4BD50A7599BB73514A1C8CB1D5A3D362DB9D",
+      "targetHash": "B110C2BF4416C1E36C63186D8F231E8B43965D6AE7619095AE1B5D9B1F388970",
       "operations": [
         {
           "containerVariables": [],
@@ -146,7 +147,7 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
+      "deferred": false,
       "isLeaf": false
     },
     "b:plan": {
@@ -182,11 +183,12 @@
         ]
       },
       "dependencies": [
+        "a:build",
         "a:dist"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "7B87E97A91FEB653E59685702413244279D3C23DCAD0BB317C4F24F0D69382BB",
+      "targetHash": "3757A73E8831354BC7A972C802D727554D9CA31EB668566CC8E59634627CCE20",
       "operations": [
         {
           "containerVariables": [],
@@ -197,7 +199,7 @@
       ],
       "cache": "never",
       "rebuild": false,
-      "restore": false,
+      "deferred": false,
       "isLeaf": false
     },
     "c:build": {
@@ -244,7 +246,7 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
+      "deferred": false,
       "isLeaf": true
     },
     "c:dist": {
@@ -259,7 +261,7 @@
           "build"
         ],
         "outputs": [],
-        "ephemeral": false,
+        "deferred": false,
         "operations": [
           {
             "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
@@ -295,7 +297,7 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "restore": false,
+      "deferred": false,
       "isLeaf": false
     }
   },

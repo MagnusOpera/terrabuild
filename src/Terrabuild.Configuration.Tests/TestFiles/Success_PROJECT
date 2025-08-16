@@ -32,13 +32,12 @@ project id {
 
 target build {
   depends_on = [ target.dist ]
-  restore = true
+  deferred = true
 
   @dotnet build { }
 }
 
 target dist {
-  ephemeral = false
   @dotnet build { }
   @dotnet publish { }
 }

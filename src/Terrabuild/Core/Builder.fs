@@ -60,8 +60,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // barrier nodes are just discarded and dependencies lift level up
             match projectConfig.Targets |> Map.tryFind targetName with
             | Some target ->
-                let cache, ephemeral, ops =
-                    target.Operations |> List.fold (fun (cache, ephemeral, ops) operation ->
+                let cache, ops =
+                    target.Operations |> List.fold (fun (cache, ops) operation ->
                         let optContext = {
                             Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                             Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -105,12 +105,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             | Cacheability.Local, _ -> Cacheability.Local
                             | Cacheability.Remote, true -> Cacheability.Local
                             | Cacheability.Remote, false -> Cacheability.Remote
-                            | Cacheability.Ephemeral, true -> Cacheability.Local
-                            | Cacheability.Ephemeral, false -> Cacheability.Remote
-                        let ephemeral = cacheability = Cacheability.Ephemeral
 
-                        cache, ephemeral, ops @ newops
-                    ) (Cacheability.Never, false, [])
+                        cache, ops @ newops
+                    ) (Cacheability.Never, [])
 
                 let opsCmds = ops |> List.map Json.Serialize
 
@@ -128,13 +125,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 // cacheability can be overriden by the target
                 let cache = target.Cache |> Option.defaultValue cache
 
-                // restore is lazy by default
-                let restore = target.Restore |> Option.defaultValue false
+                // if the target is explicitely requested then do not defer the node
+                let deferred = target.Deferred |> Option.defaultValue (options.Targets |> Set.contains targetName |> not)
 
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
-
-                let ephemeral = target.Ephemeral |> Option.defaultValue ephemeral
 
                 let targetOutput = target.Outputs
 
@@ -147,8 +142,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.ConfigurationTarget = target
                       Node.Operations = ops
                       Node.Cache = cache
-                      Node.Rebuild = rebuild || (ephemeral && options.Retry)
-                      Node.Restore = restore
+                      Node.Rebuild = rebuild
+                      Node.Deferred = deferred
 
                       Node.Dependencies = children
                       Node.Outputs = targetOutput
@@ -161,7 +156,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
                 Set.singleton nodeId
             | _ ->
-                outChildren
+                inChildren + outChildren
 
         if processedNodes.TryAdd(nodeId, true) then
             let children = processNode()
@@ -172,9 +167,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             node2children[nodeId]
 
     let rootNodes =
-        configuration.SelectedProjects |> Seq.collect (fun dependency -> 
-            options.Targets |> Seq.collect (fun target ->
-                buildTarget target dependency))
+        configuration.SelectedProjects |> Seq.collect (fun project ->
+            options.Targets |> Seq.choose (fun target ->
+                buildTarget target project |> ignore
+
+                // identify root target
+                configuration.Projects[project].Targets |> Map.tryFind target
+                |> Option.map (fun _ -> $"{project}:{target}")))
         |> Set
 
     let endedAt = DateTime.UtcNow

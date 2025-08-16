@@ -3,12 +3,14 @@ project {
     @dotnet { }
 }
 
-target build {
+target install {
     @dotnet restore { }
+}
+
+target build {
     @dotnet build { }
 }
 
 target test {
-    @dotnet restore { }
     @dotnet test { }
 }

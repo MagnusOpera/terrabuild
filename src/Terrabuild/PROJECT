@@ -6,14 +6,15 @@ project {
     @dotnet { }
 }
 
-target build {
+target install {
     @dotnet restore { }
+}
+
+target build {
     @dotnet build { version = terrabuild.tag }
 }
 
 target dist {
     outputs = []
-
-    @dotnet restore { }
     @dotnet pack { }
 }

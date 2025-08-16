@@ -22,12 +22,11 @@ type Step =
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
-    { Rebuild: Expr option
-      Outputs: Expr option
+    { Outputs: Expr option
       DependsOn: Set<string> option
+      Rebuild: Expr option
       Cache: Expr option
-      Ephemeral: Expr option
-      Restore: Expr option
+      Deferred: Expr option
       Steps: Step list }
 
 [<RequireQualifiedAccess>]
