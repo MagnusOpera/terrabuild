@@ -58,3 +58,10 @@ let normalizeShellArgs (input: string) : string =
             lastWasSpace <- false
 
     sb.ToString().Trim()
+
+let slugify (s: string) =
+    let replace (m: string) (r: string) (s: string) = Regex.Replace(s, m, r)
+    let s =
+        s|> replace @"([a-z0-9])([A-Z])" "$1-$2"
+        |> replace @"[^a-zA-Z0-9-]" "-"
+    s.Trim('-').ToLowerInvariant()

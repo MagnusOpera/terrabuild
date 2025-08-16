@@ -33,27 +33,22 @@ type Project = {
 }
 
 
-type Target = {
-    Attributes: string list
-    Commands: string list
-}
 
 type Extension = {
     Container: string option
     Defaults: Map<string, string>
-    Actions: Map<Goal, Target>
+    Actions: Map<Goal, string list>
 }
-
 
 
 let targetConfigs =
     Map [
-        Install, [ ]
-        Build, [ "target.install"; "target.^build" ]
-        Test, [ "target.install" ]
-        Publish, [ "target.build" ]
-        Plan, [ "target.install"; "target.^plan"; "target.publish" ]
-        Apply, [ "target.^apply"; "target.plan" ]
+        Install, ([], [])
+        Build, ([ "cache = \"local\"" ], [ "target.install"; "target.^build" ])
+        Test, ([], [ "target.install" ])
+        Publish, ([], [ "target.build" ])
+        Plan, ([ "rebuild = terrabuild.retry" ], [ "target.install"; "target.^plan"; "target.publish" ])
+        Apply, ([], [ "target.^apply"; "target.plan" ])
     ]
 
 let localConfigs =
@@ -78,42 +73,40 @@ let extConfigs =
     Map [ 
         Dotnet, { Container = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
                   Defaults = Map [ "configuration", "local.config" ]
-                  Actions = Map [ Install, { Attributes = [ "cache = \"local\"" ]; Commands = [ "restore"] }
-                                  Build, { Attributes = []; Commands = [ "build" ] }
-                                  Publish, { Attributes = []; Commands = [ "publish" ] }
-                                  Test, { Attributes = []; Commands = [ "test" ] } ] }
+                  Actions = Map [ Install, [ "restore"]
+                                  Build, [ "build" ]
+                                  Publish, [ "publish" ]
+                                  Test, [ "test" ] ] }
 
         Gradle, { Container = None //Some "gradle:jdk21"
                   Defaults = Map [ "configuration", "local.configuration" ]
-                  Actions = Map [ Build, { Attributes = []; Commands = [ "build" ] } ] }
+                  Actions = Map [ Build, [ "build" ] ] }
 
         Npm, { Container = None //Some "node:20"
                Defaults = Map.empty
-               Actions = Map [ Install, { Attributes = [ "cache = \"local\"" ]; Commands = [ "install" ] }
-                               Build, { Attributes = []; Commands = [ "build" ] }
-                               Test, { Attributes = []; Commands = [ "test" ] } ] }
+               Actions = Map [ Install, [ "install" ]
+                               Build, [ "build" ]
+                               Test, [ "test" ] ] }
 
         Make, { Container = None
                 Defaults = Map.empty
-                Actions = Map [ Build, { Attributes = []; Commands = [ "build" ] } ] }
+                Actions = Map [ Build, [ "build" ] ] }
 
         Docker, { Container = None //Some "docker:25.0"
-                  Defaults = Map [ "image", "\"ghcr.io/example/${ terrabuild.project }\""
+                  Defaults = Map [ "image", "\"ghcr.io/example/${terrabuild.project_slug}\""
                                    "arguments", "{ configuration: local.config }" ]
-                  Actions = Map [ Build, { Attributes = []; Commands = [ "build" ] }
-                                  Publish, { Attributes = []; Commands = [ "push" ] } ] }
+                  Actions = Map [ Publish, [ "build" ] ] }
   
         Terraform, { Container = None //Some "hashicorp/terraform:1.7"
                      Defaults = Map.empty
                      Actions = Map [
-                         Install, { Attributes = [ "cache = \"local\"" ]; Commands = [ "init" ] }
-                         Plan, { Attributes = []; Commands = [ "plan" ] }
-                         Apply, { Attributes = []; Commands = [ "apply" ] }
-                     ] }
+                         Install, [ "init" ]
+                         Plan, [ "plan" ]
+                         Apply, [ "apply" ] ] }
  
         Cargo, { Container = None // Some "rust:1.79.0"
                  Defaults = Map [ "profile", "local.configuration" ]
-                 Actions = Map [ Build, { Attributes = []; Commands = [ "build" ] } ] }
+                 Actions = Map [ Build, [ "build" ] ] }
     ]
 
 
@@ -151,10 +144,11 @@ let toExtension (pt: ExtensionType) = pt |> toLower
 
 let genWorkspace (extensions: ExtensionType set) =
     seq {
-        for (KeyValue(target, dependsOn)) in targetConfigs do
+        for (KeyValue(target, (attributes, dependsOn))) in targetConfigs do
             ""
             $"target {target |> toLower} {{"
             let listDependsOn = String.concat " " dependsOn
+            for attribute in attributes do $"  {attribute}"
             $"  depends_on = [ {listDependsOn} ]"
             "}"
 
@@ -209,28 +203,12 @@ let genProject (project: Project) =
             |> List.collect (fun ext ->
                 extConfigs[ext].Actions
                 |> Seq.map (fun kvp -> kvp.Key, ext, kvp.Value) |> List.ofSeq)
-            |> List.collect (fun (targetType, ext, cmds) -> cmds.Commands |> List.map (fun cmd -> targetType, (ext, cmd)))
-            |> List.groupBy (fun (targetType, _) -> targetType)
-            |> Map.ofList
-            |> Map.map (fun _ l -> l |> List.map snd)
-
-        let allAttributes =
-            extensions
-            |> List.collect (fun ext ->
-                extConfigs[ext].Actions
-                |> Seq.map (fun kvp -> kvp.Key, ext, kvp.Value) |> List.ofSeq)
-            |> List.collect (fun (targetType, ext, cmds) -> cmds.Attributes |> List.map (fun cmd -> targetType, (ext, cmd)))
+            |> List.collect (fun (targetType, ext, cmds) -> cmds |> List.map (fun cmd -> targetType, (ext, cmd)))
             |> List.groupBy (fun (targetType, _) -> targetType)
             |> Map.ofList
             |> Map.map (fun _ l -> l |> List.map snd)
 
         for (KeyValue(targetType, cmds)) in allCommands do
-            match allAttributes |> Map.tryFind targetType with
-            | Some attributes ->
-                for (_, attribute) in attributes do
-                    yield $"    {attribute}"
-            | _ -> ()
-
             yield ""
             yield $"target {targetType |> toLower} {{"
             for (projType, cmd) in cmds do
