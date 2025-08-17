@@ -392,11 +392,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         graph.Nodes
         |> Map.choose getDependencyStatus
 
-    let upToDate =
-        graph.RootNodes |> Set.forall (fun nodeId ->
-            match nodeStatus |> Map.tryFind nodeId with
-            | Some info -> info.Status.IsSuccess
-            | _ -> true)
+    let upToDate = nodeResults.Count = 0
     if upToDate then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date" |> Terminal.writeLine
 
