@@ -175,6 +175,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if scheduledNodeExec.TryAdd(node.Id, true) then
             let execDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
+                    // per build rules, a node to restore can only have dependencies to restore
                     restoreNode graph.Nodes[projectId]
                     hub.GetSignal<DateTime> $"{projectId}+exec")
                 |> List.ofSeq
