@@ -69,10 +69,13 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             graph
             |> Json.Serialize
             |> IO.writeTextFile (logFile $"{name}-graph.json")
-            graph
-            |> Mermaid.render None None
-            |> String.join "\n"
-            |> IO.writeTextFile (logFile $"{name}-graph.mermaid")
+
+            let mermaid =
+                [ "```mermaid"
+                  yield! Mermaid.render None None graph
+                  "```" ]
+
+            mermaid |> IO.writeLines (logFile $"{name}-graph.md")
 
         System.Environment.CurrentDirectory <- options.Workspace
         Log.Debug("Changing current directory to {directory}", options.Workspace)
