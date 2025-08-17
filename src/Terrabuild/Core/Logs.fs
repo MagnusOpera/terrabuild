@@ -36,7 +36,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | Build.TaskRequest.Restore, Build.TaskStatus.Failure _ -> Iconography.restore_ko
                 | Build.TaskRequest.Build, Build.TaskStatus.Success _ -> Iconography.build_ok
                 | Build.TaskRequest.Build, Build.TaskStatus.Failure _ -> Iconography.build_ko
-                | _ -> Iconography.task_pending
             | _ -> Iconography.task_unknown
 
         let dumpMarkdown (node: GraphDef.Node) =
@@ -224,7 +223,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 match nodeInfo.Status with
                 | Build.TaskStatus.Success completionDate -> completionDate
                 | Build.TaskStatus.Failure (completionDate, _) -> completionDate
-                | _ -> DateTime.MaxValue
             | _ -> DateTime.MaxValue)
         |> List.ofSeq
 
