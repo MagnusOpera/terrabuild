@@ -155,27 +155,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
                 Set.singleton nodeId
             | _ ->
-                let node =
-                    { Node.Id = nodeId
-
-                      Node.ProjectId = projectConfig.Id
-                      Node.ProjectDir = projectConfig.Directory
-                      Node.Target = $"(phony {targetName})"
-                      Node.Operations = []
-                      Node.Cache = Cacheability.Remote
-                      Node.Rebuild = false
-                      Node.Idempotent = true
-
-                      Node.Dependencies = children
-                      Node.Outputs = Set.empty
-
-                      Node.ProjectHash = projectConfig.Hash
-                      Node.TargetHash = "-"
-
-                      Node.IsLeaf = isLeaf }
-
-                if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
-                Set.singleton nodeId
+                outChildren
 
         if processedNodes.TryAdd(nodeId, true) then
             let children = processNode()
