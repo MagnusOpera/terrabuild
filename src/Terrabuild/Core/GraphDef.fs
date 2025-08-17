@@ -18,7 +18,6 @@ type Node = {
     ProjectId: string option
     ProjectDir: string
     Target: string
-    ConfigurationTarget: Configuration.Target
 
     Dependencies: string set
     Outputs: string set
@@ -28,7 +27,6 @@ type Node = {
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
     Rebuild: bool
-    Deferred: bool
     Idempotent: bool
 
     // tell if a node is leaf (that is no dependencies in same project)
