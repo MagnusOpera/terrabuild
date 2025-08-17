@@ -169,7 +169,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         else
             node2children[nodeId]
 
-    let rootNodes =
+    let selectedNodes =
         configuration.SelectedProjects |> Seq.collect (fun project ->
             options.Targets |> Seq.choose (fun target ->
                 buildTarget target project |> ignore
@@ -179,12 +179,17 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 |> Option.map (fun _ -> $"{project}:{target}")))
         |> Set
 
+    let rootNodes =
+        selectedNodes
+        |> Set.fold (fun acc nodeId -> acc + allNodes[nodeId].Dependencies) Set.empty
+        |> Set.difference selectedNodes
+
     let endedAt = DateTime.UtcNow
     let buildDuration = endedAt - startedAt
     Log.Debug("Graph Build: {duration}", buildDuration)
 
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {allNodes.Count} nodes" |> Terminal.writeLine
-    $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine
+    $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {selectedNodes.Count} root nodes" |> Terminal.writeLine
 
     { Graph.Nodes = allNodes |> Map.ofDict
       Graph.RootNodes = rootNodes }

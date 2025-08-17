@@ -308,9 +308,7 @@
     }
   },
   "rootNodes": [
-    "a:build",
     "b:apply",
-    "b:plan",
     "c:build"
   ]
 }
