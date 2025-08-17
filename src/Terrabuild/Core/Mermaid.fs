@@ -39,8 +39,8 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
                 |> Option.bind (fun getOrigin -> getOrigin node)
 
             match origin with
-            | Some Build.TaskRequest.Build -> $"class {node.Id} build"
-            | Some Build.TaskRequest.Restore -> $"class {node.Id} restore"
+            | Some request when request.IsBuild -> $"class {node.Id} build"
+            | Some request when request.IsRestore -> $"class {node.Id} restore"
             | _ -> $"class {node.Id} ignore"
     ]
 

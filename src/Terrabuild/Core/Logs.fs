@@ -32,8 +32,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             match summary.Nodes |> Map.tryFind node.Id with
             | Some nodeInfo ->
                 match nodeInfo.Request, nodeInfo.Status with
-                | Build.TaskRequest.Restore, Build.TaskStatus.Success _ -> Iconography.restore_ok
-                | Build.TaskRequest.Restore, Build.TaskStatus.Failure _ -> Iconography.restore_ko
+                | Build.TaskRequest.Restore _, Build.TaskStatus.Success _ -> Iconography.restore_ok
+                | Build.TaskRequest.Restore _, Build.TaskStatus.Failure _ -> Iconography.restore_ko
                 | Build.TaskRequest.Build, Build.TaskStatus.Success _ -> Iconography.build_ok
                 | Build.TaskRequest.Build, Build.TaskStatus.Failure _ -> Iconography.build_ko
                 | _ -> Iconography.task_pending
