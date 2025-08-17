@@ -17,7 +17,6 @@ type TaskRequest =
 type TaskStatus =
     | Success of completionDate:DateTime
     | Failure of completionDate:DateTime * message:string
-    | Deferred of completionDate:DateTime
 
 [<RequireQualifiedAccess>]
 type NodeInfo = {
@@ -396,7 +395,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let upToDate =
         graph.RootNodes |> Set.forall (fun nodeId ->
             match nodeStatus |> Map.tryFind nodeId with
-            | Some info -> info.Status.IsDeferred
+            | Some info -> info.Status.IsSuccess
             | _ -> true)
     if upToDate then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date" |> Terminal.writeLine
@@ -404,7 +403,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let isSuccess =
         graph.RootNodes |> Set.forall (fun nodeId ->
             match nodeStatus |> Map.tryFind nodeId with
-            | Some info -> info.Status.IsSuccess || info.Status.IsDeferred
+            | Some info -> info.Status.IsSuccess
             | _ -> true)
 
     let buildInfo =
