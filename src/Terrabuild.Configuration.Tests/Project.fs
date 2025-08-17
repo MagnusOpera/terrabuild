@@ -47,7 +47,6 @@ let parseProject() =
               TargetBlock.Rebuild = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Deferred = Expr.True |> Some
               TargetBlock.Idempotent = Expr.True |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
@@ -55,7 +54,6 @@ let parseProject() =
               TargetBlock.Rebuild = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Deferred = None
               TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
@@ -64,7 +62,6 @@ let parseProject() =
               TargetBlock.Rebuild = Some (Expr.Bool false)
               TargetBlock.Outputs = None
               TargetBlock.Cache = "always" |> Expr.String |> Some
-              TargetBlock.Deferred = None
               TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
@@ -121,7 +118,6 @@ let parseProject2() =
                                                                  Expr.String ".dll" ])] |> Some
               TargetBlock.DependsOn = None
               TargetBlock.Cache = None
-              TargetBlock.Deferred = None
               TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
 

@@ -56,6 +56,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // NOTE: a node is considered a leaf (within this project only) if the target has no internal dependencies detected
             let isLeaf = inChildren |> Set.isEmpty
 
+            let children = inChildren + outChildren
+
             // only generate computation node - that is node that generate something
             // barrier nodes are just discarded and dependencies lift level up
             match projectConfig.Targets |> Map.tryFind targetName with
@@ -111,7 +113,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                 let opsCmds = ops |> List.map Json.Serialize
 
-                let children = inChildren + outChildren
                 let hashContent = opsCmds @ [
                     yield projectConfig.Hash
                     yield target.Hash
@@ -124,9 +125,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                 // cacheability can be overriden by the target
                 let cache = target.Cache |> Option.defaultValue cache
-
-                // if the target is explicitely requested then do not defer the node
-                let deferred = target.Deferred |> Option.defaultValue (options.Targets |> Set.contains targetName |> not)
 
                 // no rebuild by default unless force
                 let rebuild = target.Rebuild |> Option.defaultValue options.Force
@@ -141,11 +139,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                       Node.ProjectId = projectConfig.Id
                       Node.ProjectDir = projectConfig.Directory
                       Node.Target = targetName
-                      Node.ConfigurationTarget = target
                       Node.Operations = ops
                       Node.Cache = cache
                       Node.Rebuild = rebuild
-                      Node.Deferred = deferred
                       Node.Idempotent = idempotent
 
                       Node.Dependencies = children
@@ -159,7 +155,27 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
                 Set.singleton nodeId
             | _ ->
-                inChildren + outChildren
+                let node =
+                    { Node.Id = nodeId
+
+                      Node.ProjectId = projectConfig.Id
+                      Node.ProjectDir = projectConfig.Directory
+                      Node.Target = targetName
+                      Node.Operations = []
+                      Node.Cache = Cacheability.Remote
+                      Node.Rebuild = false
+                      Node.Idempotent = true
+
+                      Node.Dependencies = children
+                      Node.Outputs = Set.empty
+
+                      Node.ProjectHash = projectConfig.Hash
+                      Node.TargetHash = "-"
+
+                      Node.IsLeaf = isLeaf }
+
+                if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
+                Set.singleton nodeId
 
         if processedNodes.TryAdd(nodeId, true) then
             let children = processNode()

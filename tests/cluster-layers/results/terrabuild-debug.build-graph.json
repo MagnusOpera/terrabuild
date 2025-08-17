@@ -4,62 +4,6 @@
       "id": "a:build",
       "projectDir": "A",
       "target": "build",
-      "configurationTarget": {
-        "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "building project"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "**/*.binlog",
@@ -95,7 +39,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -103,62 +46,6 @@
       "id": "b:build",
       "projectDir": "B",
       "target": "build",
-      "configurationTarget": {
-        "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "building project"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "**/*.binlog",
@@ -194,7 +81,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -202,57 +88,6 @@
       "id": "c:build",
       "projectDir": "C",
       "target": "build",
-      "configurationTarget": {
-        "hash": "23CD6C07165F99D32FB02EF8EC9817467A787E3C2040F3FC9CB0AEC056F3E478",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "building project"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "a:build",
         "b:build"
@@ -286,7 +121,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -294,46 +128,6 @@
       "id": "d:build",
       "projectDir": "D",
       "target": "build",
-      "configurationTarget": {
-        "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "c:build"
       ],
@@ -365,7 +159,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -373,46 +166,6 @@
       "id": "e:build",
       "projectDir": "E",
       "target": "build",
-      "configurationTarget": {
-        "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "c:build"
       ],
@@ -444,7 +197,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -452,41 +204,6 @@
       "id": "f:build",
       "projectDir": "F",
       "target": "build",
-      "configurationTarget": {
-        "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "d:build",
         "e:build"
@@ -514,7 +231,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -522,41 +238,6 @@
       "id": "g:build",
       "projectDir": "G",
       "target": "build",
-      "configurationTarget": {
-        "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-            "container": "node:20",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "c:build"
       ],
@@ -583,7 +264,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     }

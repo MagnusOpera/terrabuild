@@ -49,7 +49,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"; "deferred"; "idempotent"]
+    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"; "idempotent"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -63,12 +63,10 @@ let toTarget (block: Block) =
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let rebuild = block |> tryFindAttribute "rebuild"
     let cache = block |> tryFindAttribute "cache"
-    let deferred = block |> tryFindAttribute "deferred"
     let idempotent = block |> tryFindAttribute "idempotent"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache
-      TargetBlock.Deferred = deferred
       TargetBlock.Idempotent = idempotent }
 
     
