@@ -1,22 +1,5 @@
 {
   "nodes": {
-    "a:apply": {
-      "id": "a:apply",
-      "projectId": "a",
-      "projectDir": "A",
-      "target": "(phony apply)",
-      "dependencies": [
-        "a:plan"
-      ],
-      "outputs": [],
-      "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "a:build": {
       "id": "a:build",
       "projectId": "a",
@@ -63,52 +46,17 @@
       "idempotent": false,
       "isLeaf": false
     },
-    "a:plan": {
-      "id": "a:plan",
-      "projectId": "a",
-      "projectDir": "A",
-      "target": "(phony plan)",
-      "dependencies": [
-        "a:dist"
-      ],
-      "outputs": [],
-      "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
-    "a:test": {
-      "id": "a:test",
-      "projectId": "a",
-      "projectDir": "A",
-      "target": "(phony test)",
-      "dependencies": [
-        "a:build"
-      ],
-      "outputs": [],
-      "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "b:apply": {
       "id": "b:apply",
       "projectId": "b",
       "projectDir": "B",
       "target": "apply",
       "dependencies": [
-        "a:apply",
         "b:plan"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "331DF91AAE86D7594AB58D8AAC74A74664FE29F5BD4675AC7672336CB7B0D4D9",
+      "targetHash": "5B1E3A6B67518D428A8866B441FD4BD50A7599BB73514A1C8CB1D5A3D362DB9D",
       "operations": [
         {
           "containerVariables": [],
@@ -122,53 +70,17 @@
       "idempotent": false,
       "isLeaf": false
     },
-    "b:build": {
-      "id": "b:build",
-      "projectId": "b",
-      "projectDir": "B",
-      "target": "(phony build)",
-      "dependencies": [
-        "a:build"
-      ],
-      "outputs": [],
-      "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": true
-    },
-    "b:dist": {
-      "id": "b:dist",
-      "projectId": "b",
-      "projectDir": "B",
-      "target": "(phony dist)",
-      "dependencies": [
-        "a:dist",
-        "b:build"
-      ],
-      "outputs": [],
-      "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "b:plan": {
       "id": "b:plan",
       "projectId": "b",
       "projectDir": "B",
       "target": "plan",
       "dependencies": [
-        "a:plan",
-        "b:dist"
+        "a:dist"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "5412EBBF52FC8BD4B940B28B3E289FCBE386AF76C60E3EB20AEB32DCF0CA2E54",
+      "targetHash": "7B87E97A91FEB653E59685702413244279D3C23DCAD0BB317C4F24F0D69382BB",
       "operations": [
         {
           "containerVariables": [],
@@ -180,40 +92,6 @@
       "cache": "never",
       "rebuild": false,
       "idempotent": false,
-      "isLeaf": false
-    },
-    "b:test": {
-      "id": "b:test",
-      "projectId": "b",
-      "projectDir": "B",
-      "target": "(phony test)",
-      "dependencies": [
-        "b:build"
-      ],
-      "outputs": [],
-      "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
-    "c:apply": {
-      "id": "c:apply",
-      "projectId": "c",
-      "projectDir": "C",
-      "target": "(phony apply)",
-      "dependencies": [
-        "c:plan"
-      ],
-      "outputs": [],
-      "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
       "isLeaf": false
     },
     "c:build": {
@@ -260,40 +138,6 @@
       "cache": "never",
       "rebuild": true,
       "idempotent": false,
-      "isLeaf": false
-    },
-    "c:plan": {
-      "id": "c:plan",
-      "projectId": "c",
-      "projectDir": "C",
-      "target": "(phony plan)",
-      "dependencies": [
-        "c:dist"
-      ],
-      "outputs": [],
-      "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
-    "c:test": {
-      "id": "c:test",
-      "projectId": "c",
-      "projectDir": "C",
-      "target": "(phony test)",
-      "dependencies": [
-        "c:build"
-      ],
-      "outputs": [],
-      "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
       "isLeaf": false
     }
   },

@@ -2,64 +2,25 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-a:apply("<b>(phony apply) a</b> 
-A")
 a:build("<b>build a</b> 
 A")
 a:dist("<b>dist a</b> 
 A")
-a:plan("<b>(phony plan) a</b> 
-A")
-a:test("<b>(phony test) a</b> 
-A")
 b:apply("<b>apply b</b> 
-B")
-b:build("<b>(phony build) b</b> 
-B")
-b:dist("<b>(phony dist) b</b> 
 B")
 b:plan("<b>plan b</b> 
 B")
-b:test("<b>(phony test) b</b> 
-B")
-c:apply("<b>(phony apply) c</b> 
-C")
 c:build("<b>build c</b> 
 C")
 c:dist("<b>dist c</b> 
 C")
-c:plan("<b>(phony plan) c</b> 
-C")
-c:test("<b>(phony test) c</b> 
-C")
-a:apply --> a:plan
-class a:apply ignore
 class a:build ignore
 a:dist --> a:build
 class a:dist ignore
-a:plan --> a:dist
-class a:plan ignore
-a:test --> a:build
-class a:test ignore
-b:apply --> a:apply
 b:apply --> b:plan
 class b:apply ignore
-b:build --> a:build
-class b:build ignore
-b:dist --> a:dist
-b:dist --> b:build
-class b:dist ignore
-b:plan --> a:plan
-b:plan --> b:dist
+b:plan --> a:dist
 class b:plan ignore
-b:test --> b:build
-class b:test ignore
-c:apply --> c:plan
-class c:apply ignore
 class c:build ignore
 c:dist --> c:build
 class c:dist ignore
-c:plan --> c:dist
-class c:plan ignore
-c:test --> c:build
-class c:test ignore

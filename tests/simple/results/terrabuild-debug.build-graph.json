@@ -36,22 +36,6 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "deployments/terraform-deploy:test": {
-      "id": "deployments/terraform-deploy:test",
-      "projectDir": "deployments/terraform-deploy",
-      "target": "(phony test)",
-      "dependencies": [
-        "deployments/terraform-deploy:build"
-      ],
-      "outputs": [],
-      "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "libraries/dotnet-lib:build": {
       "id": "libraries/dotnet-lib:build",
       "projectDir": "libraries/dotnet-lib",
@@ -90,22 +74,6 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "libraries/dotnet-lib:test": {
-      "id": "libraries/dotnet-lib:test",
-      "projectDir": "libraries/dotnet-lib",
-      "target": "(phony test)",
-      "dependencies": [
-        "libraries/dotnet-lib:build"
-      ],
-      "outputs": [],
-      "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "libraries/npm-lib:build": {
       "id": "libraries/npm-lib:build",
       "projectDir": "libraries/npm-lib",
@@ -139,22 +107,6 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "libraries/npm-lib:test": {
-      "id": "libraries/npm-lib:test",
-      "projectDir": "libraries/npm-lib",
-      "target": "(phony test)",
-      "dependencies": [
-        "libraries/npm-lib:build"
-      ],
-      "outputs": [],
-      "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "libraries/shell-lib:build": {
       "id": "libraries/shell-lib:build",
       "projectDir": "libraries/shell-lib",
@@ -175,22 +127,6 @@
       "rebuild": true,
       "idempotent": false,
       "isLeaf": true
-    },
-    "libraries/shell-lib:test": {
-      "id": "libraries/shell-lib:test",
-      "projectDir": "libraries/shell-lib",
-      "target": "(phony test)",
-      "dependencies": [
-        "libraries/shell-lib:build"
-      ],
-      "outputs": [],
-      "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
     },
     "projects/dotnet-app:build": {
       "id": "projects/dotnet-app:build",
@@ -233,23 +169,6 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "projects/dotnet-app:test": {
-      "id": "projects/dotnet-app:test",
-      "projectId": "dotnet_app",
-      "projectDir": "projects/dotnet-app",
-      "target": "(phony test)",
-      "dependencies": [
-        "projects/dotnet-app:build"
-      ],
-      "outputs": [],
-      "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "projects/make-app:build": {
       "id": "projects/make-app:build",
       "projectDir": "projects/make-app",
@@ -280,22 +199,6 @@
       "rebuild": true,
       "idempotent": false,
       "isLeaf": true
-    },
-    "projects/make-app:test": {
-      "id": "projects/make-app:test",
-      "projectDir": "projects/make-app",
-      "target": "(phony test)",
-      "dependencies": [
-        "projects/make-app:build"
-      ],
-      "outputs": [],
-      "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
     },
     "projects/npm-app:build": {
       "id": "projects/npm-app:build",
@@ -333,23 +236,6 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "projects/npm-app:test": {
-      "id": "projects/npm-app:test",
-      "projectId": "npm_app",
-      "projectDir": "projects/npm-app",
-      "target": "(phony test)",
-      "dependencies": [
-        "projects/npm-app:build"
-      ],
-      "outputs": [],
-      "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
     "projects/open-api:build": {
       "id": "projects/open-api:build",
       "projectDir": "projects/open-api",
@@ -372,22 +258,6 @@
       "rebuild": true,
       "idempotent": false,
       "isLeaf": true
-    },
-    "projects/open-api:test": {
-      "id": "projects/open-api:test",
-      "projectDir": "projects/open-api",
-      "target": "(phony test)",
-      "dependencies": [
-        "projects/open-api:build"
-      ],
-      "outputs": [],
-      "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
     },
     "projects/rust-app:build": {
       "id": "projects/rust-app:build",
@@ -415,50 +285,17 @@
       "idempotent": false,
       "isLeaf": true
     },
-    "projects/rust-app:test": {
-      "id": "projects/rust-app:test",
-      "projectDir": "projects/rust-app",
-      "target": "(phony test)",
-      "dependencies": [
-        "projects/rust-app:build"
-      ],
-      "outputs": [],
-      "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": false
-    },
-    "tests/playwright:build": {
-      "id": "tests/playwright:build",
-      "projectId": "playwright_test",
-      "projectDir": "tests/playwright",
-      "target": "(phony build)",
-      "dependencies": [],
-      "outputs": [],
-      "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "-",
-      "operations": [],
-      "cache": "remote",
-      "rebuild": false,
-      "idempotent": true,
-      "isLeaf": true
-    },
     "tests/playwright:test": {
       "id": "tests/playwright:test",
       "projectId": "playwright_test",
       "projectDir": "tests/playwright",
       "target": "test",
-      "dependencies": [
-        "tests/playwright:build"
-      ],
+      "dependencies": [],
       "outputs": [
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "7CDB71C0E562231A71821E29ABFC0EF82A851C930088C6E9B18F219C43B775FC",
+      "targetHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
       "operations": [
         {
           "container": "node:20",
@@ -479,7 +316,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "isLeaf": false
+      "isLeaf": true
     }
   },
   "rootNodes": [
