@@ -160,7 +160,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                       Node.ProjectId = projectConfig.Id
                       Node.ProjectDir = projectConfig.Directory
-                      Node.Target = targetName
+                      Node.Target = $"(phony {targetName})"
                       Node.Operations = []
                       Node.Cache = Cacheability.Remote
                       Node.Rebuild = false

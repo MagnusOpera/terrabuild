@@ -4,7 +4,7 @@
       "id": "a:apply",
       "projectId": "a",
       "projectDir": "A",
-      "target": "apply",
+      "target": "(phony apply)",
       "dependencies": [
         "a:plan"
       ],
@@ -67,7 +67,7 @@
       "id": "a:plan",
       "projectId": "a",
       "projectDir": "A",
-      "target": "plan",
+      "target": "(phony plan)",
       "dependencies": [
         "a:dist"
       ],
@@ -84,7 +84,7 @@
       "id": "a:test",
       "projectId": "a",
       "projectDir": "A",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "a:build"
       ],
@@ -126,7 +126,7 @@
       "id": "b:build",
       "projectId": "b",
       "projectDir": "B",
-      "target": "build",
+      "target": "(phony build)",
       "dependencies": [
         "a:build"
       ],
@@ -143,7 +143,7 @@
       "id": "b:dist",
       "projectId": "b",
       "projectDir": "B",
-      "target": "dist",
+      "target": "(phony dist)",
       "dependencies": [
         "a:dist",
         "b:build"
@@ -186,7 +186,7 @@
       "id": "b:test",
       "projectId": "b",
       "projectDir": "B",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "b:build"
       ],
@@ -203,7 +203,7 @@
       "id": "c:apply",
       "projectId": "c",
       "projectDir": "C",
-      "target": "apply",
+      "target": "(phony apply)",
       "dependencies": [
         "c:plan"
       ],
@@ -266,7 +266,7 @@
       "id": "c:plan",
       "projectId": "c",
       "projectDir": "C",
-      "target": "plan",
+      "target": "(phony plan)",
       "dependencies": [
         "c:dist"
       ],
@@ -283,7 +283,7 @@
       "id": "c:test",
       "projectId": "c",
       "projectDir": "C",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "c:build"
       ],

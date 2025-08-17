@@ -2,35 +2,35 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-a:apply("<b>apply a</b> 
+a:apply("<b>(phony apply) a</b> 
 A")
 a:build("<b>build a</b> 
 A")
 a:dist("<b>dist a</b> 
 A")
-a:plan("<b>plan a</b> 
+a:plan("<b>(phony plan) a</b> 
 A")
-a:test("<b>test a</b> 
+a:test("<b>(phony test) a</b> 
 A")
 b:apply("<b>apply b</b> 
 B")
-b:build("<b>build b</b> 
+b:build("<b>(phony build) b</b> 
 B")
-b:dist("<b>dist b</b> 
+b:dist("<b>(phony dist) b</b> 
 B")
 b:plan("<b>plan b</b> 
 B")
-b:test("<b>test b</b> 
+b:test("<b>(phony test) b</b> 
 B")
-c:apply("<b>apply c</b> 
+c:apply("<b>(phony apply) c</b> 
 C")
 c:build("<b>build c</b> 
 C")
 c:dist("<b>dist c</b> 
 C")
-c:plan("<b>plan c</b> 
+c:plan("<b>(phony plan) c</b> 
 C")
-c:test("<b>test c</b> 
+c:test("<b>(phony test) c</b> 
 C")
 a:apply --> a:plan
 class a:apply ignore

@@ -39,7 +39,7 @@
     "deployments/terraform-deploy:test": {
       "id": "deployments/terraform-deploy:test",
       "projectDir": "deployments/terraform-deploy",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "deployments/terraform-deploy:build"
       ],
@@ -93,7 +93,7 @@
     "libraries/dotnet-lib:test": {
       "id": "libraries/dotnet-lib:test",
       "projectDir": "libraries/dotnet-lib",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "libraries/dotnet-lib:build"
       ],
@@ -142,7 +142,7 @@
     "libraries/npm-lib:test": {
       "id": "libraries/npm-lib:test",
       "projectDir": "libraries/npm-lib",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "libraries/npm-lib:build"
       ],
@@ -179,7 +179,7 @@
     "libraries/shell-lib:test": {
       "id": "libraries/shell-lib:test",
       "projectDir": "libraries/shell-lib",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "libraries/shell-lib:build"
       ],
@@ -237,7 +237,7 @@
       "id": "projects/dotnet-app:test",
       "projectId": "dotnet_app",
       "projectDir": "projects/dotnet-app",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "projects/dotnet-app:build"
       ],
@@ -284,7 +284,7 @@
     "projects/make-app:test": {
       "id": "projects/make-app:test",
       "projectDir": "projects/make-app",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "projects/make-app:build"
       ],
@@ -337,7 +337,7 @@
       "id": "projects/npm-app:test",
       "projectId": "npm_app",
       "projectDir": "projects/npm-app",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "projects/npm-app:build"
       ],
@@ -376,7 +376,7 @@
     "projects/open-api:test": {
       "id": "projects/open-api:test",
       "projectDir": "projects/open-api",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "projects/open-api:build"
       ],
@@ -418,7 +418,7 @@
     "projects/rust-app:test": {
       "id": "projects/rust-app:test",
       "projectDir": "projects/rust-app",
-      "target": "test",
+      "target": "(phony test)",
       "dependencies": [
         "projects/rust-app:build"
       ],
@@ -435,7 +435,7 @@
       "id": "tests/playwright:build",
       "projectId": "playwright_test",
       "projectDir": "tests/playwright",
-      "target": "build",
+      "target": "(phony build)",
       "dependencies": [],
       "outputs": [],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
