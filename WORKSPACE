@@ -11,7 +11,7 @@ locals {
 
 target install {
     cache = "local"
-    # idempotent = true
+    idempotent = true
 }
 
 target build {
