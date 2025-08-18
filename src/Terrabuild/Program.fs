@@ -123,20 +123,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             |> Json.Serialize
             |> IO.writeTextFile (logFile $"build-graph.json")
 
-            let writeConfig opt fmt =
-                match opt with
-                | Some opt -> sprintf fmt opt
-                | _ -> ()
-
             let markdown =
                 [
-                    "# Terrabuild"
-                    $"* Version: v{Version.informalVersion()}"
-                    $"* Location: {Reflection.Assembly.GetExecutingAssembly().Location}"
-                    ""
+                    // "# Terrabuild"
+                    // $"* Version: v{Version.informalVersion()}"
+                    // $"* Location: {Reflection.Assembly.GetExecutingAssembly().Location}"
+                    // ""
 
                     "# Options"
-                    $"* StartedAt: {options.StartedAt}"
                     $""" * Targets: {options.Targets |> String.join " "}"""
                     match options.Projects with | Some value -> $"""* Projects: {value |> String.join " "}""" | _ -> ()
                     match options.Configuration with | Some value ->  $"* Configuration: {value}" | _ -> ()
@@ -146,8 +140,6 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     $"* Retry: {options.Retry}"
                     $"* MaxConcurrency: {options.MaxConcurrency}"
                     $"* LocalOnly: {options.LocalOnly}"
-                    $"* BranchOrTag: {options.BranchOrTag}"
-                    $"* HeadCommit: {options.HeadCommit.Sha}"
                     match options.Run with | Some value -> $"* Run: {value.Name}" | _ -> ()
                     match options.Note with | Some value ->  $"* Note: {value}" | _ -> ()
                     match options.Tag with | Some value ->  $"* Tag: {value}" | _ -> ()
