@@ -51,7 +51,7 @@ type ProgressRenderer() =
             let updateCmd =
                 items
                 |> List.fold (fun acc item -> acc + $"{Ansi.cursorHome}{Ansi.cursorUp 1}" + (item |> printableStatus)) ""
-            let updateCmd = updateCmd + $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}"
+            let updateCmd = Ansi.beginSyncUpdate + updateCmd + $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}" + Ansi.endSyncUpdate
             updateCmd |> Terminal.write |> Terminal.flush
 
     member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =

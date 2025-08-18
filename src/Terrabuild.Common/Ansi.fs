@@ -7,6 +7,8 @@ let CSI = ESC + "["
 
 let cursorUp (x: int) = $"{CSI}{x}A"
 let cursorDown (x: int) = $"{CSI}{x}B"
+let beginSyncUpdate = $"{CSI}?2026h"
+let endSyncUpdate = $"{CSI}?2026l"
 let cursorHome = "\r"
 let csi (x: int) = $"{CSI}{x}m"
 
