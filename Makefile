@@ -175,6 +175,6 @@ smoke-test-simple:
 	$(call run_integration_test, tests/simple, run build test --force --debug --parallel 2 --log --container docker --local-only)
 
 smoke-indirect-target:
-	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --local-only)
+	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --container docker --local-only)
 
 smoke-tests: smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target

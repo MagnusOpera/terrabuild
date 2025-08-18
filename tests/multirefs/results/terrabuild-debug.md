@@ -1,6 +1,5 @@
 # Options
  * Targets: build
-* Workspace: /Users/pct/src/MagnusOpera/Terrabuild/tests/multirefs
 * Force: True
 * Retry: False
 * MaxConcurrency: 2

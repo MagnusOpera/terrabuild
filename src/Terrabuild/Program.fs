@@ -135,7 +135,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     match options.Projects with | Some value -> $"""* Projects: {value |> String.join " "}""" | _ -> ()
                     match options.Configuration with | Some value ->  $"* Configuration: {value}" | _ -> ()
                     match options.Environment with | Some value ->  $"* Environment: {value}" | _ -> ()
-                    $"* Workspace: {options.Workspace}"
+                    // $"* Workspace: {options.Workspace}"
                     $"* Force: {options.Force}"
                     $"* Retry: {options.Retry}"
                     $"* MaxConcurrency: {options.MaxConcurrency}"

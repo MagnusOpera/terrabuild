@@ -1,6 +1,5 @@
 # Options
  * Targets: build
-* Workspace: /Users/pct/src/MagnusOpera/Terrabuild/tests/cluster-layers
 * Force: True
 * Retry: False
 * MaxConcurrency: 2

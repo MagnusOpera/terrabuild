@@ -1,6 +1,5 @@
 # Options
  * Targets: build test
-* Workspace: /Users/pct/src/MagnusOpera/Terrabuild/tests/simple
 * Force: True
 * Retry: False
 * MaxConcurrency: 2
