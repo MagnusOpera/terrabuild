@@ -10,6 +10,7 @@ open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
+    | Status
     | Build
     | Restore
 
@@ -324,6 +325,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let rec scheduleNodeStatus nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
+            nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Success DateTime.UtcNow)
             let node = graph.Nodes[nodeId]
 
             // first get the status of dependencies
@@ -386,7 +388,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         graph.Nodes
         |> Map.choose getDependencyStatus
 
-    let upToDate = nodeResults.Count = 0
+    let upToDate = 
+        graph.RootNodes |> Set.forall (fun nodeId ->
+            match nodeStatus |> Map.tryFind nodeId with
+            | Some info -> info.Request.IsStatus
+            | _ -> true)
     if upToDate then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date" |> Terminal.writeLine
 
