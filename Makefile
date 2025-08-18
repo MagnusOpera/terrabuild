@@ -159,7 +159,7 @@ define run_integration_test
 	@printf "\n*** Running integration test %s ***\n" $(1)
 	@$(terrabuild) version
 	-cd $(1); rm terrabuild-debug.*
-	cd $(1); GITHUB_SHA=1234 GITHUB_REF_NAME=main GITHUB_STEP_SUMMARY=terrabuild-debug.md GITHUB_REPOSITORY=magnusopera/terrabuild GITHUB_RUN_ID=42 $(terrabuild) $(2)
+	cd $(1); GITHUB_SHA=1234 GITHUB_REF_NAME=main GITHUB_STEP_SUMMARY=terrabuild-debug.summary.md GITHUB_REPOSITORY=magnusopera/terrabuild GITHUB_RUN_ID=42 $(terrabuild) $(2)
 	$(call diff_results,$(1))
 endef
 
