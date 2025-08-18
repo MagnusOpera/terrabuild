@@ -150,7 +150,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     yield! Mermaid.render None None buildGraph
                     "```"
                     "" ]
-            markdown |> IO.writeLines (logFile "md")
+            markdown |> IO.writeLines (logFile "info.md")
 
         let errCode =
             if options.WhatIf then 0
