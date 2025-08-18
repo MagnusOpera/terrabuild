@@ -1,14 +1,16 @@
-# Options
- * Targets: build
-* Force: True
-* Retry: False
-* MaxConcurrency: 2
-* LocalOnly: True
-* ContainerTool: docker
-* WhatIf: False
-* Debug: True
+# Configuration
+
+| Option | Value |
+|--------|-------|
+| Targets | build |
+| Force | True |
+| LocalOnly | True |
+| MaxConcurrency | 2 |
+| ContainerTool | docker |
+| Debug | True |
 
 # Build Graph
+
 ```mermaid
 flowchart TD
 classDef build stroke:red,stroke-width:3px
@@ -27,3 +29,4 @@ b:build --> c:build
 class b:build ignore
 class c:build ignore
 ```
+

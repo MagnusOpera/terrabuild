@@ -125,33 +125,31 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
             let markdown =
                 [
-                    // "# Terrabuild"
-                    // $"* Version: v{Version.informalVersion()}"
-                    // $"* Location: {Reflection.Assembly.GetExecutingAssembly().Location}"
-                    // ""
-
-                    "# Options"
-                    $""" * Targets: {options.Targets |> String.join " "}"""
-                    match options.Projects with | Some value -> $"""* Projects: {value |> String.join " "}""" | _ -> ()
-                    match options.Configuration with | Some value ->  $"* Configuration: {value}" | _ -> ()
-                    match options.Environment with | Some value ->  $"* Environment: {value}" | _ -> ()
-                    // $"* Workspace: {options.Workspace}"
-                    $"* Force: {options.Force}"
-                    $"* Retry: {options.Retry}"
-                    $"* MaxConcurrency: {options.MaxConcurrency}"
-                    $"* LocalOnly: {options.LocalOnly}"
-                    match options.Run with | Some value -> $"* Run: {value.Name}" | _ -> ()
-                    match options.Note with | Some value ->  $"* Note: {value}" | _ -> ()
-                    match options.Tag with | Some value ->  $"* Tag: {value}" | _ -> ()
-                    match options.ContainerTool with | Some value ->  $"* ContainerTool: {value}" | _ -> ()
-                    $"* WhatIf: {options.WhatIf}"
-                    $"* Debug: {options.Debug}"
+                    "# Configuration"
+                    ""
+                    "| Option | Value |"
+                    "|--------|-------|"
+                    $"""| Targets | {options.Targets |> String.join " "} |"""
+                    match options.Projects with | Some value -> $"""| Projects | {value |> String.join " "} |""" | _ -> ()
+                    match options.Configuration with | Some value ->  $"| Configuration | {value} |" | _ -> ()
+                    match options.Environment with | Some value ->  $"| Environment | {value} |" | _ -> ()
+                    if options.Force then $"| Force | {options.Force} |"
+                    if options.Retry then $"| Retry | {options.Retry} |"
+                    if options.LocalOnly then $"| LocalOnly | {options.LocalOnly} |"
+                    $"| MaxConcurrency | {options.MaxConcurrency} |"
+                    match options.Note with | Some value ->  $"| Note | {value} |" | _ -> ()
+                    match options.Tag with | Some value ->  $"| Tag | {value} |" | _ -> ()
+                    match options.ContainerTool with | Some value ->  $"| ContainerTool | {value} |" | _ -> ()
+                    if options.WhatIf then $"| WhatIf | {options.WhatIf} |"
+                    if options.Debug then $"| Debug | {options.Debug} |"
                     ""
 
                     "# Build Graph"
+                    ""
                     "```mermaid"
                     yield! Mermaid.render None None buildGraph
-                    "```" ]
+                    "```"
+                    "" ]
             markdown |> IO.writeLines (logFile "md")
 
         let errCode =
