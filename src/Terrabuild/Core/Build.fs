@@ -325,7 +325,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let rec scheduleNodeStatus nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
-            nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Success DateTime.UtcNow)
+            nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Failure (DateTime.UtcNow, "computing status"))
             let node = graph.Nodes[nodeId]
 
             // first get the status of dependencies
@@ -347,6 +347,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
                         |> (fun dep -> dep.Get<DateTime>())
                 let buildRequest = computeNodeAction node maxCompletionChildren
+                nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Success DateTime.UtcNow)
+
                 match buildRequest with
                 | (TaskRequest.Build, _) ->
                     if node.Idempotent then nodeStatusSignal.Set DateTime.MinValue
