@@ -7,8 +7,8 @@ module Iconography =
     let restore_ko = Ansi.Emojis.pretzel
     let build_ok = Ansi.Emojis.green_checkmark
     let build_ko = Ansi.Emojis.red_cross
+    let task_status = Ansi.Emojis.eyes
     let task_pending = Ansi.Emojis.construction
-    let task_unknown = Ansi.Emojis.bang_mark
 
 
 let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (graph: GraphDef.Graph) (summary: Build.Summary) =
@@ -36,7 +36,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | Build.TaskRequest.Restore, Build.TaskStatus.Failure _ -> Iconography.restore_ko
                 | Build.TaskRequest.Build, Build.TaskStatus.Success _ -> Iconography.build_ok
                 | Build.TaskRequest.Build, Build.TaskStatus.Failure _ -> Iconography.build_ko
-            | _ -> Iconography.task_unknown
+                | Build.TaskRequest.Status, Build.TaskStatus.Success _ -> Iconography.task_status
+                | Build.TaskRequest.Status, Build.TaskStatus.Failure _ -> Iconography.task_pending
+            | _ -> Iconography.task_status
 
         let dumpMarkdown (node: GraphDef.Node) =
             let header =

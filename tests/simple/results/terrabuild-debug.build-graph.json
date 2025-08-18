@@ -4,66 +4,6 @@
       "id": "deployments/terraform-deploy:build",
       "projectDir": "deployments/terraform-deploy",
       "target": "build",
-      "configurationTarget": {
-        "hash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "*.planfile"
-        ],
-        "operations": [
-          {
-            "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
-            "container": "hashicorp/terraform:1.10",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@terraform",
-            "command": "init",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "workspace": [
-                  "string",
-                  "default"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
-            "container": "hashicorp/terraform:1.10",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@terraform",
-            "command": "plan",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "variables": [
-                  "map",
-                  {
-                    "dotnet_app_version": [
-                      "string",
-                      "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771"
-                    ],
-                    "npm_app_version": [
-                      "string",
-                      "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6"
-                    ]
-                  }
-                ],
-                "workspace": [
-                  "string",
-                  "default"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "projects/dotnet-app:build",
         "projects/npm-app:build"
@@ -93,7 +33,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -101,58 +40,6 @@
       "id": "libraries/dotnet-lib:build",
       "projectDir": "libraries/dotnet-lib",
       "target": "build",
-      "configurationTarget": {
-        "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "configuration": [
-                  "string",
-                  "Debug"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "configuration": [
-                  "string",
-                  "Debug"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "**/*.binlog",
@@ -184,7 +71,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -192,43 +78,6 @@
       "id": "libraries/npm-lib:build",
       "projectDir": "libraries/npm-lib",
       "target": "build",
-      "configurationTarget": {
-        "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-            "container": "node:20",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-            "container": "node:20",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "dist/**"
@@ -255,7 +104,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -263,31 +111,6 @@
       "id": "libraries/shell-lib:build",
       "projectDir": "libraries/shell-lib",
       "target": "build",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "building library1"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [],
       "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
@@ -302,7 +125,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -311,58 +133,6 @@
       "projectId": "dotnet_app",
       "projectDir": "projects/dotnet-app",
       "target": "build",
-      "configurationTarget": {
-        "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "**/*.binlog",
-          "bin/",
-          "obj/",
-          "obj/*.json",
-          "obj/*.props",
-          "obj/*.targets"
-        ],
-        "operations": [
-          {
-            "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "restore",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "configuration": [
-                  "string",
-                  "Debug"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-            "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@dotnet",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "configuration": [
-                  "string",
-                  "Debug"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "libraries/dotnet-lib:build"
       ],
@@ -396,7 +166,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -404,54 +173,6 @@
       "id": "projects/make-app:build",
       "projectDir": "projects/make-app",
       "target": "build",
-      "configurationTarget": {
-        "hash": "C6337486788B3103E3C2737C5C465A151569678B0F79EDBAF65D6409D1FDDCB4",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist"
-        ],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "building project1"
-                ]
-              }
-            ]
-          },
-          {
-            "hash": "9133AD23EB6E7EFB4A73F5C8A7084C6A815C421C8F44401D46F00CF291D0B491",
-            "containerVariables": [],
-            "extension": "@make",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "variables": [
-                  "map",
-                  {
-                    "secret": [
-                      "string",
-                      "tagada"
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "libraries/shell-lib:build"
       ],
@@ -476,7 +197,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -485,43 +205,6 @@
       "projectId": "npm_app",
       "projectDir": "projects/npm-app",
       "target": "build",
-      "configurationTarget": {
-        "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-            "container": "node:20",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-            "container": "node:20",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "libraries/npm-lib:build"
       ],
@@ -550,7 +233,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -558,41 +240,6 @@
       "id": "projects/open-api:build",
       "projectDir": "projects/open-api",
       "target": "build",
-      "configurationTarget": {
-        "hash": "368590893C4C4CB86F11CE435BED211B8E67BBAA776E88A26BA9786A25B48841",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [],
-        "operations": [
-          {
-            "hash": "50D55A43B040D7588938348660FCC1E7DC7DE5F6B1BA6BBD75E552060D6FB2AC",
-            "container": "openapitools/openapi-generator-cli:v7.10.0",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@openapi",
-            "command": "generate",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "generator": [
-                  "string",
-                  "typescript-axios"
-                ],
-                "input": [
-                  "string",
-                  "api.json"
-                ],
-                "output": [
-                  "string",
-                  "src"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [],
       "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
@@ -609,7 +256,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -617,31 +263,6 @@
       "id": "projects/rust-app:build",
       "projectDir": "projects/rust-app",
       "target": "build",
-      "configurationTarget": {
-        "hash": "5F97E6095B871F9045214CFE08ABC4C8E778379ACCA4D34A94079C508D24D5C4",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [
-          "target/debug/",
-          "target/release/"
-        ],
-        "operations": [
-          {
-            "hash": "72FA6B2BF806E80FDF3BFC4BFCC4CF397C740DCC43ACBD7CD4D0DABE6F22C85A",
-            "container": "rust:1.81.0-slim",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@cargo",
-            "command": "build",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "target/debug/",
@@ -661,7 +282,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -670,47 +290,6 @@
       "projectId": "playwright_test",
       "projectDir": "tests/playwright",
       "target": "test",
-      "configurationTarget": {
-        "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
-        "dependsOn": [
-          "build"
-        ],
-        "outputs": [
-          "dist/**"
-        ],
-        "operations": [
-          {
-            "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-            "container": "node:20",
-            "platform": "linux/amd64",
-            "containerVariables": [],
-            "extension": "@npm",
-            "command": "install",
-            "script": {},
-            "context": [
-              "map",
-              {}
-            ]
-          },
-          {
-            "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
-            "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
-            "containerVariables": [],
-            "extension": "@playwright",
-            "command": "test",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "project": [
-                  "string",
-                  "ci"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [
         "dist/**"
@@ -736,7 +315,6 @@
       ],
       "cache": "local",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     }

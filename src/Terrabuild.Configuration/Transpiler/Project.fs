@@ -71,7 +71,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"; "deferred"; "idempotent"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"; "idempotent"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -85,7 +85,6 @@ let toTarget (block: Block) =
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let rebuild = block |> tryFindAttribute "rebuild"
     let cache = block |> tryFindAttribute "cache"
-    let deferred = block |> tryFindAttribute "deferred"
     let idempotent = block |> tryFindAttribute "idempotent"
     let steps =
         block.Blocks
@@ -112,7 +111,6 @@ let toTarget (block: Block) =
       TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache
-      TargetBlock.Deferred = deferred
       TargetBlock.Idempotent = idempotent
       TargetBlock.Steps = steps }
 

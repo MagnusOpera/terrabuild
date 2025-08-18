@@ -5,31 +5,6 @@
       "projectId": "a",
       "projectDir": "A",
       "target": "build",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "build A"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [],
       "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
@@ -44,7 +19,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -53,33 +27,6 @@
       "projectId": "a",
       "projectDir": "A",
       "target": "dist",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^dist",
-          "build"
-        ],
-        "outputs": [],
-        "deferred": false,
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "dist A"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "a:build"
       ],
@@ -96,7 +43,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": false
     },
@@ -105,40 +51,12 @@
       "projectId": "b",
       "projectDir": "B",
       "target": "apply",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^apply",
-          "plan"
-        ],
-        "outputs": [],
-        "deferred": false,
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "apply B"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
-        "a:dist",
         "b:plan"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "B110C2BF4416C1E36C63186D8F231E8B43965D6AE7619095AE1B5D9B1F388970",
+      "targetHash": "5B1E3A6B67518D428A8866B441FD4BD50A7599BB73514A1C8CB1D5A3D362DB9D",
       "operations": [
         {
           "containerVariables": [],
@@ -149,7 +67,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": false
     },
@@ -158,40 +75,12 @@
       "projectId": "b",
       "projectDir": "B",
       "target": "plan",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "rebuild": false,
-        "dependsOn": [
-          "^plan",
-          "dist"
-        ],
-        "outputs": [],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "plan B"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
-        "a:build",
         "a:dist"
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "3757A73E8831354BC7A972C802D727554D9CA31EB668566CC8E59634627CCE20",
+      "targetHash": "7B87E97A91FEB653E59685702413244279D3C23DCAD0BB317C4F24F0D69382BB",
       "operations": [
         {
           "containerVariables": [],
@@ -202,7 +91,6 @@
       ],
       "cache": "never",
       "rebuild": false,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": false
     },
@@ -211,31 +99,6 @@
       "projectId": "c",
       "projectDir": "C",
       "target": "build",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^build"
-        ],
-        "outputs": [],
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "build C"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [],
       "outputs": [],
       "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
@@ -250,7 +113,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": true
     },
@@ -259,33 +121,6 @@
       "projectId": "c",
       "projectDir": "C",
       "target": "dist",
-      "configurationTarget": {
-        "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-        "dependsOn": [
-          "^dist",
-          "build"
-        ],
-        "outputs": [],
-        "deferred": false,
-        "operations": [
-          {
-            "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
-            "containerVariables": [],
-            "extension": "@shell",
-            "command": "echo",
-            "script": {},
-            "context": [
-              "map",
-              {
-                "args": [
-                  "string",
-                  "dist C"
-                ]
-              }
-            ]
-          }
-        ]
-      },
       "dependencies": [
         "c:build"
       ],
@@ -302,7 +137,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "deferred": false,
       "idempotent": false,
       "isLeaf": false
     }
