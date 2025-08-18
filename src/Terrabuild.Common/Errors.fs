@@ -71,3 +71,8 @@ let tryInvoke action =
     with
         exn -> Some exn
 
+let safeInvoke action =
+    try
+        action()
+    with
+        _ -> ()

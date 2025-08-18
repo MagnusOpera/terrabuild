@@ -6,6 +6,7 @@ open Errors
 open Collections
 open Environment
 open System.Runtime.InteropServices
+open System.Threading
 
 
 
@@ -338,6 +339,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
 [<EntryPoint>]
 let main _ =
+    // Start a background thread to "eat" all user input so nothing is echoed or processed.
+    // If no console is attached (e.g., in CI), safeInvoke will catch and ignore the exception.
+    let _ = Thread(ThreadStart(fun () -> safeInvoke(fun () -> while true do Console.ReadKey(true) |> ignore)),
+                               IsBackground = true)
 
 #if RELEASE
     let sentryDsn =
