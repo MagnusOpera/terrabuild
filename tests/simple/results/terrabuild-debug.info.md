@@ -1,3 +1,17 @@
+# Configuration
+
+| Option | Value |
+|--------|-------|
+| Targets | build test |
+| Force | True |
+| LocalOnly | True |
+| MaxConcurrency | 2 |
+| ContainerTool | docker |
+| Debug | True |
+
+# Build Graph
+
+```mermaid
 flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
@@ -37,3 +51,5 @@ class projects/npm-app:build ignore
 class projects/open-api:build ignore
 class projects/rust-app:build ignore
 class tests/playwright:test ignore
+```
+

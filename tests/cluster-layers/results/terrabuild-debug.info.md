@@ -1,3 +1,17 @@
+# Configuration
+
+| Option | Value |
+|--------|-------|
+| Targets | build |
+| Force | True |
+| LocalOnly | True |
+| MaxConcurrency | 2 |
+| ContainerTool | docker |
+| Debug | True |
+
+# Build Graph
+
+```mermaid
 flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
@@ -30,3 +44,5 @@ f:build --> e:build
 class f:build ignore
 g:build --> c:build
 class g:build ignore
+```
+

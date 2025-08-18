@@ -1,3 +1,17 @@
+# Configuration
+
+| Option | Value |
+|--------|-------|
+| Targets | apply build plan test |
+| Force | True |
+| LocalOnly | True |
+| MaxConcurrency | 1 |
+| ContainerTool | docker |
+| Debug | True |
+
+# Build Graph
+
+```mermaid
 flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
@@ -24,3 +38,5 @@ class b:plan ignore
 class c:build ignore
 c:dist --> c:build
 class c:dist ignore
+```
+
