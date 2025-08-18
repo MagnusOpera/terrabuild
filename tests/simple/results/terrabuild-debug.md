@@ -1,9 +1,9 @@
 # Terrabuild
-* Version: v0.0.0+931083a8c2acb31fb5b454c5fc2f20eb4b29d11f
+* Version: v0.0.0+aa770bd59a7a7a7c690798192d2fa0d6181a81c4
 * Location: /Users/pct/src/MagnusOpera/Terrabuild/src/Terrabuild/bin/Debug/net9.0/terrabuild.dll
 
 # Options
-* StartedAt: 8/18/2025 10:25:06 AM
+* StartedAt: 8/18/2025 12:05:15 PM
  * Targets: build test
 * Workspace: /Users/pct/src/MagnusOpera/Terrabuild/tests/simple
 * Force: True
@@ -11,7 +11,7 @@
 * MaxConcurrency: 2
 * LocalOnly: True
 * BranchOrTag: feature/mermaid-markdown
-* HeadCommit: 931083a8c2acb31fb5b454c5fc2f20eb4b29d11f
+* HeadCommit: aa770bd59a7a7a7c690798192d2fa0d6181a81c4
 * ContainerTool: docker
 * WhatIf: False
 * Debug: True
