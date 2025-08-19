@@ -16,9 +16,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
     $"{Ansi.Emojis.eyes} Building graph" |> Terminal.writeLine
 
-    let processedNodes = ConcurrentDictionary<string, bool>()
     let allNodes = ConcurrentDictionary<string, Node>()
-    let node2children = ConcurrentDictionary<string, Set<string>>()
+    let processedNodes = ConcurrentDictionary<string, bool>()
 
     // first check all targets exist in WORKSPACE
     match options.Targets |> Seq.tryFind (fun targetName -> configuration.Targets |> Map.containsKey targetName |> not) with
@@ -26,154 +25,162 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     | _ -> ()
 
 
-    let rec buildTarget targetName project =
+    let rec buildNode project target =
         let projectConfig = configuration.Projects[project]
-        let nodeId = $"{project}:{targetName}"
+        let targetConfig = projectConfig.Targets[target]
+        let nodeId = $"{project}:{target}"
 
-        let processNode () =
-            // merge targets requirements
-            let buildDependsOn =
-                configuration.Targets
-                |> Map.tryFind targetName
-                |> Option.defaultValue Set.empty
-            let projDependsOn =
-                projectConfig.Targets
-                |> Map.tryFind targetName
-                |> Option.map (fun ct -> ct.DependsOn)
-                |> Option.defaultValue Set.empty
-            let dependsOns = buildDependsOn + projDependsOn
+        let processNode() =
+            let buildDependsOn target =
+                let buildDependsOn =
+                    configuration.Targets
+                    |> Map.tryFind target
+                    |> Option.defaultValue Set.empty
+                let projDependsOn =
+                    projectConfig.Targets
+                    |> Map.tryFind target
+                    |> Option.map (fun ct -> ct.DependsOn)
+                    |> Option.defaultValue Set.empty
+                let dependsOns = buildDependsOn + projDependsOn
+                dependsOns
 
-            // apply on each dependency
-            let inChildren, outChildren =
-                dependsOns |> Set.fold (fun (accInChildren, accOutChildren) dependsOn ->
+            let buildOuterTargets target = [
+                let dependsOns = buildDependsOn target
+                for dependsOn in dependsOns do
                     match dependsOn with
-                    | String.Regex "^\^(.+)$" [ parentDependsOn ] ->
-                        accInChildren, accOutChildren + Set.collect (buildTarget parentDependsOn) projectConfig.Dependencies
-                    | String.Regex "^(.+)$" [ dependsOn ] ->
-                        accInChildren + buildTarget dependsOn project, accOutChildren
-                    | _ -> raiseBugError "Invalid target dependency format") (Set.empty, Set.empty)
+                    | String.Regex "^\^(.+)$" [ depTarget ] ->
+                        for depProject in projectConfig.Dependencies do
+                            let depConfig = configuration.Projects[depProject]
+                            if depConfig.Targets |> Map.containsKey depTarget then (depProject, depTarget)
+                    | _ -> ()
+            ]
+
+            let rec buildInnerTargets target = [
+                let dependsOns = buildDependsOn target
+                yield! dependsOns |> Seq.collect (fun dependsOn ->
+                    match dependsOn with
+                    | String.Regex "^\^(.+)$" _ -> []
+                    | target ->
+                        if projectConfig.Targets |> Map.containsKey target then [ (project, target) ]
+                        else buildInnerTargets target)
+            ]
+
+            let outerDeps = buildOuterTargets target |> Set.ofSeq
+            let innerDeps = buildInnerTargets target |> Set.ofSeq
 
             // NOTE: a node is considered a leaf (within this project only) if the target has no internal dependencies detected
-            let isLeaf = inChildren |> Set.isEmpty
+            let isLeaf = innerDeps |> Set.isEmpty
 
-            let children = inChildren + outChildren
+            let allDeps = innerDeps + outerDeps
+            let children = allDeps |> Set.map (fun (project, target) -> $"{project}:{target}")
 
-            // only generate computation node - that is node that generate something
-            // barrier nodes are just discarded and dependencies lift level up
-            match projectConfig.Targets |> Map.tryFind targetName with
-            | Some target ->
-                let cache, ops =
-                    target.Operations |> List.fold (fun (cache, ops) operation ->
-                        let optContext = {
-                            Terrabuild.Extensibility.ActionContext.Debug = options.Debug
-                            Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
-                            Terrabuild.Extensibility.ActionContext.Command = operation.Command
-                            Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
-                        }
+            // ensure children exist
+            for (project, target) in allDeps do
+                buildNode project target
 
-                        let parameters = 
-                            match operation.Context with
-                            | Terrabuild.Expressions.Value.Map map ->
-                                map
-                                |> Map.add "context" (Terrabuild.Expressions.Value.Object optContext)
-                                |> Terrabuild.Expressions.Value.Map
-                            | _ -> raiseBugError "Failed to get context (internal error)"
+            let cache, ops =
+                targetConfig.Operations |> List.fold (fun (cache, ops) operation ->
+                    let optContext = {
+                        Terrabuild.Extensibility.ActionContext.Debug = options.Debug
+                        Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
+                        Terrabuild.Extensibility.ActionContext.Command = operation.Command
+                        Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
+                    }
 
-                        Log.Debug($"{hash}: Invoking extension '{operation.Extension}::{operation.Command}' with args {parameters}")
+                    let parameters = 
+                        match operation.Context with
+                        | Terrabuild.Expressions.Value.Map map ->
+                            map
+                            |> Map.add "context" (Terrabuild.Expressions.Value.Object optContext)
+                            |> Terrabuild.Expressions.Value.Map
+                        | _ -> raiseBugError "Failed to get context (internal error)"
 
-                        let cacheability =
-                            match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
-                            | Some attr -> attr.Cacheability
-                            | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
+                    Log.Debug($"{hash}: Invoking extension '{operation.Extension}::{operation.Command}' with args {parameters}")
 
-                        let shellOperations =
-                            match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
-                            | Extensions.InvocationResult.Success executionRequest -> executionRequest
-                            | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
-                            | _ -> raiseExternalError $"{hash}: Failed to get shell operation (extension error)"
+                    let cacheability =
+                        match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
+                        | Some attr -> attr.Cacheability
+                        | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
-                        let newops =
-                            shellOperations |> List.map (fun shellOperation -> {
-                                ContaineredShellOperation.Container = operation.Container
-                                ContaineredShellOperation.ContainerPlatform = operation.Platform
-                                ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
-                                ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
-                                ContaineredShellOperation.Command = shellOperation.Command
-                                ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
+                    let shellOperations =
+                        match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
+                        | Extensions.InvocationResult.Success executionRequest -> executionRequest
+                        | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
+                        | _ -> raiseExternalError $"{hash}: Failed to get shell operation (extension error)"
 
-                        let cache =
-                            match cacheability, options.LocalOnly with
-                            | Cacheability.Never, _ -> Cacheability.Never
-                            | Cacheability.Local, _ -> Cacheability.Local
-                            | Cacheability.Remote, true -> Cacheability.Local
-                            | Cacheability.Remote, false -> Cacheability.Remote
+                    let newops =
+                        shellOperations |> List.map (fun shellOperation -> {
+                            ContaineredShellOperation.Container = operation.Container
+                            ContaineredShellOperation.ContainerPlatform = operation.Platform
+                            ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
+                            ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
+                            ContaineredShellOperation.Command = shellOperation.Command
+                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
-                        cache, ops @ newops
-                    ) (Cacheability.Never, [])
+                    let cache =
+                        match cacheability, options.LocalOnly with
+                        | Cacheability.Never, _ -> Cacheability.Never
+                        | Cacheability.Local, _ -> Cacheability.Local
+                        | Cacheability.Remote, true -> Cacheability.Local
+                        | Cacheability.Remote, false -> Cacheability.Remote
 
-                let opsCmds = ops |> List.map Json.Serialize
+                    cache, ops @ newops
+                ) (Cacheability.Never, [])
 
-                let hashContent = opsCmds @ [
-                    yield projectConfig.Hash
-                    yield target.Hash
-                    yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
-                ]
+            let opsCmds = ops |> List.map Json.Serialize
 
-                let hash = hashContent |> Hash.sha256strings
+            let hashContent = opsCmds @ [
+                yield projectConfig.Hash
+                yield targetConfig.Hash
+                yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
+            ]
 
-                Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {hash}")
+            let hash = hashContent |> Hash.sha256strings
 
-                // cacheability can be overriden by the target
-                let cache = target.Cache |> Option.defaultValue cache
+            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {hash}")
 
-                // no rebuild by default unless force
-                let rebuild = target.Rebuild |> Option.defaultValue options.Force
+            // cacheability can be overriden by the target
+            let cache = targetConfig.Cache |> Option.defaultValue cache
 
-                let idempotent = target.Idempotent |> Option.defaultValue false
+            // no rebuild by default unless force
+            let rebuild = targetConfig.Rebuild |> Option.defaultValue options.Force
 
-                let targetOutput = target.Outputs
+            let idempotent = targetConfig.Idempotent |> Option.defaultValue false
 
-                let node =
-                    { Node.Id = nodeId
+            let targetOutput = targetConfig.Outputs
 
-                      Node.ProjectId = projectConfig.Id
-                      Node.ProjectDir = projectConfig.Directory
-                      Node.Target = targetName
-                      Node.Operations = ops
-                      Node.Cache = cache
-                      Node.Rebuild = rebuild
-                      Node.Idempotent = idempotent
+            let node =
+                { Node.Id = nodeId
+  
+                  Node.ProjectId = projectConfig.Id
+                  Node.ProjectDir = projectConfig.Directory
+                  Node.Target = target
+                  Node.Operations = ops
+                  Node.Cache = cache
+                  Node.Rebuild = rebuild
+                  Node.Idempotent = idempotent
+      
+                  Node.Dependencies = children
+                  Node.Outputs = targetOutput
+      
+                  Node.ProjectHash = projectConfig.Hash
+                  Node.TargetHash = hash
+      
+                  Node.IsLeaf = isLeaf }
+            if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
+  
+        if processedNodes.TryAdd(nodeId, true) then processNode()
 
-                      Node.Dependencies = children
-                      Node.Outputs = targetOutput
-
-                      Node.ProjectHash = projectConfig.Hash
-                      Node.TargetHash = hash
-
-                      Node.IsLeaf = isLeaf }
-
-                if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
-                Set.singleton nodeId
-            | _ ->
-                outChildren
-
-        if processedNodes.TryAdd(nodeId, true) then
-            let children = processNode()
-            if node2children.TryAdd(nodeId, children) |> not then raiseBugError "Unexpected graph building race"
-            Log.Debug($"Node {nodeId} has children: {children}")
-            children
-        else
-            node2children[nodeId]
+    configuration.SelectedProjects |> Seq.iter (fun project ->
+        options.Targets |> Seq.iter (fun target ->
+            configuration.Projects
+            |> Map.tryFind project
+            |> Option.iter (fun projectConfig -> if projectConfig.Targets |> Map.containsKey target then buildNode project target)))
 
     let rootNodes =
-        configuration.SelectedProjects |> Seq.collect (fun project ->
-            options.Targets |> Seq.choose (fun target ->
-                buildTarget target project |> ignore
-
-                // identify root target
-                configuration.Projects[project].Targets |> Map.tryFind target
-                |> Option.map (fun _ -> $"{project}:{target}")))
-        |> Set
+        let allNodeIds = allNodes.Keys |> Set
+        let allDependencyIds = allNodes.Values |> Seq.collect (fun node -> node.Dependencies) |> Set.ofSeq
+        allNodeIds - allDependencyIds
 
     let endedAt = DateTime.UtcNow
     let buildDuration = endedAt - startedAt
