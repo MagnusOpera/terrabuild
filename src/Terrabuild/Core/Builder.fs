@@ -25,47 +25,52 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     | _ -> ()
 
 
+    let buildDependsOn (projectConfig: Configuration.Project) target =
+        let buildDependsOn =
+            configuration.Targets
+            |> Map.tryFind target
+            |> Option.defaultValue Set.empty
+        let projDependsOn =
+            projectConfig.Targets
+            |> Map.tryFind target
+            |> Option.map (fun ct -> ct.DependsOn)
+            |> Option.defaultValue Set.empty
+        let dependsOns = buildDependsOn + projDependsOn
+        dependsOns
+
+
+    let buildOuterTargets (projectConfig: Configuration.Project) target = [
+        let dependsOns = buildDependsOn projectConfig target
+        for dependsOn in dependsOns do
+            match dependsOn with
+            | String.Regex "^\^(.+)$" [ depTarget ] ->
+                for depProject in projectConfig.Dependencies do
+                    let depConfig = configuration.Projects[depProject]
+                    if depConfig.Targets |> Map.containsKey depTarget then (depProject, depTarget)
+            | _ -> ()
+    ]
+
+
     let rec buildNode project target =
         let projectConfig = configuration.Projects[project]
         let targetConfig = projectConfig.Targets[target]
         let nodeId = $"{project}:{target}"
 
+
+        let rec buildInnerTargets target = [
+            let dependsOns = buildDependsOn projectConfig target
+            yield! dependsOns |> Seq.collect (fun dependsOn ->
+                match dependsOn with
+                | String.Regex "^\^(.+)$" _ -> []
+                | target ->
+                    if projectConfig.Targets |> Map.containsKey target then [ (project, target) ]
+                    else buildInnerTargets target)
+        ]
+
+
+
         let processNode() =
-            let buildDependsOn target =
-                let buildDependsOn =
-                    configuration.Targets
-                    |> Map.tryFind target
-                    |> Option.defaultValue Set.empty
-                let projDependsOn =
-                    projectConfig.Targets
-                    |> Map.tryFind target
-                    |> Option.map (fun ct -> ct.DependsOn)
-                    |> Option.defaultValue Set.empty
-                let dependsOns = buildDependsOn + projDependsOn
-                dependsOns
-
-            let buildOuterTargets target = [
-                let dependsOns = buildDependsOn target
-                for dependsOn in dependsOns do
-                    match dependsOn with
-                    | String.Regex "^\^(.+)$" [ depTarget ] ->
-                        for depProject in projectConfig.Dependencies do
-                            let depConfig = configuration.Projects[depProject]
-                            if depConfig.Targets |> Map.containsKey depTarget then (depProject, depTarget)
-                    | _ -> ()
-            ]
-
-            let rec buildInnerTargets target = [
-                let dependsOns = buildDependsOn target
-                yield! dependsOns |> Seq.collect (fun dependsOn ->
-                    match dependsOn with
-                    | String.Regex "^\^(.+)$" _ -> []
-                    | target ->
-                        if projectConfig.Targets |> Map.containsKey target then [ (project, target) ]
-                        else buildInnerTargets target)
-            ]
-
-            let outerDeps = buildOuterTargets target |> Set.ofSeq
+            let outerDeps = buildOuterTargets projectConfig target |> Set.ofSeq
             let innerDeps = buildInnerTargets target |> Set.ofSeq
 
             // NOTE: a node is considered a leaf (within this project only) if the target has no internal dependencies detected

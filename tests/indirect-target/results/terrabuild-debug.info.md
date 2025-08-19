@@ -18,25 +18,16 @@ classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
 a:build("<b>build a</b> 
 A")
-a:dist("<b>dist a</b> 
-A")
 b:apply("<b>apply b</b> 
 B")
 b:plan("<b>plan b</b> 
 B")
 c:build("<b>build c</b> 
 C")
-c:dist("<b>dist c</b> 
-C")
 class a:build ignore
-a:dist --> a:build
-class a:dist ignore
 b:apply --> b:plan
 class b:apply ignore
-b:plan --> a:dist
 class b:plan ignore
 class c:build ignore
-c:dist --> c:build
-class c:dist ignore
 ```
 

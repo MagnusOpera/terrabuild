@@ -70,8 +70,6 @@
     }
   },
   "rootNodes": [
-    "a:build",
-    "b:build",
-    "c:build"
+    "a:build"
   ]
 }
