@@ -321,12 +321,7 @@
   },
   "rootNodes": [
     "deployments/terraform-deploy:build",
-    "libraries/dotnet-lib:build",
-    "libraries/npm-lib:build",
-    "libraries/shell-lib:build",
-    "projects/dotnet-app:build",
     "projects/make-app:build",
-    "projects/npm-app:build",
     "projects/open-api:build",
     "projects/rust-app:build",
     "tests/playwright:test"
