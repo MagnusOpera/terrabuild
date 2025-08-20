@@ -27,7 +27,7 @@ type RunTargetOptions = {
     Configuration: string option
     Environment: string option
     Note: string option
-    Tag: string option
+    Label: string option
     Types: string set option
     Labels: string set option
     Projects: string set option
@@ -86,7 +86,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Configuration = options.Configuration
             ConfigOptions.Options.Environment = options.Environment
             ConfigOptions.Options.Note = options.Note
-            ConfigOptions.Options.Tag = options.Tag
+            ConfigOptions.Options.Label = options.Label
             ConfigOptions.Options.Types = options.Types
             ConfigOptions.Options.Labels = options.Labels
             ConfigOptions.Options.Projects = options.Projects
@@ -132,15 +132,16 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     "| Option | Value |"
                     "|--------|-------|"
                     $"""| Targets | {options.Targets |> String.join " "} |"""
-                    match options.Projects with | Some value -> $"""| Projects | {value |> String.join " "} |""" | _ -> ()
                     match options.Configuration with | Some value ->  $"| Configuration | {value} |" | _ -> ()
                     match options.Environment with | Some value ->  $"| Environment | {value} |" | _ -> ()
+                    match options.Label with | Some value ->  $"| Labels | {value} |" | _ -> ()
+                    match options.Projects with | Some value -> $"""| Projects | {value |> String.join " "} |""" | _ -> ()
+                    match options.Types with | Some value ->  $"| Types | {value} |" | _ -> ()
                     if options.Force then $"| Force | {options.Force} |"
                     if options.Retry then $"| Retry | {options.Retry} |"
                     if options.LocalOnly then $"| LocalOnly | {options.LocalOnly} |"
                     $"| MaxConcurrency | {options.MaxConcurrency} |"
                     match options.Note with | Some value ->  $"| Note | {value} |" | _ -> ()
-                    match options.Tag with | Some value ->  $"| Tag | {value} |" | _ -> ()
                     match options.ContainerTool with | Some value ->  $"| ContainerTool | {value} |" | _ -> ()
                     if options.WhatIf then $"| WhatIf | {options.WhatIf} |"
                     if options.Debug then $"| Debug | {options.Debug} |"
@@ -228,7 +229,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = note
-                        RunTargetOptions.Tag = tag
+                        RunTargetOptions.Label = tag
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
@@ -263,7 +264,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
-                        RunTargetOptions.Tag = None
+                        RunTargetOptions.Label = None
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
@@ -300,7 +301,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
-                        RunTargetOptions.Tag = None
+                        RunTargetOptions.Label = None
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects

@@ -109,7 +109,7 @@ let (|Bool|Number|String|) (value: string) =
 
 let private buildEvaluationContext (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
-        match options.Tag with
+        match options.Label with
         | Some tag -> Value.String tag
         | _ -> Value.Nothing
 
@@ -581,6 +581,8 @@ let read (options: ConfigOptions.Options) =
     let configInfos =
         let targets = options.Targets |> String.join " "
         let labels = options.Labels |> Option.map (fun labels -> labels |> String.join " ")
+        let types = options.Types |> Option.map (fun types -> types |> String.join " ")
+        let projects = options.Projects |> Option.map (fun projects -> projects |> String.join " ")
         let warningConfig = [
             if options.Force then "force"
             elif options.Retry then "retry"
@@ -593,6 +595,8 @@ let read (options: ConfigOptions.Options) =
             if options.Environment.IsSome then $"Environment {options.Environment.Value}"
             $"Targets [{targets}]"
             if labels.IsSome then $"Labels [{labels.Value}]"
+            if types.IsSome then $"Types [{types.Value}]"
+            if projects.IsSome then $"Types [{projects.Value}]"
         ]
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)

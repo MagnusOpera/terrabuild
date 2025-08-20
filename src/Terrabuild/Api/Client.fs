@@ -201,7 +201,7 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                 Build.BuildContextInput.Configuration = options.Configuration
                 Build.BuildContextInput.Environment = options.Environment
                 Build.BuildContextInput.Note = options.Note
-                Build.BuildContextInput.Tag = options.Tag
+                Build.BuildContextInput.Tag = options.Label
                 Build.BuildContextInput.Targets = options.Targets
                 Build.BuildContextInput.Force = options.Force
                 Build.BuildContextInput.Retry = options.Retry }
