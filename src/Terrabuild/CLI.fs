@@ -25,8 +25,8 @@ type LogsArgs =
     | [<Unique; AltCommandLine("-c")>] Configuration of name:string
     | [<Unique; AltCommandLine("-e")>] Environment of name:string
     | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
-    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-l")>] Label of labels:string list
+    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-p")>] Project of projects:string list
     | [<Unique>] Local_Only
 with
@@ -38,8 +38,8 @@ with
             | Configuration _ -> "Configuration to use."
             | Environment _ -> "Environment to use."
             | Variable _ -> "Set variable."
-            | Type _-> "Select projects based on extension types."
             | Label _-> "Select projects based on labels."
+            | Type _-> "Select projects based on extension types."
             | Project _ -> "Select projets base on id."
             | Local_Only -> "Use local cache only."
 
@@ -50,8 +50,8 @@ type RunArgs =
     | [<Unique; AltCommandLine("-c")>] Configuration of name:string
     | [<Unique; AltCommandLine("-e")>] Environment of name:string
     | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
-    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-l")>] Label of labels:string list
+    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-p")>] Project of projects:string list
     | [<Unique; AltCommandLine("-f")>] Force
     | [<Unique; AltCommandLine("-r")>] Retry
@@ -70,8 +70,8 @@ with
             | Configuration _ -> "Configuration to use."
             | Environment _ -> "Environment to use."
             | Variable _ -> "Set variable."
-            | Type _-> "Select projects based on extension types."
             | Label _ -> "Select projects based on labels."
+            | Type _-> "Select projects based on extension types."
             | Project _ -> "Select projets base on id."
             | Force -> "Ignore cache when building target."
             | Retry -> "Retry failed task."
@@ -88,8 +88,8 @@ type ServeArgs =
     | [<Unique; AltCommandLine("-c")>] Configuration of name:string
     | [<Unique; AltCommandLine("-e")>] Environment of name:string
     | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
-    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-l")>] Label of labels:string list
+    | [<Unique; AltCommandLine("-t")>] Type of types:string list
     | [<Unique; AltCommandLine("-p")>] Project of projects:string list
 with
     interface IArgParserTemplate with
@@ -99,8 +99,8 @@ with
             | Configuration _ -> "Configuration to use."
             | Environment _ -> "Environment to use."
             | Variable _ -> "Set variable."
-            | Type _-> "Select projects based on extension types."
             | Label _ -> "Select projects based on labels."
+            | Type _-> "Select projects based on extension types."
             | Project _ -> "Select projets base on id."
 
 
