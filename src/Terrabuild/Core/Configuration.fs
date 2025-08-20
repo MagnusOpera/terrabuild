@@ -719,24 +719,20 @@ let read (options: ConfigOptions.Options) =
     // select dependencies with labels if any
     let projectSelection =
         match options.Labels with
-        | Some labels -> projects |> Map.filter (fun _ config -> Set.intersect config.Labels labels <> Set.empty)
+        | Some filter -> projects |> Map.filter (fun _ config -> Set.intersect config.Labels filter <> Set.empty)
         | _ -> projects
 
     // select dependencies with project types if any
     let projectSelection =
         match options.Types with
-        | Some types -> projects |> Map.filter (fun _ config -> Set.intersect config.Types types <> Set.empty)
-        | _ -> projects
-
+        | Some filter -> projectSelection |> Map.filter (fun _ config -> Set.intersect config.Types filter <> Set.empty)
+        | _ -> projectSelection
 
     // select dependencies with id if any
     let projectSelection =
         match options.Projects with
-        | Some projects -> projectSelection |> Map.filter (fun _ config ->
-            match config.Id with
-            | Some id -> projects |> Set.contains id
-            | _ -> false)
-        | _ -> projects
+        | Some filter -> projectSelection |> Map.filter (fun _ config -> Set.intersect config.Types filter <> Set.empty)
+        | _ -> projectSelection
 
     let selectedProjects = projectSelection |> Map.keys |> Set
 
