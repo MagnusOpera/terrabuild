@@ -296,9 +296,11 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Set.union (Dependencies.reflectionFind projectConfig)
         |> Set.choose (fun dep -> if dep.StartsWith("project.") then Some dep else None)
 
-    let labels = projectConfig.Project.Labels
     let projectOutputs = projectInfo.Outputs
     let projectIgnores = projectInfo.Ignores
+    let labels = 
+        projectConfig.Project.Initializers |> Set.map (fun x -> x.Replace("@", ""))
+        |> Set.union projectConfig.Project.Labels
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =

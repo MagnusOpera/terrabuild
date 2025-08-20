@@ -156,7 +156,8 @@
         }
       },
       "labels": [
-        "infra"
+        "infra",
+        "terraform"
       ]
     },
     "libraries/dotnet-lib": {
@@ -222,7 +223,9 @@
           ]
         }
       },
-      "labels": []
+      "labels": [
+        "dotnet"
+      ]
     },
     "libraries/npm-lib": {
       "directory": "libraries/npm-lib",
@@ -277,7 +280,8 @@
         }
       },
       "labels": [
-        "app"
+        "app",
+        "npm"
       ]
     },
     "libraries/shell-lib": {
@@ -607,7 +611,8 @@
         }
       },
       "labels": [
-        "app"
+        "app",
+        "npm"
       ]
     },
     "projects/open-api": {
@@ -656,7 +661,9 @@
           ]
         }
       },
-      "labels": []
+      "labels": [
+        "openapi"
+      ]
     },
     "projects/rust-app": {
       "directory": "projects/rust-app",
@@ -697,6 +704,7 @@
       },
       "labels": [
         "app",
+        "cargo",
         "rust"
       ]
     },
@@ -757,7 +765,8 @@
         }
       },
       "labels": [
-        "app"
+        "app",
+        "npm"
       ]
     }
   }
