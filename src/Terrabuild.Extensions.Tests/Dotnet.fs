@@ -67,10 +67,11 @@ let ``restore cacheability``() =
 [<Test>]
 let ``restore some``() =
     let expected =
-        [ shellOp("dotnet", "restore --locked-mode --opt1 --opt2") ]
+        [ shellOp("dotnet", "restore --force-evaluate --opt1 --opt2") ]
 
     Dotnet.restore (Some true) // dependencies
-                   (Some true) // locked
+                   (Some true) // floating
+                   (Some true) // evaluate
                    someArgs
     |> normalize
     |> should equal expected
@@ -79,10 +80,11 @@ let ``restore some``() =
 [<Test>]
 let ``restore none``() =
     let expected =
-        [ shellOp("dotnet", "restore --no-dependencies") ]
+        [ shellOp("dotnet", "restore --no-dependencies --locked-mode") ]
 
     Dotnet.restore None // dependencies
-                   None // locked
+                   None // floating
+                   None // evaluate
                    noneArgs
     |> normalize
     |> should equal expected

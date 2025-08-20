@@ -28,6 +28,7 @@ type RunTargetOptions = {
     Environment: string option
     Note: string option
     Tag: string option
+    Types: string set option
     Labels: string set option
     Projects: string set option
     Variables: Map<string, string>
@@ -86,6 +87,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Environment = options.Environment
             ConfigOptions.Options.Note = options.Note
             ConfigOptions.Options.Tag = options.Tag
+            ConfigOptions.Options.Types = options.Types
             ConfigOptions.Options.Labels = options.Labels
             ConfigOptions.Options.Projects = options.Projects
             ConfigOptions.Options.Variables = options.Variables
@@ -198,6 +200,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
+        let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = runArgs.TryGetResult(RunArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
         let variables = runArgs.GetResults(RunArgs.Variable) |> Map
@@ -226,6 +229,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = note
                         RunTargetOptions.Tag = tag
+                        RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
@@ -242,6 +246,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 | _ -> raiseInvalidArg "Can't find workspace root directory. Check you are in a workspace."
         let configuration = serveArgs.TryGetResult(ServeArgs.Configuration)
         let environment = serveArgs.TryGetResult(ServeArgs.Environment)
+        let types = serveArgs.TryGetResult(ServeArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = serveArgs.TryGetResult(ServeArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = serveArgs.TryGetResult(ServeArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
         let variables = serveArgs.GetResults(ServeArgs.Variable) |> Map
@@ -259,6 +264,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
                         RunTargetOptions.Tag = None
+                        RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
@@ -276,6 +282,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 | _ -> raiseInvalidArg "Can't find workspace root directory. Check you are in a workspace."
         let configuration = logsArgs.TryGetResult(LogsArgs.Configuration)
         let environment = logsArgs.TryGetResult(LogsArgs.Environment)
+        let types = logsArgs.TryGetResult(LogsArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = logsArgs.TryGetResult(LogsArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = logsArgs.TryGetResult(LogsArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
         let variables = logsArgs.GetResults(LogsArgs.Variable) |> Map
@@ -294,6 +301,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
                         RunTargetOptions.Tag = None
+                        RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables

@@ -57,18 +57,21 @@ type Dotnet() =
     /// Restore packages.
     /// </summary>
     /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
-    /// <param name="locked" example="&quot;true&quot;">Locked mode restore.</param>
+    /// <param name="floating" example="&quot;true&quot;">Floating mode restore.</param>
+    /// <param name="evaluate" example="&quot;true&quot;">Force package evaluation.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
     [<LocalCacheAttribute>]
     static member restore (dependencies: bool option)
-                          (locked: bool option)
+                          (floating: bool option)
+                          (evaluate: bool option)
                           (args: string option) =
         let no_dependencies = dependencies |> map_false "--no-dependencies"
-        let locked = locked |> map_true "--locked-mode"
+        let locked = floating |> map_false "--locked-mode"
+        let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
 
         let ops = [
-            shellOp( "dotnet", $"restore {no_dependencies} {locked} {args}")
+            shellOp( "dotnet", $"restore {no_dependencies} {locked} {force_evaluate} {args}")
         ]
         ops
 
