@@ -57,7 +57,8 @@
           ]
         }
       },
-      "labels": []
+      "labels": [],
+      "types": []
     },
     "b": {
       "directory": "B",
@@ -95,7 +96,8 @@
           ]
         }
       },
-      "labels": []
+      "labels": [],
+      "types": []
     },
     "c": {
       "directory": "C",
@@ -131,7 +133,8 @@
           ]
         }
       },
-      "labels": []
+      "labels": [],
+      "types": []
     }
   }
 }

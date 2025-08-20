@@ -19,6 +19,7 @@ type Options = {
     LogTypes: Contracts.LogType list
     Note: string option
     Tag: string option
+    Types: string set option
     Labels: string set option
     Projects: string set option
     Variables: Map<string, string>

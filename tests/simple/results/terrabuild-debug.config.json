@@ -156,8 +156,10 @@
         }
       },
       "labels": [
-        "infra",
-        "terraform"
+        "infra"
+      ],
+      "types": [
+        "@terraform"
       ]
     },
     "libraries/dotnet-lib": {
@@ -223,8 +225,9 @@
           ]
         }
       },
-      "labels": [
-        "dotnet"
+      "labels": [],
+      "types": [
+        "@dotnet"
       ]
     },
     "libraries/npm-lib": {
@@ -280,8 +283,10 @@
         }
       },
       "labels": [
-        "app",
-        "npm"
+        "app"
+      ],
+      "types": [
+        "@npm"
       ]
     },
     "libraries/shell-lib": {
@@ -318,7 +323,8 @@
           ]
         }
       },
-      "labels": []
+      "labels": [],
+      "types": []
     },
     "projects/dotnet-app": {
       "id": "dotnet_app",
@@ -484,6 +490,9 @@
       "labels": [
         "app",
         "dotnet"
+      ],
+      "types": [
+        "@dotnet"
       ]
     },
     "projects/make-app": {
@@ -548,7 +557,8 @@
       },
       "labels": [
         "app"
-      ]
+      ],
+      "types": []
     },
     "projects/npm-app": {
       "id": "npm_app",
@@ -611,8 +621,10 @@
         }
       },
       "labels": [
-        "app",
-        "npm"
+        "app"
+      ],
+      "types": [
+        "@npm"
       ]
     },
     "projects/open-api": {
@@ -661,8 +673,9 @@
           ]
         }
       },
-      "labels": [
-        "openapi"
+      "labels": [],
+      "types": [
+        "@openapi"
       ]
     },
     "projects/rust-app": {
@@ -704,8 +717,10 @@
       },
       "labels": [
         "app",
-        "cargo",
         "rust"
+      ],
+      "types": [
+        "@cargo"
       ]
     },
     "tests/playwright": {
@@ -765,8 +780,10 @@
         }
       },
       "labels": [
-        "app",
-        "npm"
+        "app"
+      ],
+      "types": [
+        "@npm"
       ]
     }
   }

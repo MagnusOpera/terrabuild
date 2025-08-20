@@ -81,8 +81,9 @@
           ]
         }
       },
-      "labels": [
-        "dotnet"
+      "labels": [],
+      "types": [
+        "@dotnet"
       ]
     },
     "b": {
@@ -152,8 +153,9 @@
           ]
         }
       },
-      "labels": [
-        "dotnet"
+      "labels": [],
+      "types": [
+        "@dotnet"
       ]
     },
     "c": {
@@ -221,8 +223,9 @@
           ]
         }
       },
-      "labels": [
-        "npm"
+      "labels": [],
+      "types": [
+        "@npm"
       ]
     },
     "d": {
@@ -278,8 +281,9 @@
           ]
         }
       },
-      "labels": [
-        "dotnet"
+      "labels": [],
+      "types": [
+        "@dotnet"
       ]
     },
     "e": {
@@ -335,8 +339,9 @@
           ]
         }
       },
-      "labels": [
-        "dotnet"
+      "labels": [],
+      "types": [
+        "@dotnet"
       ]
     },
     "f": {
@@ -388,8 +393,9 @@
           ]
         }
       },
-      "labels": [
-        "npm"
+      "labels": [],
+      "types": [
+        "@npm"
       ]
     },
     "g": {
@@ -440,8 +446,9 @@
           ]
         }
       },
-      "labels": [
-        "npm"
+      "labels": [],
+      "types": [
+        "@npm"
       ]
     }
   }
