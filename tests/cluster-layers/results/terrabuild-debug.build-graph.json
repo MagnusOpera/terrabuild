@@ -14,7 +14,7 @@
         "obj/*.targets"
       ],
       "projectHash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
-      "targetHash": "D8814A5659AB7F0C2E085219AA98A1A279531576031779CCDDA469E6EA3CA8F8",
+      "targetHash": "C04723BA50DCC3AEB68B926F5350EB6897ACA38F975BB61CC8D2866299CA6D6E",
       "operations": [
         {
           "containerVariables": [],
@@ -27,7 +27,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -56,7 +56,7 @@
         "obj/*.targets"
       ],
       "projectHash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
-      "targetHash": "00D387E2E120376B7BFC810D19D55D98B276A6A2799B224F45EA15FFAD6CDBCF",
+      "targetHash": "8EE4B3EAEC8A3CA228D17D37FE7E9E5CF657DF7D8AC5999D81FA7D5BEC721265",
       "operations": [
         {
           "containerVariables": [],
@@ -69,7 +69,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -96,7 +96,7 @@
         "dist/**"
       ],
       "projectHash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
-      "targetHash": "B57DDEE3CED9CFFC6A842E5E755FB2A11842AB364506EEE495806C22C76BD308",
+      "targetHash": "9FC6764B67CC4B3CD576E90F1A8319E6C70EB8C3849A3DF56F8A9ADBC58A4798",
       "operations": [
         {
           "containerVariables": [],
@@ -140,14 +140,14 @@
         "obj/*.targets"
       ],
       "projectHash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
-      "targetHash": "02E55ECCD453F8F6A94CF8827A37A60B945A0E36488F79FDA50B0F16E40B807A",
+      "targetHash": "75AB679992BEE76083F864ACF98441418E08FDAC060E88C2E0F085947AF94DB1",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -178,14 +178,14 @@
         "obj/*.targets"
       ],
       "projectHash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
-      "targetHash": "C410406173F3F2121CA8498DEE6646A1218F8DA5216BC70BB857B17D69735D1F",
+      "targetHash": "2EB6929872F7727FD76F64B85186DCF36E7502E7EB5ABFE650543CA118C48332",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -212,7 +212,7 @@
         "dist/**"
       ],
       "projectHash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
-      "targetHash": "FAD2CE174B4486A91D1D4462E491FCDDB37D0012954D146544831EF8D591BA42",
+      "targetHash": "E30E771C983B37C5CB7D95C0543E700C3853662AA92AE12303DA82F46AA4F8D2",
       "operations": [
         {
           "container": "node:20",
@@ -245,7 +245,7 @@
         "dist/**"
       ],
       "projectHash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
-      "targetHash": "B895541ADCDFDA59C288332BE43188D655C2D48E15152DF64AFB9CC2A45D9869",
+      "targetHash": "2946F3C770999BD48586AA29C02767E23DFF0008C1485BAE43C09480C78BDE14",
       "operations": [
         {
           "container": "node:20",

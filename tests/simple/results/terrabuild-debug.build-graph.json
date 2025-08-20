@@ -12,7 +12,7 @@
         "*.planfile"
       ],
       "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
-      "targetHash": "1A62D3B055C4365C56D242F632FF9EF1411ACB15D802A627675E01B8E9F974AE",
+      "targetHash": "A5C3D026ECBAE8AD7C04C884C0863D8C25812270594D87AEA606484967D1119F",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -50,7 +50,7 @@
         "obj/*.targets"
       ],
       "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
-      "targetHash": "2C1746E4C585834A39C53DB62391E01EB88234B7DEA80069B3F6DB3A3E0F61B7",
+      "targetHash": "11009E6F3A18B513995211FF25A5751974C42ABB40B42698711202E584545668",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -58,7 +58,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -145,7 +145,7 @@
         "obj/*.targets"
       ],
       "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
-      "targetHash": "65867C0BD025DB614141FBD31BC7721ABD45E84DF346CD77725EAEAC271989FB",
+      "targetHash": "C7E15B98D6E39C4DADD65464B9EFBA34BF35F26DE6982FFB6B23C0FE871E4AE7",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -153,7 +153,7 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies"
+          "arguments": "restore --no-dependencies --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
