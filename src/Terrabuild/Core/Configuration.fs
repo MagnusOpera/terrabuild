@@ -45,6 +45,7 @@ type Project = {
     Files: string set
     Targets: Map<string, Target>
     Labels: string set
+    Types: string set
 }
 
 [<RequireQualifiedAccess>]
@@ -74,6 +75,7 @@ type private LoadedProject = {
     Outputs: string set
     Targets: Map<string, AST.Project.TargetBlock>
     Labels: string set
+    Types: string set
     Extensions: Map<string, AST.ExtensionBlock>
     Scripts: Map<string, LazyScript>
     Locals: Map<string, Expr>
@@ -298,9 +300,8 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let projectOutputs = projectInfo.Outputs
     let projectIgnores = projectInfo.Ignores
-    let labels = 
-        projectConfig.Project.Initializers |> Set.map (fun x -> x.Replace("@", ""))
-        |> Set.union projectConfig.Project.Labels
+    let labels = projectConfig.Project.Labels
+    let types = projectConfig.Project.Initializers
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
@@ -343,6 +344,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
       LoadedProject.Outputs = projectOutputs
       LoadedProject.Targets = projectTargets
       LoadedProject.Labels = labels
+      LoadedProject.Types = types
       LoadedProject.Extensions = extensions
       LoadedProject.Scripts = scripts
       LoadedProject.Locals = locals }
@@ -569,7 +571,8 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
       Project.Dependencies = projectDependencies
       Project.Files = files
       Project.Targets = projectSteps
-      Project.Labels = projectDef.Labels }
+      Project.Labels = projectDef.Labels
+      Project.Types = projectDef.Types }
 
 
 
@@ -718,6 +721,13 @@ let read (options: ConfigOptions.Options) =
         match options.Labels with
         | Some labels -> projects |> Map.filter (fun _ config -> Set.intersect config.Labels labels <> Set.empty)
         | _ -> projects
+
+    // select dependencies with project types if any
+    let projectSelection =
+        match options.Types with
+        | Some types -> projects |> Map.filter (fun _ config -> Set.intersect config.Types types <> Set.empty)
+        | _ -> projects
+
 
     // select dependencies with id if any
     let projectSelection =
