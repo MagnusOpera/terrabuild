@@ -199,8 +199,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                             $"::endgroup::" |> Terminal.writeLine
                         | _ -> ()
                     | _ -> ()
-            | None ->
-                $"::warning title=no logs::{label}" |> Terminal.writeLine
+            | None -> ()
 
         nodes
         |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
