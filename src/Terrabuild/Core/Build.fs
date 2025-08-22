@@ -173,7 +173,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let rec restoreNode (node: GraphDef.Node) =
         if scheduledNodeExec.TryAdd(node.Id, true) then
-            let execDependencies = []
+
+            let execDependencies =
+                node.Dependencies |> Seq.map (fun projectId ->
+                    buildOrRestoreNode graph.Nodes[projectId]
+                    hub.GetSignal<DateTime> $"{projectId}+exec")
+                |> List.ofSeq
+
             let execRestore() =
                 notification.NodeDownloading node
 
@@ -215,12 +221,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             hub.Subscribe $"{node.Id} restore" execDependencies execRestore
 
 
-
-    let buildNode (node: GraphDef.Node) =
+    and buildNode (node: GraphDef.Node) =
         if scheduledNodeExec.TryAdd(node.Id, true) then
             let execDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
-                    restoreNode graph.Nodes[projectId]
+                    buildOrRestoreNode graph.Nodes[projectId]
                     hub.GetSignal<DateTime> $"{projectId}+exec")
                 |> List.ofSeq
 
@@ -288,6 +293,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             notification.NodeScheduled node
             hub.Subscribe $"{node.Id} exec" execDependencies execDependenciesCompleted
 
+    and buildOrRestoreNode (node: GraphDef.Node) =
+        if node.Idempotent then buildNode node
+        else restoreNode node
 
 
     let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
@@ -352,7 +360,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match buildRequest with
                 | (TaskRequest.Build, _) ->
                     if node.Idempotent then nodeStatusSignal.Set DateTime.MinValue
-                    buildNode node
+                    else buildNode node
                 | (TaskRequest.Restore, Some buildDate) ->
                     nodeStatusSignal.Set buildDate
                 | _ -> raiseBugError $"Unexpected compute action: {buildRequest}"
