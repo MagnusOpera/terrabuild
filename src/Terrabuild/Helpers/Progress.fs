@@ -37,7 +37,7 @@ type ProgressRenderer() =
             let icon = if restored then clockwise else crossmark
             red + " " + icon + reset
         | ProgressStatus.Running (startedAt, spinner, frequency) ->
-            let diff = ((DateTime.Now - startedAt).TotalMilliseconds / frequency) |> int
+            let diff = ((DateTime.UtcNow - startedAt).TotalMilliseconds / frequency) |> int
             let offset = diff % spinner.Length
             $"{yellow} {spinner[offset]}{reset}"
 
@@ -57,13 +57,13 @@ type ProgressRenderer() =
     member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =
         match items |> List.tryFindIndex (fun item -> item.Id = id) with
         | Some index ->
-            items[index].Status <- ProgressStatus.Running (DateTime.Now, spinner, frequency)
+            items[index].Status <- ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
 
             if Terminal.supportAnsi |> not then
                 printableItem items[index] |> Terminal.writeLine |> Terminal.flush
 
         | _ ->
-            let item = { Id = id; Label = label; Status = ProgressStatus.Running (DateTime.Now, spinner, frequency) }
+            let item = { Id = id; Label = label; Status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency) }
             items <- item :: items
             printableItem item |> Terminal.writeLine |> Terminal.flush
 

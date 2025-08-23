@@ -321,10 +321,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 // task is cached
                 else
-                    Log.Debug("{NodeId} is marked as used", node.Id)
+                    Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
                     (TaskRequest.Restore, Some summary.EndedAt)
             | _ ->
-                Log.Debug("{NodeId} must be build since no summary and required", node.Id)
+                Log.Debug("{NodeId} must be built since no summary and required", node.Id)
                 (TaskRequest.Build, None)
         else
             Log.Debug("{NodeId} is not cacheable", node.Id)

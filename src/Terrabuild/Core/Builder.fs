@@ -100,8 +100,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             |> Terrabuild.Expressions.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
-                    Log.Debug($"{hash}: Invoking extension '{operation.Extension}::{operation.Command}' with args {parameters}")
-
                     let cacheability =
                         match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
                         | Some attr -> attr.Cacheability
