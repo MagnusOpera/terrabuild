@@ -257,39 +257,28 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
         |> Option.defaultValue Set.empty
 
-    let projectInfo =
-        let defaultProjectInfo =
-            { ProjectInfo.Ignores = projectConfig.Project.Ignores |> evalAsStringSet |> Set.union ProjectInfo.Default.Ignores 
-              ProjectInfo.Outputs = projectConfig.Project.Outputs |> evalAsStringSet |> Set.union ProjectInfo.Default.Outputs
-              ProjectInfo.Dependencies = projectConfig.Project.Dependencies |> evalAsStringSet |> Set.union ProjectInfo.Default.Dependencies
-              ProjectInfo.Includes = projectConfig.Project.Includes |> evalAsStringSet }
+    let initProjectInfo =
+        projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
+            let parseContext = 
+                let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
+                                Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
+                                Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
+                Value.Map (Map [ "context", Value.Object context ])
 
-        let initProjectInfo =
-            projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
-                let parseContext = 
-                    let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
-                                    Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
-                                    Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
-                    Value.Map (Map [ "context", Value.Object context ])
+            let result =
+                Extensions.getScript init scripts
+                |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
 
-                let result =
-                    Extensions.getScript init scripts
-                    |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
+            let initProjectInfo =
+                match result with
+                | Extensions.Success result -> result
+                | Extensions.ScriptNotFound -> raiseSymbolError $"Script {init} was not found"
+                | Extensions.TargetNotFound -> ProjectInfo.Default // NOTE: if __defaults__ is not found - this will silently use default configuration, probably emit warning
+                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{init}'", exn)
 
-                let initProjectInfo =
-                    match result with
-                    | Extensions.Success result -> result
-                    | Extensions.ScriptNotFound -> raiseSymbolError $"Script {init} was not found"
-                    | Extensions.TargetNotFound -> ProjectInfo.Default // NOTE: if __defaults__ is not found - this will silently use default configuration, probably emit warning
-                    | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{init}'", exn)
-
-                { projectInfo with
-                    ProjectInfo.Ignores = projectInfo.Ignores + initProjectInfo.Ignores
-                    ProjectInfo.Outputs = projectInfo.Outputs + initProjectInfo.Outputs
-                    ProjectInfo.Dependencies = projectInfo.Dependencies + initProjectInfo.Dependencies
-                    ProjectInfo.Includes = projectInfo.Includes + initProjectInfo.Includes }) defaultProjectInfo
-        if initProjectInfo.Includes <> Set.empty then initProjectInfo
-        else { initProjectInfo with ProjectInfo.Includes = ProjectInfo.Default.Includes }
+            { projectInfo with
+                ProjectInfo.Outputs = projectInfo.Outputs + initProjectInfo.Outputs
+                ProjectInfo.Dependencies = projectInfo.Dependencies + initProjectInfo.Dependencies }) ProjectInfo.Default
 
     let dependsOn =
         // collect dependencies for all the project
@@ -298,15 +287,8 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Set.union (Dependencies.reflectionFind projectConfig)
         |> Set.choose (fun dep -> if dep.StartsWith("project.") then Some dep else None)
 
-    let projectOutputs = projectInfo.Outputs
-    let projectIgnores = projectInfo.Ignores
     let labels = projectConfig.Project.Labels
     let types = projectConfig.Project.Initializers
-
-    // convert relative dependencies to absolute dependencies respective to workspaceDirectory
-    let projectDependencies =
-        projectInfo.Dependencies
-        |> Set.map (fun dep -> FS.workspaceRelative options.Workspace projectDir dep)
 
     let projectTargets =
         // apply target override
@@ -323,11 +305,20 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 Cache = cache
                 Idempotent = idempotent })
 
-    let includes =
+    // convert relative dependencies to absolute dependencies respective to workspaceDirectory
+    let projectDependencies =
+        projectConfig.Project.Dependencies |> evalAsStringSet
+        |> Set.union initProjectInfo.Dependencies
+        |> Set.map (fun dep -> FS.workspaceRelative options.Workspace projectDir dep)
+
+    let projectIncludes =
         projectScripts
         |> Seq.choose (fun (KeyValue(_, script)) -> script)
         |> Set.ofSeq
-        |> Set.union projectInfo.Includes
+        |> Set.union (projectConfig.Project.Includes |> evalAsStringSet)
+
+    let projectIgnores = projectConfig.Project.Ignores |> evalAsStringSet
+    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSet |> Set.union initProjectInfo.Outputs
 
     // enrich workspace locals with project locals
     // NOTE we are checking for duplicated fields as this is an error
@@ -339,7 +330,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     { LoadedProject.Id = projectConfig.Project.Id
       LoadedProject.DependsOn = dependsOn
       LoadedProject.Dependencies = projectDependencies
-      LoadedProject.Includes = includes
+      LoadedProject.Includes = projectIncludes
       LoadedProject.Ignores = projectIgnores
       LoadedProject.Outputs = projectOutputs
       LoadedProject.Targets = projectTargets

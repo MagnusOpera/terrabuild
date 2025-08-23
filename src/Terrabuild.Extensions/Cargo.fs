@@ -20,8 +20,7 @@ type Cargo() =
         let dependencies = projectFile |> CargoHelpers.findDependencies 
         let projectInfo =
             { ProjectInfo.Default
-              with Ignores = Set [ "target/*" ]
-                   Outputs = Set [ "target/debug/"; "target/release/" ]
+              with Outputs = Set [ "target/debug/"; "target/release/" ]
                    Dependencies = dependencies }
         projectInfo
 

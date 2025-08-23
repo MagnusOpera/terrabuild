@@ -1,6 +1,5 @@
 module Terrabuild.Extensibility
 open System
-open System.Text
 
 [<RequireQualifiedAccess>]
 type ExtensionContext = {
@@ -12,16 +11,12 @@ type ExtensionContext = {
 [<RequireQualifiedAccess>]
 type ProjectInfo = {
     Outputs: Set<string>
-    Ignores: Set<string>
     Dependencies: Set<string>
-    Includes: Set<string>
 }
 with
     static member Default = {
         Outputs = Set.empty
-        Ignores = Set.empty
         Dependencies = Set.empty
-        Includes = Set [ "**/*" ]
     }
 
 [<RequireQualifiedAccess>]
