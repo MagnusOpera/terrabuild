@@ -3,6 +3,7 @@ open System.IO
 open Microsoft.Extensions.FileSystemGlobbing
 open Collections
 open System
+open Ignore
 
 let chmod permissions (path: string) =
     File.SetUnixFileMode(path, permissions)
@@ -47,13 +48,11 @@ let size file =
 
 let enumerateDirs rootDir =
     Directory.EnumerateDirectories(rootDir)
+    |> List.ofSeq
 
 let enumerateFiles rootdir =
     Directory.EnumerateFiles(rootdir, "*", SearchOption.AllDirectories)
     |> List.ofSeq
-
-let enumeratedCommittedFiles (ignore: Ignore.Ignore) rootdir =
-    rootdir |> enumerateFiles |> List.filter (not << ignore.IsIgnored)
 
 let enumerateFilesBut (matches: string seq) (ignores: string set) rootdir =
     let matcher = Matcher()
@@ -112,8 +111,7 @@ let createSnapshot outputs projectDirectory =
 
 
 let loadIgnoreFile dir =
-    let ignoreBuilder = Ignore.Ignore()
-
+    let ignoreAccumulator = Ignore()
     let rec combineIgnoreFiles dir =
         if FS.combinePath dir "WORKSPACE" |> exists |> not then
             match dir |> FS.parentDirectory with
@@ -123,7 +121,27 @@ let loadIgnoreFile dir =
         let ignoreFile = FS.combinePath dir ".gitignore"
         if FS.fileExists ignoreFile then
             let content = File.ReadAllLines ignoreFile
-            content |> ignoreBuilder.Add |> ignore
+            content |> ignoreAccumulator.Add |> ignore
 
     dir |> combineIgnoreFiles
-    ignoreBuilder
+    ignoreAccumulator
+
+let enumeratedCommittedFiles projectDir =
+
+    let rec enumeratedCommittedFiles (dirIgnore: Ignore) dir = [
+            // enumerate whitelisted files
+            yield! dir |> enumerateFiles |> List.filter (not << dirIgnore.IsIgnored)
+
+            // enumerate whitelisted directories
+            let dirs = dir |> enumerateDirs |> List.filter (not << dirIgnore.IsIgnored)
+            for subdir in dirs do
+                // update ignore if new .gitignore file discovered
+                let ignoreFile = FS.combinePath dir ".gitignore"
+                let subDirIgnore =
+                    if FS.fileExists ignoreFile then Ignore().Add(dirIgnore.OriginalRules).Add(File.ReadAllLines ignoreFile)
+                    else dirIgnore
+                yield! enumeratedCommittedFiles subDirIgnore subdir
+        ]
+
+    let projectDirIgnore = loadIgnoreFile projectDir
+    enumeratedCommittedFiles projectDirIgnore projectDir

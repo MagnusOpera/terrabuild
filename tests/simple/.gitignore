@@ -411,7 +411,6 @@ Makefile2
 init.sh
 terrabuild-debug.*
 terrabuild.planfile
-terrabuild.tfstate
 terrabuild-debug.md
 .terraform
 .vscode/settings.json

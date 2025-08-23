@@ -347,8 +347,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
     let projectId = projectDir |> String.toLower
 
     // get dependencies on files
-    let ignore = IO.loadIgnoreFile projectDir
-    let committedFiles = IO.enumeratedCommittedFiles ignore projectDir |> Set.ofList
+    let committedFiles = IO.enumeratedCommittedFiles projectDir |> Set.ofList
     let additionalFiles =
         projectDir
         |> IO.enumerateFilesBut projectDef.Includes (projectDef.Outputs + projectDef.Ignores)

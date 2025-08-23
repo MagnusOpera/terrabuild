@@ -34,12 +34,13 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "8814F8B788C5C34062A9E0ADF5606A9300010038F602E5DA6CC8C78E769295B7",
+      "hash": "66D01BA3879BB7926D41E7A60D780C74920BF79068DAD91771B86C198B32EF1D",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
       ],
       "files": [
+        ".gitignore",
         ".terraform.lock.hcl",
         "PROJECT",
         "backend.tf",
