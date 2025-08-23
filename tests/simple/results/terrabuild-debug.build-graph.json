@@ -11,8 +11,8 @@
       "outputs": [
         "*.planfile"
       ],
-      "projectHash": "90421297695925B543E3DC341E3449D0AD98EB3896B09C360DAEE14C558068E2",
-      "targetHash": "A5C3D026ECBAE8AD7C04C884C0863D8C25812270594D87AEA606484967D1119F",
+      "projectHash": "8814F8B788C5C34062A9E0ADF5606A9300010038F602E5DA6CC8C78E769295B7",
+      "targetHash": "5655698488DA8462B5BF97E0608C20591619A326BF0D1F38FC63D16718C81D29",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -28,7 +28,7 @@
           "containerVariables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=26E3A1BECCD5D71B2FCF43FD9A22B931AAE58622995B126AF60C3EC553D1C04A\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
         }
       ],
       "cache": "local",
@@ -144,8 +144,8 @@
         "obj/*.props",
         "obj/*.targets"
       ],
-      "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
-      "targetHash": "C7E15B98D6E39C4DADD65464B9EFBA34BF35F26DE6982FFB6B23C0FE871E4AE7",
+      "projectHash": "26E3A1BECCD5D71B2FCF43FD9A22B931AAE58622995B126AF60C3EC553D1C04A",
+      "targetHash": "4ADE680B3DFD1A990C0337225AD933446F38EF52636DACC30CD5303974C0A533",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",

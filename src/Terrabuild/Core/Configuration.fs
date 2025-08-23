@@ -347,10 +347,13 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
     let projectId = projectDir |> String.toLower
 
     // get dependencies on files
-    let files =
+    let ignore = IO.loadIgnoreFile projectDir
+    let committedFiles = IO.enumeratedCommittedFiles ignore projectDir |> Set.ofList
+    let additionalFiles =
         projectDir
         |> IO.enumerateFilesBut projectDef.Includes (projectDef.Outputs + projectDef.Ignores)
         |> Set
+    let files = committedFiles + additionalFiles |> Set
 
     let sortedFiles =
         files
@@ -552,7 +555,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
             target
         )
 
-    let files = files |> Set.map (FS.relativePath projectDir)
+    let relativeFiles = files |> Set.map (FS.relativePath projectDir)
 
     let projectDependencies = projectDependencies.Keys |> Seq.map String.toLower |> Set.ofSeq
 
@@ -560,7 +563,7 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
       Project.Directory = projectDir
       Project.Hash = projectHash
       Project.Dependencies = projectDependencies
-      Project.Files = files
+      Project.Files = relativeFiles
       Project.Targets = projectSteps
       Project.Labels = projectDef.Labels
       Project.Types = projectDef.Types }

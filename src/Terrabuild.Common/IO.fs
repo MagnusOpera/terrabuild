@@ -52,6 +52,9 @@ let enumerateFiles rootdir =
     Directory.EnumerateFiles(rootdir, "*", SearchOption.AllDirectories)
     |> List.ofSeq
 
+let enumeratedCommittedFiles (ignore: Ignore.Ignore) rootdir =
+    rootdir |> enumerateFiles |> List.filter (not << ignore.IsIgnored)
+
 let enumerateFilesBut (matches: string seq) (ignores: string set) rootdir =
     let matcher = Matcher()
     matcher.AddIncludePatterns(matches)
@@ -105,3 +108,22 @@ let createSnapshot outputs projectDirectory =
         |> Seq.map (fun output -> output, System.IO.File.GetLastWriteTimeUtc output)
         |> Map
     { TimestampedFiles = files }
+
+
+
+let loadIgnoreFile dir =
+    let ignoreBuilder = Ignore.Ignore()
+
+    let rec combineIgnoreFiles dir =
+        if FS.combinePath dir "WORKSPACE" |> exists |> not then
+            match dir |> FS.parentDirectory with
+            | Some dir -> dir |> combineIgnoreFiles
+            | _ -> ()
+
+        let ignoreFile = FS.combinePath dir ".gitignore"
+        if FS.fileExists ignoreFile then
+            let content = File.ReadAllLines ignoreFile
+            content |> ignoreBuilder.Add |> ignore
+
+    dir |> combineIgnoreFiles
+    ignoreBuilder
