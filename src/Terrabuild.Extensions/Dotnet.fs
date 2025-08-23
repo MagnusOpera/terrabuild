@@ -19,8 +19,7 @@ type Dotnet() =
         let dependencies = projectFile |> DotnetHelpers.findDependencies 
         let projectInfo =
             { ProjectInfo.Default
-              with Ignores = Set [ "**/*.binlog"; "TestResults/" ]
-                   Outputs = Set [ "bin/"; "obj/"; "**/*.binlog"; "obj/*.json"; "obj/*.props"; "obj/*.targets" ]
+              with Outputs = Set [ "bin/"; "obj/"; "**/*.binlog"; "obj/*.json"; "obj/*.props"; "obj/*.targets" ]
                    Dependencies = dependencies }
         projectInfo
 

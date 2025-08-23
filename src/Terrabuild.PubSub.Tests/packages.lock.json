@@ -59,6 +59,11 @@
           "System.Text.Json": "6.0.10"
         }
       },
+      "Ignore": {
+        "type": "Transitive",
+        "resolved": "0.2.1",
+        "contentHash": "Qw3s0pTwK3o6Iv6kTMjmxzOt91pczU533OmtAvFRsJ7PdCVMhGCRyUkMsCOI7ejxOtHJdRsj141HeZWeedlqkQ=="
+      },
       "Microsoft.ApplicationInsights": {
         "type": "Transitive",
         "resolved": "2.23.0",
@@ -169,6 +174,7 @@
         "dependencies": {
           "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
+          "Ignore": "[0.2.1, )",
           "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
           "System.Text.Json": "[9.0.0, )"
         }

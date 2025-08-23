@@ -20,8 +20,7 @@ type Terraform() =
     static member __defaults__() =
         let projectInfo = 
             { ProjectInfo.Default
-              with Ignores = Set [ ".terraform/"; "*.tfstate/" ]
-                   Outputs = Set [ "*.planfile" ] }
+              with Outputs = Set [ "*.planfile" ] }
         projectInfo
 
 

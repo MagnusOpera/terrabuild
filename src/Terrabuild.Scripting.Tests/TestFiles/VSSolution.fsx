@@ -26,6 +26,5 @@ let __defaults__ (context: ExtensionContext) =
         |> Seq.choose findProject
 
     { ProjectInfo.Default
-      with Ignores = Set.empty
-           Outputs = Set.empty
+      with Outputs = Set.empty
            Dependencies = Set dependencies }
