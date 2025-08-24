@@ -348,7 +348,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
     let projectId = projectDir |> String.toLower
 
     // get dependencies on files
-    let committedFiles = IO.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
+    let committedFiles = Git.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
     let additionalFiles =
         projectDir
         |> IO.enumerateFilesBut projectDef.Includes (projectDef.Outputs + projectDef.Ignores)

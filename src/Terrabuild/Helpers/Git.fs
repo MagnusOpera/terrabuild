@@ -1,6 +1,7 @@
 module Git
 open Errors
 open System
+open LibGit2Sharp
 
 let getBranchOrTag (dir: string) =
     // https://stackoverflow.com/questions/18659425/get-git-current-branch-tag-name
@@ -29,3 +30,32 @@ let getCommitLog (dir: string) =
         |> Seq.map (fun arr -> {| Sha = arr[0]; Subject = arr[1]; Author = arr[2]; Email = arr[3]; Timestamp = DateTime.Parse(arr[4]) |})
         |> List.ofSeq
     | _ -> raiseExternalError "Failed to get commit log"
+
+let enumeratedCommittedFiles workspaceDir projectDir =
+    use repo = new Repository(workspaceDir |>  Repository.Discover)
+    let repoDir = repo.Info.WorkingDirectory
+    let repoRelativeProject = FS.relativePath repoDir projectDir
+
+    // Empty repo case
+    if isNull repo.Head.Tip then []
+    else
+        let headTree = repo.Head.Tip.Tree
+
+        // Walk the tree recursively
+        let rec collect (tree: Tree) (acc: ResizeArray<string>) =
+            for entry in tree do
+                match entry.TargetType with
+                | TreeEntryTargetType.Blob ->
+                    acc.Add(entry.Path) // Git-relative (POSIX)
+                | TreeEntryTargetType.Tree ->
+                    collect (entry.Target :?> Tree) acc
+                | _ -> ()
+        let acc = ResizeArray<string>()
+        collect headTree acc
+
+        let relProject = $"{repoRelativeProject}/"
+
+        acc
+        |> Seq.filter (fun p -> p.StartsWith(relProject))
+        |> Seq.map (FS.combinePath repoDir)
+        |> Seq.toList

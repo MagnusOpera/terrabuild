@@ -67,6 +67,15 @@
           "System.Text.Json": "6.0.10"
         }
       },
+      "LibGit2Sharp": {
+        "type": "Direct",
+        "requested": "[0.31.0, )",
+        "resolved": "0.31.0",
+        "contentHash": "b3+UfV7LjKMjAHWwl7VawejiOv2gJIC6dTCA/S0puLTHACAA/Oeb5JJmWUQMeyH/T/WR/LaIK8bk2RbdFnrZvg==",
+        "dependencies": {
+          "LibGit2Sharp.NativeBinaries": "[2.0.323]"
+        }
+      },
       "SemanticVersioning": {
         "type": "Direct",
         "requested": "[3.0.0, )",
@@ -216,14 +225,6 @@
         "contentHash": "36b+4G+85WXU3kmbtq9hFSMGCLkn1nLzJoPgNaLUusnjXrC5ndAyS+hl13H6frpLCS3DB1wAmx/1SGYDe0avMw==",
         "dependencies": {
           "FSharp.Core": "4.6.2"
-        }
-      },
-      "LibGit2Sharp": {
-        "type": "Transitive",
-        "resolved": "0.31.0",
-        "contentHash": "b3+UfV7LjKMjAHWwl7VawejiOv2gJIC6dTCA/S0puLTHACAA/Oeb5JJmWUQMeyH/T/WR/LaIK8bk2RbdFnrZvg==",
-        "dependencies": {
-          "LibGit2Sharp.NativeBinaries": "[2.0.323]"
         }
       },
       "LibGit2Sharp.NativeBinaries": {
@@ -1239,7 +1240,6 @@
         "dependencies": {
           "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
-          "LibGit2Sharp": "[0.31.0, )",
           "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
           "System.Text.Json": "[9.0.0, )"
         }

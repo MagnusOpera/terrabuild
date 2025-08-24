@@ -1353,6 +1353,7 @@
           "FSharp.Core": "[9.0.303, )",
           "FSharp.Data": "[6.6.0, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
+          "LibGit2Sharp": "[0.31.0, )",
           "SemanticVersioning": "[3.0.0, )",
           "Sentry": "[5.14.1, )",
           "Serilog.Sinks.File": "[7.0.0, )",
@@ -1370,7 +1371,6 @@
         "dependencies": {
           "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
-          "LibGit2Sharp": "[0.31.0, )",
           "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
           "System.Text.Json": "[9.0.0, )"
         }
