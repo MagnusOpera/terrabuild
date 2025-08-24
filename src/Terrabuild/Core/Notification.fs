@@ -59,7 +59,7 @@ type BuildNotification() =
                 buildComplete.Set() |> ignore
 
             | PrinterProtocol.TaskScheduled (taskId, label) ->
-                renderer.Update taskId label spinnerScheduled frequencyScheduled
+                renderer.Create taskId label spinnerScheduled frequencyScheduled
                 return! messageLoop ()
 
             | PrinterProtocol.TaskStatusChanged (taskId, status) ->
@@ -69,11 +69,11 @@ type BuildNotification() =
                     | TaskStatus.Downloading -> spinnerDownload, frequencyDownload
                     | TaskStatus.Uploading -> spinnerUpload, frequencyUpload
                     | TaskStatus.Building -> spinnerBuilding, frequencyBuilding
-                renderer.Update taskId "" spinner frequency
+                renderer.Update taskId spinner frequency
                 return! messageLoop ()
 
             | PrinterProtocol.TaskCompleted (taskId, restore, success) ->
-                renderer.Complete taskId "" success restore
+                renderer.Complete taskId success restore
                 return! messageLoop ()
 
             | PrinterProtocol.Render ->

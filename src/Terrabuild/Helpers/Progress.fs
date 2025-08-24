@@ -77,12 +77,16 @@ type ProgressRenderer() =
     member _.Refresh () =
         refresh()
 
-    member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =
+    member _.Create (id: string) (label: string) (spinner: string) (frequency: double) =
         let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
         update id label status
 
-    member _.Complete (id: string) (label: string) (success: bool) (restored: bool)=
+    member _.Update (id: string) (spinner: string) (frequency: double) =
+        let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
+        update id "" status
+
+    member _.Complete (id: string) (success: bool) (restored: bool)=
         let status =
             if success then ProgressStatus.Success restored
             else ProgressStatus.Fail restored
-        update id label status
+        update id "" status
