@@ -59,20 +59,22 @@ type ProgressRenderer() =
                 Ansi.endSyncUpdate |> Terminal.write
 
     let update id label status =
-        match items |> List.tryFindIndex (fun item -> item.Id = id) with
-        | Some index ->
-            if label <> "" then failwith "Updating label for existing item is not supported"
-            items[index].Status <- status
-        | _ ->
-            let item = { Id = id; Label = label; Status = status }
-            items <- item :: items
-            printableItem item |> Terminal.writeLine
+        let item =
+            match items |> List.tryFindIndex (fun item -> item.Id = id) with
+            | Some index ->
+                if label <> "" then failwith "Updating label for existing item is not supported"
+                items[index].Status <- status
+                items[index]
+            | _ ->
+                let item = { Id = id; Label = label; Status = status }
+                items <- item :: items
+                item
 
         // FIXME: can't understand why refresh must be invoked here :-(
         //        if not invoked, status of item is sometimes not correctly rendered.
         //        refresh is invoked in a timer so this shall not be required.
         if Terminal.supportAnsi then refresh()
-        else printableItem items[0] |> Terminal.writeLine
+        else printableItem item |> Terminal.writeLine
 
     member _.Refresh () =
         refresh()
