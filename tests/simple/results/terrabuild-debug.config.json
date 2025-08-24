@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "96FA4AB4F4DDA2EB4EF579D3ACA6A135408D9A5EC8CAFE688D77D269493077E1",
+      "hash": "BFA50CC4701C93ED862F3608316CBE8BAE0D569DD18A060C7129A1D4DF7BCFB7",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -44,8 +44,6 @@
         ".terraform.lock.hcl",
         "PROJECT",
         "backend.tf",
-        "terrabuild.tfstate/default/.keep",
-        "terrabuild.tfstate/dev/.keep",
         "test_res.tf",
         "variables.tf"
       ],

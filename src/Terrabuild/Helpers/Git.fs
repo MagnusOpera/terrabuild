@@ -2,6 +2,7 @@ module Git
 open Errors
 open System
 open LibGit2Sharp
+open System.IO
 
 let getBranchOrTag (dir: string) =
     // https://stackoverflow.com/questions/18659425/get-git-current-branch-tag-name
@@ -31,31 +32,37 @@ let getCommitLog (dir: string) =
         |> List.ofSeq
     | _ -> raiseExternalError "Failed to get commit log"
 
-let enumeratedCommittedFiles workspaceDir projectDir =
-    use repo = new Repository(workspaceDir |>  Repository.Discover)
+// workspaceDir: absolute path anywhere inside the repo (ok if it's a nested "workspace")
+// projectDir:   path relative to workspaceDir
+// returns: absolute file paths in the working tree that are NOT ignored by git
+let enumeratedCommittedFiles (workspaceDir: string) (projectDir: string) : string list =
+    use repo = new Repository(workspaceDir |> Repository.Discover)
     let repoDir = repo.Info.WorkingDirectory
-    let repoRelativeProject = FS.relativePath repoDir projectDir
 
-    // Empty repo case
-    if isNull repo.Head.Tip then []
-    else
-        let headTree = repo.Head.Tip.Tree
+    let startDir = FS.combinePath workspaceDir projectDir |> Path.GetFullPath
 
-        // Walk the tree recursively
-        let rec collect (tree: Tree) (acc: ResizeArray<string>) =
-            for entry in tree do
-                match entry.TargetType with
-                | TreeEntryTargetType.Blob ->
-                    acc.Add(entry.Path) // Git-relative (POSIX)
-                | TreeEntryTargetType.Tree ->
-                    collect (entry.Target :?> Tree) acc
-                | _ -> ()
-        let acc = ResizeArray<string>()
-        collect headTree acc
+    let isIgnored (absPath: string) =
+        let rel = FS.relativePath repoDir absPath
+        let relForGit =
+            if Directory.Exists absPath then (if rel.EndsWith "/" then rel else rel + "/") else rel
+        repo.Ignore.IsPathIgnored(relForGit)
 
-        let relProject = $"{repoRelativeProject}/"
+    let results = ResizeArray<string>()
+    let stack = Collections.Generic.Stack<string>()
+    stack.Push(startDir)
 
-        acc
-        |> Seq.filter (fun p -> p.StartsWith(relProject))
-        |> Seq.map (FS.combinePath repoDir)
-        |> Seq.toList
+    while stack.Count > 0 do
+        let dir = stack.Pop()
+
+        if String.Equals(Path.GetFileName(dir), ".git") then
+            () // never descend into .git
+        elif not (isIgnored dir) then
+            // files
+            for f in Directory.EnumerateFiles(dir) do
+                if not (isIgnored f) then
+                    results.Add(Path.GetFullPath f)
+            // subdirs
+            for d in Directory.EnumerateDirectories(dir) do
+                stack.Push d
+
+    results |> Seq.toList
