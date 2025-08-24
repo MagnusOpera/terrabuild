@@ -2,6 +2,7 @@ module Progress
 open System
 open Ansi.Styles
 open Ansi.Emojis
+open Serilog
 
 [<RequireQualifiedAccess>]
 type ProgressStatus =
@@ -31,11 +32,11 @@ type ProgressRenderer() =
     let printableStatus item =
         match item.Status with
         | ProgressStatus.Success restored ->
-            let icon = if restored then clockwise else checkmark            
-            green + " " + icon + reset
+            let icon = if restored then clockwise else checkmark    
+            $"{green} {icon} {reset}"
         | ProgressStatus.Fail restored ->
             let icon = if restored then clockwise else crossmark
-            red + " " + icon + reset
+            $"{red} {icon} {reset}"
         | ProgressStatus.Running (startedAt, spinner, frequency) ->
             let diff = ((DateTime.UtcNow - startedAt).TotalMilliseconds / frequency) |> int
             let offset = diff % spinner.Length
@@ -45,7 +46,7 @@ type ProgressRenderer() =
         let status = printableStatus item
         $"{status} {item.Label}"
 
-    member _.Refresh () =
+    let refresh () =
         if Terminal.supportAnsi then
             // update status: move home, move top, write status
             try
@@ -58,33 +59,30 @@ type ProgressRenderer() =
             finally
                 Ansi.endSyncUpdate |> Terminal.write
 
-    member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =
+    let update id label status =
         match items |> List.tryFindIndex (fun item -> item.Id = id) with
         | Some index ->
-            items[index].Status <- ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
-
-            if Terminal.supportAnsi |> not then
-                printableItem items[index] |> Terminal.writeLine
-
+            if label <> "" then failwith "Updating label for existing item is not supported"
+            items[index].Status <- status
         | _ ->
-            let item = { Id = id; Label = label; Status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency) }
+            let item = { Id = id; Label = label; Status = status }
             items <- item :: items
             printableItem item |> Terminal.writeLine
+
+        // FIXME: can't understand why refresh must be invoked here :-(
+        //        if not invoked, status of item is sometimes not correctly rendered.
+        //        refresh is invoked in a timer so this shall not be required.
+        refresh()
+
+    member _.Refresh () =
+        refresh()
+
+    member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =
+        let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
+        update id label status
 
     member _.Complete (id: string) (label: string) (success: bool) (restored: bool)=
         let status =
             if success then ProgressStatus.Success restored
             else ProgressStatus.Fail restored
-
-        let item =
-            match items |> List.tryFindIndex (fun item -> item.Id = id) with
-            | Some index ->
-                items[index].Status <- status
-                items[index]
-            | _ ->
-                let item = { Id = id; Label = label; Status = status }
-                items <- item :: items
-                item
-
-        if Terminal.supportAnsi |> not then
-            printableItem item |> Terminal.writeLine
+        update id label status

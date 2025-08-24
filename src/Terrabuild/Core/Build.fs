@@ -48,11 +48,11 @@ type IBuildNotification =
     abstract BuildStarted: graph:GraphDef.Graph -> unit
     abstract BuildCompleted: summary:Summary -> unit
 
-    abstract NodeScheduled: node:GraphDef.Node -> unit
-    abstract NodeDownloading: node:GraphDef.Node -> unit
-    abstract NodeBuilding: node:GraphDef.Node -> unit
-    abstract NodeUploading: node:GraphDef.Node -> unit
-    abstract NodeCompleted: node:GraphDef.Node -> restore:bool -> success:bool -> unit
+    abstract TaskScheduled: taskId:string -> label:string -> unit
+    abstract TaskDownloading: taskId:string -> unit
+    abstract TaskBuilding: taskId:string -> unit
+    abstract TaskUploading: taskId:string -> unit
+    abstract TaskCompleted: taskId:string -> restore:bool -> success:bool -> unit
 
 
 let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
@@ -181,7 +181,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 |> List.ofSeq
 
             let execRestore() =
-                notification.NodeDownloading node
+                notification.TaskDownloading node.Id
 
                 let projectDirectory =
                     match node.ProjectDir with
@@ -215,14 +215,17 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match status with
                 | TaskStatus.Success completionDate ->
                     nodeExecSignal.Set completionDate
-                    notification.NodeCompleted node true true
+                    notification.TaskCompleted node.Id true true
                 | _ ->
-                    notification.NodeCompleted node true false
+                    notification.TaskCompleted node.Id true false
+
+            notification.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
             hub.Subscribe $"{node.Id} restore" execDependencies execRestore
 
 
     and buildNode (node: GraphDef.Node) =
         if scheduledNodeExec.TryAdd(node.Id, true) then
+
             let execDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
                     buildOrRestoreNode graph.Nodes[projectId]
@@ -231,7 +234,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let execDependenciesCompleted() =
                 let startedAt = DateTime.UtcNow
-                notification.NodeBuilding node
+                notification.TaskBuilding node.Id
 
                 let projectDirectory =
                     match node.ProjectDir with
@@ -265,7 +268,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                       Cache.TargetSummary.Duration = endedAt - startedAt
                       Cache.TargetSummary.Cache = node.Cache }
 
-                notification.NodeUploading node
+                notification.TaskUploading node.Id
 
                 // create an archive with new files
                 Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
@@ -286,12 +289,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         let nodeStatusSignal = hub.GetSignal<DateTime> $"{node.Id}+status"
                         nodeStatusSignal.Set completionDate
 
-                    notification.NodeCompleted node false true
+                    notification.TaskCompleted node.Id false true
                 | _ ->
-                    notification.NodeCompleted node false false
+                    notification.TaskCompleted node.Id false false
 
-            notification.NodeScheduled node
-            hub.Subscribe $"{node.Id} exec" execDependencies execDependenciesCompleted
+            notification.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+            hub.Subscribe $"{node.Id} build" execDependencies execDependenciesCompleted
 
     and buildOrRestoreNode (node: GraphDef.Node) =
         if node.Idempotent then buildNode node

@@ -1,4 +1,5 @@
 module Notification
+open System.Threading
 
 // https://antofthy.gitlab.io/info/ascii/HeartBeats_howto.txt
 let spinnerScheduled = "⠁⠂⠄⠂"
@@ -15,7 +16,7 @@ let frequencyBuilding = 100.0
 
 
 [<RequireQualifiedAccess>]
-type NodeStatus =
+type TaskStatus =
     | Scheduled
     | Building
     | Downloading
@@ -25,55 +26,58 @@ type NodeStatus =
 type PrinterProtocol =
     | BuildStarted of graph:GraphDef.Graph
     | BuildCompleted of summary:Build.Summary
-    | NodeStatusChanged of node:GraphDef.Node * status:NodeStatus
-    | NodeCompleted of node:GraphDef.Node * restore:bool * success:bool
+    | TaskScheduled of taskId:string * label:string
+    | TaskStatusChanged of taskId:string * status:TaskStatus
+    | TaskCompleted of taskId:string * restore:bool * success:bool
     | Render
 
 type BuildNotification() =
 
-    let buildComplete = new System.Threading.ManualResetEvent(false)
+    let buildComplete = new ManualResetEvent(false)
     let renderer = Progress.ProgressRenderer()
-    let updateTimer = 200
+    let updateTimer = System.TimeSpan.FromMilliseconds(100)
 
     let handler (inbox: MailboxProcessor<PrinterProtocol>) =
 
-        let scheduleUpdate () =
-            System.Threading.Tasks.Task.Delay(updateTimer)
-                  .ContinueWith(fun _ -> PrinterProtocol.Render |> inbox.Post) |> ignore
+        // timer to update display
+        let cts = new CancellationTokenSource()
+        task {
+            use timer = new PeriodicTimer(updateTimer)
+            while! timer.WaitForNextTickAsync(cts.Token) do PrinterProtocol.Render |> inbox.Post
+        } |> Async.AwaitTask |> Async.Start
 
         // the message processing function
         let rec messageLoop () = async {
             let! msg = inbox.Receive()
             match msg with
             | PrinterProtocol.BuildStarted graph -> 
-                scheduleUpdate ()
                 return! messageLoop () 
 
             | PrinterProtocol.BuildCompleted summary ->
-                renderer.Refresh()
+                cts.Cancel()
+                renderer.Refresh ()
                 buildComplete.Set() |> ignore
 
-            | PrinterProtocol.NodeStatusChanged (node, status) ->
-                let spinner, frequency =
-                    match status with
-                    | NodeStatus.Scheduled -> spinnerScheduled, frequencyScheduled
-                    | NodeStatus.Downloading -> spinnerDownload, frequencyDownload
-                    | NodeStatus.Uploading -> spinnerUpload, frequencyUpload
-                    | NodeStatus.Building -> spinnerBuilding, frequencyBuilding
-                let label = $"{node.Target} {node.ProjectDir}"
-                renderer.Update node.TargetHash label spinner frequency
-                scheduleUpdate ()
+            | PrinterProtocol.TaskScheduled (taskId, label) ->
+                renderer.Update taskId label spinnerScheduled frequencyScheduled
                 return! messageLoop ()
 
-            | PrinterProtocol.NodeCompleted (node, restore, success) ->
-                let label = $"{node.Target} {node.ProjectDir}"
-                renderer.Complete node.TargetHash label success restore
-                scheduleUpdate ()
+            | PrinterProtocol.TaskStatusChanged (taskId, status) ->
+                let spinner, frequency =
+                    match status with
+                    | TaskStatus.Scheduled -> spinnerScheduled, frequencyScheduled
+                    | TaskStatus.Downloading -> spinnerDownload, frequencyDownload
+                    | TaskStatus.Uploading -> spinnerUpload, frequencyUpload
+                    | TaskStatus.Building -> spinnerBuilding, frequencyBuilding
+                renderer.Update taskId "" spinner frequency
+                return! messageLoop ()
+
+            | PrinterProtocol.TaskCompleted (taskId, restore, success) ->
+                renderer.Complete taskId "" success restore
                 return! messageLoop ()
 
             | PrinterProtocol.Render ->
                 renderer.Refresh ()
-                scheduleUpdate()
                 return! messageLoop ()
         }
 
@@ -90,26 +94,26 @@ type BuildNotification() =
             PrinterProtocol.BuildStarted graph
             |> printerAgent.Post
 
-        member _.BuildCompleted(summary: Build.Summary) = 
+        member _.BuildCompleted (summary: Build.Summary) = 
             PrinterProtocol.BuildCompleted summary
             |> printerAgent.Post
 
-        member _.NodeScheduled(node: GraphDef.Node) =
-            PrinterProtocol.NodeStatusChanged (node, NodeStatus.Scheduled)
+        member _.TaskScheduled (taskId:string) (label:string) =
+            PrinterProtocol.TaskScheduled (taskId, label)
             |> printerAgent.Post
 
-        member _.NodeDownloading(node: GraphDef.Node) = 
-            PrinterProtocol.NodeStatusChanged (node, NodeStatus.Downloading)
+        member _.TaskDownloading (taskId:string) = 
+            PrinterProtocol.TaskStatusChanged (taskId, TaskStatus.Downloading)
             |> printerAgent.Post
 
-        member _.NodeBuilding(node: GraphDef.Node) = 
-            PrinterProtocol.NodeStatusChanged (node, NodeStatus.Building)
+        member _.TaskBuilding (taskId:string) = 
+            PrinterProtocol.TaskStatusChanged (taskId, TaskStatus.Building)
             |> printerAgent.Post
 
-        member _.NodeUploading(node: GraphDef.Node) = 
-            PrinterProtocol.NodeStatusChanged (node, NodeStatus.Uploading)
+        member _.TaskUploading (taskId:string) = 
+            PrinterProtocol.TaskStatusChanged (taskId, TaskStatus.Uploading)
             |> printerAgent.Post
 
-        member _.NodeCompleted (node: GraphDef.Node) (restore: bool) (success:bool)= 
-            PrinterProtocol.NodeCompleted (node, restore, success)
+        member _.TaskCompleted (taskId:string) (restore: bool) (success:bool)= 
+            PrinterProtocol.TaskCompleted (taskId, restore, success)
             |> printerAgent.Post
