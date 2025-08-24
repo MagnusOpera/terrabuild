@@ -3,7 +3,7 @@ open System.IO
 open Microsoft.Extensions.FileSystemGlobbing
 open Collections
 open System
-open Ignore
+open LibGit2Sharp
 
 let chmod permissions (path: string) =
     File.SetUnixFileMode(path, permissions)
@@ -110,38 +110,33 @@ let createSnapshot outputs projectDirectory =
 
 
 
-let loadIgnoreFile dir =
-    let ignoreAccumulator = Ignore()
-    let rec combineIgnoreFiles dir =
-        if FS.combinePath dir "WORKSPACE" |> exists |> not then
-            match dir |> FS.parentDirectory with
-            | Some dir -> dir |> combineIgnoreFiles
-            | _ -> ()
+let enumeratedCommittedFiles workspaceDir projectDir =
+    let repoDir = Repository.Discover(workspaceDir)
+    use repo = new Repository(repoDir)
 
-        let ignoreFile = FS.combinePath dir ".gitignore"
-        if FS.fileExists ignoreFile then
-            let content = File.ReadAllLines ignoreFile
-            content |> ignoreAccumulator.Add |> ignore
+    // Empty repo case
+    if isNull repo.Head.Tip then []
+    else
+        let headTree = repo.Head.Tip.Tree
 
-    dir |> combineIgnoreFiles
-    ignoreAccumulator
+        // Walk the tree recursively
+        let rec collect (tree: Tree) (acc: ResizeArray<string>) =
+            for entry in tree do
+                match entry.TargetType with
+                | TreeEntryTargetType.Blob ->
+                    acc.Add(entry.Path) // Git-relative (POSIX)
+                | TreeEntryTargetType.Tree ->
+                    collect (entry.Target :?> Tree) acc
+                | _ -> ()
+        let acc = ResizeArray<string>()
+        collect headTree acc
 
-let enumeratedCommittedFiles projectDir =
+        // Build the subdir prefix in Git's POSIX format
+        let relProject = $"{projectDir}/"
 
-    let rec enumeratedCommittedFiles (dirIgnore: Ignore) dir = [
-            // enumerate whitelisted files
-            yield! dir |> enumerateFiles |> List.filter (not << dirIgnore.IsIgnored)
-
-            // enumerate whitelisted directories
-            let dirs = dir |> enumerateDirs |> List.filter (not << dirIgnore.IsIgnored)
-            for subdir in dirs do
-                // update ignore if new .gitignore file discovered
-                let ignoreFile = FS.combinePath dir ".gitignore"
-                let subDirIgnore =
-                    if FS.fileExists ignoreFile then Ignore().Add(dirIgnore.OriginalRules).Add(File.ReadAllLines ignoreFile)
-                    else dirIgnore
-                yield! enumeratedCommittedFiles subDirIgnore subdir
-        ]
-
-    let projectDirIgnore = loadIgnoreFile projectDir
-    enumeratedCommittedFiles projectDirIgnore projectDir
+        acc
+        |> Seq.filter (fun p -> p.StartsWith(relProject))
+        |> Seq.map (fun p ->
+            // Convert back to OS path
+            Path.Combine(workspaceDir, p) |> Path.GetFullPath)
+        |> Seq.toList
