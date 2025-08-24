@@ -343,11 +343,12 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
 
 // this is the final stage: create targets and create the project
-let private finalizeProject projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
+let private finalizeProject workspaceDir projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
+    let startFinalize = DateTime.UtcNow
     let projectId = projectDir |> String.toLower
 
     // get dependencies on files
-    let committedFiles = IO.enumeratedCommittedFiles projectDir |> Set.ofList
+    let committedFiles = Git.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
     let additionalFiles =
         projectDir
         |> IO.enumerateFilesBut projectDef.Includes (projectDef.Outputs + projectDef.Ignores)
@@ -558,6 +559,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
     let projectDependencies = projectDependencies.Keys |> Seq.map String.toLower |> Set.ofSeq
 
+    let endFinalize = DateTime.UtcNow
+    Log.Debug("Finalized project '{ProjectId}' for {Duration}", projectDir, endFinalize - startFinalize)
+
     { Project.Id = projectDef.Id
       Project.Directory = projectDir
       Project.Hash = projectHash
@@ -632,6 +636,7 @@ let read (options: ConfigOptions.Options) =
         let rec loadProject projectDir =
             let projectPathId = projectDir |> String.toLower
             if projectLoading.TryAdd(projectPathId, true) then
+
                 // parallel load of projects
                 hub.Subscribe projectDir [] (fun () ->
                     let loadedProject =
@@ -673,16 +678,14 @@ let read (options: ConfigOptions.Options) =
                                 |> Seq.map (fun projectDependency -> projectDependency.Get<Project>().Directory, projectDependency.Get<Project>())
                                 |> Map.ofSeq
 
-                            let project = finalizeProject projectDir evaluationContext loadedProject dependsOnProjects
+                            let project = finalizeProject options.Workspace projectDir evaluationContext loadedProject dependsOnProjects
                             if projects.TryAdd(projectPathId, project) |> not then raiseBugError "Unexpected error"
 
-                            Log.Debug($"Signaling projectPath '{projectPathId}")
                             let loadedProjectPathIdSignal = hub.GetSignal<Project> projectPathId
                             loadedProjectPathIdSignal.Set(project)
 
                             match loadedProject.Id with
                             | Some projectId ->
-                                Log.Debug($"Signaling projectId '{projectId}")
                                 let loadedProjectIdSignal = hub.GetSignal<Project> $"project.{projectId}"
                                 loadedProjectIdSignal.Set(project)
                             | _ -> ()
@@ -703,6 +706,7 @@ let read (options: ConfigOptions.Options) =
 
         findDependencies true options.Workspace
         let status = hub.WaitCompletion()
+
         match status with
         | Status.Ok ->
             projects |> Map.ofDict

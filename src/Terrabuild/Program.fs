@@ -158,11 +158,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let errCode =
             if options.WhatIf then 0
             else
-                let summary =
-                    let buildNotification = Notification.BuildNotification() :> Build.IBuildNotification            
-                    let summary = Build.run options cache api buildNotification buildGraph
-                    buildNotification.WaitCompletion()
-                    summary
+                let summary = Build.run options cache api buildGraph
 
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary

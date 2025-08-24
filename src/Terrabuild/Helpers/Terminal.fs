@@ -41,12 +41,10 @@ let writeLine (str: string) =
     Console.Out.WriteLine(str)
 
 let hideCursor() =
-    if supportAnsi then
-        Ansi.Styles.cursorHide |> write |> flush
+    if supportAnsi then Ansi.Styles.cursorHide |> write
 
 let showCursor() =
-    if supportAnsi then
-        Ansi.Styles.cursorShow |> write |> flush
+    if supportAnsi then Ansi.Styles.cursorShow |> write
 
 let autoflush() =
     if supportAnsi then
