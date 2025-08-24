@@ -163,11 +163,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let rec restoreNode (node: GraphDef.Node) =
         if scheduledNodeExec.TryAdd(node.Id, true) then
 
-            let execDependencies =
-                node.Dependencies |> Seq.map (fun projectId ->
-                    buildOrRestoreNode graph.Nodes[projectId]
-                    hub.GetSignal<DateTime> $"{projectId}+exec")
-                |> List.ofSeq
+            let execDependencies = []
+                // node.Dependencies |> Seq.map (fun projectId ->
+                //     buildOrRestoreNode graph.Nodes[projectId]
+                //     hub.GetSignal<DateTime> $"{projectId}+exec")
+                // |> List.ofSeq
 
             buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
             hub.Subscribe $"{node.Id} restore" execDependencies (fun () ->
