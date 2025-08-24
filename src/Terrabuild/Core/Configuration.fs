@@ -344,6 +344,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
 // this is the final stage: create targets and create the project
 let private finalizeProject projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
+    let startFinalize = DateTime.UtcNow
     let projectId = projectDir |> String.toLower
 
     // get dependencies on files
@@ -558,6 +559,9 @@ let private finalizeProject projectDir evaluationContext (projectDef: LoadedProj
 
     let projectDependencies = projectDependencies.Keys |> Seq.map String.toLower |> Set.ofSeq
 
+    let endFinalize = DateTime.UtcNow
+    Log.Debug("Finalized project '{ProjectId}' for {Duration}", projectDir, endFinalize - startFinalize)
+
     { Project.Id = projectDef.Id
       Project.Directory = projectDir
       Project.Hash = projectHash
@@ -596,6 +600,9 @@ let read (options: ConfigOptions.Options) =
 
     $"{Ansi.Emojis.eyes} Building graph" |> Terminal.writeLine
 
+    let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
+    buildProgress.BuildStarted()
+
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
         try
@@ -632,7 +639,10 @@ let read (options: ConfigOptions.Options) =
         let rec loadProject projectDir =
             let projectPathId = projectDir |> String.toLower
             if projectLoading.TryAdd(projectPathId, true) then
+
                 // parallel load of projects
+                buildProgress.TaskScheduled projectPathId projectPathId
+
                 hub.Subscribe projectDir [] (fun () ->
                     let loadedProject =
                         try
@@ -666,6 +676,7 @@ let read (options: ConfigOptions.Options) =
 
                     let awaitedSignals = projectPathSignals @ dependsOnSignals
                     hub.Subscribe projectDir awaitedSignals (fun () ->
+                        buildProgress.TaskBuilding projectPathId
                         try
                             // build task & code & notify
                             let dependsOnProjects = 
@@ -676,13 +687,12 @@ let read (options: ConfigOptions.Options) =
                             let project = finalizeProject projectDir evaluationContext loadedProject dependsOnProjects
                             if projects.TryAdd(projectPathId, project) |> not then raiseBugError "Unexpected error"
 
-                            Log.Debug($"Signaling projectPath '{projectPathId}")
                             let loadedProjectPathIdSignal = hub.GetSignal<Project> projectPathId
                             loadedProjectPathIdSignal.Set(project)
+                            buildProgress.TaskCompleted projectPathId false true
 
                             match loadedProject.Id with
                             | Some projectId ->
-                                Log.Debug($"Signaling projectId '{projectId}")
                                 let loadedProjectIdSignal = hub.GetSignal<Project> $"project.{projectId}"
                                 loadedProjectIdSignal.Set(project)
                             | _ -> ()
@@ -703,6 +713,8 @@ let read (options: ConfigOptions.Options) =
 
         findDependencies true options.Workspace
         let status = hub.WaitCompletion()
+        buildProgress.BuildCompleted()
+
         match status with
         | Status.Ok ->
             projects |> Map.ofDict

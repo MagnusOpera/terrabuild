@@ -42,18 +42,6 @@ type Summary = {
 
 
 
-type IBuildNotification =
-    abstract WaitCompletion: unit -> unit
-
-    abstract BuildStarted: graph:GraphDef.Graph -> unit
-    abstract BuildCompleted: summary:Summary -> unit
-
-    abstract TaskScheduled: taskId:string -> label:string -> unit
-    abstract TaskDownloading: taskId:string -> unit
-    abstract TaskBuilding: taskId:string -> unit
-    abstract TaskUploading: taskId:string -> unit
-    abstract TaskCompleted: taskId:string -> restore:bool -> success:bool -> unit
-
 
 let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
 
@@ -152,11 +140,12 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
 
 
-let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (notification: IBuildNotification) (graph: GraphDef.Graph) =
+let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
 
-    notification.BuildStarted graph
+    let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
+    buildProgress.BuildStarted()
     api |> Option.iter (fun api -> api.StartBuild())
 
     let allowRemoteCache = options.LocalOnly |> not
@@ -180,8 +169,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     hub.GetSignal<DateTime> $"{projectId}+exec")
                 |> List.ofSeq
 
-            let execRestore() =
-                notification.TaskDownloading node.Id
+            buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+            hub.Subscribe $"{node.Id} restore" execDependencies (fun () ->
+                buildProgress.TaskDownloading node.Id
 
                 let projectDirectory =
                     match node.ProjectDir with
@@ -215,12 +205,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match status with
                 | TaskStatus.Success completionDate ->
                     nodeExecSignal.Set completionDate
-                    notification.TaskCompleted node.Id true true
+                    buildProgress.TaskCompleted node.Id true true
                 | _ ->
-                    notification.TaskCompleted node.Id true false
+                    buildProgress.TaskCompleted node.Id true false)
 
-            notification.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-            hub.Subscribe $"{node.Id} restore" execDependencies execRestore
 
 
     and buildNode (node: GraphDef.Node) =
@@ -232,9 +220,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     hub.GetSignal<DateTime> $"{projectId}+exec")
                 |> List.ofSeq
 
-            let execDependenciesCompleted() =
+            buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+            hub.Subscribe $"{node.Id} build" execDependencies (fun () ->
                 let startedAt = DateTime.UtcNow
-                notification.TaskBuilding node.Id
+                buildProgress.TaskBuilding node.Id
 
                 let projectDirectory =
                     match node.ProjectDir with
@@ -268,7 +257,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                       Cache.TargetSummary.Duration = endedAt - startedAt
                       Cache.TargetSummary.Cache = node.Cache }
 
-                notification.TaskUploading node.Id
+                buildProgress.TaskUploading node.Id
 
                 // create an archive with new files
                 Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
@@ -289,12 +278,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         let nodeStatusSignal = hub.GetSignal<DateTime> $"{node.Id}+status"
                         nodeStatusSignal.Set completionDate
 
-                    notification.TaskCompleted node.Id false true
+                    buildProgress.TaskCompleted node.Id false true
                 | _ ->
-                    notification.TaskCompleted node.Id false false
-
-            notification.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-            hub.Subscribe $"{node.Id} build" execDependencies execDependenciesCompleted
+                    buildProgress.TaskCompleted node.Id false false)
 
     and buildOrRestoreNode (node: GraphDef.Node) =
         if node.Idempotent then buildNode node
@@ -346,7 +332,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     scheduleNodeStatus projectId
                     hub.GetSignal<DateTime> $"{projectId}+status")
                 |> List.ofSeq
-            let onDependencyCompleted() =
+            hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
                 let nodeStatusSignal = hub.GetSignal<DateTime> $"{nodeId}+status"
 
                 // now decide what to do
@@ -366,14 +352,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     else buildNode node
                 | (TaskRequest.Restore, Some buildDate) ->
                     nodeStatusSignal.Set buildDate
-                | _ -> raiseBugError $"Unexpected compute action: {buildRequest}"
-
-            hub.Subscribe $"{nodeId} status" dependencyStatus onDependencyCompleted
+                | _ -> raiseBugError $"Unexpected compute action: {buildRequest}")
 
     graph.RootNodes |> Seq.iter scheduleNodeStatus
 
 
     let status = hub.WaitCompletion()
+    buildProgress.BuildCompleted()
+
     match status with
     | Status.Ok ->
         Log.Debug("Build successful")
@@ -424,7 +410,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
           Summary.Targets = options.Targets
           Summary.Nodes = nodeStatus }
 
-    notification.BuildCompleted buildInfo
     api |> Option.iter (fun api -> api.CompleteBuild buildInfo.IsSuccess)
 
     buildInfo

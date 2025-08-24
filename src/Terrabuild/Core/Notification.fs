@@ -24,8 +24,8 @@ type TaskStatus =
 
 [<RequireQualifiedAccess>]
 type PrinterProtocol =
-    | BuildStarted of graph:GraphDef.Graph
-    | BuildCompleted of summary:Build.Summary
+    | BuildStarted
+    | BuildCompleted
     | TaskScheduled of taskId:string * label:string
     | TaskStatusChanged of taskId:string * status:TaskStatus
     | TaskCompleted of taskId:string * restore:bool * success:bool
@@ -50,10 +50,10 @@ type BuildNotification() =
         let rec messageLoop () = async {
             let! msg = inbox.Receive()
             match msg with
-            | PrinterProtocol.BuildStarted graph -> 
+            | PrinterProtocol.BuildStarted -> 
                 return! messageLoop () 
 
-            | PrinterProtocol.BuildCompleted summary ->
+            | PrinterProtocol.BuildCompleted ->
                 cts.Cancel()
                 renderer.Refresh ()
                 buildComplete.Set() |> ignore
@@ -86,17 +86,15 @@ type BuildNotification() =
 
     let printerAgent = MailboxProcessor.Start(handler)
 
-    interface Build.IBuildNotification with
-        member _.WaitCompletion(): unit = 
+    interface BuildProgress.IBuildProgress with
+        member _.BuildStarted () =
+            PrinterProtocol.BuildStarted
+            |> printerAgent.Post
+
+        member _.BuildCompleted () = 
+            PrinterProtocol.BuildCompleted
+            |> printerAgent.Post
             buildComplete.WaitOne() |> ignore
-
-        member _.BuildStarted graph =
-            PrinterProtocol.BuildStarted graph
-            |> printerAgent.Post
-
-        member _.BuildCompleted (summary: Build.Summary) = 
-            PrinterProtocol.BuildCompleted summary
-            |> printerAgent.Post
 
         member _.TaskScheduled (taskId:string) (label:string) =
             PrinterProtocol.TaskScheduled (taskId, label)
