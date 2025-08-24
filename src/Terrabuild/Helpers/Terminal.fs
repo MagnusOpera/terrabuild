@@ -49,5 +49,6 @@ let showCursor() =
         Ansi.Styles.cursorShow |> write |> flush
 
 let autoflush() =
-    new IO.StreamWriter(Console.OpenStandardOutput(), AutoFlush = true)
-    |> Console.SetOut
+    if supportAnsi then
+        new IO.StreamWriter(Console.OpenStandardOutput(), AutoFlush = true)
+        |> Console.SetOut

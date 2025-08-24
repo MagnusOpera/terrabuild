@@ -52,7 +52,7 @@ type ProgressRenderer() =
                 Ansi.beginSyncUpdate |> Terminal.write
 
                 for item in items do
-                    $"{Ansi.cursorHome}{Ansi.cursorUp 1}" + (item |> printableStatus) |> Terminal.write
+                    $"{Ansi.cursorHome}{Ansi.cursorUp 1}{item |> printableStatus}" |> Terminal.write
 
                 $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}" |> Terminal.write
             finally
