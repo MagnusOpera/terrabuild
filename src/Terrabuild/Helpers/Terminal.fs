@@ -47,3 +47,8 @@ let hideCursor() =
 let showCursor() =
     if supportAnsi then
         Ansi.Styles.cursorShow |> write |> flush
+
+let autoflush() =
+    if supportAnsi then
+        new IO.StreamWriter(Console.OpenStandardOutput(), AutoFlush = true)
+        |> Console.SetOut

@@ -594,6 +594,8 @@ let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
 
+    $"{Ansi.Emojis.eyes} Building graph" |> Terminal.writeLine
+
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
         try
