@@ -2,7 +2,6 @@ module Progress
 open System
 open Ansi.Styles
 open Ansi.Emojis
-open Serilog
 
 [<RequireQualifiedAccess>]
 type ProgressStatus =
@@ -72,7 +71,8 @@ type ProgressRenderer() =
         // FIXME: can't understand why refresh must be invoked here :-(
         //        if not invoked, status of item is sometimes not correctly rendered.
         //        refresh is invoked in a timer so this shall not be required.
-        refresh()
+        if Terminal.supportAnsi then refresh()
+        else printableItem items[0] |> Terminal.writeLine
 
     member _.Refresh () =
         refresh()
