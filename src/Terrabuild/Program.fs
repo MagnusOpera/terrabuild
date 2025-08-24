@@ -365,6 +365,8 @@ let main _ =
         ) |> ignore
 #endif
 
+    Terminal.autoflush()
+
     let mutable debug = false
     let retCode =
         try

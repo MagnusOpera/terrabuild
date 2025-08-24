@@ -48,11 +48,15 @@ type ProgressRenderer() =
     member _.Refresh () =
         if Terminal.supportAnsi then
             // update status: move home, move top, write status
-            let updateCmd =
-                items
-                |> List.fold (fun acc item -> acc + $"{Ansi.cursorHome}{Ansi.cursorUp 1}" + (item |> printableStatus)) ""
-            let updateCmd = Ansi.beginSyncUpdate + updateCmd + $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}" + Ansi.endSyncUpdate
-            updateCmd |> Terminal.write |> Terminal.flush
+            try
+                Ansi.beginSyncUpdate |> Terminal.write
+
+                for item in items do
+                    $"{Ansi.cursorHome}{Ansi.cursorUp 1}" + (item |> printableStatus) |> Terminal.write
+
+                $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}" |> Terminal.write
+            finally
+                Ansi.endSyncUpdate |> Terminal.write
 
     member _.Update (id: string) (label: string) (spinner: string) (frequency: double) =
         match items |> List.tryFindIndex (fun item -> item.Id = id) with
@@ -60,12 +64,12 @@ type ProgressRenderer() =
             items[index].Status <- ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
 
             if Terminal.supportAnsi |> not then
-                printableItem items[index] |> Terminal.writeLine |> Terminal.flush
+                printableItem items[index] |> Terminal.writeLine
 
         | _ ->
             let item = { Id = id; Label = label; Status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency) }
             items <- item :: items
-            printableItem item |> Terminal.writeLine |> Terminal.flush
+            printableItem item |> Terminal.writeLine
 
     member _.Complete (id: string) (label: string) (success: bool) (restored: bool)=
         let status =
@@ -83,4 +87,4 @@ type ProgressRenderer() =
                 item
 
         if Terminal.supportAnsi |> not then
-            printableItem item |> Terminal.writeLine |> Terminal.flush
+            printableItem item |> Terminal.writeLine
