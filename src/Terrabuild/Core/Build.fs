@@ -151,10 +151,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let allowRemoteCache = options.LocalOnly |> not
     let homeDir = Cache.createHome()
     let tmpDir = Cache.createTmp()
-    let retry = options.Retry
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
-    let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
+    let scheduledNodes = Concurrent.ConcurrentDictionary<string, bool>()
     let scheduledNodeExec = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
@@ -196,10 +195,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     | _ ->
                         TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
                 nodeResults[node.Id] <- (TaskRequest.Restore, status)
-                let nodeExecSignal = hub.GetSignal<DateTime> $"{node.Id}+exec"
+                let nodeSignal = hub.GetSignal<DateTime> node.Id
                 match status with
                 | TaskStatus.Success completionDate ->
-                    nodeExecSignal.Set completionDate
+                    nodeSignal.Set completionDate
                     buildProgress.TaskCompleted node.Id true true
                 | _ ->
                     buildProgress.TaskCompleted node.Id true false)
@@ -216,7 +215,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 else
                     node.Dependencies |> Seq.map (fun projectId ->
                         buildOrRestoreNode graph.Nodes[projectId]
-                        hub.GetSignal<DateTime> $"{projectId}+exec")
+                        hub.GetSignal<DateTime> projectId)
                     |> List.ofSeq
 
             buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
@@ -270,13 +269,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 nodeResults[node.Id] <- (TaskRequest.Build, status)
                 match status with
                 | TaskStatus.Success completionDate ->
-                    let nodeExecSignal = hub.GetSignal<DateTime> $"{node.Id}+exec"
-                    nodeExecSignal.Set completionDate
-
-                    if node.Idempotent |> not then
-                        let nodeStatusSignal = hub.GetSignal<DateTime> $"{node.Id}+status"
-                        nodeStatusSignal.Set completionDate
-
+                    let nodeSignal = hub.GetSignal<DateTime> node.Id
+                    nodeSignal.Set completionDate
                     buildProgress.TaskCompleted node.Id false true
                 | _ ->
                     buildProgress.TaskCompleted node.Id false false)
@@ -285,75 +279,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if node.Idempotent then buildNode node
         else restoreNode node
 
-
-    let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
-        if node.Rebuild then
-            Log.Debug("{NodeId} must rebuild because force requested", node.Id)
-            (TaskRequest.Build, None)
-
-        elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
-            let cacheEntryId = GraphDef.buildCacheKey node
-            match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
-            | Some (_, summary) ->
-                Log.Debug("{NodeId} has existing build summary", node.Id)
-
-                // retry requested and task is failed
-                if retry && (not summary.IsSuccessful) then
-                    Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
-                    (TaskRequest.Build, None)
-
-                // task is older than children
-                elif summary.EndedAt <= maxCompletionChildren then
-                    Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
-                    (TaskRequest.Build, None)
-
-                // task is cached
-                else
-                    Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
-                    (TaskRequest.Restore, Some summary.EndedAt)
-            | _ ->
-                Log.Debug("{NodeId} must be built since no summary and required", node.Id)
-                (TaskRequest.Build, None)
-        else
-            Log.Debug("{NodeId} is not cacheable", node.Id)
-            (TaskRequest.Build, None)
-
-
-    let rec scheduleNodeStatus nodeId =
-        if scheduledNodeStatus.TryAdd(nodeId, true) then
-            nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Failure (DateTime.UtcNow, "computing status"))
+    let rec scheduleNode nodeId =
+        if scheduledNodes.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
+            let nodeSignal = hub.GetSignal<DateTime> nodeId
 
-            // first get the status of dependencies
-            let dependencyStatus =
-                node.Dependencies
-                |> Seq.map (fun projectId ->
-                    scheduleNodeStatus projectId
-                    hub.GetSignal<DateTime> $"{projectId}+status")
-                |> List.ofSeq
-            hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
-                let nodeStatusSignal = hub.GetSignal<DateTime> $"{nodeId}+status"
+            match node.Action with
+            | GraphDef.NodeAction.Ignore -> ()
+            | GraphDef.NodeAction.Build ->
+                if node.Idempotent then nodeSignal.Set DateTime.UtcNow
+                else buildNode node
+            | GraphDef.NodeAction.Restore ->
+                restoreNode node
+                nodeSignal.Set DateTime.UtcNow
 
-                // now decide what to do
-                let maxCompletionChildren =
-                    match dependencyStatus with
-                    | [ ] -> DateTime.MinValue
-                    | _ ->
-                        dependencyStatus
-                        |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
-                        |> (fun dep -> dep.Get<DateTime>())
-                let buildRequest = computeNodeAction node maxCompletionChildren
-                nodeResults[nodeId] <- (TaskRequest.Status, TaskStatus.Success DateTime.UtcNow)
-
-                match buildRequest with
-                | (TaskRequest.Build, _) ->
-                    if node.Idempotent then nodeStatusSignal.Set DateTime.MinValue
-                    else buildNode node
-                | (TaskRequest.Restore, Some buildDate) ->
-                    nodeStatusSignal.Set buildDate
-                | _ -> raiseBugError $"Unexpected compute action: {buildRequest}")
-
-    graph.RootNodes |> Seq.iter scheduleNodeStatus
+    graph.RootNodes |> Seq.iter scheduleNode
 
 
     let status = hub.WaitCompletion()
