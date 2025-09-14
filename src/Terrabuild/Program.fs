@@ -119,7 +119,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage) :> Cache.ICache
 
-        let buildGraph = GraphBuilder.build options config
+        let buildGraph = NodeBuilder.build options config
         if options.Debug then
             buildGraph
             |> Json.Serialize

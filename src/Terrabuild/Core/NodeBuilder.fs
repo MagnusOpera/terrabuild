@@ -1,4 +1,4 @@
-module GraphBuilder
+module NodeBuilder
 open Collections
 open System.Collections.Concurrent
 open Errors
