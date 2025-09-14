@@ -28,7 +28,7 @@
     <Compile Include="Core/Scaffold.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/GraphDef.fs" />
-    <Compile Include="Core/Builder.fs" />
+    <Compile Include="Core/GraphBuilder.fs" />
     <Compile Include="Core/Build.fs" />
     <Compile Include="Core/Mermaid.fs" />
     <Compile Include="Core/Logs.fs" />
