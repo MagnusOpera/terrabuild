@@ -32,10 +32,7 @@
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -104,10 +101,7 @@
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -248,10 +242,7 @@
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -306,10 +297,7 @@
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {

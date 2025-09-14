@@ -164,11 +164,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if scheduledNodeExec.TryAdd(node.Id, true) then
 
             let execDependencies = []
-                // node.Dependencies |> Seq.map (fun projectId ->
-                //     buildOrRestoreNode graph.Nodes[projectId]
-                //     hub.GetSignal<DateTime> $"{projectId}+exec")
-                // |> List.ofSeq
-
             buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
             hub.Subscribe $"{node.Id} restore" execDependencies (fun () ->
                 buildProgress.TaskDownloading node.Id
@@ -215,10 +210,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if scheduledNodeExec.TryAdd(node.Id, true) then
 
             let execDependencies =
-                node.Dependencies |> Seq.map (fun projectId ->
-                    buildOrRestoreNode graph.Nodes[projectId]
-                    hub.GetSignal<DateTime> $"{projectId}+exec")
-                |> List.ofSeq
+                if node.Inline then
+                    Log.Debug("Inlining {NodeId} '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                    []
+                else
+                    node.Dependencies |> Seq.map (fun projectId ->
+                        buildOrRestoreNode graph.Nodes[projectId]
+                        hub.GetSignal<DateTime> $"{projectId}+exec")
+                    |> List.ofSeq
 
             buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
             hub.Subscribe $"{node.Id} build" execDependencies (fun () ->

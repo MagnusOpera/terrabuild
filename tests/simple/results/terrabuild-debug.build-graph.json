@@ -34,6 +34,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "libraries/dotnet-lib:build": {
@@ -44,10 +45,7 @@
       "outputs": [
         "**/*.binlog",
         "bin/",
-        "obj/",
-        "obj/*.json",
-        "obj/*.props",
-        "obj/*.targets"
+        "obj/"
       ],
       "projectHash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
       "targetHash": "11009E6F3A18B513995211FF25A5751974C42ABB40B42698711202E584545668",
@@ -72,6 +70,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "libraries/npm-lib:build": {
@@ -105,6 +104,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "libraries/shell-lib:build": {
@@ -126,6 +126,7 @@
       "cache": "never",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "projects/dotnet-app:build": {
@@ -139,10 +140,7 @@
       "outputs": [
         "**/*.binlog",
         "bin/",
-        "obj/",
-        "obj/*.json",
-        "obj/*.props",
-        "obj/*.targets"
+        "obj/"
       ],
       "projectHash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
       "targetHash": "C7E15B98D6E39C4DADD65464B9EFBA34BF35F26DE6982FFB6B23C0FE871E4AE7",
@@ -167,6 +165,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "projects/make-app:build": {
@@ -198,6 +197,7 @@
       "cache": "never",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "projects/npm-app:build": {
@@ -234,6 +234,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "projects/open-api:build": {
@@ -257,6 +258,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "projects/rust-app:build": {
@@ -283,6 +285,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     },
     "tests/playwright:test": {
@@ -316,6 +319,7 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
+      "inline": false,
       "isLeaf": true
     }
   },

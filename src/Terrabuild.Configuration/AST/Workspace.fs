@@ -15,7 +15,8 @@ type TargetBlock =
     { DependsOn: Set<string> option
       Rebuild: Expr option
       Cache: Expr option
-      Idempotent: Expr option }
+      Idempotent: Expr option
+      Inline: Expr option }
 
 [<RequireQualifiedAccess>]
 type WorkspaceFile =

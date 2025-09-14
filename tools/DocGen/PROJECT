@@ -3,10 +3,8 @@ project {
     @dotnet { }
 }
 
-target install {
-    @dotnet restore { }
-}
-
 target build {
-    @dotnet build { }
+    inline = true
+    @dotnet restore { dependencies = true }
+    @dotnet build { dependencies = true }
 }

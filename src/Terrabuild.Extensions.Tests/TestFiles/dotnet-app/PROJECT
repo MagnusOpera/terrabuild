@@ -18,13 +18,13 @@ project dotnet_app {
 
 target build {
 #    @shell echo { arguments: "Building project"}
-    @dotnet restore { }
-    @dotnet build { }
+    @dotnet restore { dependencies = true }
+    @dotnet build { dependencies = true }
 #    @shell echo { arguments: "Building done"}
 }
 
 target dist {
-    @dotnet restore { }
+    @dotnet restore { dependencies = true }
     @dotnet publish { }
 }
 

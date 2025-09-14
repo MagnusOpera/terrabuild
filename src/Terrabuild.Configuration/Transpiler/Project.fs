@@ -71,7 +71,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"; "idempotent"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"; "idempotent"; "inline"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -86,6 +86,7 @@ let toTarget (block: Block) =
     let rebuild = block |> tryFindAttribute "rebuild"
     let cache = block |> tryFindAttribute "cache"
     let idempotent = block |> tryFindAttribute "idempotent"
+    let ``inline`` = block |> tryFindAttribute "inline"
     let steps =
         block.Blocks
         |> List.map (fun step ->
@@ -112,6 +113,7 @@ let toTarget (block: Block) =
       TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache
       TargetBlock.Idempotent = idempotent
+      TargetBlock.Inline = ``inline``
       TargetBlock.Steps = steps }
 
 

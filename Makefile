@@ -73,7 +73,7 @@ docs:
 	dotnet run --project tools/DocGen -- src/Terrabuild.Extensions/bin/$(config)/net9.0/Terrabuild.Extensions.xml ../terrabuild.io/content/docs/extensions
 
 self: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --debug --log --retry --local-only
+	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --debug --log --retry --local-only -p terrabuild
 
 self-logs:
 	$(PWD)/.out/dotnet/terrabuild logs build test dist --configuration $(config) --debug --log --local-only
