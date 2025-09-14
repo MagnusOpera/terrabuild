@@ -120,6 +120,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage) :> Cache.ICache
 
         let buildGraph = NodeBuilder.build options config
+        let buildGraph = NodeStateEvaluator.evaluate options cache buildGraph
+
         if options.Debug then
             buildGraph
             |> Json.Serialize

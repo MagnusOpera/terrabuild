@@ -154,7 +154,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let node =
                 { Node.Id = nodeId
-  
+
                   Node.ProjectId = projectConfig.Id
                   Node.ProjectDir = projectConfig.Directory
                   Node.Target = target
@@ -163,14 +163,16 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Rebuild = rebuild
                   Node.Idempotent = idempotent
                   Node.Inline = ``inline``
-      
+
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
-      
+
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = hash
-      
-                  Node.IsLeaf = isLeaf }
+
+                  Node.IsLeaf = isLeaf
+
+                  Node.Action = NodeAction.Ignore }
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
   
         if processedNodes.TryAdd(nodeId, true) then processNode()

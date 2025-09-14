@@ -12,6 +12,12 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
+type NodeAction =
+    | Build
+    | Restore
+    | Ignore
+
+[<RequireQualifiedAccess>]
 type Node = {
     Id: string
 
@@ -32,6 +38,8 @@ type Node = {
 
     // tell if a node is leaf (that is no dependencies in same project)
     IsLeaf: bool
+
+    Action: NodeAction
 }
 
 
