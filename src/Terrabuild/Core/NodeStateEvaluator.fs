@@ -12,8 +12,6 @@ open Terrabuild.PubSub
 
 let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let allowRemoteCache = options.LocalOnly |> not
-    let retry = options.Retry
-
     let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction * string>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
@@ -30,7 +28,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
                 // retry requested and task is failed
-                if retry && (not summary.IsSuccessful) then
+                if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MinValue)
 
