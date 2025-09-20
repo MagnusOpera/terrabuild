@@ -130,15 +130,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let opsCmds = ops |> List.map Json.Serialize
 
-            let hashContent = opsCmds @ [
+            let targetContent = opsCmds @ [
                 yield projectConfig.Hash
                 yield targetConfig.Hash
                 yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
             ]
+            let targetHash = targetContent |> Hash.sha256strings
 
-            let hash = hashContent |> Hash.sha256strings
-
-            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {hash}")
+            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {targetHash}")
 
             // cacheability can be overriden by the target
             let cache = targetConfig.Cache |> Option.defaultValue cache
@@ -163,9 +162,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.Cluster = String.Empty
+                  Node.ClusterHash = targetConfig.Hash
                   Node.ProjectHash = projectConfig.Hash
-                  Node.TargetHash = hash
+                  Node.TargetHash = targetHash
 
                   Node.IsLeaf = isLeaf
 

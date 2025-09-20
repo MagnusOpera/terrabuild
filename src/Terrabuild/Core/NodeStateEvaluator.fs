@@ -8,11 +8,9 @@ open Serilog
 open Terrabuild.PubSub
 
 
-
-
 let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let allowRemoteCache = options.LocalOnly |> not
-    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction * string>()
+    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
@@ -49,20 +47,15 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
             (GraphDef.NodeAction.Build, DateTime.MinValue)
 
 
-    let rec scheduleNodeStatus lineage parentTargetHash nodeId =
+    let rec scheduleNodeStatus lineage nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
-
-            // deterministic lineage computation
-            let lineage =
-                if parentTargetHash = Some node.TargetHash then lineage
-                else $"{lineage}/{node.TargetHash}" |> Hash.sha256
 
             // get the status of dependencies
             let dependencyStatus =
                 node.Dependencies
                 |> Seq.map (fun projectId ->
-                    scheduleNodeStatus lineage (Some node.TargetHash) projectId
+                    scheduleNodeStatus (Some node.ClusterHash) projectId
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
@@ -74,15 +67,15 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                 let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
 
                 // only keep action with a side effect
-                match parentTargetHash, buildRequest with
+                match lineage, buildRequest with
                 | _, GraphDef.NodeAction.Ignore
                 | None, GraphDef.NodeAction.Restore -> ()
-                | _ -> nodeResults[nodeId] <- (buildRequest, lineage)
+                | _ -> nodeResults[nodeId] <- buildRequest
 
                 let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
                 nodeStatusSignal.Set buildDate)
 
-    graph.RootNodes |> Seq.iter (scheduleNodeStatus "" None)
+    graph.RootNodes |> Seq.iter (scheduleNodeStatus None)
 
 
     let status = hub.WaitCompletion()
@@ -96,11 +89,8 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
         Log.Fatal(exn, "BuiNodeStateEvaluatorld failed with exception")
 
     let nodes =
-        nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeResult)) ->
-            let (nodeAction, nodeLineage) = nodeResult
-            let node = { acc[nodeId] with
-                            GraphDef.Node.Action = nodeAction
-                            GraphDef.Node.Cluster = nodeLineage }
+        nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeAction)) ->
+            let node = { acc[nodeId] with GraphDef.Node.Action = nodeAction }
             acc |> Map.add nodeId node) graph.Nodes
     let rootNodes =
         graph.RootNodes

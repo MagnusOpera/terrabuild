@@ -29,9 +29,10 @@ type Node = {
     Dependencies: string set
     Outputs: string set
 
-    Cluster: string
+    ClusterHash: string
     ProjectHash: string
     TargetHash: string
+
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
 

@@ -10,7 +10,9 @@
             // self build
             // "args": ["run", "build", "test", "dist", "--parallel", "1", "--debug", "--log", "--retry", "--local-only" ],
             // "args": ["run", "build", "test", "--workspace", "tests/simple", "--parallel", "1", "--debug", "--log" ],
-            "args": ["run", "build", "test", "plan", "apply", "--workspace", "tests/indirect-target", "--parallel", "1", "--debug", "--log" ],
+            // "args": ["run", "build", "test", "plan", "apply", "--workspace", "tests/indirect-target", "--parallel", "1", "--debug", "--log" ],
+
+            "args": ["run", "build", "--workspace", "../../matis/matis-next", "--configuration", "local", "--retry", "--debug", "--local-only", "--force", "--what-if" ],
 
             // "args": ["run", "build", "--workspace", "tests/cluster-layers", "--force", "--debug", "-p", "1", "--whatif" ],
             // "args": ["run", "build", "--workspace", "tests/cluster-layers", "--force", "--debug", "-p", "1", "--whatif" ],

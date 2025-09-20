@@ -120,13 +120,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage) :> Cache.ICache
 
         let buildGraph = NodeBuilder.build options config
+        if options.Debug then buildGraph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
+
         let buildGraph = NodeStateEvaluator.evaluate options cache buildGraph
+        if options.Debug then buildGraph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
+
+        let cluster = ClusterBuilder.computeClusters buildGraph
 
         if options.Debug then
-            buildGraph
-            |> Json.Serialize
-            |> IO.writeTextFile (logFile $"build-graph.json")
-
             let markdown =
                 [
                     "# Configuration"
