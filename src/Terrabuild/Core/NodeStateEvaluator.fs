@@ -75,10 +75,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                 let maxCompletionChildren =
                     match dependencyStatus with
                     | [ ] -> DateTime.MinValue
-                    | _ ->
-                        dependencyStatus
-                        |> Seq.map (fun dep -> dep.Get<DateTime>())
-                        |> Seq.max
+                    | _ -> dependencyStatus |> Seq.map (fun dep -> dep.Get<DateTime>()) |> Seq.max
                 let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
 
                 // only keep action with a side effect
