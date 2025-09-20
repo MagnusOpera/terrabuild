@@ -145,6 +145,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             // no rebuild by default unless force
             let rebuild = targetConfig.Rebuild |> Option.defaultValue options.Force
+            let buildAction =
+                if rebuild then NodeAction.Build
+                else NodeAction.Ignore
 
             let targetOutput = targetConfig.Outputs
 
@@ -156,7 +159,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Target = target
                   Node.Operations = ops
                   Node.Cache = cache
-                  Node.Rebuild = rebuild
 
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
@@ -167,7 +169,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                   Node.IsLeaf = isLeaf
 
-                  Node.Action = NodeAction.Ignore }
+                  Node.Action = buildAction }
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
   
         if processedNodes.TryAdd(nodeId, true) then processNode()

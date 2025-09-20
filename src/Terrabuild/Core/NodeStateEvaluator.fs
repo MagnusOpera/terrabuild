@@ -19,7 +19,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
     let hub = Hub.Create(options.MaxConcurrency)
 
     let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
-        if node.Rebuild then
+        if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} must rebuild because force requested", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MinValue)
 
