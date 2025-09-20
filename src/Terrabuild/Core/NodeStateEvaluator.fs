@@ -18,7 +18,6 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
-
     let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Rebuild then
             Log.Debug("{NodeId} must rebuild because force requested", node.Id)
@@ -56,8 +55,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
         if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
 
-            // determine node generation
-            // note we want deterministic generation computation
+            // determine node generation (must be deterministic)
             let nodeGeneration =
                 match parentTargetHash with
                 | Some parentTargetHash ->
@@ -70,10 +68,10 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                 node.Dependencies
                 |> Seq.map (fun projectId ->
                     scheduleNodeStatus nodeGeneration (Some node.TargetHash) projectId
-                    hub.GetSignal<DateTime> $"{projectId}+status")
+                    hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
-                let nodeStatusSignal = hub.GetSignal<DateTime> $"{nodeId}+status"
+                let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
 
                 // now decide what to do
                 let maxCompletionChildren =
