@@ -107,5 +107,10 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                             GraphDef.Node.Action = nodeAction
                             GraphDef.Node.Lineage = nodeLineage }
             acc |> Map.add nodeId node) graph.Nodes
-    let graph = { graph with Nodes = nodes }
+    let rootNodes =
+        graph.RootNodes
+        |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)
+    let graph =
+        { GraphDef.Graph.Nodes = nodes
+          GraphDef.Graph.RootNodes = rootNodes }
     graph
