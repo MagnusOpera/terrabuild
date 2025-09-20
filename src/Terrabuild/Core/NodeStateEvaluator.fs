@@ -51,23 +51,23 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
             (GraphDef.NodeAction.Build, DateTime.MinValue)
 
 
-    let rec scheduleNodeStatus parentGeneration parentTargetHash nodeId =
+    let rec scheduleNodeStatus parentLineage parentTargetHash nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
 
-            // determine node generation (must be deterministic)
-            let nodeGeneration =
+            // determine node lineage (must be deterministic)
+            let lineage =
                 match parentTargetHash with
                 | Some parentTargetHash ->
-                    if node.TargetHash = parentTargetHash then parentGeneration
+                    if node.TargetHash = parentTargetHash then parentLineage
                     else (parentTargetHash + node.TargetHash) |> Hash.sha256
-                | _ -> parentGeneration
+                | _ -> parentLineage
 
             // get the status of dependencies
             let dependencyStatus =
                 node.Dependencies
                 |> Seq.map (fun projectId ->
-                    scheduleNodeStatus nodeGeneration (Some node.TargetHash) projectId
+                    scheduleNodeStatus lineage (Some node.TargetHash) projectId
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
@@ -82,7 +82,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                 match parentTargetHash, buildRequest with
                 | _, GraphDef.NodeAction.Ignore
                 | None, GraphDef.NodeAction.Restore -> ()
-                | _ -> nodeResults[nodeId] <- (buildRequest, nodeGeneration)
+                | _ -> nodeResults[nodeId] <- (buildRequest, lineage)
 
                 let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
                 nodeStatusSignal.Set buildDate)
@@ -102,10 +102,10 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
 
     let nodes =
         nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeResult)) ->
-            let (nodeAction, nodeGeneration) = nodeResult
+            let (nodeAction, nodeLineage) = nodeResult
             let node = { acc[nodeId] with
                             GraphDef.Node.Action = nodeAction
-                            GraphDef.Node.Generation = nodeGeneration }
+                            GraphDef.Node.Lineage = nodeLineage }
             acc |> Map.add nodeId node) graph.Nodes
     let graph = { graph with Nodes = nodes }
     graph

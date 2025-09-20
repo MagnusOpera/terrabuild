@@ -29,7 +29,7 @@ type Node = {
     Dependencies: string set
     Outputs: string set
 
-    Generation: string
+    Lineage: string
     ProjectHash: string
     TargetHash: string
     Operations: ContaineredShellOperation list
