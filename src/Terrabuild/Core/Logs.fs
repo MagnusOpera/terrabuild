@@ -227,4 +227,5 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             | _ -> DateTime.MaxValue)
         |> List.ofSeq
 
+    $"{Ansi.Emojis.bolt} Logs" |> Terminal.writeLine
     sortedNodes |> logger
