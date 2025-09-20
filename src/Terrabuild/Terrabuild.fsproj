@@ -30,7 +30,6 @@
     <Compile Include="Core/GraphDef.fs" />
     <Compile Include="Core/NodeBuilder.fs" />
     <Compile Include="Core/NodeStateEvaluator.fs" />
-    <Compile Include="Core/ClusterBuilder.fs" />
     <Compile Include="Core/Build.fs" />
     <Compile Include="Core/Mermaid.fs" />
     <Compile Include="Core/Logs.fs" />

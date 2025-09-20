@@ -157,6 +157,16 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let hub = Hub.Create(options.MaxConcurrency)
 
 
+    // compute clusters
+    let clusters =
+        graph.Nodes
+        |> Seq.groupBy (fun (KeyValue(_, node)) -> node.Lineage)
+        |> Map.ofSeq
+        |> Map.map (fun _ v -> v |> List.ofSeq)
+        |> Map.filter (fun _ v -> v |> List.length > 1)
+
+
+
     let rec restoreNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 

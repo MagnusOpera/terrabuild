@@ -19,7 +19,6 @@
         }
       ],
       "cache": "never",
-      "rebuild": true,
       "isLeaf": true,
       "action": "build"
     },
@@ -44,7 +43,6 @@
         }
       ],
       "cache": "never",
-      "rebuild": true,
       "isLeaf": false,
       "action": "build"
     },
@@ -67,7 +65,6 @@
         }
       ],
       "cache": "never",
-      "rebuild": false,
       "isLeaf": true,
       "action": "build"
     },
@@ -90,7 +87,6 @@
         }
       ],
       "cache": "never",
-      "rebuild": true,
       "isLeaf": true,
       "action": "build"
     }
