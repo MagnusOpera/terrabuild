@@ -254,8 +254,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     and scheduleNode (node: GraphDef.Node) =
         if scheduledNodes.TryAdd(node.Id, true) then
-            buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-
             let schedDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
                     scheduleNode graph.Nodes[projectId]
@@ -263,6 +261,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 |> List.ofSeq
 
             hub.Subscribe node.Id schedDependencies (fun () ->
+                buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
                 match node.Action with
                 | GraphDef.NodeAction.Build -> buildNode node
                 | GraphDef.NodeAction.Restore -> restoreNode node
