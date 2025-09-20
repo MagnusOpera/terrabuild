@@ -4,7 +4,6 @@ project {
 }
 
 target build {
-    inline = true
     @dotnet restore { dependencies = true }
     @dotnet build { dependencies = true }
 }

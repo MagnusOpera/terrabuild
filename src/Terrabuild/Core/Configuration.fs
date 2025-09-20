@@ -32,7 +32,6 @@ type Target = {
     Outputs: string set
     Cache: Cacheability option
     Idempotent: bool option
-    Inline: bool option
     Operations: TargetOperation list
 }
 
@@ -300,13 +299,11 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
             let idempotent = targetBlock.Idempotent |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Idempotent)
-            let ``inline`` = targetBlock.Inline |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Inline)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
                 Cache = cache
-                Idempotent = idempotent
-                Inline = ``inline`` })
+                Idempotent = idempotent })
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
@@ -540,9 +537,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             let targetIdempotent =
                 target.Idempotent
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-            let targetInline =
-                target.Inline
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -555,7 +549,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Idempotent = targetIdempotent
-                  Target.Inline = targetInline
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

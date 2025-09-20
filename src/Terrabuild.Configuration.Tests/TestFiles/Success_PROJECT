@@ -34,11 +34,11 @@ target build {
   depends_on = [ target.dist ]
   idempotent = true
 
-  @dotnet build { dependencies = true }
+  @dotnet build { }
 }
 
 target dist {
-  @dotnet build { dependencies = true }
+  @dotnet build { }
   @dotnet publish { }
 }
 

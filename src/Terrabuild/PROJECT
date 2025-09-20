@@ -7,7 +7,6 @@ project terrabuild {
 }
 
 target build {
-    inline = true
     @dotnet restore { dependencies = true }
     @dotnet build { version = terrabuild.tag }
 }

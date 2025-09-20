@@ -49,7 +49,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"; "idempotent"; "inline"]
+    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"; "idempotent"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -64,12 +64,10 @@ let toTarget (block: Block) =
     let rebuild = block |> tryFindAttribute "rebuild"
     let cache = block |> tryFindAttribute "cache"
     let idempotent = block |> tryFindAttribute "idempotent"
-    let ``inline`` = block |> tryFindAttribute "inline"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache
-      TargetBlock.Idempotent = idempotent
-      TargetBlock.Inline = ``inline`` }
+      TargetBlock.Idempotent = idempotent }
 
     
 let toVariable (block: Block) =

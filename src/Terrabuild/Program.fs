@@ -121,6 +121,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let buildGraph = NodeBuilder.build options config
         let buildGraph = NodeStateEvaluator.evaluate options cache buildGraph
+        let buildGraph = ClusterBuilder.build options buildGraph
 
         if options.Debug then
             buildGraph

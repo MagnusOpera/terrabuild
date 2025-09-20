@@ -12,5 +12,5 @@ extension @dotnet {
 target build {
   rebuild = true
   outputs = [ "${ local.wildcard }.dll" ]
-  @dotnet build { dependencies = true }
+  @dotnet build { }
 }
