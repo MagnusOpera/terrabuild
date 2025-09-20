@@ -81,10 +81,9 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                         |> (fun dep -> dep.Get<DateTime>())
                 let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
 
-                // only keep status if not root node
-                // if root node only keep build request
+                // only keep action with a side effect
                 match parentTargetHash, buildRequest with
-                | None, GraphDef.NodeAction.Ignore
+                | _, GraphDef.NodeAction.Ignore
                 | None, GraphDef.NodeAction.Restore -> ()
                 | _ -> nodeResults[nodeId] <- (buildRequest, nodeGeneration)
 
