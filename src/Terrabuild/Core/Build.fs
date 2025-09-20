@@ -319,7 +319,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         graph.Nodes
         |> Map.choose getDependencyStatus
 
-    let upToDate = 
+    let upToDate =
         graph.RootNodes |> Set.forall (fun nodeId ->
             match nodeStatus |> Map.tryFind nodeId with
             | Some info -> info.Request.IsStatus
