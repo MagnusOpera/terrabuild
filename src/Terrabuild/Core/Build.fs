@@ -272,7 +272,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     buildProgress.TaskCompleted node.Id false false)
 
     and buildOrRestoreNode (node: GraphDef.Node) =
-        if node.Idempotent then buildNode node
+        if node.Action = GraphDef.NodeAction.Build then buildNode node
         else restoreNode node
 
     let rec scheduleNode nodeId =

@@ -87,7 +87,7 @@ type ProgressRenderer() =
         let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
         update id "" status
 
-    member _.Complete (id: string) (success: bool) (restored: bool)=
+    member _.Complete (id: string) (restored: bool) (success: bool) =
         let status =
             if success then ProgressStatus.Success restored
             else ProgressStatus.Fail restored

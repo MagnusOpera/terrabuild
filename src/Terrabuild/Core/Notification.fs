@@ -73,7 +73,7 @@ type BuildNotification() =
                 return! messageLoop ()
 
             | PrinterProtocol.TaskCompleted (taskId, restore, success) ->
-                renderer.Complete taskId success restore
+                renderer.Complete taskId restore success
                 return! messageLoop ()
 
             | PrinterProtocol.Render ->

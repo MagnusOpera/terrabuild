@@ -10,12 +10,12 @@
             // self build
             // "args": ["run", "build", "test", "dist", "--parallel", "1", "--debug", "--log", "--retry", "--local-only" ],
             // "args": ["run", "build", "test", "--workspace", "tests/simple", "--parallel", "1", "--debug", "--log" ],
-            // "args": ["run", "build", "test", "plan", "apply", "--workspace", "tests/indirect-target", "--parallel", "1", "--debug", "--log" ],
-          
+            "args": ["run", "build", "test", "plan", "apply", "--workspace", "tests/indirect-target", "--parallel", "1", "--debug", "--log" ],
+
             // "args": ["run", "build", "--workspace", "tests/cluster-layers", "--force", "--debug", "-p", "1", "--whatif" ],
             // "args": ["run", "build", "--workspace", "tests/cluster-layers", "--force", "--debug", "-p", "1", "--whatif" ],
             // "args": ["run", "plan", "dist", "build", "test", "--workspace", "../insights", "--log", "-c", "dev", "--debug", "-p", "1", "--whatif" ],
-            "args": ["run", "build", "test", "dist", "--log", "--debug", "--parallel", "1", "--retry", "--local-only", "-p", "terrabuild" ],
+            // "args": ["run", "build", "test", "dist", "--log", "--debug", "--parallel", "1", "--retry", "--local-only", "-p", "terrabuild" ],
             // "args": [ "run", "build", "-w", "tests/basic", "--whatif", "-p", "1" ],
             // "args": ["run", "build", "-w", "tests/simple", "--debug", "-p", "1", "--force" ],
             // "cwd": "${workspaceFolder}/tests/indirect-target",
