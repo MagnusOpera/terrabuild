@@ -1,5 +1,6 @@
 module GraphDef
 open Collections
+open System
 
 [<RequireQualifiedAccess>]
 type ContaineredShellOperation = {
@@ -28,6 +29,7 @@ type Node = {
     Dependencies: string set
     Outputs: string set
 
+    Generation: string
     ProjectHash: string
     TargetHash: string
     Operations: ContaineredShellOperation list

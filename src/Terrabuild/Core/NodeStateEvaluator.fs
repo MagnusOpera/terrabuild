@@ -14,7 +14,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
     let allowRemoteCache = options.LocalOnly |> not
     let retry = options.Retry
 
-    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction>()
+    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction * string>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
@@ -52,15 +52,24 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
             (GraphDef.NodeAction.Build, DateTime.MinValue)
 
 
-    let rec scheduleNodeStatus nodeId =
+    let rec scheduleNodeStatus parentGeneration parentTargetHash nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
 
-            // first get the status of dependencies
+            // determine node generation
+            // note we want deterministic generation computation
+            let nodeGeneration =
+                match parentTargetHash with
+                | Some parentTargetHash ->
+                    if node.TargetHash = parentTargetHash then parentGeneration
+                    else (parentTargetHash + node.TargetHash) |> Hash.sha256
+                | _ -> parentGeneration
+
+            // get the status of dependencies
             let dependencyStatus =
                 node.Dependencies
                 |> Seq.map (fun projectId ->
-                    scheduleNodeStatus projectId
+                    scheduleNodeStatus nodeGeneration (Some node.TargetHash) projectId
                     hub.GetSignal<DateTime> $"{projectId}+status")
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
@@ -75,10 +84,10 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                         |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
                         |> (fun dep -> dep.Get<DateTime>())
                 let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
-                nodeResults[nodeId] <- buildRequest
+                nodeResults[nodeId] <- (buildRequest, nodeGeneration)
                 nodeStatusSignal.Set buildDate)
 
-    graph.RootNodes |> Seq.iter scheduleNodeStatus
+    graph.RootNodes |> Seq.iter (scheduleNodeStatus "" None)
 
 
     let status = hub.WaitCompletion()
@@ -92,8 +101,12 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
         Log.Fatal(exn, "BuiNodeStateEvaluatorld failed with exception")
 
     let nodes =
-        nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeAction)) ->
-            let node = { acc[nodeId] with GraphDef.Node.Action = nodeAction }
+        nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeResult)) ->
+            let (nodeAction, nodeGeneration) = nodeResult
+            let node = { acc[nodeId]
+                         with
+                            GraphDef.Node.Action = nodeAction
+                            GraphDef.Node.Generation = nodeGeneration }
             acc |> Map.add nodeId node) graph.Nodes
     let graph = { graph with Nodes = nodes }
     graph

@@ -10,8 +10,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
-      "targetHash": "C04723BA50DCC3AEB68B926F5350EB6897ACA38F975BB61CC8D2866299CA6D6E",
+      "generation": "04E6EC076D88159BCD263F5BF2FAC305AC268F7838A28C0B37651B05C03AC032",
+      "projectHash": "F6E5B2280231C394E01CDCF68C6807C42B00C2574D6FD203F030E1F5F4821135",
+      "targetHash": "5476D78BC33396DC2B11D8A9285D37C211A8782FBD399D0D1B49DAA688636183",
       "operations": [
         {
           "containerVariables": [],
@@ -24,21 +25,21 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies --locked-mode"
+          "arguments": "restore --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug"
         }
       ],
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "b:build": {
       "id": "b:build",
@@ -50,8 +51,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
-      "targetHash": "8EE4B3EAEC8A3CA228D17D37FE7E9E5CF657DF7D8AC5999D81FA7D5BEC721265",
+      "generation": "54E4773B0E7D2CF47AC5EFF729250AB31A4B391749FA050C721C0B42CB50065A",
+      "projectHash": "F5ACA68B6762061FC8CDA961580F1662C5D7B829E7FAD04EE08D861CC78CCCC7",
+      "targetHash": "207C80837A5C311C6D6D4EE12123C3F4292DDAB5A5534EA303B053F4AE8E15D6",
       "operations": [
         {
           "containerVariables": [],
@@ -64,21 +66,21 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies --locked-mode"
+          "arguments": "restore --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug"
         }
       ],
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "c:build": {
       "id": "c:build",
@@ -91,8 +93,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
-      "targetHash": "9FC6764B67CC4B3CD576E90F1A8319E6C70EB8C3849A3DF56F8A9ADBC58A4798",
+      "generation": "66E1AFC6DF68BA755B06AAA9994626A8A0710061F37A9C0E015DDD747419ADB4",
+      "projectHash": "983E5702E5A405D587746A5E0A1A747F0254148687F7B792678138950FBD40B0",
+      "targetHash": "7F7E0D53002E1EA8DB3FC73DCB1A20AE7F08E0C10E72BFC021C545BDE8EF1BAB",
       "operations": [
         {
           "containerVariables": [],
@@ -118,8 +121,8 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "d:build": {
       "id": "d:build",
@@ -133,29 +136,30 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
-      "targetHash": "75AB679992BEE76083F864ACF98441418E08FDAC060E88C2E0F085947AF94DB1",
+      "generation": "61E4B194C63BBD47BBB43DC54CF9C8AAC1A5B0397BD3B4D8CE47DB9E4765F27A",
+      "projectHash": "A1E173E73E80B5C76A870D40B67CBB80EA1E5FF5B0B9CEB9BCBAB86990DFAB32",
+      "targetHash": "BB17A704F501217FBBCDDB87AA608DDA357D8AAA93D1C3CEA0587458BCD2E084",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies --locked-mode"
+          "arguments": "restore --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug"
         }
       ],
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "e:build": {
       "id": "e:build",
@@ -169,29 +173,30 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
-      "targetHash": "2EB6929872F7727FD76F64B85186DCF36E7502E7EB5ABFE650543CA118C48332",
+      "generation": "BA45F1A418024D0E713315B9907A0821DAEC6682CA3FCAEB43E0FEF7C8EF892E",
+      "projectHash": "E4D6DA14FDBD0554DCCAF4B729ED73E5DF25AD1227377199E60C1AF12C9B6F61",
+      "targetHash": "58A52B442109A266891CA42A519D489E45F855282B817B3A93422530D7D8D59B",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --no-dependencies --locked-mode"
+          "arguments": "restore --locked-mode"
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug"
         }
       ],
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "f:build": {
       "id": "f:build",
@@ -204,8 +209,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
-      "targetHash": "E30E771C983B37C5CB7D95C0543E700C3853662AA92AE12303DA82F46AA4F8D2",
+      "generation": "",
+      "projectHash": "668540BD9144F23A05E200C7F087B3DE20E252D001A2FD87040249521322A14D",
+      "targetHash": "5E493451CEAB753086D05637308E03891BC60FF8A92B05E813DEAE44DD17D5E6",
       "operations": [
         {
           "container": "node:20",
@@ -225,8 +231,8 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     },
     "g:build": {
       "id": "g:build",
@@ -238,8 +244,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
-      "targetHash": "2946F3C770999BD48586AA29C02767E23DFF0008C1485BAE43C09480C78BDE14",
+      "generation": "",
+      "projectHash": "A2F0AE9082B09EE08C2DD187FD78E7491EA0F9C44E0C5D9D4E4FC9EA9801B723",
+      "targetHash": "1BF89E16A7F73B8E7041066B0C937BA682E3DB3748351429AA9865600ADF6379",
       "operations": [
         {
           "container": "node:20",
@@ -259,8 +266,8 @@
       "cache": "local",
       "rebuild": true,
       "idempotent": false,
-      "inline": false,
-      "isLeaf": true
+      "isLeaf": true,
+      "action": "build"
     }
   },
   "rootNodes": [

@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "BFA50CC4701C93ED862F3608316CBE8BAE0D569DD18A060C7129A1D4DF7BCFB7",
+      "hash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -91,7 +91,7 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771"
+                        "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7"
                       ],
                       "npm_app_version": [
                         "string",
@@ -165,7 +165,7 @@
     },
     "libraries/dotnet-lib": {
       "directory": "libraries/dotnet-lib",
-      "hash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
+      "hash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "dependencies": [],
       "files": [
         "Class1.cs",
@@ -198,6 +198,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -327,7 +331,7 @@
     "projects/dotnet-app": {
       "id": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
+      "hash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
       "dependencies": [
         "libraries/dotnet-lib"
       ],
@@ -364,6 +368,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -382,6 +390,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -413,6 +425,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
