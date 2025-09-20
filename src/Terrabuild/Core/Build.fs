@@ -160,7 +160,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // compute clusters
     let clusters =
         graph.Nodes
-        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.Lineage, nodeId)
+        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.Cluster, nodeId)
         |> Seq.groupBy fst
         |> Seq.map (fun (lineage, nodeIds) -> lineage, nodeIds |> Seq.map snd |> List.ofSeq)
         |> Map.ofSeq
@@ -266,8 +266,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id false false
 
     and scheduleNode (node: GraphDef.Node) =
-        if scheduledClusters.TryAdd(node.Lineage, true) then
-            for nodeId in clusters[node.Lineage] do
+        if scheduledClusters.TryAdd(node.Cluster, true) then
+            for nodeId in clusters[node.Cluster] do
                 let node = graph.Nodes[nodeId]
                 let schedDependencies =
                     node.Dependencies |> Seq.map (fun projectId ->

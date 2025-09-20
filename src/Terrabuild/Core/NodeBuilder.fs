@@ -163,7 +163,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.Lineage = String.Empty
+                  Node.Cluster = String.Empty
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = hash
 

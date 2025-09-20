@@ -49,17 +49,14 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
             (GraphDef.NodeAction.Build, DateTime.MinValue)
 
 
-    let rec scheduleNodeStatus parentLineage parentTargetHash nodeId =
+    let rec scheduleNodeStatus lineage parentTargetHash nodeId =
         if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
 
-            // determine node lineage (must be deterministic)
+            // deterministic lineage computation
             let lineage =
-                match parentTargetHash with
-                | Some parentTargetHash ->
-                    if node.TargetHash = parentTargetHash then parentLineage
-                    else (parentTargetHash + node.TargetHash) |> Hash.sha256
-                | _ -> parentLineage
+                if parentTargetHash = Some node.TargetHash then lineage
+                else $"{lineage}/{node.TargetHash}" |> Hash.sha256
 
             // get the status of dependencies
             let dependencyStatus =
@@ -103,7 +100,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
             let (nodeAction, nodeLineage) = nodeResult
             let node = { acc[nodeId] with
                             GraphDef.Node.Action = nodeAction
-                            GraphDef.Node.Lineage = nodeLineage }
+                            GraphDef.Node.Cluster = nodeLineage }
             acc |> Map.add nodeId node) graph.Nodes
     let rootNodes =
         graph.RootNodes
