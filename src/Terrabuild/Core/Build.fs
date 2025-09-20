@@ -158,117 +158,115 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
 
     let rec restoreNode (node: GraphDef.Node) =
-        let execDependencies = []
-        buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-        hub.Subscribe $"{node.Id} restore" execDependencies (fun () ->
-            buildProgress.TaskDownloading node.Id
+        buildProgress.TaskDownloading node.Id
 
-            let projectDirectory =
-                match node.ProjectDir with
-                | FS.Directory projectDirectory -> projectDirectory
-                | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
-                | _ -> "."
+        let projectDirectory =
+            match node.ProjectDir with
+            | FS.Directory projectDirectory -> projectDirectory
+            | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
+            | _ -> "."
 
-            let cacheEntryId = GraphDef.buildCacheKey node
-            let status =
-                match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
-                | Some (_, summary) ->
-                    match cache.TryGetSummary allowRemoteCache cacheEntryId with
-                    | Some summary ->
-                        Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
-                        match summary.Outputs with
-                        | Some outputs ->
-                            let files = IO.enumerateFiles outputs
-                            IO.copyFiles projectDirectory outputs files |> ignore
-                            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                        | _ -> ()
-                    | _ ->
-                        raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
-
-                    match summary.IsSuccessful with
-                    | true -> TaskStatus.Success summary.EndedAt
-                    | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
+        let cacheEntryId = GraphDef.buildCacheKey node
+        let status =
+            match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
+            | Some (_, summary) ->
+                match cache.TryGetSummary allowRemoteCache cacheEntryId with
+                | Some summary ->
+                    Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                    match summary.Outputs with
+                    | Some outputs ->
+                        let files = IO.enumerateFiles outputs
+                        IO.copyFiles projectDirectory outputs files |> ignore
+                        api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                    | _ -> ()
                 | _ ->
-                    TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
-            nodeResults[node.Id] <- (TaskRequest.Restore, status)
-            match status with
-            | TaskStatus.Success completionDate ->
-                let nodeSignal = hub.GetSignal<DateTime> node.Id
-                nodeSignal.Set completionDate
-                buildProgress.TaskCompleted node.Id true true
+                    raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
+
+                match summary.IsSuccessful with
+                | true -> TaskStatus.Success summary.EndedAt
+                | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
             | _ ->
-                buildProgress.TaskCompleted node.Id true false)
+                TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
+        nodeResults[node.Id] <- (TaskRequest.Restore, status)
+        match status with
+        | TaskStatus.Success completionDate ->
+            let nodeSignal = hub.GetSignal<DateTime> node.Id
+            nodeSignal.Set completionDate
+            buildProgress.TaskCompleted node.Id true true
+        | _ ->
+            buildProgress.TaskCompleted node.Id true false
 
     and buildNode (node: GraphDef.Node) =
-        let execDependencies =
-            node.Dependencies |> Seq.map (fun projectId ->
-                scheduleNode graph.Nodes[projectId]
-                hub.GetSignal<DateTime> projectId)
-            |> List.ofSeq
+        let startedAt = DateTime.UtcNow
+        buildProgress.TaskBuilding node.Id
 
-        buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-        hub.Subscribe $"{node.Id} build" execDependencies (fun () ->
-            let startedAt = DateTime.UtcNow
-            buildProgress.TaskBuilding node.Id
+        let projectDirectory =
+            match node.ProjectDir with
+            | FS.Directory projectDirectory -> projectDirectory
+            | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
+            | _ -> "."
 
-            let projectDirectory =
-                match node.ProjectDir with
-                | FS.Directory projectDirectory -> projectDirectory
-                | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
-                | _ -> "."
+        let beforeFiles =
+            if node.IsLeaf then IO.Snapshot.Empty
+            else IO.createSnapshot node.Outputs projectDirectory
 
-            let beforeFiles =
-                if node.IsLeaf then IO.Snapshot.Empty
-                else IO.createSnapshot node.Outputs projectDirectory
+        let cacheEntryId = GraphDef.buildCacheKey node
+        let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
+        let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory homeDir tmpDir
 
-            let cacheEntryId = GraphDef.buildCacheKey node
-            let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
-            let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory homeDir tmpDir
+        // keep only new or modified files
+        let afterFiles = IO.createSnapshot node.Outputs projectDirectory
+        let newFiles = afterFiles - beforeFiles
+        let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
 
-            // keep only new or modified files
-            let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-            let newFiles = afterFiles - beforeFiles
-            let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+        let successful = lastStatusCode = 0
+        let endedAt = DateTime.UtcNow
+        let summary =
+            { Cache.TargetSummary.Project = node.ProjectDir
+              Cache.TargetSummary.Target = node.Target
+              Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
+              Cache.TargetSummary.Outputs = outputs
+              Cache.TargetSummary.IsSuccessful = successful
+              Cache.TargetSummary.StartedAt = startedAt
+              Cache.TargetSummary.EndedAt = endedAt
+              Cache.TargetSummary.Duration = endedAt - startedAt
+              Cache.TargetSummary.Cache = node.Cache }
 
-            let successful = lastStatusCode = 0
-            let endedAt = DateTime.UtcNow
-            let summary =
-                { Cache.TargetSummary.Project = node.ProjectDir
-                  Cache.TargetSummary.Target = node.Target
-                  Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
-                  Cache.TargetSummary.Outputs = outputs
-                  Cache.TargetSummary.IsSuccessful = successful
-                  Cache.TargetSummary.StartedAt = startedAt
-                  Cache.TargetSummary.EndedAt = endedAt
-                  Cache.TargetSummary.Duration = endedAt - startedAt
-                  Cache.TargetSummary.Cache = node.Cache }
+        buildProgress.TaskUploading node.Id
 
-            buildProgress.TaskUploading node.Id
+        // create an archive with new files
+        Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+        let files = cacheEntry.Complete summary
+        api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
-            // create an archive with new files
-            Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
-            let files = cacheEntry.Complete summary
-            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
-
-            let status =
-                match lastStatusCode with
-                | 0 -> TaskStatus.Success endedAt
-                | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
-            nodeResults[node.Id] <- (TaskRequest.Build, status)
-            match status with
-            | TaskStatus.Success completionDate ->
-                let nodeSignal = hub.GetSignal<DateTime> node.Id
-                nodeSignal.Set completionDate
-                buildProgress.TaskCompleted node.Id false true
-            | _ ->
-                buildProgress.TaskCompleted node.Id false false)
+        let status =
+            match lastStatusCode with
+            | 0 -> TaskStatus.Success endedAt
+            | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
+        nodeResults[node.Id] <- (TaskRequest.Build, status)
+        match status with
+        | TaskStatus.Success completionDate ->
+            let nodeSignal = hub.GetSignal<DateTime> node.Id
+            nodeSignal.Set completionDate
+            buildProgress.TaskCompleted node.Id false true
+        | _ ->
+            buildProgress.TaskCompleted node.Id false false
 
     and scheduleNode (node: GraphDef.Node) =
         if scheduledNodes.TryAdd(node.Id, true) then
-            match node.Action with
-            | GraphDef.NodeAction.Build -> buildNode node
-            | GraphDef.NodeAction.Restore -> restoreNode node
-            | GraphDef.NodeAction.Ignore -> ()
+            buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+
+            let schedDependencies =
+                node.Dependencies |> Seq.map (fun projectId ->
+                    scheduleNode graph.Nodes[projectId]
+                    hub.GetSignal<DateTime> projectId)
+                |> List.ofSeq
+
+            hub.Subscribe node.Id schedDependencies (fun () ->
+                match node.Action with
+                | GraphDef.NodeAction.Build -> buildNode node
+                | GraphDef.NodeAction.Restore -> restoreNode node
+                | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)
     graph.RootNodes

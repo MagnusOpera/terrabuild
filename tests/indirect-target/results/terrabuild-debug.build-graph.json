@@ -7,7 +7,7 @@
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "generation": "",
+      "lineage": "",
       "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
       "targetHash": "FCDF7168FA7FCA5DA8B8CF13E5334080A9C811ADBCFC55266CC50FAE3B700D5E",
       "operations": [
@@ -32,7 +32,7 @@
         "b:plan"
       ],
       "outputs": [],
-      "generation": "",
+      "lineage": "",
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
       "targetHash": "4C1DC6E6563A97E0B27E8752BB0AD2812BF57E870EB0E867E66720CC60477C86",
       "operations": [
@@ -55,7 +55,7 @@
       "target": "plan",
       "dependencies": [],
       "outputs": [],
-      "generation": "C1A955F69EE646699992AC9A7BB1B17CE57A1517A140B8A349B90FD912C7E991",
+      "lineage": "C1A955F69EE646699992AC9A7BB1B17CE57A1517A140B8A349B90FD912C7E991",
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
       "targetHash": "C02332643A2557B7E0269B00CEA6B1607A00B886453073360C33AB68C64DB318",
       "operations": [
@@ -78,7 +78,7 @@
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "generation": "",
+      "lineage": "",
       "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
       "targetHash": "9A769291EAFDA038EEDA9A7295C91A80201C06F6D108B6F1860F9D737D0FA2CE",
       "operations": [
