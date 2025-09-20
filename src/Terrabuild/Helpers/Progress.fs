@@ -46,7 +46,7 @@ type ProgressRenderer() =
         $"{status} {item.Label}"
 
     let refresh () =
-        if Terminal.supportAnsi then
+        if Terminal.supportAnsi && items.Length > 0 then
             // update status: move home, move top, write status
             try
                 Ansi.beginSyncUpdate |> Terminal.write
