@@ -316,7 +316,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date" |> Terminal.writeLine
 
     let isSuccess =
-        graph.RootNodes |> Set.forall (fun nodeId ->
+        graph.RootNodes
+        |> Set.forall (fun nodeId ->
             match nodeStatus |> Map.tryFind nodeId with
             | Some info -> info.Status.IsSuccess
             | _ -> true)
