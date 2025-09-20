@@ -26,7 +26,6 @@ type TargetBlock =
       DependsOn: Set<string> option
       Rebuild: Expr option
       Cache: Expr option
-      Idempotent: Expr option
       Steps: Step list }
 
 [<RequireQualifiedAccess>]

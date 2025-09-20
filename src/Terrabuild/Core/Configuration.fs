@@ -31,7 +31,6 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Idempotent: bool option
     Operations: TargetOperation list
 }
 
@@ -298,12 +297,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
-            let idempotent = targetBlock.Idempotent |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Idempotent)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Cache = cache
-                Idempotent = idempotent })
+                Cache = cache })
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
@@ -534,9 +531,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some "remote" -> Some Cacheability.Remote
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
-            let targetIdempotent =
-                target.Idempotent
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -548,7 +542,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                   Target.Rebuild = targetRebuild
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
-                  Target.Idempotent = targetIdempotent
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 

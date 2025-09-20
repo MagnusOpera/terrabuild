@@ -32,7 +32,6 @@ project id {
 
 target build {
   depends_on = [ target.dist ]
-  idempotent = true
 
   @dotnet build { }
 }

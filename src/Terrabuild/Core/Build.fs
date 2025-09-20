@@ -283,8 +283,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             match node.Action with
             | GraphDef.NodeAction.Ignore -> ()
             | GraphDef.NodeAction.Build ->
-                if node.Idempotent then nodeSignal.Set DateTime.UtcNow
-                else buildNode node
+                buildNode node
+                nodeSignal.Set DateTime.UtcNow
             | GraphDef.NodeAction.Restore ->
                 restoreNode node
                 nodeSignal.Set DateTime.UtcNow

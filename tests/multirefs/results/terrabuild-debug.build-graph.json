@@ -22,7 +22,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "idempotent": false,
       "isLeaf": true,
       "action": "build"
     },
@@ -47,7 +46,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "idempotent": false,
       "isLeaf": true,
       "action": "build"
     },
@@ -70,7 +68,6 @@
       ],
       "cache": "never",
       "rebuild": true,
-      "idempotent": false,
       "isLeaf": true,
       "action": "build"
     }

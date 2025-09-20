@@ -103,8 +103,7 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
     let nodes =
         nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeResult)) ->
             let (nodeAction, nodeGeneration) = nodeResult
-            let node = { acc[nodeId]
-                         with
+            let node = { acc[nodeId] with
                             GraphDef.Node.Action = nodeAction
                             GraphDef.Node.Generation = nodeGeneration }
             acc |> Map.add nodeId node) graph.Nodes
