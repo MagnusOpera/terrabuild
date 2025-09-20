@@ -69,12 +69,7 @@ type ProgressRenderer() =
                 let item = { Id = id; Label = label; Status = status }
                 items <- item :: items
                 item, false
-
-        // FIXME: can't understand why refresh must be invoked here :-(
-        //        if not invoked, status of item is sometimes not correctly rendered.
-        //        refresh is invoked in a timer so this shall not be required.
         if not Terminal.supportAnsi || not update then printableItem item |> Terminal.writeLine
-        refresh()
 
     member _.Refresh () =
         refresh()
