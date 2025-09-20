@@ -153,19 +153,22 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let tmpDir = Cache.createTmp()
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
-    let scheduledNodes = Concurrent.ConcurrentDictionary<string, bool>()
+    let scheduledClusters = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
 
     // compute clusters
     let clusters =
         graph.Nodes
-        |> Seq.groupBy (fun (KeyValue(_, node)) -> node.Lineage)
+        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.Lineage, nodeId)
+        |> Seq.groupBy fst
+        |> Seq.map (fun (lineage, nodeIds) -> lineage, nodeIds |> Seq.map snd |> List.ofSeq)
         |> Map.ofSeq
-        |> Map.map (fun _ v -> v |> List.ofSeq)
-        |> Map.filter (fun _ v -> v |> List.length > 1)
 
-
+    let node2clusters =
+        clusters
+        |> Seq.collect (fun (KeyValue(lineage, nodeIds)) -> nodeIds |> List.map (fun nodeId -> nodeId, lineage))
+        |> Map.ofSeq
 
     let rec restoreNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
@@ -263,19 +266,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id false false
 
     and scheduleNode (node: GraphDef.Node) =
-        if scheduledNodes.TryAdd(node.Id, true) then
-            let schedDependencies =
-                node.Dependencies |> Seq.map (fun projectId ->
-                    scheduleNode graph.Nodes[projectId]
-                    hub.GetSignal<DateTime> projectId)
-                |> List.ofSeq
+        if scheduledClusters.TryAdd(node.Lineage, true) then
+            for nodeId in clusters[node.Lineage] do
+                let node = graph.Nodes[nodeId]
+                let schedDependencies =
+                    node.Dependencies |> Seq.map (fun projectId ->
+                        scheduleNode graph.Nodes[projectId]
+                        hub.GetSignal<DateTime> projectId)
+                    |> List.ofSeq
 
-            hub.Subscribe node.Id schedDependencies (fun () ->
-                buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-                match node.Action with
-                | GraphDef.NodeAction.Build -> buildNode node
-                | GraphDef.NodeAction.Restore -> restoreNode node
-                | GraphDef.NodeAction.Ignore -> ())
+                hub.Subscribe node.Id schedDependencies (fun () ->
+                    buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+                    match node.Action with
+                    | GraphDef.NodeAction.Build -> buildNode node
+                    | GraphDef.NodeAction.Restore -> restoreNode node
+                    | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)
     graph.RootNodes
