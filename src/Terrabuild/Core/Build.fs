@@ -274,7 +274,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     graph.RootNodes
     |> Seq.iter (fun nodeId ->
         let node = graph.Nodes[nodeId]
-        if node.Action = GraphDef.NodeAction.Build then scheduleNode node)
+        scheduleNode node)
 
 
     let status = hub.WaitCompletion()

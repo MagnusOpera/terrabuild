@@ -71,8 +71,6 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
-                let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
-
                 // now decide what to do
                 let maxCompletionChildren =
                     match dependencyStatus with
@@ -82,7 +80,15 @@ let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Grap
                         |> Seq.maxBy (fun dep -> dep.Get<DateTime>())
                         |> (fun dep -> dep.Get<DateTime>())
                 let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
-                nodeResults[nodeId] <- (buildRequest, nodeGeneration)
+
+                // only keep status if not root node
+                // if root node only keep build request
+                match parentTargetHash, buildRequest with
+                | None, GraphDef.NodeAction.Ignore
+                | None, GraphDef.NodeAction.Restore -> ()
+                | _ -> nodeResults[nodeId] <- (buildRequest, nodeGeneration)
+
+                let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
                 nodeStatusSignal.Set buildDate)
 
     graph.RootNodes |> Seq.iter (scheduleNodeStatus "" None)
