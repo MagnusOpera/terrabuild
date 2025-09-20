@@ -1,5 +1,5 @@
 
-module NodeStateEvaluator
+module ActionBuilder
 
 
 open System
@@ -8,7 +8,7 @@ open Serilog
 open Terrabuild.PubSub
 
 
-let evaluate (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
+let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let allowRemoteCache = options.LocalOnly |> not
     let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
