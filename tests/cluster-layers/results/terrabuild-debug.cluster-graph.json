@@ -281,7 +281,7 @@
       "g:build"
     ]
   },
-  "node2Clusters": {
+  "node2Cluster": {
     "a:build": "cluster-1",
     "b:build": "cluster-2",
     "c:build": "cluster-3",

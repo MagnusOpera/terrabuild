@@ -79,7 +79,7 @@
       "c:build"
     ]
   },
-  "node2Clusters": {
+  "node2Cluster": {
     "a:build": "cluster-4",
     "b:build": "cluster-4",
     "c:build": "cluster-4"

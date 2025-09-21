@@ -97,5 +97,5 @@
     "c:build"
   ],
   "clusters": {},
-  "node2Clusters": {}
+  "node2Cluster": {}
 }

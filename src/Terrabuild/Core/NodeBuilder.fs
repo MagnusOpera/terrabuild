@@ -193,5 +193,5 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
     { Graph.Nodes = allNodes |> Map.ofDict
       Graph.RootNodes = rootNodes
-      Graph.Node2Clusters = Map.empty
+      Graph.Node2Cluster = Map.empty
       Graph.Clusters = Map.empty }

@@ -348,7 +348,7 @@
       "libraries/shell-lib:build"
     ]
   },
-  "node2Clusters": {
+  "node2Cluster": {
     "deployments/terraform-deploy:build": "cluster-11",
     "libraries/dotnet-lib:build": "cluster-2",
     "libraries/npm-lib:build": "cluster-4",

@@ -48,7 +48,7 @@ type Graph = {
     RootNodes: string set // nodeId of root nodes
 
     Clusters: Map<string, Set<string>> // clusterId to set of nodeId
-    Node2Clusters: Map<string, string> // nodeId to clusterId
+    Node2Cluster: Map<string, string> // nodeId to clusterId
 }
 
 

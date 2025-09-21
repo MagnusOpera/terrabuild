@@ -321,5 +321,5 @@
     "tests/playwright:test"
   ],
   "clusters": {},
-  "node2Clusters": {}
+  "node2Cluster": {}
 }
