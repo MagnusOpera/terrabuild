@@ -267,8 +267,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     and scheduleNode (node: GraphDef.Node) =
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
-            for nodeId in clusters[node.ClusterHash] do
-                let node = graph.Nodes[nodeId]
+            let clusterId = graph.Node2Cluster[node.Id]
+            let nodeIds = graph.Clusters[clusterId]
+            match nodeIds with
+            | [] -> raiseBugError "Unexpected empty cluster"
+            | [singleNodeId] ->
+                let node = graph.Nodes[singleNodeId]
                 let schedDependencies =
                     node.Dependencies |> Seq.map (fun projectId ->
                         scheduleNode graph.Nodes[projectId]
@@ -281,6 +285,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     | GraphDef.NodeAction.Build -> buildNode node
                     | GraphDef.NodeAction.Restore -> restoreNode node
                     | GraphDef.NodeAction.Ignore -> ())
+            | templateNodeId :: _ ->
+                let templateNode = graph.Nodes[templateNodeId]
+                
+
+                raiseBugError "Not implemented"
 
     // build root nodes (and only those that must be built)
     graph.RootNodes

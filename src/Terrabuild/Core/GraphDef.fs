@@ -1,6 +1,5 @@
 module GraphDef
 open Collections
-open System
 
 [<RequireQualifiedAccess>]
 type ContaineredShellOperation = {
@@ -47,7 +46,7 @@ type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
 
-    Clusters: Map<string, Set<string>> // clusterId to set of nodeId
+    Clusters: Map<string, list<string>> // clusterId to list of nodeId
     Node2Cluster: Map<string, string> // nodeId to clusterId
 }
 

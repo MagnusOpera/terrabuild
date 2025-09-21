@@ -50,5 +50,5 @@ let computeClusters (graph: Graph) =
     let graph = 
         { graph with
             Graph.Node2Cluster = nodeToCluster
-            Graph.Clusters = clusters }
+            Graph.Clusters = clusters |> Map.map (fun _ nodes -> nodes |> List.ofSeq) }
     graph
