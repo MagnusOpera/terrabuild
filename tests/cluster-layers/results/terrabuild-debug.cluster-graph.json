@@ -260,6 +260,35 @@
     "f:build",
     "g:build"
   ],
-  "clusters": {},
-  "node2Clusters": {}
+  "clusters": {
+    "cluster-1": [
+      "a:build"
+    ],
+    "cluster-2": [
+      "b:build"
+    ],
+    "cluster-3": [
+      "c:build"
+    ],
+    "cluster-4": [
+      "d:build"
+    ],
+    "cluster-5": [
+      "e:build"
+    ],
+    "cluster-8": [
+      "f:build",
+      "g:build"
+    ]
+  },
+  "node2Clusters": {
+    "a:build": "cluster-1",
+    "b:build": "cluster-2",
+    "c:build": "cluster-3",
+    "cluster-8": "cluster-8",
+    "d:build": "cluster-4",
+    "e:build": "cluster-5",
+    "f:build": "cluster-8",
+    "g:build": "cluster-8"
+  }
 }

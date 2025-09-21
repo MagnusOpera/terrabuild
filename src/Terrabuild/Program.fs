@@ -119,13 +119,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage) :> Cache.ICache
 
-        let buildGraph = NodeBuilder.build options config
-        if options.Debug then buildGraph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
+        let graph = NodeBuilder.build options config
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
 
-        let buildGraph = ActionBuilder.build options cache buildGraph
-        if options.Debug then buildGraph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
+        let graph = ActionBuilder.build options cache graph
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
 
-        let cluster = ClusterBuilder.computeClusters buildGraph
+        let graph = ClusterBuilder.computeClusters graph
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
 
         if options.Debug then
             let markdown =
@@ -153,7 +154,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     "# Build Graph"
                     ""
                     "```mermaid"
-                    yield! Mermaid.render None None buildGraph
+                    yield! Mermaid.render None None graph
                     "```"
                     "" ]
             markdown |> IO.writeLines (logFile "info.md")
@@ -161,14 +162,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let errCode =
             if options.WhatIf then 0
             else
-                let summary = Build.run options cache api buildGraph
+                let summary = Build.run options cache api graph
 
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
 
                 if log || not summary.IsSuccess then
-                    Logs.dumpLogs runId options cache buildGraph summary
+                    Logs.dumpLogs runId options cache graph summary
 
                 if summary.IsSuccess then 0
                 else 5

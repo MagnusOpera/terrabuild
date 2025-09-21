@@ -192,4 +192,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine
 
     { Graph.Nodes = allNodes |> Map.ofDict
-      Graph.RootNodes = rootNodes }
+      Graph.RootNodes = rootNodes
+      Graph.Node2Clusters = Map.empty
+      Graph.Clusters = Map.empty }

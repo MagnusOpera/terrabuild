@@ -47,16 +47,8 @@ let computeClusters (graph: Graph) =
         nodeToCluster <- nodeToCluster |> Map.add cid cid
         clusters <- clusters |> Map.add cid cluster
 
-    // Build final immutable representation
-    let clusters =
-        clusters
-        |> Seq.map (fun kvp -> { Id = kvp.Key; Nodes = Set.ofSeq kvp.Value })
-        |> Seq.toList
-    // clusters
-
-    printfn $"All clusters:"
-    for cluster in clusters do
-        printfn $"Cluster: {cluster.Id}"
-        for node in cluster.Nodes do
-            printfn $"  {node}"
-
+    let graph = 
+        { graph with
+            Graph.Node2Clusters = nodeToCluster
+            Graph.Clusters = clusters }
+    graph

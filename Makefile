@@ -151,6 +151,8 @@ endef
 define diff_results
 	$(call diff_file,$(1),terrabuild-debug.config.json)
 	$(call diff_file,$(1),terrabuild-debug.build-graph.json)
+	$(call diff_file,$(1),terrabuild-debug.action-graph.json)
+	$(call diff_file,$(1),terrabuild-debug.cluster-graph.json)
 	$(call diff_file,$(1),terrabuild-debug.info.md)
 endef
 

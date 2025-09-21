@@ -320,6 +320,49 @@
     "projects/rust-app:build",
     "tests/playwright:test"
   ],
-  "clusters": {},
-  "node2Clusters": {}
+  "clusters": {
+    "cluster-11": [
+      "deployments/terraform-deploy:build"
+    ],
+    "cluster-12": [
+      "projects/open-api:build"
+    ],
+    "cluster-13": [
+      "projects/rust-app:build"
+    ],
+    "cluster-14": [
+      "tests/playwright:test"
+    ],
+    "cluster-15": [
+      "projects/make-app:build"
+    ],
+    "cluster-2": [
+      "libraries/dotnet-lib:build",
+      "projects/dotnet-app:build"
+    ],
+    "cluster-4": [
+      "libraries/npm-lib:build",
+      "projects/npm-app:build"
+    ],
+    "cluster-6": [
+      "libraries/shell-lib:build"
+    ]
+  },
+  "node2Clusters": {
+    "cluster-11": "cluster-11",
+    "cluster-12": "cluster-12",
+    "cluster-13": "cluster-13",
+    "cluster-14": "cluster-14",
+    "cluster-15": "cluster-15",
+    "deployments/terraform-deploy:build": "cluster-11",
+    "libraries/dotnet-lib:build": "cluster-2",
+    "libraries/npm-lib:build": "cluster-4",
+    "libraries/shell-lib:build": "cluster-6",
+    "projects/dotnet-app:build": "cluster-2",
+    "projects/make-app:build": "cluster-15",
+    "projects/npm-app:build": "cluster-4",
+    "projects/open-api:build": "cluster-12",
+    "projects/rust-app:build": "cluster-13",
+    "tests/playwright:test": "cluster-14"
+  }
 }

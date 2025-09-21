@@ -96,6 +96,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
         graph.RootNodes
         |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)
     let graph =
-        { GraphDef.Graph.Nodes = nodes
-          GraphDef.Graph.RootNodes = rootNodes }
+        { graph with
+            GraphDef.Graph.Nodes = nodes
+            GraphDef.Graph.RootNodes = rootNodes }
     graph
