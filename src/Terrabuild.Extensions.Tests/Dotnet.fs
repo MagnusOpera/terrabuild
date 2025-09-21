@@ -65,6 +65,10 @@ let ``restore cacheability``() =
     getCacheInfo<Dotnet> "restore" |> should equal Cacheability.Local
 
 [<Test>]
+let ``restore batchability``() =
+    getBatchInfo<Dotnet> "restore" |> should equal true
+
+[<Test>]
 let ``restore some``() =
     let expected =
         [ shellOp("dotnet", "restore --force-evaluate --opt1 --opt2") ]
@@ -94,6 +98,10 @@ let ``restore none``() =
 [<Test>]
 let ``build cacheability``() =
     getCacheInfo<Dotnet> "build" |> should equal Cacheability.Remote
+
+[<Test>]
+let ``build batchability``() =
+    getBatchInfo<Dotnet> "build" |> should equal true
 
 [<Test>]
 let ``build some``() =

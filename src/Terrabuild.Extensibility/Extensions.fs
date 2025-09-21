@@ -33,6 +33,13 @@ type ShellOperation = {
     Arguments: string
 }
 
+[<RequireQualifiedAccess>]
+type BatchContext = {
+    Hash: string
+    Operation: ShellOperation
+    ProjectPaths: string list
+}
+
 type ShellOperations = ShellOperation list
 
 [<RequireQualifiedAccess>]
@@ -44,6 +51,10 @@ type Cacheability =
 let shellOp(cmd, args) = 
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args }
+
+[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+type BatchableAttribute() =
+    inherit Attribute()
 
 [<AbstractClass>]
 [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]

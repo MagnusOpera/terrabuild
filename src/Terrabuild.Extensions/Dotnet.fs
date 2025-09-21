@@ -38,6 +38,8 @@ type Dotnet() =
         ]
         ops
 
+    static member __batch__ () =
+        ()
 
     /// <summary>
     /// Run a dotnet tool.
@@ -60,6 +62,7 @@ type Dotnet() =
     /// <param name="evaluate" example="&quot;true&quot;">Force package evaluation.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
     [<LocalCacheAttribute>]
+    [<BatchableAttribute>]
     static member restore (dependencies: bool option)
                           (floating: bool option)
                           (evaluate: bool option)
@@ -86,6 +89,7 @@ type Dotnet() =
     /// <param name="dependencies" example="true">Restore dependencies as well.</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
+    [<BatchableAttribute>]
     static member build (configuration: string option)
                         (``parallel``: int option)
                         (log: bool option)

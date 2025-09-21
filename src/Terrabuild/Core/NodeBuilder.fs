@@ -81,8 +81,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             for (project, target) in allDeps do
                 buildNode project target
 
-            let cache, ops =
-                targetConfig.Operations |> List.fold (fun (cache, ops) operation ->
+            let cachable, batchable, ops =
+                targetConfig.Operations |> List.fold (fun (cache, batchable, ops) operation ->
                     let optContext = {
                         Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                         Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -102,6 +102,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
                         | Some attr -> attr.Cacheability
                         | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
+
+                    let batchability = 
+                        match Extensions.getScriptAttribute<BatchableAttribute> optContext.Command (Some operation.Script) with
+                        | Some _ -> true
+                        | _ -> false
 
                     let shellOperations =
                         match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
@@ -125,8 +130,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Cacheability.Remote, true -> Cacheability.Local
                         | Cacheability.Remote, false -> Cacheability.Remote
 
-                    cache, ops @ newops
-                ) (Cacheability.Never, [])
+                    cache, batchable && batchability, ops @ newops
+                ) (Cacheability.Never, true, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -140,7 +145,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {targetHash}")
 
             // cacheability can be overriden by the target
-            let cache = targetConfig.Cache |> Option.defaultValue cache
+            let cache = targetConfig.Cache |> Option.defaultValue cachable
 
             // no rebuild by default unless force
             let rebuild = targetConfig.Rebuild |> Option.defaultValue options.Force
@@ -151,7 +156,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let targetOutput = targetConfig.Outputs
 
             let targetClusterHash =
-                if targetConfig.Batch then targetConfig.Hash
+                if targetConfig.Batch && batchable then targetConfig.Hash
                 else targetHash // this is expected to be unique to disable node clustering
 
             let node =
