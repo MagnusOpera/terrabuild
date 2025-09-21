@@ -103,11 +103,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Some attr -> attr.Cacheability
                         | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
-                    let batchability = 
-                        match Extensions.getScriptAttribute<BatchableAttribute> optContext.Command (Some operation.Script) with
-                        | Some _ -> true
-                        | _ -> false
-
                     let shellOperations =
                         match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
                         | Extensions.InvocationResult.Success executionRequest -> executionRequest
@@ -123,6 +118,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.Command = shellOperation.Command
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
+                    let batchable = 
+                        match Extensions.getScriptAttribute<BatchableAttribute> optContext.Command (Some operation.Script) with
+                        | Some _ -> batchable
+                        | _ -> false
+
                     let cache =
                         match cacheability, options.LocalOnly with
                         | Cacheability.Never, _ -> Cacheability.Never
@@ -130,8 +130,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Cacheability.Remote, true -> Cacheability.Local
                         | Cacheability.Remote, false -> Cacheability.Remote
 
-                    cache, batchable && batchability, ops @ newops
-                ) (Cacheability.Never, true, [])
+                    cache, batchable, ops @ newops
+                ) (Cacheability.Never, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -171,7 +171,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.ClusterHash = targetClusterHash
+                  Node.ClusterId = Some targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
 
@@ -201,6 +201,4 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine
 
     { Graph.Nodes = allNodes |> Map.ofDict
-      Graph.RootNodes = rootNodes
-      Graph.Node2Cluster = Map.empty
-      Graph.Clusters = Map.empty }
+      Graph.RootNodes = rootNodes }

@@ -26,6 +26,7 @@
       "targets": {
         "build": {
           "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -105,6 +106,7 @@
       "targets": {
         "build": {
           "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -187,6 +189,7 @@
       "targets": {
         "build": {
           "hash": "23CD6C07165F99D32FB02EF8EC9817467A787E3C2040F3FC9CB0AEC056F3E478",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -256,6 +259,7 @@
       "targets": {
         "build": {
           "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -321,6 +325,7 @@
       "targets": {
         "build": {
           "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -387,6 +392,7 @@
       "targets": {
         "build": {
           "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -440,6 +446,7 @@
       "targets": {
         "build": {
           "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],

@@ -30,7 +30,7 @@ type Node = {
 
     ProjectHash: string
     TargetHash: string
-    ClusterHash: string
+    ClusterId: string option
 
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
@@ -45,9 +45,6 @@ type Node = {
 type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
-
-    Clusters: Map<string, list<string>> // clusterId to list of nodeId
-    Node2Cluster: Map<string, string> // nodeId to clusterId
 }
 
 

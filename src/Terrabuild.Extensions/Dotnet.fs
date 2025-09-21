@@ -38,8 +38,6 @@ type Dotnet() =
         ]
         ops
 
-    static member __batch__ () =
-        ()
 
     /// <summary>
     /// Run a dotnet tool.

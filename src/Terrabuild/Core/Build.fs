@@ -160,7 +160,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // compute clusters
     let clusters =
         graph.Nodes
-        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.ClusterHash, nodeId)
+        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.ClusterId, nodeId)
         |> Seq.groupBy fst
         |> Seq.map (fun (lineage, nodeIds) -> lineage, nodeIds |> Seq.map snd |> List.ofSeq)
         |> Map.ofSeq
@@ -266,30 +266,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id false false
 
     and scheduleNode (node: GraphDef.Node) =
-        if scheduledClusters.TryAdd(node.ClusterHash, true) then
-            let clusterId = graph.Node2Cluster[node.Id]
-            let nodeIds = graph.Clusters[clusterId]
-            match nodeIds with
-            | [] -> raiseBugError "Unexpected empty cluster"
-            | [singleNodeId] ->
-                let node = graph.Nodes[singleNodeId]
-                let schedDependencies =
-                    node.Dependencies |> Seq.map (fun projectId ->
-                        scheduleNode graph.Nodes[projectId]
-                        hub.GetSignal<DateTime> projectId)
-                    |> List.ofSeq
+        let nodeOrClusterId = node.ClusterId |> Option.defaultValue node.Id
+        if scheduledClusters.TryAdd(nodeOrClusterId, true) then
+            let node = graph.Nodes[node.Id]
+            let schedDependencies =
+                node.Dependencies |> Seq.map (fun projectId ->
+                    scheduleNode graph.Nodes[projectId]
+                    hub.GetSignal<DateTime> projectId)
+                |> List.ofSeq
 
-                hub.Subscribe node.Id schedDependencies (fun () ->
-                    buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-                    match node.Action with
-                    | GraphDef.NodeAction.Build -> buildNode node
-                    | GraphDef.NodeAction.Restore -> restoreNode node
-                    | GraphDef.NodeAction.Ignore -> ())
-            | templateNodeId :: _ ->
-                let templateNode = graph.Nodes[templateNodeId]
-                
-
-                raiseBugError "Not implemented"
+            hub.Subscribe node.Id schedDependencies (fun () ->
+                buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
+                match node.Action with
+                | GraphDef.NodeAction.Build -> buildNode node
+                | GraphDef.NodeAction.Restore -> restoreNode node
+                | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)
     graph.RootNodes
