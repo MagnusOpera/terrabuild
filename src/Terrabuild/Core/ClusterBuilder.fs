@@ -44,8 +44,8 @@ let computeClusters (graph: Graph) =
     for rootHash in rootHashs do
         let cid = nextClusterId()
         let cluster = merge cid graph.RootNodes rootHash
-        nodeToCluster <- nodeToCluster |> Map.add cid cid
-        clusters <- clusters |> Map.add cid cluster
+        if cluster.Count > 0 then
+            clusters <- clusters |> Map.add cid cluster
 
     let graph = 
         { graph with

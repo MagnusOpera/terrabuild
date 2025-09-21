@@ -285,7 +285,6 @@
     "a:build": "cluster-1",
     "b:build": "cluster-2",
     "c:build": "cluster-3",
-    "cluster-8": "cluster-8",
     "d:build": "cluster-4",
     "e:build": "cluster-5",
     "f:build": "cluster-8",
