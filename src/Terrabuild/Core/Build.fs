@@ -268,7 +268,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     and scheduleNode (node: GraphDef.Node) =
         let nodeOrClusterId = node.ClusterId |> Option.defaultValue node.Id
         if scheduledClusters.TryAdd(nodeOrClusterId, true) then
-            let node = graph.Nodes[node.Id]
+            let node = graph.Nodes[nodeOrClusterId]
             let schedDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
                     scheduleNode graph.Nodes[projectId]
