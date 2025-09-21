@@ -150,6 +150,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let targetOutput = targetConfig.Outputs
 
+            let targetClusterHash =
+                if targetConfig.Batch then targetConfig.Hash
+                else targetHash // this is expected to be unique to disable node clustering
+
             let node =
                 { Node.Id = nodeId
 
@@ -162,7 +166,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.ClusterHash = targetConfig.Hash
+                  Node.ClusterHash = targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
 
