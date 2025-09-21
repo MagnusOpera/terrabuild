@@ -21,6 +21,7 @@ target dummy { }
 
 extension dotnet {
   container = "mcr.microsoft.com/dotnet/sdk:8.0.101"
+  batch = false
   defaults {
     configuration = local.configuration
   }

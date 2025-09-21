@@ -27,20 +27,23 @@ let parseProject() =
               Platform = None
               Variables = None
               Script = None
-              Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some }        
+              Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some
+              Batch = Some Expr.True }        
         let extDocker =
             { Container = None
               Platform = None
               Variables = Expr.List [ Expr.String "ARM_TENANT_ID" ] |> Some
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "local.configuration"
-                               "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some }
+                               "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some
+              Batch = None }
         let extDummy =
             { Container = None
               Platform = None
               Variables = None
               Script = "dummy.fsx" |> Expr.String |> Some
-              Defaults = None }
+              Defaults = None
+              Batch = None }
 
         let targetBuild = 
             { TargetBlock.DependsOn = Set [ "dist" ] |> Some
@@ -105,7 +108,8 @@ let parseProject2() =
               Platform = None
               Variables = None
               Script = None
-              Defaults = None }        
+              Defaults = None
+              Batch = None }        
 
         let buildTarget = 
             { TargetBlock.Rebuild = Expr.Bool true |> Some
