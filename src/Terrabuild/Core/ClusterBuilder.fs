@@ -31,7 +31,7 @@ let computeClusters (graph: Graph) =
 
     let rec visit nodeId =
         let node = graph.Nodes[nodeId]
-        if not (nodeToCluster.ContainsKey nodeId) && node.Action = NodeAction.Build then
+        if not (nodeToCluster.ContainsKey nodeId) then
             for depId in node.Dependencies do
                 visit depId
             let clusterId = nextClusterId()
