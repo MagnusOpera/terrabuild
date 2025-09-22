@@ -14,29 +14,29 @@ let computeClusters (graph: Graph) =
         clusterIdCounter <- clusterIdCounter + 1
         $"cluster-{clusterIdCounter}"
 
-    let mutable node2Cluster = Map.empty
+    let mutable node2cluster = Map.empty
     let mutable clusters = Map.empty
 
     let merge clusterId dependencies clusterHash =
         let mutable cluster = Set.empty
         for depId in dependencies do
             let depNode = graph.Nodes[depId]
-            let depClusterId = node2Cluster[depId]
+            let depClusterId = node2cluster[depId]
             if clusterHash = depNode.ClusterId && clusterId <> depClusterId then
                 for nid in clusters[depClusterId] do
-                    node2Cluster <- node2Cluster |> Map.add nid clusterId
+                    node2cluster <- node2cluster |> Map.add nid clusterId
                     cluster <- cluster |> Set.add nid
                 clusters <- clusters |> Map.remove depClusterId
         cluster
 
     let rec visit nodeId =
         let node = graph.Nodes[nodeId]
-        if not (node2Cluster.ContainsKey nodeId) then
+        if not (node2cluster.ContainsKey nodeId) then
             for depId in node.Dependencies do
                 visit depId
             let clusterId = nextClusterId()
             let cluster = merge clusterId node.Dependencies node.ClusterId |> Set.add nodeId
-            node2Cluster <- node2Cluster |> Map.add nodeId clusterId
+            node2cluster <- node2cluster |> Map.add nodeId clusterId
             clusters <- clusters |> Map.add clusterId cluster
 
     for root in graph.RootNodes do visit root
@@ -50,15 +50,29 @@ let computeClusters (graph: Graph) =
     // remove clusters with 1 node
     for (KeyValue(clusterId, nodeIds)) in clusters do
         if nodeIds.Count <= 1 then
-            for nodeId in nodeIds do node2Cluster <- node2Cluster |> Map.remove nodeId
+            for nodeId in nodeIds do node2cluster <- node2cluster |> Map.remove nodeId
             clusters <- clusters |> Map.remove clusterId
+
+    node2cluster, clusters
+
+
+let build (graph: Graph) =
+    let node2cluster, clusters = computeClusters graph
 
     let nodes =
         graph.Nodes
         |> Map.map (fun nodeId node ->
-            match node2Cluster |> Map.tryFind nodeId with
+            match node2cluster |> Map.tryFind nodeId with
             | Some clusterId -> { node with ClusterId = Some clusterId }
             | _ -> { node with ClusterId = None })
 
     let graph = { graph with Graph.Nodes = nodes }
+
+
+
+
+
+
+
+
     graph

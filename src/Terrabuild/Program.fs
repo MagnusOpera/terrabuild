@@ -125,7 +125,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let graph = ActionBuilder.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
 
-        let graph = ClusterBuilder.computeClusters graph
+        let graph = ClusterBuilder.build graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
 
         if options.Debug then
