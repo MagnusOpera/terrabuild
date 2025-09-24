@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="Core/Configuration.fs" />
+    <Compile Include="Core/ClusterBuilder.fs" />
   </ItemGroup>
 
   <ItemGroup>

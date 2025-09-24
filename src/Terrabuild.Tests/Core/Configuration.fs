@@ -1,8 +1,7 @@
-module Terrabuild.Tests.Configuration
+module Terrabuild.Tests.Core.Configuration
 open Collections
 open FsUnit
 open NUnit.Framework
-open Microsoft.Extensions.FileSystemGlobbing
 
 [<Test>]
 let ``Matcher``() =
