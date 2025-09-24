@@ -70,9 +70,16 @@ type Dotnet() =
         let locked = floating |> map_false "--locked-mode"
         let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths DotnetHelpers.defaultConfiguration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp( "dotnet", $"restore {no_dependencies} {locked} {force_evaluate} {args}")
+            shellOp( "dotnet", $"restore {sln} {no_dependencies} {locked} {force_evaluate} {args}")
         ]
         ops
 
@@ -104,9 +111,16 @@ type Dotnet() =
         let version = version |> map_value (fun version -> $"-p:Version={version}")
         let no_dependencies = dependencies |> map_false "--no-dependencies"
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths configuration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"build {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
+            shellOp("dotnet", $"build {sln} {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
         ops
 

@@ -42,6 +42,16 @@ let localContext =
       ActionContext.Hash = "123456789ABCDEF"
       ActionContext.Batch = None }
 
+let batchContext tmpDir projectDirs =
+    { ActionContext.Debug = false
+      ActionContext.CI = false
+      ActionContext.Command = "local-command"
+      ActionContext.Hash = "123456789ABCDEF"
+      ActionContext.Batch = Some { BatchContext.Hash = "FEDCBA987654321"
+                                   BatchContext.TempDir = tmpDir
+                                   BatchContext.ProjectPaths = projectDirs } }
+
+
 let someMap = [ "prm1", "val1"
                 "prm2", "val2" ] |> Map |> Some
 

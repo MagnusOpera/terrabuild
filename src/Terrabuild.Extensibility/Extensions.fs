@@ -22,6 +22,7 @@ with
 [<RequireQualifiedAccess>]
 type BatchContext = {
     Hash: string
+    TempDir: string
     ProjectPaths: string list
 }
 
