@@ -61,7 +61,8 @@ type Dotnet() =
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
-    static member restore (dependencies: bool option)
+    static member restore (context: ActionContext)
+                          (dependencies: bool option)
                           (floating: bool option)
                           (evaluate: bool option)
                           (args: string option) =
@@ -88,7 +89,8 @@ type Dotnet() =
     /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
-    static member build (configuration: string option)
+    static member build (context: ActionContext)
+                        (configuration: string option)
                         (``parallel``: int option)
                         (log: bool option)
                         (restore: bool option)

@@ -20,12 +20,18 @@ with
     }
 
 [<RequireQualifiedAccess>]
+type BatchContext = {
+    Hash: string
+    ProjectPaths: string list
+}
+
+[<RequireQualifiedAccess>]
 type ActionContext = {
     Debug: bool
     CI: bool
     Command: string
     Hash: string
-    ProjectPaths: string list option
+    Batch: BatchContext option
 }
 
 [<RequireQualifiedAccess>]

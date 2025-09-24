@@ -73,7 +73,8 @@ let ``restore some``() =
     let expected =
         [ shellOp("dotnet", "restore --force-evaluate --opt1 --opt2") ]
 
-    Dotnet.restore (Some true) // dependencies
+    Dotnet.restore localContext
+                   (Some true) // dependencies
                    (Some true) // floating
                    (Some true) // evaluate
                    someArgs
@@ -86,7 +87,8 @@ let ``restore none``() =
     let expected =
         [ shellOp("dotnet", "restore --no-dependencies --locked-mode") ]
 
-    Dotnet.restore None // dependencies
+    Dotnet.restore localContext
+                   None // dependencies
                    None // floating
                    None // evaluate
                    noneArgs
@@ -108,7 +110,8 @@ let ``build some``() =
     let expected =
         [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 --opt1 --opt2") ]
 
-    Dotnet.build (Some "Release") // configuration
+    Dotnet.build localContext
+                 (Some "Release") // configuration
                  (Some 9) // parallel
                  (Some true) // log
                  (Some true) // restore
@@ -124,7 +127,8 @@ let ``build none``() =
     let expected =
         [ shellOp("dotnet", "build --no-restore --no-dependencies --configuration Debug") ]
 
-    Dotnet.build None // configuration
+    Dotnet.build localContext
+                 None // configuration
                  None // parallel
                  None // log
                  None // restore
