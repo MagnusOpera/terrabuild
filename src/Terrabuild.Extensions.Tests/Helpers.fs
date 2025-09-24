@@ -32,13 +32,15 @@ let ciContext =
     { ActionContext.Debug = true
       ActionContext.CI = true
       ActionContext.Command = "ci-command"
-      ActionContext.Hash = "ABCDEF123456789" }
+      ActionContext.Hash = "ABCDEF123456789"
+      ActionContext.ProjectPaths = None }
 
 let localContext =
     { ActionContext.Debug = false
       ActionContext.CI = false
       ActionContext.Command = "local-command"
-      ActionContext.Hash = "123456789ABCDEF" }
+      ActionContext.Hash = "123456789ABCDEF"
+      ActionContext.ProjectPaths = None }
 
 let someMap = [ "prm1", "val1"
                 "prm2", "val2" ] |> Map |> Some

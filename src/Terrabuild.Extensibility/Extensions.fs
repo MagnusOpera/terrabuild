@@ -25,19 +25,13 @@ type ActionContext = {
     CI: bool
     Command: string
     Hash: string
+    ProjectPaths: string list option
 }
 
 [<RequireQualifiedAccess>]
 type ShellOperation = {
     Command: string
     Arguments: string
-}
-
-[<RequireQualifiedAccess>]
-type BatchContext = {
-    Hash: string
-    Operation: ShellOperation
-    ProjectPaths: string list
 }
 
 type ShellOperations = ShellOperation list

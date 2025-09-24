@@ -83,12 +83,12 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let cachable, batchable, ops =
                 targetConfig.Operations |> List.fold (fun (cache, batchable, ops) operation ->
-                    let optContext = {
-                        Terrabuild.Extensibility.ActionContext.Debug = options.Debug
-                        Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
-                        Terrabuild.Extensibility.ActionContext.Command = operation.Command
-                        Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
-                    }
+                    let optContext =
+                        { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
+                          Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
+                          Terrabuild.Extensibility.ActionContext.Command = operation.Command
+                          Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
+                          Terrabuild.Extensibility.ActionContext.ProjectPaths = None }
 
                     let parameters = 
                         match operation.Context with
