@@ -3,21 +3,6 @@ module ClusterBuilder
 open Collections
 open GraphDef
 
-// [<RequireQualifiedAccess>]
-// type Node = {
-//     Id: string
-//     Target: string
-//     Dependencies: string set
-//     ClusterId: string option
-// }
-
-// [<RequireQualifiedAccess>]
-// type Graph = {
-//     Nodes: Map<string, Node> // node to Node definition
-//     RootNodes: string set // nodeId of root nodes
-// }
-
-
 
 type Cluster =
     { Id: string
