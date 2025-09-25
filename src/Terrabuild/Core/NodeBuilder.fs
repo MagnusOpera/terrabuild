@@ -171,7 +171,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.ClusterId = Some targetClusterHash
+                  Node.ClusterHash = targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
 
@@ -201,4 +201,5 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine
 
     { Graph.Nodes = allNodes |> Map.ofDict
-      Graph.RootNodes = rootNodes }
+      Graph.RootNodes = rootNodes
+      Graph.Clusters = Map.empty }

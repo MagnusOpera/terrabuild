@@ -41,7 +41,7 @@ let computeClusters (graph: Graph) : ClusterGraph =
 
     // 1) Union nodes with the same ClusterId (global grouping)
     graph.Nodes.Values
-    |> Seq.choose (fun n -> n.ClusterId |> Option.map (fun h -> h, n.Id))
+    |> Seq.map (fun n -> n.ClusterHash, n.Id)
     |> Seq.groupBy fst
     |> Seq.iter (fun (_, group) ->
         match Seq.toList (Seq.map snd group) with
@@ -49,15 +49,10 @@ let computeClusters (graph: Graph) : ClusterGraph =
         | first :: rest -> for n in rest do uf.Union(first, n))
 
     // --- Build clusters ---
-    let mutable clusterIdCounter = 0
-    let nextClusterId () =
-        clusterIdCounter <- clusterIdCounter + 1
-        $"cluster-{clusterIdCounter}"
-
     let groupMap =
         uf.Groups()
-        |> Seq.map (fun (_, nodes) ->
-            let cid = nextClusterId()
+        |> Seq.map (fun (parent, nodes) ->
+            let cid = graph.Nodes[parent].ClusterHash
             cid, nodes)
         |> Map.ofSeq
 
@@ -86,3 +81,27 @@ let computeClusters (graph: Graph) : ClusterGraph =
 
     { Clusters = clusters; Edges = edges }
 
+let build (graph: GraphDef.Graph) =
+    let clusterGraph = computeClusters graph
+    let clusters =
+        clusterGraph.Clusters 
+        |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes)
+        |> Map.ofSeq
+
+    let edges =
+        clusterGraph.Edges
+        |> Seq.groupBy (fun (fromCluster, toCluster) -> fromCluster)
+        |> Seq.map (fun (fromCluster, toClusters) -> fromCluster, toClusters |> Seq.map snd |> Set.ofSeq)
+        |> Map.ofSeq
+
+    let clusters =
+        clusters
+        |> Map.map (fun clusterId nodes ->
+            { GraphDef.Cluster.Nodes = nodes
+              GraphDef.Cluster.Edges = edges |> Map.tryFind clusterId |> Option.defaultValue Set.empty })
+
+    let graph =
+        { graph with
+            GraphDef.Graph.Clusters = clusters }
+
+    graph

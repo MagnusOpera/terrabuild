@@ -156,20 +156,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let scheduledClusters = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
-
-    // compute clusters
-    let clusters =
-        graph.Nodes
-        |> Seq.map (fun (KeyValue(nodeId, node)) -> node.ClusterId, nodeId)
-        |> Seq.groupBy fst
-        |> Seq.map (fun (lineage, nodeIds) -> lineage, nodeIds |> Seq.map snd |> List.ofSeq)
-        |> Map.ofSeq
-
-    let node2clusters =
-        clusters
-        |> Seq.collect (fun (KeyValue(lineage, nodeIds)) -> nodeIds |> List.map (fun nodeId -> nodeId, lineage))
-        |> Map.ofSeq
-
     let rec restoreNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 
@@ -266,9 +252,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id false false
 
     and scheduleNode (node: GraphDef.Node) =
-        let nodeOrClusterId = node.ClusterId |> Option.defaultValue node.Id
-        if scheduledClusters.TryAdd(nodeOrClusterId, true) then
-            let node = graph.Nodes[nodeOrClusterId]
+        if scheduledClusters.TryAdd(node.Id, true) then
+            let node = graph.Nodes[node.Id]
             let schedDependencies =
                 node.Dependencies |> Seq.map (fun projectId ->
                     scheduleNode graph.Nodes[projectId]

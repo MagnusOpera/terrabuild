@@ -14,7 +14,7 @@ let ``check cluster computation``() =
           Node.Outputs = Set.empty
           Node.ProjectHash = ""
           Node.TargetHash = ""
-          Node.ClusterId = Some hash
+          Node.ClusterHash = $"hash-{hash}"
           Node.Operations = []
           Node.Cache = Terrabuild.Extensibility.Cacheability.Local
           Node.IsLeaf = false
@@ -39,9 +39,12 @@ let ``check cluster computation``() =
 
     let graph =
         { Graph.Nodes = nodes
-          Graph.RootNodes = Set [ nodeA1.Id; nodeA2.Id ] }
+          Graph.RootNodes = Set [ nodeA1.Id; nodeA2.Id ]
+          Graph.Clusters = Map.empty }
     
     let clusters = ClusterBuilder.computeClusters graph
     printfn $"{clusters}"
 
+    let graph = ClusterBuilder.build graph
+    printfn $"{graph}"
 

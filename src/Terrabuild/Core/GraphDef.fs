@@ -30,7 +30,7 @@ type Node = {
 
     ProjectHash: string
     TargetHash: string
-    ClusterId: string option
+    ClusterHash: string
 
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
@@ -42,10 +42,16 @@ type Node = {
 
 
 [<RequireQualifiedAccess>]
+type Cluster =
+    { Nodes: Set<string> // nodeIds
+      Edges: Set<string> } // clusterIds
+
+
+[<RequireQualifiedAccess>]
 type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
+    Clusters: Map<string, Cluster>
 }
-
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"

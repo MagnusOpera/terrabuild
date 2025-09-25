@@ -55,7 +55,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             let dependencyStatus =
                 node.Dependencies
                 |> Seq.map (fun projectId ->
-                    scheduleNodeStatus (Some node.ClusterId) projectId
+                    scheduleNodeStatus (Some node.ClusterHash) projectId
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
