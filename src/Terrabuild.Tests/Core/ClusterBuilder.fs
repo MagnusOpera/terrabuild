@@ -45,6 +45,6 @@ let ``check cluster computation``() =
     let clusters = ClusterBuilder.computeClusters graph
     printfn $"{clusters}"
 
-    let graph = ClusterBuilder.build graph
+    let graph = ClusterBuilder.computeClusters graph
     printfn $"{graph}"
 

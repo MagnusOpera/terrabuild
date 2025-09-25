@@ -70,10 +70,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("Changing current directory to {directory}", options.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
 
+        let tmpDir = FS.combinePath options.Workspace ".terrabuild"
+        IO.createDirectory tmpDir
+
         let sourceControl = SourceControls.Factory.create()
 
         let options = {
             ConfigOptions.Options.Workspace = options.Workspace
+            ConfigOptions.Options.TmpDir = ".terrabuild"
             ConfigOptions.Options.WhatIf = options.WhatIf
             ConfigOptions.Options.Debug = options.Debug
             ConfigOptions.Options.MaxConcurrency = options.MaxConcurrency
@@ -125,7 +129,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let graph = ActionBuilder.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
 
-        let graph = ClusterBuilder.build graph
+        let graph = ClusterBuilder.build options config graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
 
         if options.Debug then
