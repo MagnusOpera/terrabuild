@@ -141,7 +141,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.Cache = headNode.Cache
                   GraphDef.Node.Dependencies = cluster.Edges
-                  GraphDef.Node.Outputs = headNode.Outputs
+                  GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = clusterHash
                   GraphDef.Node.ProjectHash = ""
                   GraphDef.Node.TargetHash = headNode.TargetHash
@@ -161,7 +161,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
     let edges =
         clusterGraph.Edges
-        |> Seq.groupBy (fun (fromCluster, toCluster) -> fromCluster)
+        |> Seq.groupBy fst
         |> Seq.map (fun (fromCluster, toClusters) -> fromCluster, toClusters |> Seq.map snd |> Set.ofSeq)
         |> Map.ofSeq
 
