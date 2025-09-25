@@ -98,7 +98,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
             let batchContext =
                 Some {
                     Terrabuild.Extensibility.BatchContext.Hash = clusterHash
-                    Terrabuild.Extensibility.BatchContext.TempDir = options.TmpDir
+                    Terrabuild.Extensibility.BatchContext.TempDir = options.SharedDir
                     Terrabuild.Extensibility.BatchContext.ProjectPaths = projectDirs
                 }
             let projectId = headNode.ProjectDir |> String.toLower

@@ -252,7 +252,8 @@ let ``test some``() =
     let expected =
         [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" --opt1 --opt2") ]
 
-    Dotnet.test (Some "Release") // configuration
+    Dotnet.test localContext
+                (Some "Release") // configuration
                 (Some true) // restore
                 (Some true) // build
                 (Some "TestCategory!=integration") // filter
@@ -265,7 +266,24 @@ let ``test none``() =
     let expected =
         [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug") ]
 
-    Dotnet.test None // configuration
+    Dotnet.test localContext
+                None // configuration
+                None // restore
+                None // build
+                None // filter
+                noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``test batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"test {tmpDir}/FEDCBA987654321.sln --no-restore --no-build --configuration Debug") ]
+
+    Dotnet.test (batchContext tmpDir projectDirs)
+                None // configuration
                 None // restore
                 None // build
                 None // filter

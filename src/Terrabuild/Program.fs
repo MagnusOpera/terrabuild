@@ -70,14 +70,20 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("Changing current directory to {directory}", options.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
 
-        let tmpDir = FS.combinePath options.Workspace ".terrabuild"
-        IO.createDirectory tmpDir
+        let homeDir = Cache.createHome()
+        let tmpDir = Cache.createTmp()
+        let sharedDir =
+            let sharedDir = FS.combinePath homeDir ".terrabuild"
+            IO.createDirectory sharedDir
+            sharedDir
 
         let sourceControl = SourceControls.Factory.create()
 
         let options = {
             ConfigOptions.Options.Workspace = options.Workspace
-            ConfigOptions.Options.TmpDir = ".terrabuild"
+            ConfigOptions.Options.HomeDir = homeDir
+            ConfigOptions.Options.TmpDir = tmpDir
+            ConfigOptions.Options.SharedDir = sharedDir
             ConfigOptions.Options.WhatIf = options.WhatIf
             ConfigOptions.Options.Debug = options.Debug
             ConfigOptions.Options.MaxConcurrency = options.MaxConcurrency

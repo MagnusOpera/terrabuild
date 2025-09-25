@@ -190,7 +190,9 @@ type Dotnet() =
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
-    static member test (configuration: string option)
+    [<BatchableAttribute>]
+    static member test (context: ActionContext)
+                       (configuration: string option)
                        (restore: bool option)
                        (build: bool option)
                        (filter: string option)
@@ -200,8 +202,15 @@ type Dotnet() =
         let no_build = build |> map_false "--no-build"
         let filter = filter |> map_value (fun filter -> $"--filter \"{filter}\"")
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths DotnetHelpers.defaultConfiguration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"test {no_restore} {no_build} --configuration {configuration} {filter} {args}")
+            shellOp("dotnet", $"test {sln} {no_restore} {no_build} --configuration {configuration} {filter} {args}")
         ]
         ops

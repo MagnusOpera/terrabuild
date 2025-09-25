@@ -149,9 +149,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     api |> Option.iter (fun api -> api.StartBuild())
 
     let allowRemoteCache = options.LocalOnly |> not
-    let homeDir = Cache.createHome()
-    let tmpDir = Cache.createTmp()
-
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
     let scheduledClusters = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
@@ -211,7 +208,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let cacheEntryId = GraphDef.buildCacheKey node
         let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
-        let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory homeDir tmpDir
+        let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
 
         // keep only new or modified files
         let afterFiles = IO.createSnapshot node.Outputs projectDirectory
