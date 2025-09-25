@@ -97,10 +97,10 @@ let ``restore none``() =
 
 [<Test>]
 let ``restore batch``() =
-    let testDir = TestContext.CurrentContext.TestDirectory
-    let tmpDir = FS.combinePath testDir "TestFiles"
-    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ] |> List.map (FS.combinePath testDir)
-    let expected = [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies --locked-mode") ]
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies --locked-mode") ]
 
     Dotnet.restore (batchContext tmpDir projectDirs)
                    None // dependencies
@@ -156,9 +156,8 @@ let ``build none``() =
 
 [<Test>]
 let ``build batch``() =
-    let testDir = TestContext.CurrentContext.TestDirectory
-    let tmpDir = FS.combinePath testDir "TestFiles"
-    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ] |> List.map (FS.combinePath testDir)
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
     let expected =
         [ shellOp("dotnet", $"build {tmpDir}/FEDCBA987654321.sln --no-restore --no-dependencies --configuration Debug") ]
 
