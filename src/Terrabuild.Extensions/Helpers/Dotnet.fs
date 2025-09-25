@@ -86,7 +86,7 @@ module DotnetHelpers
                 | Some prjType -> yield sprintf @"Project(""{%s}"") = ""%s"", ""%s"", ""{%s}"""
                                     prjType
                                     (fileName |> Path.GetFileNameWithoutExtension)
-                                    fileName
+                                    (FS.combinePath ".." fileName)
                                     (guids[fileName])
                                   yield "EndProject"
                 | None -> failwith $"Unsupported project {fileName}"
@@ -110,5 +110,5 @@ module DotnetHelpers
 
     let writeSolutionFile (projectDirs : string list) (configuration: string) (slnFile: string) =
         let content = generateSolutionContent projectDirs configuration
-        IO.writeLines  slnFile content
+        IO.writeLines slnFile content
 

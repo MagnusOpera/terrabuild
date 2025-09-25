@@ -72,10 +72,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let homeDir = Cache.createHome()
         let tmpDir = Cache.createTmp()
-        let sharedDir =
-            let sharedDir = FS.combinePath homeDir ".terrabuild"
-            IO.createDirectory sharedDir
-            sharedDir
+        let sharedDir = ".terrabuild"
+        IO.createDirectory sharedDir
 
         let sourceControl = SourceControls.Factory.create()
 
