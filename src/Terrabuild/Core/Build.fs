@@ -195,7 +195,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     and batchBuildNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
 
-        let cluster = graph.Clusters[batchNode.Id]
+        let cluster = graph.Clusters[batchNode.ClusterHash]
         let beforeFiles =
             cluster.Nodes |> Seq.map (fun nodeId ->
                 let node = graph.Nodes[nodeId]
@@ -209,9 +209,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 node.Id, (cacheEntry, snapshot))
             |> Map.ofSeq
 
-        let cacheEntryId = GraphDef.buildCacheKey batchNode
-        let cacheEntry = cache.GetEntry (batchNode.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
-        let lastStatusCode, stepLogs = execCommands batchNode cacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
+        let batchCacheEntryId = GraphDef.buildCacheKey batchNode
+        let batchCacheEntry = cache.GetEntry (batchNode.Cache = Terrabuild.Extensibility.Cacheability.Remote) batchCacheEntryId
+        let lastStatusCode, stepLogs = execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
@@ -239,7 +239,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.EndedAt = endedAt
                   Cache.TargetSummary.Duration = endedAt - startedAt
                   Cache.TargetSummary.Cache = node.Cache }
-
             nodeResults[nodeId] <- (TaskRequest.Build, status)
 
             // create an archive with new files
@@ -247,15 +246,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let files = cacheEntry.Complete summary
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful))
 
-        nodeResults[batchNode.Id] <- (TaskRequest.Build, status)
-
         match status with
         | TaskStatus.Success completionDate ->
-            let nodeSignal = hub.GetSignal<DateTime> batchNode.Id
-            nodeSignal.Set completionDate
-            cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false true)
+            cluster.Nodes |> Seq.iter (fun nodeId ->
+                buildProgress.TaskCompleted nodeId false true
+                let nodeSignal = hub.GetSignal<DateTime> nodeId
+                nodeSignal.Set completionDate)
         | _ ->
-            cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false false)
+            cluster.Nodes |> Seq.iter (fun nodeId ->
+                buildProgress.TaskCompleted nodeId false false)
 
     and buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
