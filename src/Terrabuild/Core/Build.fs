@@ -320,7 +320,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let batchNode = graph.Nodes[node.ClusterHash]
                     cluster.Nodes |> Seq.iter (fun nodeId ->
                         let node = graph.Nodes[nodeId]
-                        buildProgress.TaskScheduled node.Id $"batch {node.Target} {node.ProjectDir}")
+                        buildProgress.TaskScheduled node.Id $"[{node.Target}] {node.ProjectDir}")
                     batchNode
                 | _ ->
                     buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
