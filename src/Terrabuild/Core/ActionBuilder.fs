@@ -17,7 +17,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} must rebuild because force requested", node.Id)
-            (GraphDef.NodeAction.Build, DateTime.MinValue)
+            (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
             let cacheEntryId = GraphDef.buildCacheKey node
@@ -28,12 +28,12 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                 // retry requested and task is failed
                 if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
-                    (GraphDef.NodeAction.Build, DateTime.MinValue)
+                    (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
                 // children are younger than task
                 elif summary.EndedAt < maxCompletionChildren then
                     Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
-                    (GraphDef.NodeAction.Build, DateTime.MinValue)
+                    (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
                 // task is cached
                 else
@@ -41,10 +41,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     (GraphDef.NodeAction.Restore, summary.EndedAt)
             | _ ->
                 Log.Debug("{NodeId} must be built since no summary and required", node.Id)
-                (GraphDef.NodeAction.Build, DateTime.MinValue)
+                (GraphDef.NodeAction.Build, DateTime.MaxValue)
         else
             Log.Debug("{NodeId} is not cacheable", node.Id)
-            (GraphDef.NodeAction.Build, DateTime.MinValue)
+            (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
 
     let rec scheduleNodeStatus lineage nodeId =
