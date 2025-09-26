@@ -13,6 +13,7 @@
       ],
       "projectHash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
       "targetHash": "4D1592B31725ACEAF63DF488628434A1CD83C433836EF515655538ABD909706E",
+      "clusterHash": "4D1592B31725ACEAF63DF488628434A1CD83C433836EF515655538ABD909706E",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -47,6 +48,7 @@
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
+      "clusterHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -79,6 +81,7 @@
       ],
       "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
       "targetHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
+      "clusterHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
       "operations": [
         {
           "container": "node:20",
@@ -109,6 +112,7 @@
       "outputs": [],
       "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
       "targetHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
+      "clusterHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
       "operations": [
         {
           "containerVariables": [],
@@ -136,6 +140,7 @@
       ],
       "projectHash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
       "targetHash": "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
+      "clusterHash": "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -170,6 +175,7 @@
       ],
       "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
       "targetHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
+      "clusterHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
       "operations": [
         {
           "containerVariables": [],
@@ -201,6 +207,7 @@
       ],
       "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
       "targetHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
+      "clusterHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
       "operations": [
         {
           "container": "node:20",
@@ -231,6 +238,7 @@
       "outputs": [],
       "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
       "targetHash": "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F",
+      "clusterHash": "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F",
       "operations": [
         {
           "container": "openapitools/openapi-generator-cli:v7.10.0",
@@ -256,6 +264,7 @@
       ],
       "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
       "targetHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
+      "clusterHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
       "operations": [
         {
           "container": "rust:1.81.0-slim",
@@ -281,6 +290,7 @@
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
       "targetHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
+      "clusterHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
       "operations": [
         {
           "container": "node:20",
@@ -309,5 +319,76 @@
     "projects/open-api:build",
     "projects/rust-app:build",
     "tests/playwright:test"
-  ]
+  ],
+  "clusters": {
+    "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6": {
+      "nodes": [
+        "tests/playwright:test"
+      ],
+      "edges": []
+    },
+    "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9": {
+      "nodes": [
+        "libraries/dotnet-lib:build"
+      ],
+      "edges": []
+    },
+    "4D1592B31725ACEAF63DF488628434A1CD83C433836EF515655538ABD909706E": {
+      "nodes": [
+        "deployments/terraform-deploy:build"
+      ],
+      "edges": [
+        "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
+        "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06"
+      ]
+    },
+    "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E": {
+      "nodes": [
+        "projects/dotnet-app:build"
+      ],
+      "edges": [
+        "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9"
+      ]
+    },
+    "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06": {
+      "nodes": [
+        "projects/npm-app:build"
+      ],
+      "edges": [
+        "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A"
+      ]
+    },
+    "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F": {
+      "nodes": [
+        "projects/open-api:build"
+      ],
+      "edges": []
+    },
+    "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A": {
+      "nodes": [
+        "libraries/npm-lib:build"
+      ],
+      "edges": []
+    },
+    "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9": {
+      "nodes": [
+        "libraries/shell-lib:build"
+      ],
+      "edges": []
+    },
+    "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D": {
+      "nodes": [
+        "projects/rust-app:build"
+      ],
+      "edges": []
+    },
+    "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3": {
+      "nodes": [
+        "projects/make-app:build"
+      ],
+      "edges": [
+        "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9"
+      ]
+    }
+  }
 }
