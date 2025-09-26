@@ -215,6 +215,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
+        let duration = endedAt - startedAt
 
         let status =
             match lastStatusCode with
@@ -237,7 +238,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.IsSuccessful = successful
                   Cache.TargetSummary.StartedAt = startedAt
                   Cache.TargetSummary.EndedAt = endedAt
-                  Cache.TargetSummary.Duration = endedAt - startedAt
+                  Cache.TargetSummary.Duration = duration
                   Cache.TargetSummary.Cache = node.Cache }
             nodeResults[nodeId] <- (TaskRequest.Build, status)
 

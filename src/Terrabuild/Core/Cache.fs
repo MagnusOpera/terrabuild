@@ -168,10 +168,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                                 json |> Json.Deserialize<TargetSummary>
                                 yield! collect (logNum+1)
                             else
-                                let now = DateTime.UtcNow
-                                { summary with
-                                    EndedAt = now
-                                    Duration = now - summary.StartedAt }
+                                summary
                         }
 
                     let finalSummary =

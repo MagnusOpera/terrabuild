@@ -30,8 +30,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MinValue)
 
-                // task is older than children
-                elif summary.EndedAt <= maxCompletionChildren then
+                // children are younger than task
+                elif summary.EndedAt < maxCompletionChildren then
                     Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MinValue)
 
