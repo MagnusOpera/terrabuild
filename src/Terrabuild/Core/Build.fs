@@ -254,8 +254,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let nodeSignal = hub.GetSignal<DateTime> batchNode.Id
             nodeSignal.Set completionDate
             buildProgress.TaskCompleted batchNode.Id false true
+            cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false true)
         | _ ->
             buildProgress.TaskCompleted batchNode.Id false false
+            cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false false)
 
     and buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
