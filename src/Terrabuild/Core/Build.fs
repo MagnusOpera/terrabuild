@@ -253,10 +253,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         | TaskStatus.Success completionDate ->
             let nodeSignal = hub.GetSignal<DateTime> batchNode.Id
             nodeSignal.Set completionDate
-            buildProgress.TaskCompleted batchNode.Id false true
             cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false true)
         | _ ->
-            buildProgress.TaskCompleted batchNode.Id false false
             cluster.Nodes |> Seq.iter (fun nodeId -> buildProgress.TaskCompleted nodeId false false)
 
     and buildNode (node: GraphDef.Node) =
@@ -320,8 +318,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let batchNode = graph.Nodes[node.ClusterHash]
                     cluster.Nodes |> Seq.iter (fun nodeId ->
                         let node = graph.Nodes[nodeId]
-                        buildProgress.TaskScheduled node.Id $"{node.Target} cluster {node.Id}")
-                    buildProgress.TaskScheduled batchNode.Id $"{batchNode.Target} cluster {batchNode.Id}"
+                        buildProgress.TaskScheduled node.Id $"batch {node.Target} {node.ProjectDir}")
                     batchNode
                 | _ ->
                     buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
