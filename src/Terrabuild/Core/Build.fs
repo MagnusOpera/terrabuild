@@ -222,42 +222,43 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | 0 -> TaskStatus.Success endedAt
             | _ -> TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
+        // async upload summaries
         beforeFiles
         |> Map.iter (fun nodeId (cacheEntry, beforeFiles) ->
-            let node = graph.Nodes[nodeId]
-            let afterFiles = IO.createSnapshot node.Outputs node.ProjectDir
-            let newFiles = afterFiles - beforeFiles
-            let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
-            let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
-            IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
+            hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
+                let node = graph.Nodes[nodeId]
+                let afterFiles = IO.createSnapshot node.Outputs node.ProjectDir
+                let newFiles = afterFiles - beforeFiles
+                let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
+                IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
 
-            buildProgress.TaskUploading node.Id
-            let summary =
-                { Cache.TargetSummary.Project = node.ProjectDir
-                  Cache.TargetSummary.Target = node.Target
-                  Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
-                  Cache.TargetSummary.Outputs = outputs
-                  Cache.TargetSummary.IsSuccessful = successful
-                  Cache.TargetSummary.StartedAt = startedAt
-                  Cache.TargetSummary.EndedAt = endedAt
-                  Cache.TargetSummary.Duration = duration
-                  Cache.TargetSummary.Cache = node.Cache }
-            nodeResults[nodeId] <- (TaskRequest.Build, status)
+                buildProgress.TaskUploading node.Id
+                let summary =
+                    { Cache.TargetSummary.Project = node.ProjectDir
+                      Cache.TargetSummary.Target = node.Target
+                      Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
+                      Cache.TargetSummary.Outputs = outputs
+                      Cache.TargetSummary.IsSuccessful = successful
+                      Cache.TargetSummary.StartedAt = startedAt
+                      Cache.TargetSummary.EndedAt = endedAt
+                      Cache.TargetSummary.Duration = duration
+                      Cache.TargetSummary.Cache = node.Cache }
+                nodeResults[nodeId] <- (TaskRequest.Build, status)
 
-            // create an archive with new files
-            Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
-            let files = cacheEntry.Complete summary
-            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful))
-
-        match status with
-        | TaskStatus.Success completionDate ->
-            cluster.Nodes |> Seq.iter (fun nodeId ->
-                buildProgress.TaskCompleted nodeId false true
-                let nodeSignal = hub.GetSignal<DateTime> nodeId
-                nodeSignal.Set completionDate)
-        | _ ->
-            cluster.Nodes |> Seq.iter (fun nodeId ->
-                buildProgress.TaskCompleted nodeId false false)
+                // create an archive with new files
+                Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                let files = cacheEntry.Complete summary
+                api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
+                
+                // update status
+                match status with
+                | TaskStatus.Success completionDate ->
+                    buildProgress.TaskCompleted nodeId false true
+                    let nodeSignal = hub.GetSignal<DateTime> nodeId
+                    nodeSignal.Set completionDate
+                | _ ->
+                    buildProgress.TaskCompleted nodeId false false))
 
     and buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
@@ -279,36 +280,38 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
-        let summary =
-            { Cache.TargetSummary.Project = node.ProjectDir
-              Cache.TargetSummary.Target = node.Target
-              Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
-              Cache.TargetSummary.Outputs = outputs
-              Cache.TargetSummary.IsSuccessful = successful
-              Cache.TargetSummary.StartedAt = startedAt
-              Cache.TargetSummary.EndedAt = endedAt
-              Cache.TargetSummary.Duration = endedAt - startedAt
-              Cache.TargetSummary.Cache = node.Cache }
+        // async upload summary
+        hub.SubscribeBackground $"Upload {node.Id}" [] (fun () ->
+            buildProgress.TaskUploading node.Id
 
-        buildProgress.TaskUploading node.Id
+            let summary =
+                { Cache.TargetSummary.Project = node.ProjectDir
+                  Cache.TargetSummary.Target = node.Target
+                  Cache.TargetSummary.Operations = [ stepLogs |> List.ofSeq ]
+                  Cache.TargetSummary.Outputs = outputs
+                  Cache.TargetSummary.IsSuccessful = successful
+                  Cache.TargetSummary.StartedAt = startedAt
+                  Cache.TargetSummary.EndedAt = endedAt
+                  Cache.TargetSummary.Duration = endedAt - startedAt
+                  Cache.TargetSummary.Cache = node.Cache }
 
-        // create an archive with new files
-        Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
-        let files = cacheEntry.Complete summary
-        api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
+            // create an archive with new files
+            Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+            let files = cacheEntry.Complete summary
+            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
-        let status =
-            match lastStatusCode with
-            | 0 -> TaskStatus.Success endedAt
-            | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
-        nodeResults[node.Id] <- (TaskRequest.Build, status)
-        match status with
-        | TaskStatus.Success completionDate ->
-            let nodeSignal = hub.GetSignal<DateTime> node.Id
-            nodeSignal.Set completionDate
-            buildProgress.TaskCompleted node.Id false true
-        | _ ->
-            buildProgress.TaskCompleted node.Id false false
+            let status =
+                match lastStatusCode with
+                | 0 -> TaskStatus.Success endedAt
+                | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
+            nodeResults[node.Id] <- (TaskRequest.Build, status)
+            match status with
+            | TaskStatus.Success completionDate ->
+                let nodeSignal = hub.GetSignal<DateTime> node.Id
+                nodeSignal.Set completionDate
+                buildProgress.TaskCompleted node.Id false true
+            | _ ->
+                buildProgress.TaskCompleted node.Id false false)
 
     and scheduleNode (node: GraphDef.Node) =
         if node.Action = GraphDef.NodeAction.BatchBuild then raiseBugError "Unexpected BatchNode in scheduling"
