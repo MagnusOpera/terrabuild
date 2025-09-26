@@ -33,6 +33,8 @@ type UnionFind<'T when 'T : comparison>(elements: seq<'T>) =
         |> Seq.groupBy (fun (x, _) -> find x)
         |> Seq.map (fun (root, items) -> root, items |> Seq.map fst |> Set.ofSeq)
 
+
+
 let computeClusters (graph: Graph) =
     let uf = UnionFind(graph.Nodes |> Map.keys)
 
@@ -63,9 +65,13 @@ let computeClusters (graph: Graph) =
         |> Seq.toList
     clusters
 
+
+
+
 let createClusterNodes (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) =
     graph.Clusters
-    |> Map.choose (fun clusterHash nodeIds ->
+    |> Map.choose (fun clusterHash cluster ->
+        let nodeIds = cluster |> List.ofSeq
         match nodeIds with
         | [] | [_] -> None // skip clusters with 0 or 1 node
         | headNodeId :: _ ->
@@ -111,6 +117,9 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                         forwardExternalError($"{clusterHash}: Failed to get shell operation (extension error)", ex)
                     | _ -> raiseExternalError $"{clusterHash}: Failed to get shell operation (extension error)"
                 )
+
+            let clusterDependencies = nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)
+
             let clusterNode =
                 { GraphDef.Node.Id = clusterHash
                   GraphDef.Node.ProjectId = None
@@ -118,7 +127,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.Cache = headNode.Cache
-                  GraphDef.Node.Dependencies = Set.empty
+                  GraphDef.Node.Dependencies = clusterDependencies
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = clusterHash
                   GraphDef.Node.ProjectHash = clusterHash
@@ -131,9 +140,11 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
 
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) =
+    let clusterGraph = computeClusters graph
+
     let clusters =
-        computeClusters graph
-        |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes |> List.ofSeq)
+        clusterGraph
+        |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes)
         |> Map.ofSeq
 
     let graph =
