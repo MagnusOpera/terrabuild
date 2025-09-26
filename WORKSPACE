@@ -28,6 +28,7 @@ target publish {
 
 extension @dotnet {
     container = "mcr.microsoft.com/dotnet/sdk:9.0.304"
+    batch = true
     defaults {
         configuration = local.configuration
     }
