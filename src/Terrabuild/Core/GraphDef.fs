@@ -41,18 +41,11 @@ type Node = {
     Action: NodeAction
 }
 
-
-[<RequireQualifiedAccess>]
-type Cluster =
-    { Nodes: Set<string> // nodeIds
-      Edges: Set<string> } // clusterIds
-
-
 [<RequireQualifiedAccess>]
 type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
-    Clusters: Map<string, Cluster>
+    Clusters: Map<string, string list>
 }
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"

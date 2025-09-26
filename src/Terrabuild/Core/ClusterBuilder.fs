@@ -9,10 +9,6 @@ type Cluster =
     { Id: string
       Nodes: Set<string> }
 
-type ClusterGraph =
-    { Clusters: Cluster list
-      Edges: Set<string * string> }
-
 /// A simple union–find structure
 type UnionFind<'T when 'T : comparison>(elements: seq<'T>) =
     let parent = elements |> Seq.map (fun x -> x, x) |> Map.ofSeq |> ref
@@ -37,11 +33,12 @@ type UnionFind<'T when 'T : comparison>(elements: seq<'T>) =
         |> Seq.groupBy (fun (x, _) -> find x)
         |> Seq.map (fun (root, items) -> root, items |> Seq.map fst |> Set.ofSeq)
 
-let computeClusters (graph: Graph) : ClusterGraph =
+let computeClusters (graph: Graph) =
     let uf = UnionFind(graph.Nodes |> Map.keys)
 
-    // 1) Union nodes with the same ClusterId (global grouping)
+    // 1) Union Build nodes with the same ClusterHash
     graph.Nodes.Values
+    |> Seq.filter (fun n -> n.Action = NodeAction.Build)
     |> Seq.map (fun n -> n.ClusterHash, n.Id)
     |> Seq.groupBy fst
     |> Seq.iter (fun (_, group) ->
@@ -49,45 +46,26 @@ let computeClusters (graph: Graph) : ClusterGraph =
         | [] | [_] -> ()
         | first :: rest -> for n in rest do uf.Union(first, n))
 
-    // --- Build clusters ---
-    let groupMap =
-        uf.Groups()
-        |> Seq.map (fun (parent, nodes) ->
-            let cid = graph.Nodes[parent].ClusterHash
-            cid, nodes)
-        |> Map.ofSeq
-
+    // --- Build clusters (only for Build nodes, size >= 2) ---
     let clusters =
-        groupMap
-        |> Seq.map (fun kv -> { Id = kv.Key; Nodes = kv.Value })
+        uf.Groups()
+        |> Seq.choose (fun (parent, nodes) ->
+            let node = graph.Nodes[parent]
+            if node.Action = NodeAction.Build then
+                let cid = node.ClusterHash
+                let buildNodes =
+                    nodes
+                    |> Set.filter (fun nid -> graph.Nodes[nid].Action = NodeAction.Build)
+                if buildNodes.Count > 1 then
+                    Some { Id = cid; Nodes = buildNodes }
+                else None
+            else None)
         |> Seq.toList
-
-    // --- Build edges between clusters ---
-    let nodeToCluster =
-        groupMap
-        |> Seq.collect (fun (KeyValue(cid, nodes)) ->
-            nodes |> Seq.map (fun n -> n, cid))
-        |> Map.ofSeq
-
-    let edges =
-        graph.Nodes.Values
-        |> Seq.collect (fun node ->
-            node.Dependencies
-            |> Seq.map (fun depId ->
-                let c1 = nodeToCluster[node.Id]
-                let c2 = nodeToCluster[depId]
-                if c1 <> c2 then Some(c1, c2) else None))
-        |> Seq.choose id
-        |> Set.ofSeq
-
-    { Clusters = clusters; Edges = edges }
-
-
+    clusters
 
 let createClusterNodes (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) =
     graph.Clusters
-    |> Map.choose (fun clusterHash cluster ->
-        let nodeIds = cluster.Nodes |> Set.toList
+    |> Map.choose (fun clusterHash nodeIds ->
         match nodeIds with
         | [] | [_] -> None // skip clusters with 0 or 1 node
         | headNodeId :: _ ->
@@ -140,7 +118,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.Cache = headNode.Cache
-                  GraphDef.Node.Dependencies = cluster.Edges
+                  GraphDef.Node.Dependencies = Set.empty
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = clusterHash
                   GraphDef.Node.ProjectHash = clusterHash
@@ -153,23 +131,10 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
 
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) =
-    let clusterGraph = computeClusters graph
     let clusters =
-        clusterGraph.Clusters 
-        |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes)
+        computeClusters graph
+        |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes |> List.ofSeq)
         |> Map.ofSeq
-
-    let edges =
-        clusterGraph.Edges
-        |> Seq.groupBy fst
-        |> Seq.map (fun (fromCluster, toClusters) -> fromCluster, toClusters |> Seq.map snd |> Set.ofSeq)
-        |> Map.ofSeq
-
-    let clusters =
-        clusters
-        |> Map.map (fun clusterId nodes ->
-            { GraphDef.Cluster.Nodes = nodes
-              GraphDef.Cluster.Edges = edges |> Map.tryFind clusterId |> Option.defaultValue Set.empty })
 
     let graph =
         { graph with

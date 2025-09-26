@@ -155,8 +155,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let targetOutput = targetConfig.Outputs
 
+            let batchContent = [
+                targetConfig.Hash
+                $"{buildAction}"
+            ]
+            let batchHash = batchContent |> Hash.sha256strings
+
             let targetClusterHash =
-                if targetConfig.Batch && batchable then targetConfig.Hash
+                if targetConfig.Batch && batchable then batchHash
                 else targetHash // this is expected to be unique to disable node clustering
 
             let node =

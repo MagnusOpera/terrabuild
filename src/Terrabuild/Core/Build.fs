@@ -197,7 +197,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let cluster = graph.Clusters[batchNode.ClusterHash]
         let beforeFiles =
-            cluster.Nodes |> Seq.map (fun nodeId ->
+            cluster |> Seq.map (fun nodeId ->
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskBuilding node.Id
 
@@ -319,9 +319,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
             let targetNode =
                 match graph.Clusters |> Map.tryFind node.ClusterHash with
-                | Some cluster when cluster.Nodes.Count > 1 ->
+                | Some cluster ->
                     let batchNode = graph.Nodes[node.ClusterHash]
-                    cluster.Nodes |> Seq.iter (fun nodeId ->
+                    cluster |> Seq.iter (fun nodeId ->
                         let node = graph.Nodes[nodeId]
                         buildProgress.TaskScheduled node.Id $"[{node.Target}] {node.ProjectDir}")
                     batchNode

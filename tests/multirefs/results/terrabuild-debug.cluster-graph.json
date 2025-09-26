@@ -72,29 +72,5 @@
   "rootNodes": [
     "a:build"
   ],
-  "clusters": {
-    "52C06EC2270280F7A2A0E84FDAC2D0BF48AB9B5782CCD6DA68FB6421DC0392EF": {
-      "nodes": [
-        "c:build"
-      ],
-      "edges": []
-    },
-    "7030004D6285E5B5F245BC73815C20BBD25599127CF3EBA22B136FE1FFE6E6C1": {
-      "nodes": [
-        "a:build"
-      ],
-      "edges": [
-        "52C06EC2270280F7A2A0E84FDAC2D0BF48AB9B5782CCD6DA68FB6421DC0392EF",
-        "E8CEFB2E1D7304FB1ACDDE096082BBFB3B24058170F7E3020DACCACD73FD220A"
-      ]
-    },
-    "E8CEFB2E1D7304FB1ACDDE096082BBFB3B24058170F7E3020DACCACD73FD220A": {
-      "nodes": [
-        "b:build"
-      ],
-      "edges": [
-        "52C06EC2270280F7A2A0E84FDAC2D0BF48AB9B5782CCD6DA68FB6421DC0392EF"
-      ]
-    }
-  }
+  "clusters": {}
 }
