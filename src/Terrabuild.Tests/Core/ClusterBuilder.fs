@@ -41,7 +41,16 @@ let ``check cluster computation``() =
         { Graph.Nodes = nodes
           Graph.RootNodes = Set [ nodeA1.Id; nodeA2.Id ]
           Graph.Clusters = Map.empty }
-    
+
+    // { Clusters = [
+    //     { Id = "hash-A"; Nodes = set ["A1"; "A2"] }
+    //     { Id = "hash-B"; Nodes = set ["B1"; "B2"] }
+    //     { Id = "hash-C"; Nodes = set ["C1"; "C2"] }
+    //     { Id = "hash-D"; Nodes = set ["D1"] } ]
+    //   Edges = set [
+    //     ("hash-A", "hash-B")
+    //     ("hash-B", "hash-C")
+    //     ("hash-B", "hash-D") ] }
     let clusters = ClusterBuilder.computeClusters graph
     printfn $"{clusters}"
 

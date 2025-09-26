@@ -143,10 +143,10 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.Dependencies = cluster.Edges
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = clusterHash
-                  GraphDef.Node.ProjectHash = ""
+                  GraphDef.Node.ProjectHash = clusterHash
                   GraphDef.Node.TargetHash = headNode.TargetHash
                   GraphDef.Node.IsLeaf = headNode.IsLeaf
-                  GraphDef.Node.Action = headNode.Action }
+                  GraphDef.Node.Action = NodeAction.BatchBuild }
             Some clusterNode
     )
 

@@ -13,6 +13,7 @@ type ContaineredShellOperation = {
 
 [<RequireQualifiedAccess>]
 type NodeAction =
+    | BatchBuild
     | Build
     | Restore
     | Ignore
