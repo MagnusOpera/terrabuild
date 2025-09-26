@@ -38,7 +38,6 @@ projects/rust-app:build("<b>build</b>
 projects/rust-app")
 tests/playwright:test("<b>test playwright_test</b> 
 tests/playwright")
-76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6 --> libraries/dotnet-lib:build
 class 76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6 ignore
 deployments/terraform-deploy:build --> projects/dotnet-app:build
 deployments/terraform-deploy:build --> projects/npm-app:build

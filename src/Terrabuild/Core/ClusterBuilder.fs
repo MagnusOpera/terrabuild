@@ -118,8 +118,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                     | _ -> raiseExternalError $"{clusterHash}: Failed to get shell operation (extension error)"
                 )
 
-            let clusterDependencies =
-                (nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)) - cluster
+            let clusterDependencies = (nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)) - cluster
 
             let clusterNode =
                 { GraphDef.Node.Id = clusterHash
@@ -148,14 +147,24 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         |> Seq.map (fun cluster -> cluster.Id, cluster.Nodes)
         |> Map.ofSeq
 
+    let nodeInClusters =
+        clusterGraph
+        |> Seq.collect(fun cluster -> cluster.Nodes)
+        |> Set.ofSeq
+
     let graph =
         { graph with
             GraphDef.Graph.Clusters = clusters }
 
     let clusterNodes = createClusterNodes options configuration graph
+    let nodeWithoutClusters =
+        graph.Nodes |> Map.map (fun nodeId node ->
+            if nodeInClusters |> Set.contains nodeId then node
+            else { node with GraphDef.Node.ClusterHash = node.TargetHash })
+
     let graph =
         { graph with
-            GraphDef.Graph.Nodes = graph.Nodes |> Map.addMap clusterNodes }
+            GraphDef.Graph.Nodes = nodeWithoutClusters |> Map.addMap clusterNodes }
 
     graph
 

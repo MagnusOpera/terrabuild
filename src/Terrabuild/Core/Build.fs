@@ -317,23 +317,27 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if node.Action = GraphDef.NodeAction.BatchBuild then raiseBugError "Unexpected BatchNode in scheduling"
 
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
-            let targetNode =
+            let cluster, targetNode =
                 match graph.Clusters |> Map.tryFind node.ClusterHash with
                 | Some cluster ->
                     let batchNode = graph.Nodes[node.ClusterHash]
-                    cluster |> Seq.iter (fun nodeId ->
-                        let node = graph.Nodes[nodeId]
-                        buildProgress.TaskScheduled node.Id $"[{node.Target}] {node.ProjectDir}")
-                    batchNode
+                    Some cluster, batchNode
                 | _ ->
                     buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
-                    node
+                    None, node
 
             let schedDependencies =
                 targetNode.Dependencies |> Seq.map (fun depId ->
                     scheduleNode graph.Nodes[depId]
                     hub.GetSignal<DateTime> depId)
                 |> List.ofSeq
+
+            match cluster with
+            | Some cluster ->
+                cluster |> Seq.iter (fun nodeId ->
+                let node = graph.Nodes[nodeId]
+                buildProgress.TaskScheduled node.Id $"[{node.Target}] {node.ProjectDir}")
+            | _ -> ()
 
             hub.Subscribe targetNode.Id schedDependencies (fun () ->
                 match targetNode.Action with

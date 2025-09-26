@@ -4,9 +4,7 @@
       "id": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "projectDir": ".",
       "target": "build",
-      "dependencies": [
-        "libraries/dotnet-lib:build"
-      ],
+      "dependencies": [],
       "outputs": [],
       "projectHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
