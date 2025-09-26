@@ -16,6 +16,8 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
+3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD("<b>build</b> 
+.")
 deployments/terraform-deploy:build("<b>build</b> 
 deployments/terraform-deploy")
 libraries/dotnet-lib:build("<b>build</b> 
@@ -36,6 +38,7 @@ projects/rust-app:build("<b>build</b>
 projects/rust-app")
 tests/playwright:test("<b>test playwright_test</b> 
 tests/playwright")
+class 3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD ignore
 deployments/terraform-deploy:build --> projects/dotnet-app:build
 deployments/terraform-deploy:build --> projects/npm-app:build
 class deployments/terraform-deploy:build ignore

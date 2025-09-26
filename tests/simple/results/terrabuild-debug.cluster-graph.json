@@ -1,5 +1,36 @@
 {
   "nodes": {
+    "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD": {
+      "id": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+      "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+      "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore .terrabuild/3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD.sln --locked-mode"
+        },
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build .terrabuild/3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD.sln --no-restore --no-dependencies --configuration Debug"
+        }
+      ],
+      "cache": "local",
+      "isLeaf": true,
+      "action": "batchBuild"
+    },
     "deployments/terraform-deploy:build": {
       "id": "deployments/terraform-deploy:build",
       "projectDir": "deployments/terraform-deploy",
@@ -48,7 +79,7 @@
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
-      "clusterHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -140,7 +171,7 @@
       ],
       "projectHash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
       "targetHash": "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
-      "clusterHash": "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -327,9 +358,10 @@
       ],
       "edges": []
     },
-    "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9": {
+    "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD": {
       "nodes": [
-        "libraries/dotnet-lib:build"
+        "libraries/dotnet-lib:build",
+        "projects/dotnet-app:build"
       ],
       "edges": []
     },
@@ -338,16 +370,8 @@
         "deployments/terraform-deploy:build"
       ],
       "edges": [
-        "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
+        "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
         "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06"
-      ]
-    },
-    "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E": {
-      "nodes": [
-        "projects/dotnet-app:build"
-      ],
-      "edges": [
-        "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9"
       ]
     },
     "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06": {

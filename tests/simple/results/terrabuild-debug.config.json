@@ -177,7 +177,7 @@
       "targets": {
         "build": {
           "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-          "batch": false,
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
@@ -350,7 +350,7 @@
       "targets": {
         "build": {
           "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-          "batch": false,
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
@@ -408,7 +408,7 @@
         },
         "dist": {
           "hash": "71B04C660C84F005AA77AE72F1B798B933FC718D638C3DEEBC029BA8451DCA24",
-          "batch": false,
+          "batch": true,
           "dependsOn": [
             "build"
           ],
