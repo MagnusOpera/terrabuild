@@ -136,7 +136,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
             let clusterNode =
                 { GraphDef.Node.Id = clusterHash
                   GraphDef.Node.ProjectId = None
-                  GraphDef.Node.ProjectDir = ""
+                  GraphDef.Node.ProjectDir = "."
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.Cache = headNode.Cache

@@ -46,6 +46,7 @@ type IEntry =
     abstract NextLogFile: unit -> string
     abstract CompleteLogFile: summary:TargetSummary -> unit
     abstract Outputs: string with get
+    abstract Logs: string with get
     abstract Complete: summary:TargetSummary -> string list
 
 type ICache =
@@ -143,6 +144,8 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             FS.combinePath logsDir $"step{logNum}.json" |> write summary
 
         member _.Outputs = outputsDir
+
+        member _.Logs = logsDir
 
         member _.Complete summary =
             let files =

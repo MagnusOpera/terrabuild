@@ -136,7 +136,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         lastStatusCode <- exitCode
         Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
 
-    lastStatusCode, stepLogs
+    lastStatusCode, (stepLogs |> List.ofSeq)
 
 
 
@@ -228,6 +228,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let afterFiles = IO.createSnapshot node.Outputs node.ProjectDir
             let newFiles = afterFiles - beforeFiles
             let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+            let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
+            IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
 
             buildProgress.TaskUploading node.Id
             let summary =
