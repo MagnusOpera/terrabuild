@@ -118,7 +118,8 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                     | _ -> raiseExternalError $"{clusterHash}: Failed to get shell operation (extension error)"
                 )
 
-            let clusterDependencies = nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)
+            let clusterDependencies =
+                (nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)) - cluster
 
             let clusterNode =
                 { GraphDef.Node.Id = clusterHash
