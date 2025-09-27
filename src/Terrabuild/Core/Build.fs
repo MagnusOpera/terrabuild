@@ -194,6 +194,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     and batchBuildNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
+        buildProgress.TaskBuilding batchNode.Id
 
         let cluster = graph.Clusters[batchNode.ClusterHash]
         let beforeFiles =
@@ -260,6 +261,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _ ->
                     buildProgress.TaskCompleted nodeId false false))
 
+        match status with
+        | TaskStatus.Success _ -> buildProgress.TaskCompleted batchNode.Id false true
+        | _ -> buildProgress.TaskCompleted batchNode.Id false false
+
     and buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
         buildProgress.TaskBuilding node.Id
@@ -307,9 +312,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             nodeResults[node.Id] <- (TaskRequest.Build, status)
             match status with
             | TaskStatus.Success completionDate ->
+                buildProgress.TaskCompleted node.Id false true
                 let nodeSignal = hub.GetSignal<DateTime> node.Id
                 nodeSignal.Set completionDate
-                buildProgress.TaskCompleted node.Id false true
             | _ ->
                 buildProgress.TaskCompleted node.Id false false)
 
@@ -334,9 +339,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             match cluster with
             | Some cluster ->
+                buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target}"
                 cluster |> Seq.iter (fun nodeId ->
-                let node = graph.Nodes[nodeId]
-                buildProgress.TaskScheduled node.Id $"[{node.Target}] {node.ProjectDir}")
+                    let node = graph.Nodes[nodeId]
+                    buildProgress.TaskScheduled node.Id $" ⦙ {node.ProjectDir}")
             | _ -> ()
 
             hub.Subscribe targetNode.Id schedDependencies (fun () ->
