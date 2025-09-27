@@ -99,7 +99,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         |> Seq.iter (fun (node, duration) ->
             let statusEmoji = statusEmoji node
             let uniqueId = stableRandomId node.Id
-            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration} |" |> append
+            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.Humanize()} |" |> append
         )
         let (cost, gain) =
             originSummaries |> Map.fold (fun (cost, gain) _ originSummary ->
