@@ -58,7 +58,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     scheduleNodeStatus (Some node.ClusterHash) projectId
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
-            hub.Subscribe $"{nodeId} status" dependencyStatus (fun () ->
+            hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
                 // now decide what to do
                 let maxCompletionChildren =
                     match dependencyStatus with
