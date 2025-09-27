@@ -330,7 +330,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let batchNode = graph.Nodes[node.ClusterHash]
                     Some cluster, batchNode
                 | _ ->
-                    buildProgress.TaskScheduled node.Id $"{node.Target} {node.ProjectDir}"
                     None, node
 
             let schedDependencies =
@@ -339,15 +338,16 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     hub.GetSignal<DateTime> depId)
                 |> List.ofSeq
 
-            match cluster with
-            | Some cluster ->
-                buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target}"
-                cluster |> Seq.iter (fun nodeId ->
-                    let node = graph.Nodes[nodeId]
-                    buildProgress.TaskScheduled node.Id $" ⦙ {node.ProjectDir}")
-            | _ -> ()
-
             hub.Subscribe targetNode.Id schedDependencies (fun () ->
+                match cluster with
+                | Some cluster ->
+                    buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target}"
+                    cluster |> Seq.iter (fun nodeId ->
+                        let node = graph.Nodes[nodeId]
+                        buildProgress.TaskScheduled node.Id $" ⦙ {node.ProjectDir}")
+                | _ ->
+                    buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target} {targetNode.ProjectDir}"
+
                 match targetNode.Action with
                 | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
                 | GraphDef.NodeAction.Build -> buildNode targetNode

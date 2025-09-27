@@ -35,7 +35,7 @@ jobs:
       - name: Build Self
         run: |
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
-          make self config=Release
+          make self-ci config=Release
 
       - name: Create Test Report
         uses: magnusopera/test-reporter@main
