@@ -187,7 +187,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | 0 ->  Ansi.Emojis.happy
             | _ -> Ansi.Emojis.sad
         let duration = DateTime.UtcNow - options.StartedAt
-        $"{emoji} Completed in {duration.Humanize()}" |> Terminal.writeLine
+        $"{emoji} Completed in {duration.HumanizeAbbreviated()}" |> Terminal.writeLine
         errCode
 
 
