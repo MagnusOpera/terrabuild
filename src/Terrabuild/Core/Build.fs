@@ -216,7 +216,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
-        let duration = endedAt - startedAt
+
+        // split duration equally between underlying tasks
+        let duration = (endedAt - startedAt).Ticks / (cluster.Count |> int64) |> TimeSpan
 
         let status =
             match lastStatusCode with

@@ -87,14 +87,17 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         "| Target | Duration |" |> append
         "|--------|----------|" |> append
 
-        nodes |> Seq.iter (fun node ->
+        nodes
+        |> Seq.map (fun node ->
             let originSummary = originSummaries[node.Id]
-            let statusEmoji = statusEmoji node
             let duration =
                 match originSummary with
-                | Some (_, summary) -> $"{summary.Duration.Humanize()}"
-                | _ -> ""
-
+                | Some (_, summary) -> Some summary.Duration
+                | _ -> None
+            node, duration)
+        |> Seq.sortByDescending snd
+        |> Seq.iter (fun (node, duration) ->
+            let statusEmoji = statusEmoji node
             let uniqueId = stableRandomId node.Id
             $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration} |" |> append
         )
