@@ -206,7 +206,7 @@ type Dotnet() =
             match context.Batch with
             | Some batch ->
                 let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
-                DotnetHelpers.writeSolutionFile batch.ProjectPaths DotnetHelpers.defaultConfiguration slnFile
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths configuration slnFile
                 slnFile
             | _ -> ""
 

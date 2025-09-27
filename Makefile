@@ -76,7 +76,7 @@ self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --retry --debug --log --local-only
 
 self-ci: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --local-only
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only
 
 self-logs:
 	$(PWD)/.out/dotnet/terrabuild logs build test dist --configuration $(config) --debug --log --local-only
