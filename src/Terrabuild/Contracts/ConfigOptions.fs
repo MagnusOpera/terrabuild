@@ -6,6 +6,9 @@ open Contracts
 [<RequireQualifiedAccess>]
 type Options = {
     Workspace: string
+    HomeDir: string
+    TmpDir: string
+    SharedDir: string
     WhatIf: bool
     Debug: bool
     MaxConcurrency: int

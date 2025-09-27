@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "BFA50CC4701C93ED862F3608316CBE8BAE0D569DD18A060C7129A1D4DF7BCFB7",
+      "hash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -50,6 +50,7 @@
       "targets": {
         "build": {
           "hash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -91,7 +92,7 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771"
+                        "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7"
                       ],
                       "npm_app_version": [
                         "string",
@@ -110,6 +111,7 @@
         },
         "deploy": {
           "hash": "B3E1E648F36E350D97062C1E7799E556783366AC32DB75B59BCD8ADF32A7A696",
+          "batch": false,
           "dependsOn": [
             "push"
           ],
@@ -165,7 +167,7 @@
     },
     "libraries/dotnet-lib": {
       "directory": "libraries/dotnet-lib",
-      "hash": "D4B3348064D16922E85E4360A98875762AC4EE26FD0C77B9A8E09AE658DC6C06",
+      "hash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "dependencies": [],
       "files": [
         "Class1.cs",
@@ -175,16 +177,14 @@
       "targets": {
         "build": {
           "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -201,6 +201,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -247,6 +251,7 @@
       "targets": {
         "build": {
           "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -300,6 +305,7 @@
       "targets": {
         "build": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -330,7 +336,7 @@
     "projects/dotnet-app": {
       "id": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "AF7DA885096F5E8E14B8A8FAB101958472F0ABE049250D5D7366DBA89C3A5771",
+      "hash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
       "dependencies": [
         "libraries/dotnet-lib"
       ],
@@ -344,16 +350,14 @@
       "targets": {
         "build": {
           "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -370,6 +374,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -388,6 +396,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -396,16 +408,14 @@
         },
         "dist": {
           "hash": "71B04C660C84F005AA77AE72F1B798B933FC718D638C3DEEBC029BA8451DCA24",
+          "batch": true,
           "dependsOn": [
             "build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -422,6 +432,10 @@
                   "configuration": [
                     "string",
                     "Debug"
+                  ],
+                  "dependencies": [
+                    "bool",
+                    true
                   ]
                 }
               ]
@@ -448,16 +462,14 @@
         },
         "docker": {
           "hash": "284192E5967E8DFA22895ABD89017A46E3516D76DEAE8AFE28318C78921D8A23",
+          "batch": false,
           "dependsOn": [
             "dist"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -509,6 +521,7 @@
       "targets": {
         "build": {
           "hash": "C6337486788B3103E3C2737C5C465A151569678B0F79EDBAF65D6409D1FDDCB4",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -585,6 +598,7 @@
       "targets": {
         "build": {
           "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -640,6 +654,7 @@
       "targets": {
         "build": {
           "hash": "368590893C4C4CB86F11CE435BED211B8E67BBAA776E88A26BA9786A25B48841",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -692,6 +707,7 @@
       "targets": {
         "build": {
           "hash": "5F97E6095B871F9045214CFE08ABC4C8E778379ACCA4D34A94079C508D24D5C4",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -740,6 +756,7 @@
       "targets": {
         "test": {
           "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
+          "batch": false,
           "dependsOn": [
             "build"
           ],

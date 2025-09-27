@@ -60,7 +60,9 @@ type Dotnet() =
     /// <param name="evaluate" example="&quot;true&quot;">Force package evaluation.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
     [<LocalCacheAttribute>]
-    static member restore (dependencies: bool option)
+    [<BatchableAttribute>]
+    static member restore (context: ActionContext)
+                          (dependencies: bool option)
                           (floating: bool option)
                           (evaluate: bool option)
                           (args: string option) =
@@ -68,9 +70,16 @@ type Dotnet() =
         let locked = floating |> map_false "--locked-mode"
         let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths DotnetHelpers.defaultConfiguration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp( "dotnet", $"restore {no_dependencies} {locked} {force_evaluate} {args}")
+            shellOp( "dotnet", $"restore {sln} {no_dependencies} {locked} {force_evaluate} {args}")
         ]
         ops
 
@@ -86,7 +95,9 @@ type Dotnet() =
     /// <param name="dependencies" example="true">Restore dependencies as well.</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
-    static member build (configuration: string option)
+    [<BatchableAttribute>]
+    static member build (context: ActionContext)
+                        (configuration: string option)
                         (``parallel``: int option)
                         (log: bool option)
                         (restore: bool option)
@@ -100,9 +111,16 @@ type Dotnet() =
         let version = version |> map_value (fun version -> $"-p:Version={version}")
         let no_dependencies = dependencies |> map_false "--no-dependencies"
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths configuration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"build {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
+            shellOp("dotnet", $"build {sln} {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
         ops
 
@@ -172,7 +190,9 @@ type Dotnet() =
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
-    static member test (configuration: string option)
+    [<BatchableAttribute>]
+    static member test (context: ActionContext)
+                       (configuration: string option)
                        (restore: bool option)
                        (build: bool option)
                        (filter: string option)
@@ -182,8 +202,15 @@ type Dotnet() =
         let no_build = build |> map_false "--no-build"
         let filter = filter |> map_value (fun filter -> $"--filter \"{filter}\"")
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths DotnetHelpers.defaultConfiguration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"test {no_restore} {no_build} --configuration {configuration} {filter} {args}")
+            shellOp("dotnet", $"test {sln} {no_restore} {no_build} --configuration {configuration} {filter} {args}")
         ]
         ops

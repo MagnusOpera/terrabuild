@@ -46,6 +46,7 @@ type IEntry =
     abstract NextLogFile: unit -> string
     abstract CompleteLogFile: summary:TargetSummary -> unit
     abstract Outputs: string with get
+    abstract Logs: string with get
     abstract Complete: summary:TargetSummary -> string list
 
 type ICache =
@@ -144,6 +145,8 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
 
         member _.Outputs = outputsDir
 
+        member _.Logs = logsDir
+
         member _.Complete summary =
             let files =
                 let uploadDir sourceDir name =
@@ -168,10 +171,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                                 json |> Json.Deserialize<TargetSummary>
                                 yield! collect (logNum+1)
                             else
-                                let now = DateTime.UtcNow
-                                { summary with
-                                    EndedAt = now
-                                    Duration = now - summary.StartedAt }
+                                summary
                         }
 
                     let finalSummary =

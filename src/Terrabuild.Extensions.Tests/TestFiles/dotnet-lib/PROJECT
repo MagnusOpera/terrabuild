@@ -4,6 +4,6 @@ project {
 }
 
 target build {
-  @dotnet restore { }
+  @dotnet restore { dependencies = true }
   @dotnet build { configuration = local.configuration }
 }

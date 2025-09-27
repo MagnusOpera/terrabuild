@@ -1,4 +1,4 @@
-module GraphBuilder
+module NodeBuilder
 open Collections
 open System.Collections.Concurrent
 open Errors
@@ -81,14 +81,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             for (project, target) in allDeps do
                 buildNode project target
 
-            let cache, ops =
-                targetConfig.Operations |> List.fold (fun (cache, ops) operation ->
-                    let optContext = {
-                        Terrabuild.Extensibility.ActionContext.Debug = options.Debug
-                        Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
-                        Terrabuild.Extensibility.ActionContext.Command = operation.Command
-                        Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
-                    }
+            let cachable, batchable, ops =
+                targetConfig.Operations |> List.fold (fun (cache, batchable, ops) operation ->
+                    let optContext =
+                        { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
+                          Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
+                          Terrabuild.Extensibility.ActionContext.Command = operation.Command
+                          Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
+                          Terrabuild.Extensibility.ActionContext.Batch = None }
 
                     let parameters = 
                         match operation.Context with
@@ -118,6 +118,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.Command = shellOperation.Command
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
+                    let batchable = 
+                        match Extensions.getScriptAttribute<BatchableAttribute> optContext.Command (Some operation.Script) with
+                        | Some _ -> batchable
+                        | _ -> false
+
                     let cache =
                         match cacheability, options.LocalOnly with
                         | Cacheability.Never, _ -> Cacheability.Never
@@ -125,49 +130,60 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Cacheability.Remote, true -> Cacheability.Local
                         | Cacheability.Remote, false -> Cacheability.Remote
 
-                    cache, ops @ newops
-                ) (Cacheability.Never, [])
+                    cache, batchable, ops @ newops
+                ) (Cacheability.Never, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
-            let hashContent = opsCmds @ [
+            let targetContent = opsCmds @ [
                 yield projectConfig.Hash
                 yield targetConfig.Hash
                 yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
             ]
+            let targetHash = targetContent |> Hash.sha256strings
 
-            let hash = hashContent |> Hash.sha256strings
-
-            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {hash}")
+            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {targetHash}")
 
             // cacheability can be overriden by the target
-            let cache = targetConfig.Cache |> Option.defaultValue cache
+            let cache = targetConfig.Cache |> Option.defaultValue cachable
 
             // no rebuild by default unless force
             let rebuild = targetConfig.Rebuild |> Option.defaultValue options.Force
-
-            let idempotent = targetConfig.Idempotent |> Option.defaultValue false
+            let buildAction =
+                if rebuild then NodeAction.Build
+                else NodeAction.Ignore
 
             let targetOutput = targetConfig.Outputs
 
+            let batchContent = [
+                targetConfig.Hash
+                $"{buildAction}"
+            ]
+            let batchHash = batchContent |> Hash.sha256strings
+
+            let targetClusterHash =
+                if targetConfig.Batch && batchable then batchHash
+                else targetHash // this is expected to be unique to disable node clustering
+
             let node =
                 { Node.Id = nodeId
-  
+
                   Node.ProjectId = projectConfig.Id
                   Node.ProjectDir = projectConfig.Directory
                   Node.Target = target
                   Node.Operations = ops
                   Node.Cache = cache
-                  Node.Rebuild = rebuild
-                  Node.Idempotent = idempotent
-      
+
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
-      
+
+                  Node.ClusterHash = targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
-                  Node.TargetHash = hash
-      
-                  Node.IsLeaf = isLeaf }
+                  Node.TargetHash = targetHash
+
+                  Node.IsLeaf = isLeaf
+
+                  Node.Action = buildAction }
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
   
         if processedNodes.TryAdd(nodeId, true) then processNode()
@@ -191,4 +207,5 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine
 
     { Graph.Nodes = allNodes |> Map.ofDict
-      Graph.RootNodes = rootNodes }
+      Graph.RootNodes = rootNodes
+      Graph.Clusters = Map.empty }

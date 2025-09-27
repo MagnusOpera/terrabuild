@@ -65,11 +65,16 @@ let ``restore cacheability``() =
     getCacheInfo<Dotnet> "restore" |> should equal Cacheability.Local
 
 [<Test>]
+let ``restore batchability``() =
+    getBatchInfo<Dotnet> "restore" |> should equal true
+
+[<Test>]
 let ``restore some``() =
     let expected =
         [ shellOp("dotnet", "restore --force-evaluate --opt1 --opt2") ]
 
-    Dotnet.restore (Some true) // dependencies
+    Dotnet.restore localContext
+                   (Some true) // dependencies
                    (Some true) // floating
                    (Some true) // evaluate
                    someArgs
@@ -82,7 +87,23 @@ let ``restore none``() =
     let expected =
         [ shellOp("dotnet", "restore --no-dependencies --locked-mode") ]
 
-    Dotnet.restore None // dependencies
+    Dotnet.restore localContext
+                   None // dependencies
+                   None // floating
+                   None // evaluate
+                   noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``restore batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies --locked-mode") ]
+
+    Dotnet.restore (batchContext tmpDir projectDirs)
+                   None // dependencies
                    None // floating
                    None // evaluate
                    noneArgs
@@ -96,11 +117,16 @@ let ``build cacheability``() =
     getCacheInfo<Dotnet> "build" |> should equal Cacheability.Remote
 
 [<Test>]
+let ``build batchability``() =
+    getBatchInfo<Dotnet> "build" |> should equal true
+
+[<Test>]
 let ``build some``() =
     let expected =
         [ shellOp("dotnet", "build --configuration Release -bl -maxcpucount:9 -p:Version=1.2.3 --opt1 --opt2") ]
 
-    Dotnet.build (Some "Release") // configuration
+    Dotnet.build localContext
+                 (Some "Release") // configuration
                  (Some 9) // parallel
                  (Some true) // log
                  (Some true) // restore
@@ -116,7 +142,27 @@ let ``build none``() =
     let expected =
         [ shellOp("dotnet", "build --no-restore --no-dependencies --configuration Debug") ]
 
-    Dotnet.build None // configuration
+    Dotnet.build localContext
+                 None // configuration
+                 None // parallel
+                 None // log
+                 None // restore
+                 None // version
+                 None // dependencies
+                 noneArgs
+    |> normalize
+    |> should equal expected
+
+
+[<Test>]
+let ``build batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"build {tmpDir}/FEDCBA987654321.sln --no-restore --no-dependencies --configuration Debug") ]
+
+    Dotnet.build (batchContext tmpDir projectDirs)
+                 None // configuration
                  None // parallel
                  None // log
                  None // restore
@@ -206,7 +252,8 @@ let ``test some``() =
     let expected =
         [ shellOp("dotnet", "test --configuration Release --filter \"TestCategory!=integration\" --opt1 --opt2") ]
 
-    Dotnet.test (Some "Release") // configuration
+    Dotnet.test localContext
+                (Some "Release") // configuration
                 (Some true) // restore
                 (Some true) // build
                 (Some "TestCategory!=integration") // filter
@@ -219,7 +266,24 @@ let ``test none``() =
     let expected =
         [ shellOp("dotnet", "test --no-restore --no-build --configuration Debug") ]
 
-    Dotnet.test None // configuration
+    Dotnet.test localContext
+                None // configuration
+                None // restore
+                None // build
+                None // filter
+                noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``test batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"test {tmpDir}/FEDCBA987654321.sln --no-restore --no-build --configuration Debug") ]
+
+    Dotnet.test (batchContext tmpDir projectDirs)
+                None // configuration
                 None // restore
                 None // build
                 None // filter

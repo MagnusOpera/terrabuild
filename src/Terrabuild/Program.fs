@@ -70,10 +70,18 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("Changing current directory to {directory}", options.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
 
+        let homeDir = Cache.createHome()
+        let tmpDir = Cache.createTmp()
+        let sharedDir = ".terrabuild"
+        IO.createDirectory sharedDir
+
         let sourceControl = SourceControls.Factory.create()
 
         let options = {
             ConfigOptions.Options.Workspace = options.Workspace
+            ConfigOptions.Options.HomeDir = homeDir
+            ConfigOptions.Options.TmpDir = tmpDir
+            ConfigOptions.Options.SharedDir = sharedDir
             ConfigOptions.Options.WhatIf = options.WhatIf
             ConfigOptions.Options.Debug = options.Debug
             ConfigOptions.Options.MaxConcurrency = options.MaxConcurrency
@@ -119,12 +127,16 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage) :> Cache.ICache
 
-        let buildGraph = GraphBuilder.build options config
-        if options.Debug then
-            buildGraph
-            |> Json.Serialize
-            |> IO.writeTextFile (logFile $"build-graph.json")
+        let graph = NodeBuilder.build options config
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
 
+        let graph = ActionBuilder.build options cache graph
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
+
+        let graph = ClusterBuilder.build options config graph
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
+
+        if options.Debug then
             let markdown =
                 [
                     "# Configuration"
@@ -150,7 +162,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     "# Build Graph"
                     ""
                     "```mermaid"
-                    yield! Mermaid.render None None buildGraph
+                    yield! Mermaid.render None None graph
                     "```"
                     "" ]
             markdown |> IO.writeLines (logFile "info.md")
@@ -158,14 +170,14 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let errCode =
             if options.WhatIf then 0
             else
-                let summary = Build.run options cache api buildGraph
+                let summary = Build.run options cache api graph
 
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
 
                 if log || not summary.IsSuccess then
-                    Logs.dumpLogs runId options cache buildGraph summary
+                    Logs.dumpLogs runId options cache graph summary
 
                 if summary.IsSuccess then 0
                 else 5

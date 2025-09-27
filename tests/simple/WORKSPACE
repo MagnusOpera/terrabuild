@@ -39,6 +39,7 @@ target deploy {
 extension @dotnet {
   container = "mcr.microsoft.com/dotnet/sdk:9.0.202"
   platform = "linux/amd64"
+  batch = true
   defaults {
     configuration = local.configuration
   }

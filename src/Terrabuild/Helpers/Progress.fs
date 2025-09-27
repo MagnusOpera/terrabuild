@@ -46,7 +46,7 @@ type ProgressRenderer() =
         $"{status} {item.Label}"
 
     let refresh () =
-        if Terminal.supportAnsi then
+        if Terminal.supportAnsi && items.Length > 0 then
             // update status: move home, move top, write status
             try
                 Ansi.beginSyncUpdate |> Terminal.write
@@ -69,12 +69,7 @@ type ProgressRenderer() =
                 let item = { Id = id; Label = label; Status = status }
                 items <- item :: items
                 item, false
-
-        // FIXME: can't understand why refresh must be invoked here :-(
-        //        if not invoked, status of item is sometimes not correctly rendered.
-        //        refresh is invoked in a timer so this shall not be required.
         if not Terminal.supportAnsi || not update then printableItem item |> Terminal.writeLine
-        refresh()
 
     member _.Refresh () =
         refresh()
@@ -87,7 +82,7 @@ type ProgressRenderer() =
         let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
         update id "" status
 
-    member _.Complete (id: string) (success: bool) (restored: bool)=
+    member _.Complete (id: string) (restored: bool) (success: bool) =
         let status =
             if success then ProgressStatus.Success restored
             else ProgressStatus.Fail restored

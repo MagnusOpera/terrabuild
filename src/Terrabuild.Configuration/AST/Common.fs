@@ -6,5 +6,5 @@ type ExtensionBlock =
       Platform: Expr option
       Variables: Expr option
       Script: Expr option
-      Defaults: Map<string, Expr> option }
-
+      Defaults: Map<string, Expr> option
+      Batch: Expr option }

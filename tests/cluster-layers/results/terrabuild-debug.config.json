@@ -16,7 +16,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "AF1A2171CDEF1AE124726ACB1AA39493BEC97FCD243FCB6B4574D4A45CAC5C92",
+      "hash": "F6E5B2280231C394E01CDCF68C6807C42B00C2574D6FD203F030E1F5F4821135",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -26,16 +26,14 @@
       "targets": {
         "build": {
           "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -63,7 +61,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             },
             {
@@ -75,7 +78,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             }
           ]
@@ -88,7 +96,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "FEB1CC0EC1D84F395F3164466CE37149700974E1FB31698ABC7A18D41C0C2E22",
+      "hash": "F5ACA68B6762061FC8CDA961580F1662C5D7B829E7FAD04EE08D861CC78CCCC7",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -98,16 +106,14 @@
       "targets": {
         "build": {
           "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -135,7 +141,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             },
             {
@@ -147,7 +158,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             }
           ]
@@ -160,7 +176,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "9D3384EAB19D1D438FD2233C1A8BC0EA7C452E36F9BE7DC0F98AA329019E5DCD",
+      "hash": "983E5702E5A405D587746A5E0A1A747F0254148687F7B792678138950FBD40B0",
       "dependencies": [
         "a",
         "b"
@@ -173,6 +189,7 @@
       "targets": {
         "build": {
           "hash": "23CD6C07165F99D32FB02EF8EC9817467A787E3C2040F3FC9CB0AEC056F3E478",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -230,7 +247,7 @@
     },
     "d": {
       "directory": "D",
-      "hash": "DD930B22EB526C50D46FFA7906711475F6E49855E97844174E4B0E1F86F68809",
+      "hash": "A1E173E73E80B5C76A870D40B67CBB80EA1E5FF5B0B9CEB9BCBAB86990DFAB32",
       "dependencies": [
         "c"
       ],
@@ -242,16 +259,14 @@
       "targets": {
         "build": {
           "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -263,7 +278,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             },
             {
@@ -275,7 +295,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             }
           ]
@@ -288,7 +313,7 @@
     },
     "e": {
       "directory": "E",
-      "hash": "693893006D388C2FAECFF43F9B830A3D27BC4C8C998AD3D7AC68323D39D45425",
+      "hash": "E4D6DA14FDBD0554DCCAF4B729ED73E5DF25AD1227377199E60C1AF12C9B6F61",
       "dependencies": [
         "c"
       ],
@@ -300,16 +325,14 @@
       "targets": {
         "build": {
           "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
           "outputs": [
             "**/*.binlog",
             "bin/",
-            "obj/",
-            "obj/*.json",
-            "obj/*.props",
-            "obj/*.targets"
+            "obj/"
           ],
           "operations": [
             {
@@ -321,7 +344,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             },
             {
@@ -333,7 +361,12 @@
               "script": {},
               "context": [
                 "map",
-                {}
+                {
+                  "dependencies": [
+                    "bool",
+                    true
+                  ]
+                }
               ]
             }
           ]
@@ -346,7 +379,7 @@
     },
     "f": {
       "directory": "F",
-      "hash": "B5569AFE4321B00165D6AF4698134D563BD801B5BB6043899D0B677D439295F6",
+      "hash": "668540BD9144F23A05E200C7F087B3DE20E252D001A2FD87040249521322A14D",
       "dependencies": [
         "d",
         "e"
@@ -359,6 +392,7 @@
       "targets": {
         "build": {
           "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],
@@ -400,7 +434,7 @@
     },
     "g": {
       "directory": "G",
-      "hash": "39E750CABE1EF381CC5227C9B3AF8ED4A03CB472B56A140D1C6B4699890B6C39",
+      "hash": "A2F0AE9082B09EE08C2DD187FD78E7491EA0F9C44E0C5D9D4E4FC9EA9801B723",
       "dependencies": [
         "c"
       ],
@@ -412,6 +446,7 @@
       "targets": {
         "build": {
           "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "batch": false,
           "dependsOn": [
             "^build"
           ],

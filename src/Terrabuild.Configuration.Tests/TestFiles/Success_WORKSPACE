@@ -7,7 +7,6 @@ workspace {
 
 target build { # comment at end of line
   depends_on = [ target.^build ]
-  idempotent = false
 }
 
 # comment in the middle of the file
@@ -22,6 +21,7 @@ target dummy { }
 
 extension dotnet {
   container = "mcr.microsoft.com/dotnet/sdk:8.0.101"
+  batch = false
   defaults {
     configuration = local.configuration
   }

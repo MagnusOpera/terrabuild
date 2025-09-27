@@ -1,5 +1,36 @@
 {
   "nodes": {
+    "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6": {
+      "id": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
+      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore .terrabuild/76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6.sln --locked-mode"
+        },
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build .terrabuild/76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6.sln --no-restore --no-dependencies --configuration Debug"
+        }
+      ],
+      "cache": "local",
+      "isLeaf": true,
+      "action": "batchBuild"
+    },
     "deployments/terraform-deploy:build": {
       "id": "deployments/terraform-deploy:build",
       "projectDir": "deployments/terraform-deploy",
@@ -320,5 +351,10 @@
     "projects/rust-app:build",
     "tests/playwright:test"
   ],
-  "clusters": {}
+  "clusters": {
+    "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6": [
+      "libraries/dotnet-lib:build",
+      "projects/dotnet-app:build"
+    ]
+  }
 }

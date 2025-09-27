@@ -14,37 +14,37 @@ let parseWorkspace() =
         let targetBuild = 
             { TargetBlock.DependsOn = Set [ "^build" ] |> Some
               TargetBlock.Rebuild = None
-              TargetBlock.Cache = None
-              TargetBlock.Idempotent = Expr.False |> Some }
+              TargetBlock.Cache = None }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Rebuild = Expr.Bool true |> Some
-              TargetBlock.Cache = "never" |> Expr.String |> Some
-              TargetBlock.Idempotent = None }
+              TargetBlock.Cache = "never" |> Expr.String |> Some }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Rebuild = None
-              TargetBlock.Cache = None
-              TargetBlock.Idempotent = None }
+              TargetBlock.Cache = None }
 
         let extDotnet =
             { Container = Some (Expr.String "mcr.microsoft.com/dotnet/sdk:8.0.101")
               Platform = None
               Variables = None
               Script = None
-              Defaults = Map [ "configuration", Expr.Variable "local.configuration" ] |> Some }
+              Defaults = Map [ "configuration", Expr.Variable "local.configuration" ] |> Some
+              Batch = Some Expr.False }
         let extDocker =
             { Container = None
               Platform = None
               Variables = None
               Script = None
-              Defaults = None }
+              Defaults = None
+              Batch = None }
         let extNpm =
             { Container = Some (Expr.String "node:20")
               Platform = None
               Variables = None
               Script = "scripts/npm.fsx" |> Expr.String |> Some
-              Defaults = None }
+              Defaults = None
+              Batch = None }
 
         { WorkspaceFile.Workspace = { Id = "d7528db2-83e0-4164-8c8e-1e0d6d6357ca" |> Some
                                       Ignores = Set [ "**/node_modules" ] |> Some
@@ -71,18 +71,15 @@ let parseWorkspace2() =
         let targetBuild = 
             { TargetBlock.DependsOn = Set [ "^build" ] |> Some
               TargetBlock.Rebuild = None
-              TargetBlock.Cache = None
-              TargetBlock.Idempotent = None }
+              TargetBlock.Cache = None }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Rebuild = Expr.Bool true |> Some
-              TargetBlock.Cache = None
-              TargetBlock.Idempotent = None }
+              TargetBlock.Cache = None }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Rebuild = None
-              TargetBlock.Cache = None
-              TargetBlock.Idempotent = None }
+              TargetBlock.Cache = None }
 
         let extDotnet =
             { Container = Expr.String "mcr.microsoft.com/dotnet/sdk:8.0.101" |> Some
@@ -91,13 +88,15 @@ let parseWorkspace2() =
               Script = None
               Defaults = Map [ "configuration1", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "toto"])
                                "configuration2", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "titi"])
-                               "configuration3", Expr.Function (Function.Replace, [Expr.String "toto titi"; Expr.String "toto"; Expr.String "titi"]) ] |> Some }
+                               "configuration3", Expr.Function (Function.Replace, [Expr.String "toto titi"; Expr.String "toto"; Expr.String "titi"]) ] |> Some
+              Batch = None }
         let extDocker =
             { Container = None
               Platform = None
               Variables = None
               Script = None
-              Defaults = None }
+              Defaults = None
+              Batch = None }
 
         { WorkspaceFile.Workspace = { Id = None; Ignores = None; Version = None }
           WorkspaceFile.Targets = Map [ "build", targetBuild

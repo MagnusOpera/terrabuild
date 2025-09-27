@@ -20,11 +20,19 @@ with
     }
 
 [<RequireQualifiedAccess>]
+type BatchContext = {
+    Hash: string
+    TempDir: string
+    ProjectPaths: string list
+}
+
+[<RequireQualifiedAccess>]
 type ActionContext = {
     Debug: bool
     CI: bool
     Command: string
     Hash: string
+    Batch: BatchContext option
 }
 
 [<RequireQualifiedAccess>]
@@ -44,6 +52,10 @@ type Cacheability =
 let shellOp(cmd, args) = 
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args }
+
+[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
+type BatchableAttribute() =
+    inherit Attribute()
 
 [<AbstractClass>]
 [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]

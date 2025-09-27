@@ -28,10 +28,10 @@ type TargetOperation = {
 type Target = {
     Hash: string
     Rebuild: bool option
+    Batch: bool
     DependsOn: string set
     Outputs: string set
     Cache: Cacheability option
-    Idempotent: bool option
     Operations: TargetOperation list
 }
 
@@ -207,7 +207,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
         |> Map.map Extensions.lazyLoadScript
 
     // load user extension
-    let usrScripts =
+    let userScripts =
         workspaceConfig.Extensions
         |> Map.map (fun _ ext ->
             let script =
@@ -218,7 +218,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
             | _ -> None)
         |> Map.map Extensions.lazyLoadScript
 
-    let scripts = sysScripts |> Map.addMap usrScripts
+    let scripts = sysScripts |> Map.addMap userScripts
     scripts
 
 
@@ -298,12 +298,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
-            let idempotent = targetBlock.Idempotent |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Idempotent)
             { targetBlock with 
                 Rebuild = rebuild
                 DependsOn = dependsOn
-                Cache = cache
-                Idempotent = idempotent })
+                Cache = cache })
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
@@ -446,8 +444,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 target.Rebuild
                 |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
-            let targetOperations =
-                target.Steps |> List.fold (fun actions step ->
+            let targetBatch, targetOperations =
+                target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind step.Extension with
                         | Some extension -> extension
@@ -482,16 +480,21 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         | Some script -> script
                         | _ -> raiseSymbolError $"Extension {step.Extension} is not defined"
 
-                    let extVariables =
+                    let variables =
                         extension.Variables
                         |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
                         |> Option.defaultValue Set.empty
+
+                    let batch =
+                        extension.Batch
+                        |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
+                        |> Option.defaultValue false
 
                     let hash =
                         let containerDeps =
                             match container with
                             | Some container ->
-                                let lstVariables = extVariables |> List.ofSeq |> List.sort
+                                let lstVariables = variables |> List.ofSeq |> List.sort
                                 let lstPlatform = platform |> Option.map (fun p -> [ p ]) |> Option.defaultValue []
                                 container :: lstVariables @ lstPlatform
                             | _ -> []
@@ -503,16 +506,16 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         TargetOperation.Hash = hash
                         TargetOperation.Container = container
                         TargetOperation.Platform = platform
-                        TargetOperation.ContainerVariables = extVariables
+                        TargetOperation.ContainerVariables = variables
                         TargetOperation.Extension = step.Extension
                         TargetOperation.Command = step.Command
                         TargetOperation.Script = script
                         TargetOperation.Context = context
                     }
 
-                    let actions = actions @ [ targetContext ]
-                    actions
-                ) []
+                    let operations = targetOperations @ [ targetContext ]
+                    (targetBatch && batch, operations)
+                ) (true, [])
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
@@ -534,9 +537,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some "remote" -> Some Cacheability.Remote
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
-            let targetIdempotent =
-                target.Idempotent
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
 
             let targetHash =
                 targetOperations
@@ -546,9 +546,9 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             let target =
                 { Target.Hash = targetHash
                   Target.Rebuild = targetRebuild
+                  Target.Batch = targetBatch
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
-                  Target.Idempotent = targetIdempotent
                   Target.Outputs = targetOutputs
                   Target.Operations = targetOperations }
 
@@ -598,7 +598,7 @@ let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
 
-    $"{Ansi.Emojis.eyes} Building graph" |> Terminal.writeLine
+    $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
@@ -734,7 +734,10 @@ let read (options: ConfigOptions.Options) =
     // select dependencies with id if any
     let projectSelection =
         match options.Projects with
-        | Some filter -> projectSelection |> Map.filter (fun _ config -> Set.intersect config.Types filter <> Set.empty)
+        | Some filter -> projectSelection |> Map.filter (fun _ config ->
+            config.Id
+            |> Option.map(fun id -> filter |> Set.contains id)
+            |> Option.defaultValue false)
         | _ -> projectSelection
 
     let selectedProjects = projectSelection |> Map.keys |> Set

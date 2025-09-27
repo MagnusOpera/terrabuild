@@ -27,34 +27,35 @@ let parseProject() =
               Platform = None
               Variables = None
               Script = None
-              Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some }        
+              Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some
+              Batch = Some Expr.True }        
         let extDocker =
             { Container = None
               Platform = None
               Variables = Expr.List [ Expr.String "ARM_TENANT_ID" ] |> Some
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "local.configuration"
-                               "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some }
+                               "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some
+              Batch = None }
         let extDummy =
             { Container = None
               Platform = None
               Variables = None
               Script = "dummy.fsx" |> Expr.String |> Some
-              Defaults = None }
+              Defaults = None
+              Batch = None }
 
         let targetBuild = 
             { TargetBlock.DependsOn = Set [ "dist" ] |> Some
               TargetBlock.Rebuild = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Idempotent = Expr.True |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
             { TargetBlock.DependsOn = None
               TargetBlock.Rebuild = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
@@ -62,7 +63,6 @@ let parseProject() =
               TargetBlock.Rebuild = Some (Expr.Bool false)
               TargetBlock.Outputs = None
               TargetBlock.Cache = "always" |> Expr.String |> Some
-              TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
                                                                                      [ Expr.Function (Function.Plus,
@@ -108,7 +108,8 @@ let parseProject2() =
               Platform = None
               Variables = None
               Script = None
-              Defaults = None }        
+              Defaults = None
+              Batch = None }        
 
         let buildTarget = 
             { TargetBlock.Rebuild = Expr.Bool true |> Some
@@ -118,7 +119,6 @@ let parseProject2() =
                                                                  Expr.String ".dll" ])] |> Some
               TargetBlock.DependsOn = None
               TargetBlock.Cache = None
-              TargetBlock.Idempotent = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
 
         let locals = 

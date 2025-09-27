@@ -9,11 +9,6 @@ locals {
     configuration = local.is_prod ? "Release" : "Debug"
 }
 
-target install {
-    cache = "local"
-    idempotent = true
-}
-
 target build {
     depends_on = [ target.install
                    target.^build ]
@@ -33,6 +28,7 @@ target publish {
 
 extension @dotnet {
     container = "mcr.microsoft.com/dotnet/sdk:9.0.304"
+    batch = true
     defaults {
         configuration = local.configuration
     }

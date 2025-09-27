@@ -12,6 +12,13 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
+type NodeAction =
+    | BatchBuild
+    | Build
+    | Restore
+    | Ignore
+
+[<RequireQualifiedAccess>]
 type Node = {
     Id: string
 
@@ -24,22 +31,22 @@ type Node = {
 
     ProjectHash: string
     TargetHash: string
+    ClusterHash: string
+
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
-    Rebuild: bool
-    Idempotent: bool
 
-    // tell if a node is leaf (that is no dependencies in same project)
-    IsLeaf: bool
+    IsLeaf: bool // tell if a node is leaf (that is no dependencies in same project)
+
+    Action: NodeAction
 }
 
 
 [<RequireQualifiedAccess>]
 type Graph = {
-    Nodes: Map<string, Node>
-    RootNodes: string set
+    Nodes: Map<string, Node> // node to Node definition
+    RootNodes: string set // nodeId of root nodes
+    Clusters: Map<string, string set>
 }
 
-
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
-

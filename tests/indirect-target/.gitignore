@@ -420,3 +420,5 @@ terrabuild-debug.md
 .mono
 *.zip
 *.fsyacc.output
+
+!results/*

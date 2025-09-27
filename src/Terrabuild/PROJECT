@@ -1,20 +1,19 @@
 
-project {
+project terrabuild {
     labels = [ "app"
                "dotnet"]
 
     @dotnet { }
 }
 
-target install {
-    @dotnet restore { }
-}
-
 target build {
+    @dotnet restore { dependencies = true }
     @dotnet build { version = terrabuild.tag }
 }
 
 target dist {
     outputs = []
+
+    @dotnet restore { dependencies = true }
     @dotnet pack { }
 }
