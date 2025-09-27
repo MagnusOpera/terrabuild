@@ -9,5 +9,6 @@ target build {
 }
 
 target test {
-    @dotnet test { }
+    @dotnet restore { dependencies = true }
+    @dotnet test { dependencies = true }
 }
