@@ -92,8 +92,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let originSummary = originSummaries[node.Id]
             let duration =
                 match originSummary with
-                | Some (_, summary) -> Some summary.Duration
-                | _ -> None
+                | Some (_, summary) -> summary.Duration
+                | _ -> TimeSpan.Zero
             node, duration)
         |> Seq.sortByDescending snd
         |> Seq.iter (fun (node, duration) ->
