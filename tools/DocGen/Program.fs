@@ -25,6 +25,7 @@ type Command = {
     Weight: int option
     Title: string option
     Cacheability: Cacheability option
+    Batchability: bool
     Summary: string
     mutable Parameters: Parameter list
 }
@@ -57,6 +58,10 @@ let getCacheInfo (methodInfo: MethodInfo) =
     | :? CacheableAttribute as attr -> Some attr.Cacheability
     | _ -> None
 
+let getBatchInfo (methodInfo: MethodInfo) = 
+    match methodInfo.GetCustomAttribute(typeof<BatchableAttribute>) with
+    | :? BatchableAttribute -> true
+    | _ -> false
 
 let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
     // first find extensions
@@ -82,6 +87,7 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
                 |> Set.remove "context"
 
             let cacheability = getCacheInfo methodInfo
+            let batchability = getBatchInfo methodInfo
 
             match extensions |> Map.tryFind extension with
             | None -> if extension <> "null" then failwith $"Extension {extension} does not exist"
@@ -107,6 +113,7 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
                             Title = m.Summary.Title
                             Summary = m.Summary.Value.Trim()
                             Cacheability = cacheability
+                            Batchability = batchability
                             Parameters = prms
                             Weight = m.Summary.Weight }
                 ext.Commands <- ext.Commands @ [cmd]
@@ -148,6 +155,10 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 "{{< /callout >}}"
                 ""
             ]
+    
+    let batchBadge =
+        if command.Batchability then " 📦"
+        else ""
 
     match command.Name with
     | "__defaults__" -> ()
@@ -156,8 +167,8 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
         let commandContent = [
             "---"
             match command.Name with
-            | "__dispatch__" -> $"title: \"<command>\""
-            | _ -> $"title: \"{command.Name}\""
+            | "__dispatch__" -> $"title: \"<command>{batchBadge}\""
+            | _ -> $"title: \"{command.Name}{batchBadge}\""
             if command.Weight |> Option.isSome then $"weight: {command.Weight.Value}"
             "---"
             ""
