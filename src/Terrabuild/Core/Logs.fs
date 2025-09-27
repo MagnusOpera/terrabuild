@@ -1,6 +1,7 @@
 module Logs
 open Cache
 open System
+open Humanizer
 
 module Iconography =
     let restore_ok = Ansi.Emojis.popcorn
@@ -95,7 +96,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | _ -> ""
 
             let uniqueId = stableRandomId node.Id
-            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration} |" |> append
+            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.Humanize()} |" |> append
         )
         let (cost, gain) =
             originSummaries |> Map.fold (fun (cost, gain) _ originSummary ->
