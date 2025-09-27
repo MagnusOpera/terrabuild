@@ -27,6 +27,7 @@ type PrinterProtocol =
     | BuildStarted
     | BuildCompleted
     | TaskScheduled of taskId:string * label:string
+    | BatchScheduled of (string*string) list
     | TaskStatusChanged of taskId:string * status:TaskStatus
     | TaskCompleted of taskId:string * restore:bool * success:bool
     | Render
@@ -60,6 +61,11 @@ type BuildNotification() =
 
             | PrinterProtocol.TaskScheduled (taskId, label) ->
                 renderer.Create taskId label spinnerScheduled frequencyScheduled
+                return! messageLoop ()
+
+            | PrinterProtocol.BatchScheduled batch ->
+                for (taskId, label) in batch do
+                    renderer.Create taskId label spinnerScheduled frequencyScheduled
                 return! messageLoop ()
 
             | PrinterProtocol.TaskStatusChanged (taskId, status) ->
@@ -100,6 +106,10 @@ type BuildNotification() =
             PrinterProtocol.TaskScheduled (taskId, label)
             |> printerAgent.Post
 
+        member _.BatchScheduled(tasks: (string * string) list) = 
+            PrinterProtocol.BatchScheduled tasks
+            |> printerAgent.Post
+
         member _.TaskDownloading (taskId:string) = 
             PrinterProtocol.TaskStatusChanged (taskId, TaskStatus.Downloading)
             |> printerAgent.Post
@@ -114,4 +124,4 @@ type BuildNotification() =
 
         member _.TaskCompleted (taskId:string) (restore: bool) (success:bool)= 
             PrinterProtocol.TaskCompleted (taskId, restore, success)
-            |> printerAgent.Post
+            |> printerAgent.Post        
