@@ -5,8 +5,19 @@ workspace {
 
 
 locals {
-    is_prod = terrabuild.configuration == "Release"
-    configuration = local.is_prod ? "Release" : "Debug"
+    is_local_build = terrabuild.configuration == "local"
+    target_env = terrabuild.environment ?? "dev"
+
+    dotnet = { config: local.is_local_build && local.target_env == "dev" ? "Debug" : "Release"
+               evaluate: local.is_local_build && local.target_env == "dev" }
+
+    runtimes = {
+        dotnet: terrabuild.ci ? "linux-x64" : "linux-arm64"
+    }
+
+    versions = {
+        dotnet_sdk: "9.0.304" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
+    }
 }
 
 target build {
@@ -27,9 +38,11 @@ target publish {
 }
 
 extension @dotnet {
-    container = "mcr.microsoft.com/dotnet/sdk:9.0.304"
+    container = local.is_local_build ? nothing : "mcr.microsoft.com/dotnet/sdk:${local.versions.dotnet_sdk}"
     batch = true
     defaults {
-        configuration = local.configuration
+        runtime = local.runtimes.dotnet
+        configuration = local.dotnet.config
+        evaluate = local.dotnet.evaluate
     }
 }
