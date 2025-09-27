@@ -6,7 +6,7 @@ open Errors
 open Collections
 open Environment
 open System.Runtime.InteropServices
-
+open Humanizer
 
 
 
@@ -187,7 +187,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | 0 ->  Ansi.Emojis.happy
             | _ -> Ansi.Emojis.sad
         let duration = DateTime.UtcNow - options.StartedAt
-        $"{emoji} Completed in {duration}" |> Terminal.writeLine
+        $"{emoji} Completed in {duration.Humanize()}" |> Terminal.writeLine
         errCode
 
 
