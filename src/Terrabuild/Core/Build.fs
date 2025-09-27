@@ -342,7 +342,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target}"
                 cluster |> Seq.iter (fun nodeId ->
                     let node = graph.Nodes[nodeId]
-                    buildProgress.TaskScheduled node.Id $"‣ {node.ProjectDir}")
+                    buildProgress.TaskScheduled node.Id $" ⦙ {node.ProjectDir}")
             | _ -> ()
 
             hub.Subscribe targetNode.Id schedDependencies (fun () ->
