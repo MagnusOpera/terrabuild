@@ -92,11 +92,11 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let statusEmoji = statusEmoji node
             let duration =
                 match originSummary with
-                | Some (_, summary) -> $"{summary.Duration}"
+                | Some (_, summary) -> $"{summary.Duration.Humanize()}"
                 | _ -> ""
 
             let uniqueId = stableRandomId node.Id
-            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.Humanize()} |" |> append
+            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration} |" |> append
         )
         let (cost, gain) =
             originSummaries |> Map.fold (fun (cost, gain) _ originSummary ->
