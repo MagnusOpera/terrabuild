@@ -85,7 +85,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         "" |> append
         $"# <a name=\"user-content-{summaryAnchor}\"></a> Summary" |> append
         "| Target | Duration |" |> append
-        "|--------|----------|" |> append
+        "|--------|---------:|" |> append
 
         nodes
         |> Seq.map (fun node ->
