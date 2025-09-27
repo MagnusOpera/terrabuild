@@ -212,11 +212,16 @@ let ``publish cacheability``() =
     getCacheInfo<Dotnet> "publish" |> should equal Cacheability.Remote
 
 [<Test>]
+let ``publish batchability``() =
+    getBatchInfo<Dotnet> "publish" |> should equal true
+
+[<Test>]
 let ``publish some``() =
     let expected =
         [ shellOp("dotnet", "publish --configuration Release -r linux-arm64 -p:PublishTrimmed=true --self-contained --opt1 --opt2") ]
 
-    Dotnet.publish (Some "Release") // configuration
+    Dotnet.publish localContext
+                   (Some "Release") // configuration
                    (Some true) // restore
                    (Some true) // build
                    (Some "linux-arm64") // runtime
@@ -231,7 +236,26 @@ let ``publish none``() =
     let expected =
         [ shellOp("dotnet", "publish --no-restore --no-build --configuration Debug") ]
 
-    Dotnet.publish None // configuration
+    Dotnet.publish localContext
+                   None // configuration
+                   None // restore
+                   None // build
+                   None // runtime
+                   None // trim
+                   None // single
+                   noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``publish batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
+    let expected =
+        [ shellOp("dotnet", $"publish {tmpDir}/FEDCBA987654321.sln --no-restore --no-build --configuration Debug") ]
+
+    Dotnet.publish (batchContext tmpDir projectDirs)
+                   None // configuration
                    None // restore
                    None // build
                    None // runtime
@@ -246,6 +270,10 @@ let ``publish none``() =
 [<Test>]
 let ``test cacheability``() =
     getCacheInfo<Dotnet> "test" |> should equal Cacheability.Remote
+
+[<Test>]
+let ``test batchability``() =
+    getBatchInfo<Dotnet> "test" |> should equal true
 
 [<Test>]
 let ``test some``() =
