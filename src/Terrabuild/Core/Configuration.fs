@@ -638,7 +638,7 @@ let read (options: ConfigOptions.Options) =
             if projectLoading.TryAdd(projectPathId, true) then
 
                 // parallel load of projects
-                hub.Subscribe projectDir [] (fun () ->
+                hub.SubscribeBackground projectDir [] (fun () ->
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
@@ -670,7 +670,7 @@ let read (options: ConfigOptions.Options) =
                         |> List.ofSeq
 
                     let awaitedSignals = projectPathSignals @ dependsOnSignals
-                    hub.Subscribe projectDir awaitedSignals (fun () ->
+                    hub.SubscribeBackground projectDir awaitedSignals (fun () ->
                         try
                             // build task & code & notify
                             let dependsOnProjects = 
