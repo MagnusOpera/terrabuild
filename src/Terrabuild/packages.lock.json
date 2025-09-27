@@ -67,12 +67,6 @@
           "System.Text.Json": "6.0.10"
         }
       },
-      "Humanizer.Core": {
-        "type": "Direct",
-        "requested": "[2.14.1, )",
-        "resolved": "2.14.1",
-        "contentHash": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw=="
-      },
       "LibGit2Sharp": {
         "type": "Direct",
         "requested": "[0.31.0, )",

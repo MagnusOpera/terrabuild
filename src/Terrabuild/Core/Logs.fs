@@ -99,7 +99,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         |> Seq.iter (fun (node, duration) ->
             let statusEmoji = statusEmoji node
             let uniqueId = stableRandomId node.Id
-            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.Humanize()} |" |> append
+            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.HumanizeAbbreviated()} |" |> append
         )
         let (cost, gain) =
             originSummaries |> Map.fold (fun (cost, gain) _ originSummary ->
@@ -110,11 +110,11 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     else cost, gain + duration
                 | _ -> cost, gain
             ) (TimeSpan.Zero, TimeSpan.Zero)
-        $"| Total Cost | {cost.Humanize()} |" |> append
-        $"| Total Gain | {gain.Humanize()} |" |> append
+        $"| Total Cost | {cost.HumanizeAbbreviated()} |" |> append
+        $"| Total Gain | {gain.HumanizeAbbreviated()} |" |> append
         if options.WhatIf |> not then
             let duration = summary.EndedAt - options.StartedAt
-            $"| Duration | {duration.Humanize()} |" |> append
+            $"| Duration | {duration.HumanizeAbbreviated()} |" |> append
 
         "" |> append
 

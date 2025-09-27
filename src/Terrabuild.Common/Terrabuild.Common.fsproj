@@ -16,6 +16,7 @@
     <Compile Include="Json.fs" />
     <Compile Include="Environment.fs" />
     <Compile Include="Converters.fs" />
+    <Compile Include="Humanizer.fs" />
   </ItemGroup>
 
   <ItemGroup>
