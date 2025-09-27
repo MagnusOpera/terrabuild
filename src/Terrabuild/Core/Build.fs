@@ -339,14 +339,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 |> List.ofSeq
 
             hub.Subscribe targetNode.Id schedDependencies (fun () ->
-                match cluster with
-                | Some cluster ->
-                    buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target}"
-                    cluster |> Seq.iter (fun nodeId ->
-                        let node = graph.Nodes[nodeId]
-                        buildProgress.TaskScheduled node.Id $" ⦙ {node.ProjectDir}")
-                | _ ->
-                    buildProgress.TaskScheduled targetNode.Id $"{targetNode.Target} {targetNode.ProjectDir}"
+                let batchSchedule =
+                    [ match cluster with
+                      | Some cluster ->
+                          (targetNode.Id, $"{targetNode.Target}")
+                          yield! cluster |> Seq.map (fun nodeId ->
+                              let node = graph.Nodes[nodeId]
+                              (node.Id, $" ⦙ {node.ProjectDir}"))
+                      | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
+                buildProgress.BatchScheduled batchSchedule
 
                 match targetNode.Action with
                 | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode

@@ -9,6 +9,7 @@ type IBuildProgress =
     abstract BuildCompleted: unit -> unit
 
     abstract TaskScheduled: taskId:string -> label:string -> unit
+    abstract BatchScheduled: (string * string) list -> unit
     abstract TaskDownloading: taskId:string -> unit
     abstract TaskBuilding: taskId:string -> unit
     abstract TaskUploading: taskId:string -> unit
