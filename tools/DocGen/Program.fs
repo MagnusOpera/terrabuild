@@ -127,38 +127,17 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
 
 
 let writeCommand extensionDir (command: Command) (batchCommand: Command option) (extension: Extension) =
-
-    let cacheabilityInfo =
-        match command.Cacheability with
-        | None -> []
-        | Some Cacheability.Never ->
-            [
-                ""
-                "{{< callout type=\"exclamation\" >}}"
-                "This command is **not cacheable**."
-                "{{< /callout >}}"
-                ""
-            ]
-        | Some Cacheability.Local ->
-            [
-                ""
-                "{{< callout type=\"info\" >}}"
-                "This command is **locally cacheable** only."
-                "{{< /callout >}}"
-                ""
-            ]
-        | Some Cacheability.Remote ->
-            [
-                ""
-                "{{< callout type=\"info\" >}}"
-                "This command is **fully cacheable**."
-                "{{< /callout >}}"
-                ""
-            ]
     
-    let batchBadge =
-        if command.Batchability then " 📦"
-        else ""
+    let cacheInfo =
+        match command.Cacheability with
+        | None -> "never"
+        | Some Cacheability.Never -> "never"
+        | Some Cacheability.Local -> "local"
+        | Some Cacheability.Remote -> "global"
+
+    let batchInfo =
+        if command.Batchability then "yes"
+        else "no"
 
     match command.Name with
     | "__defaults__" -> ()
@@ -167,12 +146,13 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
         let commandContent = [
             "---"
             match command.Name with
-            | "__dispatch__" -> $"title: \"<command>{batchBadge}\""
-            | _ -> $"title: \"{command.Name}{batchBadge}\""
+            | "__dispatch__" ->
+                $"title: \"<command>\""
+            | _ ->
+                $"title: \"{command.Name}\""
             if command.Weight |> Option.isSome then $"weight: {command.Weight.Value}"
             "---"
-            ""
-            yield! cacheabilityInfo
+
             command.Summary
 
             let name =
@@ -197,6 +177,15 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                             $"    {prm.Name} = {prm.Example}"
                 "}"
             "```"
+
+            "### Capabilities"
+            ""
+            "| Capability | Info |"
+            "|------------|------|"
+            $"| Cache      | {cacheInfo}"
+            $"| Bach      | {batchInfo}"
+            ""
+
 
             $"## Argument Reference"
             match command.Parameters with
