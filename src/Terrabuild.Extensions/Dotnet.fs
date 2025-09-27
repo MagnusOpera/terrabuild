@@ -161,7 +161,9 @@ type Dotnet() =
     /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
     /// <param name="args" example="&quot;--version-suffix beta&quot;">Arguments for command.</param>
     [<RemoteCacheAttribute>]
-    static member publish (configuration: string option)
+    [<BatchableAttribute>]
+    static member publish (context: ActionContext)
+                          (configuration: string option)
                           (restore: bool option)
                           (build: bool option)
                           (runtime: string option)
@@ -175,9 +177,16 @@ type Dotnet() =
         let trim = trim |> map_true "-p:PublishTrimmed=true"
         let single = single |> map_true "--self-contained"
         let args = args |> or_default ""
+        let sln =
+            match context.Batch with
+            | Some batch ->
+                let slnFile = FS.combinePath batch.TempDir $"{batch.Hash}.sln"
+                DotnetHelpers.writeSolutionFile batch.ProjectPaths configuration slnFile
+                slnFile
+            | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"publish {no_restore} {no_build} --configuration {configuration} {runtime} {trim} {single} {args}")
+            shellOp("dotnet", $"publish {sln} {no_restore} {no_build} --configuration {configuration} {runtime} {trim} {single} {args}")
         ]
         ops
 
