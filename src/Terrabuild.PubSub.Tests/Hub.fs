@@ -215,3 +215,38 @@ let download_subscription_priority() =
     let status = hub.WaitCompletion()
     status |> should equal Status.Ok
     triggered |> should equal true
+
+
+
+[<Test>]
+let error_should_prevent_scheduling_new_tasks() =
+    let hub = Hub.Create(1)
+
+    let value1 = hub.GetSignal<int> "v1"
+    let value2 = hub.GetSignal<int> "v2"
+
+    // This callback will fail
+    let failingCallback() =
+        value1.Get<int>() |> ignore
+        failwith "boom"
+
+    let mutable triggeredNever = false
+    let neverCallback() =
+        triggeredNever <- true
+        failwith "This callback must never be triggered"
+
+    hub.Subscribe "failSub" [ value1 ] failingCallback
+    hub.Subscribe "neverSub" [ value2 ] neverCallback
+
+    // Signal v1 triggers failSub (raises boom)
+    value1.Set(123)
+    // v2 would normally trigger neverSub, but scheduling should stop after error
+    value2.Set(456)
+
+    let status = hub.WaitCompletion()
+
+    match status with
+    | Status.SubscriptionError exn -> exn.Message |> should equal "boom"
+    | _ -> Assert.Fail()
+
+    triggeredNever |> should equal false
