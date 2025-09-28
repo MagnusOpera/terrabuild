@@ -30,7 +30,9 @@ type private EventQueue(maxConcurrency: int) as this =
             async {
                 let error = Errors.tryInvoke action
                 lock this (fun () ->
-                    error |> Option.iter (fun error -> lastError <- Some error)
+                    error |> Option.iter (fun error ->
+                        lastError <- Some error
+                        normalQueue.Clear())
                     count.Value <- count.Value - 1
                     trySchedule()
                 )
@@ -39,17 +41,12 @@ type private EventQueue(maxConcurrency: int) as this =
 
         let totalInFlight = inFlightNormalTasks.Value + inFlightBackgroundTasks.Value
         let canAcceptTask = totalInFlight < 2 * maxConcurrency
-        let canScheduleNormalTask = 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
+        let canScheduleNormalTask = lastError = None && 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
         let canScheduleBackgroundTask = 0 < backgroundQueue.Count && inFlightBackgroundTasks.Value < 2 * maxConcurrency
 
-        if lastError = None then
-            if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
-            elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
-            elif totalInFlight = 0 then completed.Set() |> ignore
-        else
-            normalQueue.Clear()
-            backgroundQueue.Clear()
-            completed.Set() |> ignore
+        if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
+        elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
+        elif totalInFlight = 0 then completed.Set() |> ignore
 
     interface IEventQueue with
         member _.Enqueue kind action =
