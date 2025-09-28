@@ -76,8 +76,8 @@
       },
       "Azure.Storage.Blobs": {
         "type": "Transitive",
-        "resolved": "12.25.0",
-        "contentHash": "+5rQj7vQ2NsVxEzFeGxRGP44P9GhJcJMEZTaG/w96z/c8mEO6OoawBAr8tJ/0vH1QSVkjfr+IY3GmGpT507I0w==",
+        "resolved": "12.25.1",
+        "contentHash": "t5BZUBYly3Wi1ksifp8uVLIirE1XJm4MrTI1hsDDA2bi/M1a38m5thwsgdd3HAIkeh5a7lladDkwi1r6ZoLKYQ==",
         "dependencies": {
           "Azure.Storage.Common": "12.24.0"
         }
@@ -279,8 +279,8 @@
       },
       "Microsoft.Extensions.FileSystemGlobbing": {
         "type": "Transitive",
-        "resolved": "9.0.8",
-        "contentHash": "96Ub5LmwYfIGVoXkbe4kjs+ivK6fLBTwKJAOMfUNV0R+AkZRItlgROFqXEWMUlXBTPM1/kKu26Ueu5As6RDzJA=="
+        "resolved": "9.0.9",
+        "contentHash": "iQAgORaVIlkhcpxFnVEfjqNWfQCwBEEH7x2IanTwGafA6Tb4xiBoDWySTxUo3MV2NUV/PmwS/8OhT/elPnJCnw=="
       },
       "Microsoft.Extensions.Primitives": {
         "type": "Transitive",
@@ -545,8 +545,8 @@
       },
       "Sentry": {
         "type": "Transitive",
-        "resolved": "5.14.1",
-        "contentHash": "hB1zDDOAwk9lIDOR5sLS6fNiNDKgFpn/QA9kJyj0p84I38NCn7CDkdDikaDynb1WcYCH2a5c6Ab2/GRVeTuysw=="
+        "resolved": "5.15.1",
+        "contentHash": "x3FZzvgn9u1Oa41qzGzfOIUvNCcYmDPHT+2LKYa09SxQE7mnhRVYt5UOWr6B9zi7n/RltnVh6X6zgZZKn5PoLw=="
       },
       "Serilog": {
         "type": "Transitive",
@@ -1348,7 +1348,7 @@
         "type": "Project",
         "dependencies": {
           "Argu": "[6.2.5, )",
-          "Azure.Storage.Blobs": "[12.25.0, )",
+          "Azure.Storage.Blobs": "[12.25.1, )",
           "DotNetEnv": "[3.1.1, )",
           "FSharp.Core": "[9.0.303, )",
           "FSharp.Data": "[6.6.0, )",
@@ -1356,7 +1356,7 @@
           "LibGit2Sharp": "[0.31.0, )",
           "LibGit2Sharp.NativeBinaries": "[2.0.323, )",
           "SemanticVersioning": "[3.0.0, )",
-          "Sentry": "[5.14.1, )",
+          "Sentry": "[5.15.1, )",
           "Serilog.Sinks.File": "[7.0.0, )",
           "System.Text.Json": "[9.0.0, )",
           "Terrabuild.Common": "[0.0.0, )",
@@ -1372,7 +1372,7 @@
         "dependencies": {
           "FSharp.Core": "[9.0.303, )",
           "FSharp.SystemTextJson": "[1.4.36, )",
-          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.8, )",
+          "Microsoft.Extensions.FileSystemGlobbing": "[9.0.9, )",
           "System.Text.Json": "[9.0.0, )"
         }
       },
