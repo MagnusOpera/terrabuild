@@ -71,9 +71,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let outerDeps = buildOuterTargets projectConfig target |> Set.ofSeq
             let innerDeps = buildInnerTargets target |> Set.ofSeq
 
-            // NOTE: a node is considered a leaf (within this project only) if the target has no internal dependencies detected
-            let isLeaf = innerDeps |> Set.isEmpty
-
             let allDeps = innerDeps + outerDeps
             let children = allDeps |> Set.map (fun (project, target) -> $"{project}:{target}")
 
@@ -180,8 +177,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.ClusterHash = targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
-
-                  Node.IsLeaf = isLeaf
 
                   Node.Action = buildAction }
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"

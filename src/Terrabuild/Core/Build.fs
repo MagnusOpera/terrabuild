@@ -204,10 +204,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 let cacheEntryId = GraphDef.buildCacheKey node
                 let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
-                let snapshot =
-                    if node.IsLeaf then IO.Snapshot.Empty
-                    else IO.createSnapshot node.Outputs node.ProjectDir
-                node.Id, (cacheEntry, snapshot))
+                node.Id, cacheEntry)
             |> Map.ofSeq
 
         let batchCacheEntryId = GraphDef.buildCacheKey batchNode
@@ -227,12 +224,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         // async upload summaries
         beforeFiles
-        |> Map.iter (fun nodeId (cacheEntry, beforeFiles) ->
+        |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 let node = graph.Nodes[nodeId]
-                let afterFiles = IO.createSnapshot node.Outputs node.ProjectDir
-                let newFiles = afterFiles - beforeFiles
-                let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                let files = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir files
                 let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                 IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
 
@@ -272,9 +268,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         buildProgress.TaskBuilding node.Id
 
         let projectDirectory = node.ProjectDir
-        let beforeFiles =
-            if node.IsLeaf then IO.Snapshot.Empty
-            else IO.createSnapshot node.Outputs projectDirectory
 
         let cacheEntryId = GraphDef.buildCacheKey node
         let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
@@ -282,7 +275,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         // keep only new or modified files
         let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-        let newFiles = afterFiles - beforeFiles
+        let newFiles = afterFiles - IO.Snapshot.Empty
         let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
 
         let successful = lastStatusCode = 0

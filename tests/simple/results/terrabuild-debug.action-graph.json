@@ -33,7 +33,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "libraries/dotnet-lib:build": {
@@ -68,7 +67,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "libraries/npm-lib:build": {
@@ -101,7 +99,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "libraries/shell-lib:build": {
@@ -122,7 +119,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     },
     "projects/dotnet-app:build": {
@@ -160,7 +156,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "projects/make-app:build": {
@@ -191,7 +186,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     },
     "projects/npm-app:build": {
@@ -227,7 +221,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "projects/open-api:build": {
@@ -250,7 +243,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "projects/rust-app:build": {
@@ -276,7 +268,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "tests/playwright:test": {
@@ -309,7 +300,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     }
   },

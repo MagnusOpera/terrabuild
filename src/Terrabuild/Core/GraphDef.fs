@@ -36,8 +36,6 @@ type Node = {
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
 
-    IsLeaf: bool // tell if a node is leaf (that is no dependencies in same project)
-
     Action: NodeAction
 }
 
