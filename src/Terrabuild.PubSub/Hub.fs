@@ -18,7 +18,7 @@ type private EventQueue(maxConcurrency: int) as this =
     let backgroundQueue = Queue<(unit -> unit)>()
     let mutable isStarted = false
     let mutable totalTasks = 0
-    let mutable lastError  = None
+    let mutable lastError = None
     let inFlightNormalTasks = ref 0
     let inFlightBackgroundTasks = ref 0
 
@@ -42,10 +42,14 @@ type private EventQueue(maxConcurrency: int) as this =
         let canScheduleNormalTask = 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
         let canScheduleBackgroundTask = 0 < backgroundQueue.Count && inFlightBackgroundTasks.Value < 2 * maxConcurrency
 
-        if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
-        elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
-        elif totalInFlight = 0 then completed.Set() |> ignore
-
+        if lastError = None then
+            if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
+            elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
+            elif totalInFlight = 0 then completed.Set() |> ignore
+        else
+            normalQueue.Clear()
+            backgroundQueue.Clear()
+            completed.Set() |> ignore
 
     interface IEventQueue with
         member _.Enqueue kind action =
