@@ -15,6 +15,7 @@
     <Compile Include="String.fs" />
     <Compile Include="Converters.fs" />
     <Compile Include="Humanizer.fs" />
+    <Compile Include="SemVer.fs" />
   </ItemGroup>
 
   <ItemGroup>

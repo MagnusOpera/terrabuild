@@ -609,14 +609,10 @@ let read (options: ConfigOptions.Options) =
 
     // check min version requirement
     match workspaceConfig.Workspace.Version with
-    | Some range ->
-        match SemanticVersioning.Range.TryParse range with
-        | true, range ->
-            let version = Version.version()
-            let version = SemanticVersioning.Version.Parse version
-            if range.IsSatisfied version |> not then
-                raiseInvalidArg $"Your terrabuild version '{version}' is unexpected. Use version '{range}'."
-        | _ -> raiseInvalidArg $"Version requirement '{range}' is invalid."
+    | Some minVersion ->
+        let actualVersion = Version.version()
+        if SemVer.isAtLeast minVersion actualVersion |> not then
+            raiseInvalidArg $"Your terrabuild version '{actualVersion}' is unexpected. Use at least version '{minVersion}'."
     | _ -> ()
 
     let evaluationContext = buildEvaluationContext options workspaceConfig

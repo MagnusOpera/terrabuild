@@ -538,11 +538,6 @@
         "resolved": "4.3.2",
         "contentHash": "leXiwfiIkW7Gmn7cgnNcdtNAU70SjmKW3jxGj1iKHOvdn0zRWsgv/l2OJUO5zdGdiv2VRFnAsxxhDgMzofPdWg=="
       },
-      "SemanticVersioning": {
-        "type": "Transitive",
-        "resolved": "3.0.0",
-        "contentHash": "RR+8GbPQ/gjDqov/1QN1OPoUlbUruNwcL3WjWCeLw+MY7+od/ENhnkYxCfAC6rQLIu3QifaJt3kPYyP3RumqMQ=="
-      },
       "Sentry": {
         "type": "Transitive",
         "resolved": "5.15.1",
@@ -1355,7 +1350,6 @@
           "FSharp.SystemTextJson": "[1.4.36, )",
           "LibGit2Sharp": "[0.31.0, )",
           "LibGit2Sharp.NativeBinaries": "[2.0.323, )",
-          "SemanticVersioning": "[3.0.0, )",
           "Sentry": "[5.15.1, )",
           "Serilog.Sinks.File": "[7.0.0, )",
           "System.Text.Json": "[9.0.0, )",
