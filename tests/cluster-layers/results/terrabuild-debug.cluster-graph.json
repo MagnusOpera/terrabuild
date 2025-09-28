@@ -36,7 +36,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "b:build": {
@@ -75,7 +74,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "c:build": {
@@ -115,7 +113,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "d:build": {
@@ -150,7 +147,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "e:build": {
@@ -185,7 +181,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "f:build": {
@@ -219,7 +214,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     },
     "g:build": {
@@ -252,7 +246,6 @@
         }
       ],
       "cache": "local",
-      "isLeaf": true,
       "action": "build"
     }
   },

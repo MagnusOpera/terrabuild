@@ -21,7 +21,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     },
     "b:build": {
@@ -44,7 +43,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     },
     "c:build": {
@@ -65,7 +63,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     }
   },

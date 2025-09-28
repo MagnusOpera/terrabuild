@@ -132,7 +132,6 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.ClusterHash = clusterHash
                   GraphDef.Node.ProjectHash = clusterHash
                   GraphDef.Node.TargetHash = headNode.TargetHash
-                  GraphDef.Node.IsLeaf = headNode.IsLeaf
                   GraphDef.Node.Action = NodeAction.BatchBuild }
             Some clusterNode
     )

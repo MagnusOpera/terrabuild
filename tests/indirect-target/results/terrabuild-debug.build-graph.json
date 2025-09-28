@@ -19,7 +19,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     },
     "b:apply": {
@@ -43,7 +42,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": false,
       "action": "build"
     },
     "b:plan": {
@@ -65,7 +63,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "ignore"
     },
     "c:build": {
@@ -87,7 +84,6 @@
         }
       ],
       "cache": "never",
-      "isLeaf": true,
       "action": "build"
     }
   },
