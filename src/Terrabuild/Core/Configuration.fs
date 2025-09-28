@@ -611,7 +611,7 @@ let read (options: ConfigOptions.Options) =
     match workspaceConfig.Workspace.Version with
     | Some minVersion ->
         let actualVersion = Version.version()
-        if SemVer.isAtLeast minVersion actualVersion |> not then
+        if actualVersion |> Version.isAtLeast minVersion |> not then
             raiseInvalidArg $"Your terrabuild version '{actualVersion}' is unexpected. Use at least version '{minVersion}'."
     | _ -> ()
 
