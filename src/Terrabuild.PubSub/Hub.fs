@@ -44,8 +44,8 @@ type private EventQueue(maxConcurrency: int) as this =
         let canScheduleNormalTask = lastError = None && 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
         let canScheduleBackgroundTask = 0 < backgroundQueue.Count && inFlightBackgroundTasks.Value < 2 * maxConcurrency
 
-        if canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
-        elif canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
+        if canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
+        elif canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
         elif totalInFlight = 0 then completed.Set() |> ignore
 
     interface IEventQueue with
