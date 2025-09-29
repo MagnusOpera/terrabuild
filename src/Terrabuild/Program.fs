@@ -36,10 +36,16 @@ type RunTargetOptions = {
 }
 
 
-
 let launchDir = currentDir()
-Cache.createDirectories()
 
+let cleanup() =
+    Exec.cleanup()
+    Environment.CurrentDirectory <- launchDir
+    Terminal.showCursor()
+
+Console.CancelKeyPress.Add(fun _ -> cleanup())
+AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> cleanup())
+Cache.createDirectories()
 
 
 let rec findWorkspace dir =
@@ -418,7 +424,5 @@ let main _ =
                 $"{Ansi.Emojis.explosion} {ex}" |> Terminal.writeLine
                 5
 
-    System.Environment.CurrentDirectory <- launchDir
-    Terminal.showCursor()
     Log.Debug("===== [Execution End] =====")
     retCode
