@@ -137,12 +137,6 @@ let private createProcess workingDir command args redirect =
 // Cleanup hooks
 // ----------------------
 let cleanup () =
-    if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-       RuntimeInformation.IsOSPlatform(OSPlatform.OSX) then
-        // Kill the whole process group of the parent (0 = calling process group)
-        Native.Posix.killpg(0, Native.Posix.SIGTERM) |> ignore
-
-    // As a fallback, ensure tracked children are killed
     for proc in children do
         try
             if not proc.HasExited then
