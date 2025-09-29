@@ -93,12 +93,7 @@ module Native =
 
     module Posix =
         [<DllImport("libc", SetLastError = true)>]
-        extern int killpg(int pgrp, int signal)
-
-        [<DllImport("libc", SetLastError = true)>]
         extern int setpgid(int pid, int pgid)
-
-        let SIGTERM = 15
 
 // ----------------------
 // Track all children
@@ -137,6 +132,7 @@ let private createProcess workingDir command args redirect =
 // Cleanup hooks
 // ----------------------
 let cleanup () =
+    // As a fallback, ensure tracked children are killed
     for proc in children do
         try
             if not proc.HasExited then
