@@ -136,6 +136,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         | exn ->
             // log exception - exit will happen on next turn
             let exitCode = 5
+            cmdLastEndedAt <- DateTime.UtcNow
             let endedAt = cmdLastEndedAt
             let duration = endedAt - startedAt
             $"{exn}" |> IO.writeTextFile logFile
