@@ -353,7 +353,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
             // immediately mark node as failed so we can easily track failures if any on asynchronous paths
             // this will be updated on normal completion path
-            nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "unknown error"))
+            nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
 
             let cluster, targetNode =
                 match graph.Clusters |> Map.tryFind node.ClusterHash with
