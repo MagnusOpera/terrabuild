@@ -102,9 +102,10 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
     let mutable cmdLineIndex = 0
     let cmdFirstStartedAt = DateTime.UtcNow
     let mutable cmdLastEndedAt = cmdFirstStartedAt
+    let mutable startedAt = DateTime.UtcNow
     let allCommands = buildCommands node options projectDirectory homeDir tmpDir
     while cmdLineIndex < allCommands.Length && lastStatusCode = 0 do
-        let startedAt =
+        startedAt <-
             if cmdLineIndex > 0 then DateTime.UtcNow
             else cmdFirstStartedAt
         let metaCommand, workDir, cmd, args, container = allCommands[cmdLineIndex]
@@ -112,31 +113,52 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
         Log.Debug("{Hash}: Running '{Command}' with '{Arguments}'", node.TargetHash, cmd, args)
         let logFile = cacheEntry.NextLogFile()
-        let exitCode =
-            if options.Targets |> Set.contains "serve" then
-                Exec.execConsole workDir cmd args
-            else
-                Exec.execCaptureTimestampedOutput workDir cmd args logFile
-        cmdLastEndedAt <- DateTime.UtcNow
-        let endedAt = cmdLastEndedAt
-        let duration = endedAt - startedAt
-        let stepLog =
-            { Cache.OperationSummary.MetaCommand = metaCommand
-              Cache.OperationSummary.Command = cmd
-              Cache.OperationSummary.Arguments = args
-              Cache.OperationSummary.Container = container
-              Cache.OperationSummary.StartedAt = startedAt
-              Cache.OperationSummary.EndedAt = endedAt
-              Cache.OperationSummary.Duration = duration
-              Cache.OperationSummary.Log = logFile
-              Cache.OperationSummary.ExitCode = exitCode }
-        stepLog |> stepLogs.Add
+        try
+            let exitCode =
+                if options.Targets |> Set.contains "serve" then
+                    Exec.execConsole workDir cmd args
+                else
+                    Exec.execCaptureTimestampedOutput workDir cmd args logFile
+            cmdLastEndedAt <- DateTime.UtcNow
+            let endedAt = cmdLastEndedAt
+            let duration = endedAt - startedAt
+            let stepLog =
+                { Cache.OperationSummary.MetaCommand = metaCommand
+                  Cache.OperationSummary.Command = cmd
+                  Cache.OperationSummary.Arguments = args
+                  Cache.OperationSummary.Container = container
+                  Cache.OperationSummary.StartedAt = startedAt
+                  Cache.OperationSummary.EndedAt = endedAt
+                  Cache.OperationSummary.Duration = duration
+                  Cache.OperationSummary.Log = logFile
+                  Cache.OperationSummary.ExitCode = exitCode }
+            stepLog |> stepLogs.Add
 
-        lastStatusCode <- exitCode
-        Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
+            lastStatusCode <- exitCode
+            Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
+        with
+        | exn ->
+            // log exception - exit will happen on next turn
+            let exitCode = 5
+            cmdLastEndedAt <- DateTime.UtcNow
+            let endedAt = cmdLastEndedAt
+            let duration = endedAt - startedAt
+            $"{exn}" |> IO.writeTextFile logFile
+            let stepLog =
+                { Cache.OperationSummary.MetaCommand = metaCommand
+                  Cache.OperationSummary.Command = cmd
+                  Cache.OperationSummary.Arguments = args
+                  Cache.OperationSummary.Container = container
+                  Cache.OperationSummary.StartedAt = startedAt
+                  Cache.OperationSummary.EndedAt = endedAt
+                  Cache.OperationSummary.Duration = duration
+                  Cache.OperationSummary.Log = logFile
+                  Cache.OperationSummary.ExitCode = exitCode }
+            stepLog |> stepLogs.Add
+            lastStatusCode <- exitCode
+            Log.Error(exn, "{Hash}: Execution failed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
 
     lastStatusCode, (stepLogs |> List.ofSeq)
-
 
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
@@ -208,7 +230,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let batchCacheEntryId = GraphDef.buildCacheKey batchNode
         let batchCacheEntry = cache.GetEntry (batchNode.Cache = Terrabuild.Extensibility.Cacheability.Remote) batchCacheEntryId
-        let lastStatusCode, stepLogs = execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
+        let lastStatusCode, stepLogs =
+            try
+                execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
+            with exn ->
+                beforeFiles
+                |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
+                Log.Error(exn, "{Hash}: Execution failed with exception", batchNode.TargetHash)
+                reraise()
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
@@ -248,7 +277,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
                 let files = cacheEntry.Complete summary
                 api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
-                
+
                 // update status
                 match status with
                 | TaskStatus.Success completionDate ->
@@ -270,7 +299,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let cacheEntryId = GraphDef.buildCacheKey node
         let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
-        let lastStatusCode, stepLogs = execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
+        let lastStatusCode, stepLogs =
+            try
+                execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
+            with exn ->
+                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
+                Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
+                reraise()
 
         // keep only new or modified files
         let afterFiles = IO.createSnapshot node.Outputs projectDirectory
@@ -316,6 +351,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if node.Action = GraphDef.NodeAction.BatchBuild then raiseBugError "Unexpected BatchNode in scheduling"
 
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
+            // immediately mark node as failed so we can easily track failures if any on asynchronous paths
+            // this will be updated on normal completion path
+            nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
+
             let cluster, targetNode =
                 match graph.Clusters |> Map.tryFind node.ClusterHash with
                 | Some cluster ->
