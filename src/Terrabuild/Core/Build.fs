@@ -143,7 +143,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
             cmdLastEndedAt <- DateTime.UtcNow
             let endedAt = cmdLastEndedAt
             let duration = endedAt - startedAt
-            $"{exn}" |> IO.writeTextFile logFile
+            $"{exn}" |> IO.appendTextFile logFile
             let stepLog =
                 { Cache.OperationSummary.MetaCommand = metaCommand
                   Cache.OperationSummary.Command = cmd
@@ -402,8 +402,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     | Status.UnfulfilledSubscription (subscription, signals) ->
         let unraisedSignals = signals |> String.join ","
         Log.Fatal($"Task '{subscription}' has pending operations on '{unraisedSignals}'")
-    | Status.SubscriptionError exn ->
-        Log.Fatal(exn, "Build failed with exception")
+    | Status.SubscriptionError edi ->
+        Log.Fatal(edi.SourceException, "Build failed")
+        forwardExternalError("Failed to load configuration", edi.SourceException)
 
     let headCommit = options.HeadCommit
     let branchOrTag = options.BranchOrTag
