@@ -1,5 +1,6 @@
 module Errors
 open System
+open System.Runtime.ExceptionServices
 
 [<RequireQualifiedAccess>]
 type ErrorArea =
@@ -69,5 +70,6 @@ let tryInvoke action =
         action()
         None
     with
-        exn -> Some exn
+        exn -> ExceptionDispatchInfo.Capture(exn) |> Some
+
 

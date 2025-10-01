@@ -16,11 +16,14 @@ let readTextFile filename =
 let writeTextFile filename (content: string) =
     File.WriteAllText(filename, content)
 
+let appendTextFile filename (content: string) =
+    File.AppendAllText(filename, content)
+
 let writeLines filename (lines: string seq) =
     File.WriteAllLines(filename, lines)
 
-let appendLinesFile filename content =
-    File.AppendAllLines(filename, content)
+let appendLinesFile filename (lines: string seq) =
+    File.AppendAllLines(filename, lines)
 
 let getTempFilename () =
     Path.GetTempFileName()

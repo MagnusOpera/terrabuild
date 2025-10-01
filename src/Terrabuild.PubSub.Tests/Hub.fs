@@ -93,7 +93,7 @@ let exception_in_callback_is_error() =
     let status = hub.WaitCompletion()
 
     match status with
-    | Status.SubscriptionError exn -> exn.Message |> should equal "workflow failed"
+    | Status.SubscriptionError edi -> edi.SourceException.Message |> should equal "workflow failed"
     | _ -> Assert.Fail()
     value1.Get<int>() |> should equal 42
     value2.Get<string>() |> should equal "tralala"
@@ -246,7 +246,7 @@ let error_should_prevent_scheduling_new_tasks() =
     let status = hub.WaitCompletion()
 
     match status with
-    | Status.SubscriptionError exn -> exn.Message |> should equal "boom"
+    | Status.SubscriptionError edi -> edi.SourceException.Message |> should equal "boom"
     | _ -> Assert.Fail()
 
     triggeredNever |> should equal false

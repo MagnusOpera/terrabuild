@@ -6,6 +6,7 @@ open System
 open Collections
 open Serilog
 open Terrabuild.PubSub
+open Errors
 
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
@@ -84,9 +85,9 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
         Log.Debug("NodeStateEvaluator successful")
     | Status.UnfulfilledSubscription (subscription, signals) ->
         let unraisedSignals = signals |> String.join ","
-        Log.Fatal($"Task '{subscription}' has pending operations on '{unraisedSignals}'")
-    | Status.SubscriptionError exn ->
-        Log.Fatal(exn, "BuiNodeStateEvaluatorld failed with exception")
+        Log.Fatal($"NodeStateEvaluator '{subscription}' has pending operations on '{unraisedSignals}'")
+    | Status.SubscriptionError edi ->
+        forwardExternalError("BuiNodeStateEvaluatorld failed", edi.SourceException)
 
     let nodes =
         nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeAction)) ->

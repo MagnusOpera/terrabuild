@@ -3,6 +3,7 @@ open System
 open System.Collections.Generic
 open System.Collections.Concurrent
 open System.Threading
+open System.Runtime.ExceptionServices
 
 
 type private Priority =
@@ -145,7 +146,7 @@ type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal 
 type Status =
     | Ok
     | UnfulfilledSubscription of subscription:string * awaitedSignals:Set<string>
-    | SubscriptionError of exn:Exception
+    | SubscriptionError of edi:ExceptionDispatchInfo
 
 type IHub =
     abstract GetSignal<'T>: name:string -> ISignal

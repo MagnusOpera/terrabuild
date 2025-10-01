@@ -434,8 +434,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Status.UnfulfilledSubscription (subscription, signals) ->
                     let unraisedSignals = signals |> String.join ","
                     raiseInvalidArg $"Failed to evaluate '{subscription}': local value '{unraisedSignals}' is not declared."
-                | Status.SubscriptionError exn ->
-                    forwardExternalError("Failed to evaluate locals", exn)
+                | Status.SubscriptionError edi ->
+                    forwardExternalError("Failed to evaluate locals", edi.SourceException)
 
             // use value from project target
             // otherwise use workspace target
@@ -705,12 +705,15 @@ let read (options: ConfigOptions.Options) =
 
         match status with
         | Status.Ok ->
+            Log.Debug("Configuration successful")
             projects |> Map.ofDict
         | Status.UnfulfilledSubscription (subscription, signals) ->
             let unraisedSignals = signals |> String.join ","
+            Log.Fatal($"Configuration '{subscription}' has pending operations on '{unraisedSignals}'")
             raiseInvalidArg $"Project '{subscription}' has pending operations on '{unraisedSignals}'. Check for circular dependencies."
-        | Status.SubscriptionError exn ->
-            forwardExternalError("Failed to load configuration", exn)
+        | Status.SubscriptionError edi ->
+            Log.Fatal(edi.SourceException, "Configuration failed with exception")
+            forwardExternalError("Configuration failed", edi.SourceException)
 
 
     let projects = searchProjectsAndApply()
