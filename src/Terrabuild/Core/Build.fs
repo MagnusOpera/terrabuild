@@ -376,7 +376,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                           (targetNode.Id, $"{targetNode.Target}")
                           yield! cluster |> Seq.map (fun nodeId ->
                               let node = graph.Nodes[nodeId]
-                              (node.Id, $" ⦙ {node.ProjectDir}"))
+                              (node.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {node.ProjectDir}"))
                       | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
                 buildProgress.BatchScheduled batchSchedule
 

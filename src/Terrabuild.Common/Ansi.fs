@@ -11,6 +11,7 @@ let beginSyncUpdate = $"{CSI}?2026h"
 let endSyncUpdate = $"{CSI}?2026l"
 let cursorHome = "\r"
 let csi (x: int) = $"{CSI}{x}m"
+let csiext (x: int) (ext: string) = $"{CSI}{x}{ext}m"
 
 module Emojis =
     let info = "ℹ️"
@@ -70,6 +71,7 @@ module Styles =
     let magenta = csi 35
     let cyan = csi 36
     let white = csi 37
+    let dimwhite = csiext 2 ";37"
 
     let cursorHide = $"{CSI}?25l"
     let cursorShow = $"{CSI}?25h"
