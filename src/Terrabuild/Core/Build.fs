@@ -255,10 +255,20 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 let node = graph.Nodes[nodeId]
-                let files = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir files
+
+                // copy log files
                 let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                 IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
+
+                // cache files but external
+                let outputs =
+                    match node.Cache with
+                    | Terrabuild.Extensibility.Cacheability.Local
+                    | Terrabuild.Extensibility.Cacheability.Remote ->
+                        let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                        let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                        outputs
+                    | _ -> None
 
                 buildProgress.TaskUploading node.Id
                 let summary =
@@ -307,10 +317,16 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
                 reraise()
 
-        // keep only new or modified files
-        let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-        let newFiles = afterFiles - IO.Snapshot.Empty
-        let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+        // cache files but external
+        let outputs =
+            match node.Cache with
+            | Terrabuild.Extensibility.Cacheability.Local
+            | Terrabuild.Extensibility.Cacheability.Remote ->
+                let afterFiles = IO.createSnapshot node.Outputs projectDirectory
+                let newFiles = afterFiles - IO.Snapshot.Empty
+                let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+                outputs
+            | _ -> None
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
