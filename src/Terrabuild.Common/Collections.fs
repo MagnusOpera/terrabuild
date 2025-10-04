@@ -35,5 +35,5 @@ module Set =
 
 module Seq =
     let maxDefault defaultValue s =
-        if s = Seq.empty then defaultValue
+        if s |> Seq.isEmpty then defaultValue
         else s |> Seq.max
