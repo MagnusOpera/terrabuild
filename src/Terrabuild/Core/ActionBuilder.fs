@@ -8,21 +8,16 @@ open Serilog
 
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
-    let allowRemoteCache = options.LocalOnly |> not
     let mutable nodeResults = Map.empty
     let mutable nodes = graph.Nodes
 
     let getNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Action = GraphDef.NodeAction.Build then
-            Log.Debug("{NodeId} must rebuild because force requested", node.Id)
+            Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
-            let useRemote =
-                match node.Cache with
-                | Terrabuild.Extensibility.Cacheability.Remote
-                | Terrabuild.Extensibility.Cacheability.External -> allowRemoteCache
-                | _ -> false
+            let useRemote = GraphDef.useRemote options node
             let cacheEntryId = GraphDef.buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
