@@ -365,47 +365,46 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     and scheduleNode (node: GraphDef.Node) =
 #if DEBUG
-        if node.Action = GraphDef.NodeAction.BatchBuild then raiseBugError "Unexpected BatchNode in scheduling"
+        match node.Action with
+        | GraphDef.NodeAction.BatchBuild -> raiseBugError "Unexpected batch node in scheduling"
+        | GraphDef.NodeAction.Ignore -> raiseBugError "Unexpected ignored node in scheduling"
+        | _ -> ()
 #endif
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
-            if node.Action = GraphDef.NodeAction.Ignore then
-                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Success DateTime.UtcNow)
-            else
-                // immediately mark node as failed so we can easily track failures if any on asynchronous paths
-                // this will be updated on normal completion path
-                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
+            // immediately mark node as failed so we can easily track failures if any on asynchronous paths
+            // this will be updated on normal completion path
+            nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
 
-                let cluster, targetNode =
-                    match graph.Clusters |> Map.tryFind node.ClusterHash with
-                    | Some cluster ->
-                        let batchNode = graph.Nodes[node.ClusterHash]
-                        Some cluster, batchNode
-                    | _ ->
-                        None, node
+            let cluster, targetNode =
+                match graph.Clusters |> Map.tryFind node.ClusterHash with
+                | Some cluster ->
+                    let batchNode = graph.Nodes[node.ClusterHash]
+                    Some cluster, batchNode
+                | _ ->
+                    None, node
 
-                let schedDependencies =
-                    targetNode.Dependencies |> Seq.map (fun depId ->
-                        scheduleNode graph.Nodes[depId]
-                        hub.GetSignal<DateTime> depId)
-                    |> List.ofSeq
+            let schedDependencies =
+                targetNode.Dependencies |> Seq.map (fun depId ->
+                    scheduleNode graph.Nodes[depId]
+                    hub.GetSignal<DateTime> depId)
+                |> List.ofSeq
 
-                hub.Subscribe targetNode.Id schedDependencies (fun () ->
-                    let batchSchedule = [
-                            match cluster with
-                            | Some cluster ->
-                                (targetNode.Id, $"{targetNode.Target}")
-                                yield! cluster |> Seq.map (fun nodeId ->
-                                    let node = graph.Nodes[nodeId]
-                                    (node.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {node.ProjectDir}"))
-                            | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}")
-                        ]
-                    buildProgress.BatchScheduled batchSchedule
+            hub.Subscribe targetNode.Id schedDependencies (fun () ->
+                let batchSchedule =
+                    [ match cluster with
+                      | Some cluster ->
+                          (targetNode.Id, $"{targetNode.Target}")
+                          yield! cluster |> Seq.map (fun nodeId ->
+                              let node = graph.Nodes[nodeId]
+                              (node.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {node.ProjectDir}"))
+                      | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
+                buildProgress.BatchScheduled batchSchedule
 
-                    match targetNode.Action with
-                    | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
-                    | GraphDef.NodeAction.Build -> buildNode targetNode
-                    | GraphDef.NodeAction.Restore -> restoreNode targetNode
-                    | GraphDef.NodeAction.Ignore -> ())
+                match targetNode.Action with
+                | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
+                | GraphDef.NodeAction.Build -> buildNode targetNode
+                | GraphDef.NodeAction.Restore -> restoreNode targetNode
+                | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)
     graph.RootNodes

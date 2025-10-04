@@ -10,9 +10,9 @@ open Serilog
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let allowRemoteCache = options.LocalOnly |> not
     let mutable nodeResults = Map.empty
-    let mutable nodes = Map.empty
+    let mutable nodes = graph.Nodes
 
-    let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
+    let getNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} must rebuild because force requested", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
@@ -48,7 +48,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
 
-    let rec getNodeStatus nodeId =
+    let rec computeNodeAction nodeId =
         match nodeResults |> Map.tryFind nodeId with
         | Some result -> result
         | _ ->
@@ -57,16 +57,26 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             // get the status of dependencies
             let maxCompletionChildren =
                 node.Dependencies
-                |> Seq.map (fun projectId -> getNodeStatus projectId |> snd)
+                |> Seq.map (fun projectId -> computeNodeAction projectId |> snd)
                 |> Seq.maxDefault DateTime.MinValue
-            let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
+            let (buildRequest, buildDate) = getNodeAction node maxCompletionChildren
 
-            nodes <- nodes |> Map.add nodeId { node with Action = buildRequest }
+            // skip ignore nodes on dependencies
+            let actionableDependencies =
+                node.Dependencies
+                |> Set.filter (fun depId -> nodes[depId].Action <> GraphDef.NodeAction.Ignore)
+
+            let updatedNode =
+                { node with
+                    GraphDef.Node.Dependencies = actionableDependencies
+                    GraphDef.Node.Action = buildRequest }
+            nodes <- nodes |> Map.add nodeId updatedNode
+
             let result = (buildRequest, buildDate)
             nodeResults <- nodeResults |> Map.add nodeId result
             result
 
-    graph.RootNodes |> Seq.iter (ignore << getNodeStatus)
+    graph.RootNodes |> Seq.iter (ignore << computeNodeAction)
 
     let rootNodes =
         graph.RootNodes
