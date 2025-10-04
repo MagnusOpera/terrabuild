@@ -35,7 +35,7 @@
           "arguments": "build --no-restore --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "b:build": {
@@ -73,7 +73,7 @@
           "arguments": "build --no-restore --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "c:build": {
@@ -112,7 +112,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "d:build": {
@@ -146,7 +146,7 @@
           "arguments": "build --no-restore --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "e:build": {
@@ -180,7 +180,7 @@
           "arguments": "build --no-restore --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "f:build": {
@@ -213,7 +213,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "g:build": {
@@ -245,7 +245,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     }
   },

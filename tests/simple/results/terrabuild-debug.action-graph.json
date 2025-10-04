@@ -32,7 +32,7 @@
           "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "libraries/dotnet-lib:build": {
@@ -66,7 +66,7 @@
           "arguments": "build --no-restore --no-dependencies --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "libraries/npm-lib:build": {
@@ -98,7 +98,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "libraries/shell-lib:build": {
@@ -155,7 +155,7 @@
           "arguments": "build --no-restore --configuration Debug"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "projects/make-app:build": {
@@ -220,7 +220,7 @@
           "arguments": "run build --"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "projects/open-api:build": {
@@ -242,7 +242,7 @@
           "arguments": "generate -i api.json -g typescript-axios -o src"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "projects/rust-app:build": {
@@ -267,7 +267,7 @@
           "arguments": "build"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     },
     "tests/playwright:test": {
@@ -299,7 +299,7 @@
           "arguments": "playwright test --project ci"
         }
       ],
-      "cache": "local",
+      "cache": "remote",
       "action": "build"
     }
   },

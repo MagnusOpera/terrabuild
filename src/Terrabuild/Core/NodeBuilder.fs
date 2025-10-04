@@ -79,7 +79,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 buildNode project target
 
             let cachable, batchable, ops =
-                targetConfig.Operations |> List.fold (fun (cache, batchable, ops) operation ->
+                targetConfig.Operations |> List.fold (fun (_, batchable, ops) operation ->
                     let optContext =
                         { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                           Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -120,15 +120,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Some _ -> batchable
                         | _ -> false
 
-                    let cache =
-                        match cacheability, options.LocalOnly with
-                        | Cacheability.Never, _ -> Cacheability.Never
-                        | Cacheability.Local, _ -> Cacheability.Local
-                        | Cacheability.External, _ -> Cacheability.External
-                        | Cacheability.Remote, true -> Cacheability.Local
-                        | Cacheability.Remote, false -> Cacheability.Remote
-
-                    cache, batchable, ops @ newops
+                    cacheability, batchable, ops @ newops
                 ) (Cacheability.Never, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize

@@ -183,11 +183,16 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
             | _ -> "."
 
+        let useRemote =
+            match node.Cache with
+            | Terrabuild.Extensibility.Cacheability.Remote
+            | Terrabuild.Extensibility.Cacheability.External -> allowRemoteCache
+            | _ -> false
         let cacheEntryId = GraphDef.buildCacheKey node
         let status =
-            match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
+            match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
-                match cache.TryGetSummary allowRemoteCache cacheEntryId with
+                match cache.TryGetSummary useRemote cacheEntryId with
                 | Some summary ->
                     Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
                     match summary.Outputs with
@@ -223,13 +228,18 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskBuilding node.Id
 
+                let useRemote =
+                    match batchNode.Cache with
+                    | Terrabuild.Extensibility.Cacheability.Remote
+                    | Terrabuild.Extensibility.Cacheability.External -> allowRemoteCache
+                    | _ -> false
                 let cacheEntryId = GraphDef.buildCacheKey node
-                let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
+                let cacheEntry = cache.GetEntry useRemote cacheEntryId
                 node.Id, cacheEntry)
             |> Map.ofSeq
 
         let batchCacheEntryId = GraphDef.buildCacheKey batchNode
-        let batchCacheEntry = cache.GetEntry (batchNode.Cache = Terrabuild.Extensibility.Cacheability.Remote) batchCacheEntryId
+        let batchCacheEntry = cache.GetEntry false batchCacheEntryId
         let lastStatusCode, stepLogs =
             try
                 execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
@@ -307,8 +317,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let projectDirectory = node.ProjectDir
 
+        let useRemote =
+            match node.Cache with
+            | Terrabuild.Extensibility.Cacheability.Remote
+            | Terrabuild.Extensibility.Cacheability.External -> allowRemoteCache
+            | _ -> false
         let cacheEntryId = GraphDef.buildCacheKey node
-        let cacheEntry = cache.GetEntry (node.Cache = Terrabuild.Extensibility.Cacheability.Remote) cacheEntryId
+        let cacheEntry = cache.GetEntry useRemote cacheEntryId
         let lastStatusCode, stepLogs =
             try
                 execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir

@@ -18,8 +18,13 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
+            let useRemote =
+                match node.Cache with
+                | Terrabuild.Extensibility.Cacheability.Remote
+                | Terrabuild.Extensibility.Cacheability.External -> allowRemoteCache
+                | _ -> false
             let cacheEntryId = GraphDef.buildCacheKey node
-            match cache.TryGetSummaryOnly allowRemoteCache cacheEntryId with
+            match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
