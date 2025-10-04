@@ -182,7 +182,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | FS.File projectFile -> projectFile |> FS.parentDirectory |> Option.get
             | _ -> "."
 
-        let useRemote = GraphDef.useRemote options node
+        let useRemote = GraphDef.isRemoteCacheable options node
         let cacheEntryId = GraphDef.buildCacheKey node
         let status =
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
@@ -223,7 +223,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskBuilding node.Id
 
-                let useRemote = GraphDef.useRemote options node
+                let useRemote = GraphDef.isRemoteCacheable options node
                 let cacheEntryId = GraphDef.buildCacheKey node
                 let cacheEntry = cache.GetEntry useRemote cacheEntryId
                 node.Id, cacheEntry)
@@ -308,7 +308,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let projectDirectory = node.ProjectDir
 
-        let useRemote = GraphDef.useRemote options node
+        let useRemote = GraphDef.isRemoteCacheable options node
         let cacheEntryId = GraphDef.buildCacheKey node
         let cacheEntry = cache.GetEntry useRemote cacheEntryId
         let lastStatusCode, stepLogs =

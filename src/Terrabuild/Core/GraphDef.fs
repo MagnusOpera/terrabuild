@@ -49,7 +49,7 @@ type Graph = {
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
 
-let useRemote (options: ConfigOptions.Options) (node: Node) = 
+let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
     match node.Cache with
     | Terrabuild.Extensibility.Cacheability.Remote
     | Terrabuild.Extensibility.Cacheability.External -> options.LocalOnly |> not

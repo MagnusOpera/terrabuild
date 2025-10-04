@@ -17,7 +17,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
-            let useRemote = GraphDef.useRemote options node
+            let useRemote = GraphDef.isRemoteCacheable options node
             let cacheEntryId = GraphDef.buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
