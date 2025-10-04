@@ -31,7 +31,7 @@ type Docker() =
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
     /// <param name="build_args" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
     /// <param name="args" example="&quot;--debug&quot;">Arguments for command.</param>
-    [<RemoteCacheAttribute>]
+    [<ExternalCacheAttribute>]
     static member build (context: ActionContext)
                         (image: string)
                         (dockerfile: string option)
@@ -56,7 +56,7 @@ type Docker() =
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Apply tag on image (use branch or tag otherwise).</param>
     /// <param name="args" example="&quot;--disable-content-trust&quot;">Arguments for command.</param>
-    [<RemoteCacheAttribute>]
+    [<ExternalCacheAttribute>]
     static member push (context: ActionContext)
                        (image: string)
                        (tag: string)

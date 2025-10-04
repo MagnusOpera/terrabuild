@@ -124,6 +124,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         match cacheability, options.LocalOnly with
                         | Cacheability.Never, _ -> Cacheability.Never
                         | Cacheability.Local, _ -> Cacheability.Local
+                        | Cacheability.External, _ -> Cacheability.External
                         | Cacheability.Remote, true -> Cacheability.Local
                         | Cacheability.Remote, false -> Cacheability.Remote
 

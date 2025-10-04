@@ -36,7 +36,7 @@ let ``__dispatch__ none``() =
 
 [<Test>]
 let ``build cacheability``() =
-    getCacheInfo<Docker> "build" |> should equal Cacheability.Remote
+    getCacheInfo<Docker> "build" |> should equal Cacheability.External
 
 [<Test>]
 let ``build some ci``() =
@@ -86,7 +86,7 @@ let ``build none``() =
 
 [<Test>]
 let ``push cacheability``() =
-    getCacheInfo<Docker> "push" |> should equal Cacheability.Remote
+    getCacheInfo<Docker> "push" |> should equal Cacheability.External
 
 
 [<Test>]

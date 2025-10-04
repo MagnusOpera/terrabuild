@@ -535,6 +535,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some "never" -> Some Cacheability.Never
                 | Some "local" -> Some Cacheability.Local
                 | Some "remote" -> Some Cacheability.Remote
+                | Some "external" -> Some Cacheability.External
                 | None -> None
                 | _ -> raiseParseError "invalid cache value"
 
