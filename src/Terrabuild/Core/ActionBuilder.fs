@@ -5,15 +5,12 @@ module ActionBuilder
 open System
 open Collections
 open Serilog
-open Terrabuild.PubSub
-open Errors
 
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let allowRemoteCache = options.LocalOnly |> not
-    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction>()
-    let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
-    let hub = Hub.Create(options.MaxConcurrency)
+    let mutable nodeResults = Map.empty
+    let mutable nodes = Map.empty
 
     let computeNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Action = GraphDef.NodeAction.Build then
@@ -37,6 +34,9 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
                 // task is cached
+                elif node.Cache = Terrabuild.Extensibility.Cacheability.External then
+                    Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
+                    (GraphDef.NodeAction.Ignore, summary.EndedAt)
                 else
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Restore, summary.EndedAt)
@@ -48,51 +48,26 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
 
-    let rec scheduleNodeStatus lineage nodeId =
-        if scheduledNodeStatus.TryAdd(nodeId, true) then
+    let rec getNodeStatus nodeId =
+        match nodeResults |> Map.tryFind nodeId with
+        | Some result -> result
+        | _ ->
             let node = graph.Nodes[nodeId]
 
             // get the status of dependencies
-            let dependencyStatus =
+            let maxCompletionChildren =
                 node.Dependencies
-                |> Seq.map (fun projectId ->
-                    scheduleNodeStatus (Some node.ClusterHash) projectId
-                    hub.GetSignal<DateTime> projectId)
-                |> List.ofSeq
-            hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
-                // now decide what to do
-                let maxCompletionChildren =
-                    match dependencyStatus with
-                    | [ ] -> DateTime.MinValue
-                    | _ -> dependencyStatus |> Seq.map (fun dep -> dep.Get<DateTime>()) |> Seq.max
-                let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
+                |> Seq.map (fun projectId -> getNodeStatus projectId |> snd)
+                |> Seq.maxDefault DateTime.MinValue
+            let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
 
-                // only keep action with a side effect
-                match lineage, buildRequest with
-                | _, GraphDef.NodeAction.Ignore
-                | None, GraphDef.NodeAction.Restore -> ()
-                | _ -> nodeResults[nodeId] <- buildRequest
+            nodes <- nodes |> Map.add nodeId { node with Action = buildRequest }
+            let result = (buildRequest, buildDate)
+            nodeResults <- nodeResults |> Map.add nodeId result
+            result
 
-                let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
-                nodeStatusSignal.Set buildDate)
+    graph.RootNodes |> Seq.iter (ignore << getNodeStatus)
 
-    graph.RootNodes |> Seq.iter (scheduleNodeStatus None)
-
-
-    let status = hub.WaitCompletion()
-    match status with
-    | Status.Ok ->
-        Log.Debug("NodeStateEvaluator successful")
-    | Status.UnfulfilledSubscription (subscription, signals) ->
-        let unraisedSignals = signals |> String.join ","
-        Log.Fatal($"NodeStateEvaluator '{subscription}' has pending operations on '{unraisedSignals}'")
-    | Status.SubscriptionError edi ->
-        forwardExternalError("BuiNodeStateEvaluatorld failed", edi.SourceException)
-
-    let nodes =
-        nodeResults |> Seq.fold (fun (acc: Map<string, GraphDef.Node>) (KeyValue(nodeId, nodeAction)) ->
-            let node = { acc[nodeId] with GraphDef.Node.Action = nodeAction }
-            acc |> Map.add nodeId node) graph.Nodes
     let rootNodes =
         graph.RootNodes
         |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)

@@ -255,10 +255,20 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 let node = graph.Nodes[nodeId]
-                let files = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir files
+
+                // copy log files
                 let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                 IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
+
+                // cache files but external
+                let outputs =
+                    match node.Cache with
+                    | Terrabuild.Extensibility.Cacheability.Local
+                    | Terrabuild.Extensibility.Cacheability.Remote ->
+                        let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                        let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                        outputs
+                    | _ -> None
 
                 buildProgress.TaskUploading node.Id
                 let summary =
@@ -307,10 +317,16 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
                 reraise()
 
-        // keep only new or modified files
-        let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-        let newFiles = afterFiles - IO.Snapshot.Empty
-        let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+        // cache files but external
+        let outputs =
+            match node.Cache with
+            | Terrabuild.Extensibility.Cacheability.Local
+            | Terrabuild.Extensibility.Cacheability.Remote ->
+                let afterFiles = IO.createSnapshot node.Outputs projectDirectory
+                let newFiles = afterFiles - IO.Snapshot.Empty
+                let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+                outputs
+            | _ -> None
 
         let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
@@ -348,43 +364,48 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.TaskCompleted node.Id false false)
 
     and scheduleNode (node: GraphDef.Node) =
+#if DEBUG
         if node.Action = GraphDef.NodeAction.BatchBuild then raiseBugError "Unexpected BatchNode in scheduling"
-
+#endif
         if scheduledClusters.TryAdd(node.ClusterHash, true) then
-            // immediately mark node as failed so we can easily track failures if any on asynchronous paths
-            // this will be updated on normal completion path
-            nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
+            if node.Action = GraphDef.NodeAction.Ignore then
+                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Success DateTime.UtcNow)
+            else
+                // immediately mark node as failed so we can easily track failures if any on asynchronous paths
+                // this will be updated on normal completion path
+                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
 
-            let cluster, targetNode =
-                match graph.Clusters |> Map.tryFind node.ClusterHash with
-                | Some cluster ->
-                    let batchNode = graph.Nodes[node.ClusterHash]
-                    Some cluster, batchNode
-                | _ ->
-                    None, node
+                let cluster, targetNode =
+                    match graph.Clusters |> Map.tryFind node.ClusterHash with
+                    | Some cluster ->
+                        let batchNode = graph.Nodes[node.ClusterHash]
+                        Some cluster, batchNode
+                    | _ ->
+                        None, node
 
-            let schedDependencies =
-                targetNode.Dependencies |> Seq.map (fun depId ->
-                    scheduleNode graph.Nodes[depId]
-                    hub.GetSignal<DateTime> depId)
-                |> List.ofSeq
+                let schedDependencies =
+                    targetNode.Dependencies |> Seq.map (fun depId ->
+                        scheduleNode graph.Nodes[depId]
+                        hub.GetSignal<DateTime> depId)
+                    |> List.ofSeq
 
-            hub.Subscribe targetNode.Id schedDependencies (fun () ->
-                let batchSchedule =
-                    [ match cluster with
-                      | Some cluster ->
-                          (targetNode.Id, $"{targetNode.Target}")
-                          yield! cluster |> Seq.map (fun nodeId ->
-                              let node = graph.Nodes[nodeId]
-                              (node.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {node.ProjectDir}"))
-                      | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
-                buildProgress.BatchScheduled batchSchedule
+                hub.Subscribe targetNode.Id schedDependencies (fun () ->
+                    let batchSchedule = [
+                            match cluster with
+                            | Some cluster ->
+                                (targetNode.Id, $"{targetNode.Target}")
+                                yield! cluster |> Seq.map (fun nodeId ->
+                                    let node = graph.Nodes[nodeId]
+                                    (node.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {node.ProjectDir}"))
+                            | _ -> (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}")
+                        ]
+                    buildProgress.BatchScheduled batchSchedule
 
-                match targetNode.Action with
-                | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
-                | GraphDef.NodeAction.Build -> buildNode targetNode
-                | GraphDef.NodeAction.Restore -> restoreNode targetNode
-                | GraphDef.NodeAction.Ignore -> ())
+                    match targetNode.Action with
+                    | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
+                    | GraphDef.NodeAction.Build -> buildNode targetNode
+                    | GraphDef.NodeAction.Restore -> restoreNode targetNode
+                    | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)
     graph.RootNodes

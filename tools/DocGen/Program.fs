@@ -133,7 +133,8 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
         | None -> "never"
         | Some Cacheability.Never -> "never"
         | Some Cacheability.Local -> "local"
-        | Some Cacheability.Remote -> "global"
+        | Some Cacheability.Remote -> "remote"
+        | Some Cacheability.External -> "external"
 
     let batchInfo =
         if command.Batchability then "yes"

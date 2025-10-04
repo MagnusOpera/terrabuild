@@ -47,6 +47,7 @@ type ShellOperations = ShellOperation list
 type Cacheability =
     | Never
     | Local
+    | External
     | Remote
 
 let shellOp(cmd, args) = 
@@ -62,6 +63,9 @@ type BatchableAttribute() =
 type CacheableAttribute(cacheability: Cacheability) =
     inherit Attribute()
     member _.Cacheability = cacheability
+
+type ExternalCacheAttribute() =
+    inherit CacheableAttribute(Cacheability.External)
 
 type RemoteCacheAttribute() =
     inherit CacheableAttribute(Cacheability.Remote)
