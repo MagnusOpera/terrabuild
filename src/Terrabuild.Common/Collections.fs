@@ -32,3 +32,8 @@ module Set =
 
     let collect f s =
         s |> Seq.collect f |> Set.ofSeq
+
+module Seq =
+    let maxDefault defaultValue s =
+        if s = Seq.empty then defaultValue
+        else s |> Seq.max

@@ -35,7 +35,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
 
                 // task is cached
                 elif node.Cache = Terrabuild.Extensibility.Cacheability.External then
-                    Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
+                    Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Ignore, summary.EndedAt)
                 else
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
@@ -55,16 +55,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             let node = graph.Nodes[nodeId]
 
             // get the status of dependencies
-            let dependencyStatus =
-                node.Dependencies
-                |> Seq.map (fun projectId -> getNodeStatus projectId)
-                |> List.ofSeq
-
-            // now decide what to do
             let maxCompletionChildren =
-                match dependencyStatus with
-                | [ ] -> DateTime.MinValue
-                | _ -> dependencyStatus |> Seq.map snd |> Seq.max
+                node.Dependencies
+                |> Seq.map (fun projectId -> getNodeStatus projectId |> snd)
+                |> Seq.maxDefault DateTime.MinValue
             let (buildRequest, buildDate) = computeNodeAction node maxCompletionChildren
 
             nodes <- nodes |> Map.add nodeId { node with Action = buildRequest }
