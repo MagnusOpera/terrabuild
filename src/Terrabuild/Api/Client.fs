@@ -8,11 +8,23 @@ module private Http =
     open Serilog
     open System.Net
     open Errors
+    open System.Net.Security
 
 
     let apiUrl =
         let baseUrl = DotNetEnv.Env.GetString("TERRABUILD_API_URL", "https://api.prod.magnusopera.io/terrabuild")
         Uri(baseUrl)
+
+    let insecureSSL =
+        match DotNetEnv.Env.GetString("TERRABUILD_INSECURE_SSL", "") with
+        | "true" -> true
+        | _ -> false
+
+    let private customizeRequest (req: HttpWebRequest) =
+        if insecureSSL then
+            req.ServerCertificateValidationCallback <- RemoteCertificateValidationCallback(fun _ _ _ _ -> true)
+            Log.Warning("SSL certificate validation disabled (TERRABUILD_INSECURE_SSL=true)")
+        req
 
     let private request<'req, 'resp when 'req : not struct> method headers (path: string) (request: 'req): 'resp =
         let url = Uri($"{apiUrl}{path}").ToString()
@@ -22,7 +34,7 @@ module private Http =
             | _ -> None
 
         try
-            let response = Http.RequestString(url = url, headers = headers, ?body = body, httpMethod = method)
+            let response = Http.RequestString(url = url, headers = headers, ?body = body, httpMethod = method, customizeHttpRequest = customizeRequest)
 
             if typeof<'resp> <> typeof<Unit> then response |> Json.Deserialize<'resp>
             else Unchecked.defaultof<'resp>
