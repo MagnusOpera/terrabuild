@@ -16,7 +16,7 @@ module private Http =
         Uri(baseUrl)
 
     let insecureSSL =
-        match DotNetEnv.Env.GetString("TERRABUILD_INSECURE_SSL", "") with
+        match DotNetEnv.Env.GetString("TERRABUILD_API_INSECURE_SSL", "") with
         | "true" -> true
         | _ -> false
 
