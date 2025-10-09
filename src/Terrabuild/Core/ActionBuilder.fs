@@ -5,11 +5,15 @@ module ActionBuilder
 open System
 open Collections
 open Serilog
+open Terrabuild.PubSub
+open Errors
 
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
-    let mutable nodeResults = Map.empty
-    let mutable nodes = graph.Nodes
+    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction * DateTime>()
+    let nodes = Concurrent.ConcurrentDictionary<string, GraphDef.Node>()
+    let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
+    let hub = Hub.Create(options.MaxConcurrency)
 
     let getNodeAction (node: GraphDef.Node) maxCompletionChildren =
         if node.Action = GraphDef.NodeAction.Build then
@@ -48,41 +52,59 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
 
-    let rec computeNodeAction nodeId =
-        match nodeResults |> Map.tryFind nodeId with
-        | Some result -> result
-        | _ ->
+    let rec scheduleNodeAction nodeId =
+        if scheduledNodeStatus.TryAdd(nodeId, true) then
             let node = graph.Nodes[nodeId]
 
             // get the status of dependencies
-            let maxCompletionChildren =
+            let dependencyStatus =
                 node.Dependencies
-                |> Seq.map (fun projectId -> computeNodeAction projectId |> snd)
-                |> Seq.maxDefault DateTime.MinValue
-            let (buildRequest, buildDate) = getNodeAction node maxCompletionChildren
+                |> Seq.map (fun projectId ->
+                    scheduleNodeAction projectId
+                    hub.GetSignal<DateTime> projectId)
+                |> List.ofSeq
+            hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
+                let maxCompletionChildren =
+                    match dependencyStatus with
+                    | [ ] -> DateTime.MinValue
+                    | _ -> dependencyStatus |> Seq.map (fun dep -> dep.Get<DateTime>()) |> Seq.max
+                let (buildRequest, buildDate) = getNodeAction node maxCompletionChildren
 
-            // skip ignore nodes on dependencies
-            let actionableDependencies =
-                node.Dependencies
-                |> Set.filter (fun depId -> nodes[depId].Action <> GraphDef.NodeAction.Ignore)
+                // skip ignore nodes on dependencies
+                let actionableDependencies =
+                    node.Dependencies
+                    |> Set.filter (fun depId -> nodes[depId].Action <> GraphDef.NodeAction.Ignore)
 
-            let updatedNode =
-                { node with
-                    GraphDef.Node.Dependencies = actionableDependencies
-                    GraphDef.Node.Action = buildRequest }
-            nodes <- nodes |> Map.add nodeId updatedNode
+                let updatedNode =
+                    { node with
+                        GraphDef.Node.Dependencies = actionableDependencies
+                        GraphDef.Node.Action = buildRequest }
 
-            let result = (buildRequest, buildDate)
-            nodeResults <- nodeResults |> Map.add nodeId result
-            result
+                nodes.TryAdd(nodeId, updatedNode) |> ignore
 
-    graph.RootNodes |> Seq.iter (ignore << computeNodeAction)
+                let result = (buildRequest, buildDate)
+                nodeResults.TryAdd(nodeId, result) |> ignore
+
+                let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
+                nodeStatusSignal.Set buildDate)
+
+    graph.RootNodes |> Seq.iter scheduleNodeAction
+
+    let status = hub.WaitCompletion()
+    match status with
+    | Status.Ok ->
+        Log.Debug("NodeStateEvaluator successful")
+    | Status.UnfulfilledSubscription (subscription, signals) ->
+        let unraisedSignals = signals |> String.join ","
+        Log.Fatal($"NodeStateEvaluator '{subscription}' has pending operations on '{unraisedSignals}'")
+    | Status.SubscriptionError edi ->
+        forwardExternalError("BuiNodeStateEvaluatorld failed", edi.SourceException)
 
     let rootNodes =
         graph.RootNodes
         |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)
     let graph =
         { graph with
-            GraphDef.Graph.Nodes = nodes
+            GraphDef.Graph.Nodes = nodes |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Map.ofSeq
             GraphDef.Graph.RootNodes = rootNodes }
     graph
