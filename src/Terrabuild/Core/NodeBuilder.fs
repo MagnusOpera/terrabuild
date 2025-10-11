@@ -5,7 +5,6 @@ open Errors
 open Serilog
 open System
 open GraphDef
-open Terrabuild.Extensibility
 
 
 
@@ -96,8 +95,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
                     let cacheability =
-                        match Extensions.getScriptAttribute<CacheableAttribute> optContext.Command (Some operation.Script) with
-                        | Some attr -> attr.Cacheability
+                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
+                        | Some attr ->
+                            match attr.Cacheability with
+                            | Terrabuild.Extensibility.Cacheability.Never -> Cacheability.Never
+                            | Terrabuild.Extensibility.Cacheability.Local -> Cacheability.Local
+                            | Terrabuild.Extensibility.Cacheability.Remote -> Cacheability.Remote
+                            | Terrabuild.Extensibility.Cacheability.External -> Cacheability.External
                         | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
@@ -116,7 +120,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
 
                     let batchable = 
-                        match Extensions.getScriptAttribute<BatchableAttribute> optContext.Command (Some operation.Script) with
+                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.BatchableAttribute> optContext.Command (Some operation.Script) with
                         | Some _ -> batchable
                         | _ -> false
 

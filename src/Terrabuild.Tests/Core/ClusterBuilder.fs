@@ -17,7 +17,7 @@ let ``check cluster computation``() =
           Node.TargetHash = ""
           Node.ClusterHash = $"hash-{hash}"
           Node.Operations = []
-          Node.Cache = Terrabuild.Extensibility.Cacheability.Local
+          Node.Cache = Cacheability.Local
           Node.Action = action
           Node.Rebuild = Rebuild.Auto }
 

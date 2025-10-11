@@ -20,7 +20,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
-        elif node.Cache <> Terrabuild.Extensibility.Cacheability.Never then
+        elif node.Cache <> GraphDef.Cacheability.Never then
             let useRemote = GraphDef.isRemoteCacheable options node
             let cacheEntryId = GraphDef.buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
@@ -38,7 +38,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
                 // task is cached
-                elif node.Cache = Terrabuild.Extensibility.Cacheability.External then
+                elif node.Cache = GraphDef.Cacheability.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Ignore, summary.EndedAt)
                 else

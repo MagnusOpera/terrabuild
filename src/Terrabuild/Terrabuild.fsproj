@@ -23,10 +23,10 @@
     <Compile Include="Api/Client.fs" />
     <Compile Include="Api/Factory.fs" />
     <Compile Include="Core/Notification.fs" />
+    <Compile Include="Core/GraphDef.fs" />
     <Compile Include="Core/Cache.fs" />
     <Compile Include="Core/Auth.fs" />
     <Compile Include="Core/Scaffold.fs" />
-    <Compile Include="Core/GraphDef.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/NodeBuilder.fs" />
     <Compile Include="Core/ActionBuilder.fs" />

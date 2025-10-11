@@ -12,6 +12,13 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
+type Cacheability =
+    | Never
+    | Local
+    | External
+    | Remote
+
+[<RequireQualifiedAccess>]
 type Rebuild =
     | Auto
     | Cascade
@@ -40,7 +47,7 @@ type Node = {
     ClusterHash: string
 
     Operations: ContaineredShellOperation list
-    Cache: Terrabuild.Extensibility.Cacheability
+    Cache: Cacheability
     Rebuild: Rebuild
 
     Action: NodeAction
@@ -58,6 +65,6 @@ let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.Target
 
 let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
     match node.Cache with
-    | Terrabuild.Extensibility.Cacheability.Remote
-    | Terrabuild.Extensibility.Cacheability.External -> options.LocalOnly |> not
+    | Cacheability.Remote
+    | Cacheability.External -> options.LocalOnly |> not
     | _ -> false

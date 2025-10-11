@@ -264,8 +264,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 // cache files but external
                 let outputs =
                     match node.Cache with
-                    | Terrabuild.Extensibility.Cacheability.Local
-                    | Terrabuild.Extensibility.Cacheability.Remote ->
+                    | GraphDef.Cacheability.Local
+                    | GraphDef.Cacheability.Remote ->
                         let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
                         let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
                         outputs
@@ -322,8 +322,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         // cache files but external
         let outputs =
             match node.Cache with
-            | Terrabuild.Extensibility.Cacheability.Local
-            | Terrabuild.Extensibility.Cacheability.Remote ->
+            | GraphDef.Cacheability.Local
+            | GraphDef.Cacheability.Remote ->
                 let afterFiles = IO.createSnapshot node.Outputs projectDirectory
                 let newFiles = afterFiles - IO.Snapshot.Empty
                 let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles

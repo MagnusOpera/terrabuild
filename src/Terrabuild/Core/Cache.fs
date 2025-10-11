@@ -32,7 +32,7 @@ type TargetSummary = {
     StartedAt: DateTime
     EndedAt: DateTime
     Duration: TimeSpan
-    Cache: Terrabuild.Extensibility.Cacheability
+    Cache: GraphDef.Cacheability
 }
 
 
