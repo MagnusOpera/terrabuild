@@ -95,11 +95,16 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     | Status.SubscriptionError edi ->
         forwardExternalError("BuiNodeStateEvaluatorld failed", edi.SourceException)
 
+    let nodes =
+        graph.Nodes
+        |> Map.addMap (nodes |> Seq.map (|KeyValue|) |> Map.ofSeq)
+
     let rootNodes =
         graph.RootNodes
         |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)
+
     let graph =
         { graph with
-            GraphDef.Graph.Nodes = nodes |> Seq.map (|KeyValue|) |> Map.ofSeq
+            GraphDef.Graph.Nodes = nodes
             GraphDef.Graph.RootNodes = rootNodes }
     graph
