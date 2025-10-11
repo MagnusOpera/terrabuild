@@ -43,7 +43,7 @@ target dist {
 }
 
 target docker {
-  rebuild = false
+  rebuild = "auto"
   cache = "always"
 
   @shell echo { arguments = trim("building project1 " + local.configuration) }

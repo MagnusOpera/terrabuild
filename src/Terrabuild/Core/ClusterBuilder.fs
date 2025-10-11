@@ -38,9 +38,15 @@ type UnionFind<'T when 'T : comparison>(elements: seq<'T>) =
 let computeClusters (graph: Graph) =
     let uf = UnionFind(graph.Nodes |> Map.keys)
 
+    let isClusterizable (node: Node) =
+        match node.Action, node.Rebuild with
+        | NodeAction.Build, _
+        | NodeAction.Restore, Rebuild.Cascade -> true
+        | _ -> false
+
     // 1) Union Build nodes with the same ClusterHash
     graph.Nodes.Values
-    |> Seq.filter (fun n -> n.Action = NodeAction.Build)
+    |> Seq.filter isClusterizable
     |> Seq.map (fun n -> n.ClusterHash, n.Id)
     |> Seq.groupBy fst
     |> Seq.iter (fun (_, group) ->
@@ -53,14 +59,12 @@ let computeClusters (graph: Graph) =
         uf.Groups()
         |> Seq.choose (fun (parent, nodes) ->
             let node = graph.Nodes[parent]
-            if node.Action = NodeAction.Build then
-                let cid = node.ClusterHash
-                let buildNodes =
-                    nodes
-                    |> Set.filter (fun nid -> graph.Nodes[nid].Action = NodeAction.Build)
-                if buildNodes.Count > 1 then
-                    Some { Id = cid; Nodes = buildNodes }
-                else None
+            let cid = node.ClusterHash
+            let buildNodes =
+                nodes
+                |> Set.filter (fun nid -> graph.Nodes[nid].Action = NodeAction.Build)
+            if buildNodes.Count > 1 then
+                Some { Id = cid; Nodes = buildNodes }
             else None)
         |> Seq.toList
     clusters
@@ -132,7 +136,8 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.ClusterHash = clusterHash
                   GraphDef.Node.ProjectHash = clusterHash
                   GraphDef.Node.TargetHash = headNode.TargetHash
-                  GraphDef.Node.Action = NodeAction.BatchBuild }
+                  GraphDef.Node.Action = NodeAction.BatchBuild
+                  GraphDef.Node.Rebuild = Rebuild.Always }
             Some clusterNode
     )
 
