@@ -38,15 +38,9 @@ type UnionFind<'T when 'T : comparison>(elements: seq<'T>) =
 let computeClusters (graph: Graph) =
     let uf = UnionFind(graph.Nodes |> Map.keys)
 
-    let isClusterizable (node: Node) =
-        match node.Action, node.Rebuild with
-        | NodeAction.Build, _
-        | NodeAction.Restore, Rebuild.Cascade -> true
-        | _ -> false
-
     // 1) Union Build nodes with the same ClusterHash
     graph.Nodes.Values
-    |> Seq.filter isClusterizable
+    |> Seq.filter (fun n -> n.Action = NodeAction.Build)
     |> Seq.map (fun n -> n.ClusterHash, n.Id)
     |> Seq.groupBy fst
     |> Seq.iter (fun (_, group) ->
@@ -60,11 +54,8 @@ let computeClusters (graph: Graph) =
         |> Seq.choose (fun (parent, nodes) ->
             let node = graph.Nodes[parent]
             let cid = node.ClusterHash
-            let buildNodes =
-                nodes
-                |> Set.filter (fun nid -> graph.Nodes[nid].Action = NodeAction.Build)
-            if buildNodes.Count > 1 then
-                Some { Id = cid; Nodes = buildNodes }
+            if nodes.Count > 1 then
+                Some { Id = cid; Nodes = nodes }
             else None)
         |> Seq.toList
     clusters
