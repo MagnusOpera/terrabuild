@@ -18,7 +18,8 @@ let ``check cluster computation``() =
           Node.ClusterHash = $"hash-{hash}"
           Node.Operations = []
           Node.Cache = Terrabuild.Extensibility.Cacheability.Local
-          Node.Action = action }
+          Node.Action = action
+          Node.Rebuild = Rebuild.Auto }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
     let nodeA1 = buildNode "A1" "A" NodeAction.Build (Set ["B1"])

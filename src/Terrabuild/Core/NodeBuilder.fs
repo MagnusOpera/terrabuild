@@ -138,9 +138,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let cache = targetConfig.Cache |> Option.defaultValue cachable
 
             // no rebuild by default unless force
-            let rebuild = targetConfig.Rebuild |> Option.defaultValue options.Force
+            let rebuild =
+                let defaultForce = if options.Force then Rebuild.Always else Rebuild.Auto
+                targetConfig.Rebuild |> Option.defaultValue defaultForce
             let buildAction =
-                if rebuild then NodeAction.Build
+                if rebuild = Rebuild.Always then NodeAction.Build
                 else NodeAction.Ignore
 
             let targetOutput = targetConfig.Outputs
@@ -163,6 +165,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Target = target
                   Node.Operations = ops
                   Node.Cache = cache
+                  Node.Rebuild = rebuild
 
                   Node.Dependencies = children
                   Node.Outputs = targetOutput

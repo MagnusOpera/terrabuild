@@ -11,6 +11,7 @@ open Microsoft.Extensions.FileSystemGlobbing
 open Serilog
 open Terrabuild.Configuration
 open System.Runtime.InteropServices
+open GraphDef
 
 [<RequireQualifiedAccess>]
 type TargetOperation = {
@@ -27,7 +28,7 @@ type TargetOperation = {
 [<RequireQualifiedAccess>]
 type Target = {
     Hash: string
-    Rebuild: bool option
+    Rebuild: Rebuild option
     Batch: bool
     DependsOn: string set
     Outputs: string set
@@ -441,8 +442,15 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             // otherwise use workspace target
             // defaults to allow caching
             let targetRebuild = 
-                target.Rebuild
-                |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
+                let targetRebuild =
+                    target.Rebuild
+                        |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
+                match targetRebuild with
+                | Some "auto" -> Some Rebuild.Auto
+                | Some "cascade" -> Some Rebuild.Cascade
+                | Some "always" -> Some Rebuild.Always
+                | None -> None
+                | _ -> raiseParseError "invalid rebuild value"
 
             let targetBatch, targetOperations =
                 target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->

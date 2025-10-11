@@ -10,7 +10,7 @@ extension @dotnet {
 }
 
 target build {
-  rebuild = true
+  rebuild = "always"
   outputs = [ "${ local.wildcard }.dll" ]
   @dotnet build { }
 }

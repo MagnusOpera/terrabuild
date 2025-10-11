@@ -12,6 +12,12 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
+type Rebuild =
+    | Auto
+    | Cascade
+    | Always
+
+[<RequireQualifiedAccess>]
 type NodeAction =
     | BatchBuild
     | Build
@@ -35,6 +41,7 @@ type Node = {
 
     Operations: ContaineredShellOperation list
     Cache: Terrabuild.Extensibility.Cacheability
+    Rebuild: Rebuild
 
     Action: NodeAction
 }
