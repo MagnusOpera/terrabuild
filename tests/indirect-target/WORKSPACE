@@ -17,7 +17,7 @@ target dist {
 
 # plan deployment
 target plan {
-    rebuild = terrabuild.retry
+    rebuild = terrabuild.retry ? "always" : "auto"
     depends_on = [ target.dist
                    target.^plan ]
 }

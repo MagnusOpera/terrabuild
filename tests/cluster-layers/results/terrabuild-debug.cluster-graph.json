@@ -36,6 +36,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "b:build": {
@@ -74,6 +75,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "c:build": {
@@ -113,6 +115,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "d:build": {
@@ -147,6 +150,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "e:build": {
@@ -181,6 +185,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "f:build": {
@@ -214,6 +219,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     },
     "g:build": {
@@ -246,6 +252,7 @@
         }
       ],
       "cache": "remote",
+      "rebuild": "always",
       "action": "build"
     }
   },
