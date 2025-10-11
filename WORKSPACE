@@ -16,7 +16,7 @@ locals {
     }
 
     versions = {
-        dotnet_sdk: "9.0.304" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
+        dotnet_sdk: "9.0.305" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
     }
 }
 
