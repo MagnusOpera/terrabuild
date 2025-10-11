@@ -30,6 +30,7 @@
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/NodeBuilder.fs" />
     <Compile Include="Core/ActionBuilder.fs" />
+    <Compile Include="Core/CascadeBuilder.fs" />
     <Compile Include="Core/ClusterBuilder.fs" />
     <Compile Include="Core/Build.fs" />
     <Compile Include="Core/Mermaid.fs" />

@@ -10,12 +10,12 @@ open Errors
 
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
-    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction * DateTime>()
+    let nodeResults = Concurrent.ConcurrentDictionary<string, GraphDef.NodeAction>()
     let nodes = Concurrent.ConcurrentDictionary<string, GraphDef.Node>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
-    let getNodeAction (node: GraphDef.Node) maxCompletionChildren =
+    let getNodeAction (node: GraphDef.Node) hasChildRebuilding =
         if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
@@ -32,8 +32,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
-                // children are younger than task
-                elif summary.EndedAt < maxCompletionChildren then
+                // children task is building
+                elif hasChildRebuilding then
                     Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
@@ -64,11 +64,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
-                let maxCompletionChildren =
-                    match dependencyStatus with
-                    | [ ] -> DateTime.MinValue
-                    | _ -> dependencyStatus |> Seq.map (fun dep -> dep.Get<DateTime>()) |> Seq.max
-                let (buildRequest, buildDate) = getNodeAction node maxCompletionChildren
+                let hasChildRebuilding = node.Dependencies |> Seq.exists (fun projectId -> nodeResults[projectId].IsBuild)
+                let (buildRequest, buildDate) = getNodeAction node hasChildRebuilding
 
                 // skip ignore nodes on dependencies
                 let actionableDependencies =
@@ -81,9 +78,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                         GraphDef.Node.Action = buildRequest }
 
                 nodes.TryAdd(nodeId, updatedNode) |> ignore
-
-                let result = (buildRequest, buildDate)
-                nodeResults.TryAdd(nodeId, result) |> ignore
+                nodeResults.TryAdd(nodeId, buildRequest) |> ignore
 
                 let nodeStatusSignal = hub.GetSignal<DateTime> nodeId
                 nodeStatusSignal.Set buildDate)
