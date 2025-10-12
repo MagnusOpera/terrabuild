@@ -49,7 +49,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "rebuild"; "cache"]
+    |> checkAllowedAttributes ["depends_on"; "rebuild"; "artifacts"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -62,7 +62,7 @@ let toTarget (block: Block) =
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let rebuild = block |> tryFindAttribute "rebuild"
-    let cache = block |> tryFindAttribute "cache"
+    let cache = block |> tryFindAttribute "artifacts"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Rebuild = rebuild
       TargetBlock.Cache = cache }
