@@ -1,5 +1,5 @@
 
-module ActionBuilder
+module GraphPipeline.Action
 
 
 open System

@@ -1,8 +1,8 @@
-module Terrabuild.Tests.Core.ClusterBuilder
+module Terrabuild.Tests.Core.GraphPipeline.Cluster
 open FsUnit
 open NUnit.Framework
 open GraphDef
-open ClusterBuilder
+open GraphPipeline.Cluster
 
 [<Test>]
 let ``check cluster computation``() =
@@ -46,6 +46,6 @@ let ``check cluster computation``() =
     let expectedClusters =
         [ { Id = "hash-A"; Nodes = set ["A1"; "A2"] }
           { Id = "hash-B"; Nodes = set ["B1"; "B2"] } ]
-    let clusters = ClusterBuilder.computeClusters graph
+    let clusters = computeClusters graph
     printfn $"{clusters}"
     clusters |> should equal expectedClusters

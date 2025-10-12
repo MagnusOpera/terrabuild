@@ -133,16 +133,16 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage) :> Cache.ICache
 
-        let graph = NodeBuilder.build options config
+        let graph = GraphPipeline.Node.build options config
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
 
-        let graph = ActionBuilder.build options cache graph
+        let graph = GraphPipeline.Action.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
 
-        let graph = CascadeBuilder.build graph
+        let graph = GraphPipeline.Cascade.build graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cascade-graph.json")
 
-        let graph = ClusterBuilder.build options config graph
+        let graph = GraphPipeline.Cluster.build options config graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
 
         if options.Debug then

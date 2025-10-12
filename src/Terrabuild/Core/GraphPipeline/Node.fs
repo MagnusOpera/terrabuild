@@ -1,4 +1,4 @@
-module NodeBuilder
+module GraphPipeline.Node
 open Collections
 open System.Collections.Concurrent
 open Errors

@@ -1,5 +1,5 @@
 
-module ClusterBuilder
+module GraphPipeline.Cluster
 open Collections
 open GraphDef
 open Errors

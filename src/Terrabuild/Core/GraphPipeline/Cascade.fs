@@ -1,4 +1,4 @@
-module CascadeBuilder
+module GraphPipeline.Cascade
 open System.Collections
 open GraphDef
 
