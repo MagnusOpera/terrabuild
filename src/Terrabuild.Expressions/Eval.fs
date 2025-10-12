@@ -35,6 +35,7 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
         | Expr.Bool bool -> Value.Bool bool
         | Expr.String str -> Value.String str
         | Expr.Number num -> Value.Number num
+        | Expr.Enum enum -> Value.Enum enum
         | Expr.Variable var ->
             // if varUsed |> Set.contains var then TerrabuildException.Raise($"Variable {var} has circular definition")
             match context.Data |> Map.tryFind var with
@@ -137,6 +138,7 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
                         | Value.Map _ -> "map"
                         | Value.Nothing -> "nothing"
                         | Value.Number _ -> "number"
+                        | Value.Enum _ -> "enum"
                         | Value.Object _ -> "object"
                         | Value.String _ -> "string"
 
@@ -149,12 +151,17 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
 let asStringOption = function
     | Value.String s -> s |> Some
     | Value.Nothing -> None
-    | _ -> raiseTypeError "Failed to convert"
+    | x -> raiseTypeError $"Failed to convert '{x}' to optional string"
+
+let asEnumOption = function
+    | Value.Enum s -> s |> Some
+    | Value.Nothing -> None
+    | x -> raiseTypeError $"Failed to convert '{x}' to optional enum"
 
 let asBoolOption = function
     | Value.Bool b -> b |> Some
     | Value.Nothing -> None
-    | _ -> raiseTypeError "Failed to convert"
+    | x -> raiseTypeError $"Failed to convert '{x}' to optional boolean"
 
 let asStringSetOption = function
     | Value.List list ->
@@ -162,17 +169,17 @@ let asStringSetOption = function
         |> List.map (fun value ->
             match value with
             | Value.String s -> s
-            | _ -> raiseTypeError "Failed to convert")
+            | x -> raiseTypeError $"Failed to convert '{x}' to string list")
         |> Set.ofList
         |> Some
-    | _ -> raiseTypeError "Failed to convert"
+    | x -> raiseTypeError $"Failed to convert '{x}' to optional list"
 
 let mapAdd newMap oldMap =
     match oldMap, newMap with
     | Value.Map oldMap, Value.Map newMap ->
         oldMap |> Map.addMap newMap |> Value.Map
-    | _ -> raiseTypeError "Failed to add map: invalid types"
+    | x -> raiseTypeError $"Failed to convert '{x}' to map: invalid types"
 
 let asMap = function
     | Value.Map map -> map
-    | _ -> raiseTypeError "Failed to convert"
+    | x -> raiseTypeError $"Failed to convert '{x}' to map"

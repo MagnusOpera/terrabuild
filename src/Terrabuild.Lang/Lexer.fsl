@@ -11,7 +11,7 @@ let lexeme = LexBuffer<_>.LexemeString
 
 let mkIdentifier lexbuf =
     let s = lexbuf |> lexeme  |> string
-    s.Replace("`", "").Replace(" ", "").Replace(":", "").Replace("$", "")
+    s.Replace("`", "").Replace(" ", "").Replace(":", "").Replace("$", "").Replace("~", "")
 
 
 
@@ -33,6 +33,7 @@ let targetIdentifier = '^' regularIdentifier
 
 let identifier = regularIdentifier | extensionIdentifier | targetIdentifier
 let keyIdentifier = regularIdentifier ':'
+let enumIdentifier = '~' regularIdentifier
 
 let number = '-'? ['0'-'9']+?
 let whitespace = ' ' | '\t'
@@ -85,6 +86,7 @@ rule token lexerMode = parse
 
     | identifier { lexbuf |> mkIdentifier |> IDENTIFIER }
     | keyIdentifier { lexbuf |> mkIdentifier |> KEY }
+    | enumIdentifier { lexbuf |> mkIdentifier |> ENUM }
 
     | number {
         let s = lexeme lexbuf |> int

@@ -444,7 +444,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             let targetRebuild = 
                 let targetRebuild =
                     target.Rebuild
-                        |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
+                        |> Option.bind (Eval.asEnumOption << Eval.eval evaluationContext)
                 match targetRebuild with
                 | Some "auto" -> Some Rebuild.Auto
                 | Some "cascade" -> Some Rebuild.Cascade
@@ -538,7 +538,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             let targetCache =
                 let targetCache =
                     target.Cache
-                    |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
+                    |> Option.bind (Eval.asEnumOption << Eval.eval evaluationContext)
                 match targetCache with
                 | Some "never" -> Some Cacheability.Never
                 | Some "local" -> Some Cacheability.Local
