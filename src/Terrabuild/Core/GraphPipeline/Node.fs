@@ -125,7 +125,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> false
 
                     cacheability, batchable, ops @ newops
-                ) (Cacheability.Never, targetConfig.Batch, [])
+                ) (Cacheability.Remote, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
