@@ -16,10 +16,17 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     let hub = Hub.Create(options.MaxConcurrency)
 
     let getNodeAction (node: GraphDef.Node) hasChildRebuilding =
+        // task is forced to build
         if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
+        // child task is building (upward cascading)
+        elif hasChildRebuilding then
+            Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
+            (GraphDef.NodeAction.Build, DateTime.MaxValue)
+
+        // cache related rules
         elif node.Cache <> GraphDef.Cacheability.Never then
             let useRemote = GraphDef.isRemoteCacheable options node
             let cacheEntryId = GraphDef.buildCacheKey node
@@ -32,11 +39,6 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
-                // children task is building
-                elif hasChildRebuilding then
-                    Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
-                    (GraphDef.NodeAction.Build, DateTime.MaxValue)
-
                 // task is cached
                 elif node.Cache = GraphDef.Cacheability.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
@@ -47,6 +49,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             | _ ->
                 Log.Debug("{NodeId} must be built since no summary and required", node.Id)
                 (GraphDef.NodeAction.Build, DateTime.MaxValue)
+
+        // not cacheable
         else
             Log.Debug("{NodeId} is not cacheable", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
