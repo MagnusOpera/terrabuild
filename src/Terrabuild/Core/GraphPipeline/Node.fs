@@ -149,7 +149,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if rebuild = Rebuild.Always then NodeAction.Build
                 else NodeAction.Ignore
 
-            let targetOutput = targetConfig.Outputs
+            let targetOutput =
+                if cache = Cacheability.Never then Set.empty
+                else targetConfig.Outputs
 
             let batchContent = [
                 targetConfig.Hash

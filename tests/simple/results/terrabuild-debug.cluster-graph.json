@@ -201,9 +201,7 @@
       "dependencies": [
         "libraries/shell-lib:build"
       ],
-      "outputs": [
-        "dist"
-      ],
+      "outputs": [],
       "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
       "targetHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
       "clusterHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
