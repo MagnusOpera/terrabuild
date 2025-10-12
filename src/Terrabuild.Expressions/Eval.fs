@@ -153,10 +153,9 @@ let asStringOption = function
     | Value.Nothing -> None
     | x -> raiseTypeError $"Failed to convert '{x}' to optional string"
 
-let asEnumOption = function
-    | Value.Enum s -> s |> Some
-    | Value.Nothing -> None
-    | x -> raiseTypeError $"Failed to convert '{x}' to optional enum"
+let asEnum = function
+    | Value.Enum s -> Ok s
+    | x -> Error $"Failed to convert '{x}' to enum"
 
 let asBoolOption = function
     | Value.Bool b -> b |> Some

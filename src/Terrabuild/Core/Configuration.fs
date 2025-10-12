@@ -441,16 +441,17 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             // use value from project target
             // otherwise use workspace target
             // defaults to allow caching
-            let targetRebuild = 
-                let targetRebuild =
-                    target.Rebuild
-                        |> Option.bind (Eval.asEnumOption << Eval.eval evaluationContext)
-                match targetRebuild with
-                | Some "auto" -> Some Rebuild.Auto
-                | Some "cascade" -> Some Rebuild.Cascade
-                | Some "always" -> Some Rebuild.Always
+            let targetRebuild =
+                match target.Rebuild with
                 | None -> None
-                | _ -> raiseParseError "invalid rebuild value"
+                | Some targetRebuild ->
+                    let targetRebuild = targetRebuild |> Eval.eval evaluationContext |> Eval.asEnum
+                    match targetRebuild with
+                    | Ok "auto" -> Some Rebuild.Auto
+                    | Ok "cascade" -> Some Rebuild.Cascade
+                    | Ok "always" -> Some Rebuild.Always
+                    | Ok x -> raiseParseError $"Invalid rebuild value '{x}'"
+                    | Error error -> raiseParseError error
 
             let targetBatch, targetOperations =
                 target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->
@@ -536,16 +537,17 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | _ -> projectDef.Outputs
 
             let targetCache =
-                let targetCache =
-                    target.Cache
-                    |> Option.bind (Eval.asEnumOption << Eval.eval evaluationContext)
-                match targetCache with
-                | Some "never" -> Some Cacheability.Never
-                | Some "local" -> Some Cacheability.Local
-                | Some "remote" -> Some Cacheability.Remote
-                | Some "external" -> Some Cacheability.External
+                match target.Cache with
                 | None -> None
-                | _ -> raiseParseError "invalid cache value"
+                | Some targetCache ->
+                    let targetCache = targetCache |> Eval.eval evaluationContext |> Eval.asEnum
+                    match targetCache with
+                    | Ok "none" -> Some Cacheability.Never
+                    | Ok "workspace" -> Some Cacheability.Local
+                    | Ok "managed" -> Some Cacheability.Remote
+                    | Ok "external" -> Some Cacheability.External
+                    | Ok x -> raiseParseError $"Invalid artifacts value '{x}'"
+                    | Error error -> raiseParseError error
 
             let targetHash =
                 targetOperations

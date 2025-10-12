@@ -62,7 +62,7 @@ let parseProject() =
             { TargetBlock.DependsOn = None
               TargetBlock.Rebuild = "auto" |> Expr.Enum |> Some
               TargetBlock.Outputs = None
-              TargetBlock.Cache = "always" |> Expr.Enum |> Some
+              TargetBlock.Cache = "remote" |> Expr.Enum |> Some
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
                                                                                      [ Expr.Function (Function.Plus,

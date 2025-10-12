@@ -25,6 +25,18 @@ let valueString() =
     result |> should equal expected
 
 [<Test>]
+let valueNumber() =
+    let expected = Value.Number 42
+    let result = eval evaluationContext (Expr.Number 42)
+    result |> should equal expected
+
+[<Test>]
+let valueEnum() =
+    let expected = Value.Enum "tagada"
+    let result = eval evaluationContext (Expr.Enum "tagada")
+    result |> should equal expected
+
+[<Test>]
 let valueBool() =
     let expected = Value.Bool true
     let result = eval evaluationContext (Expr.Bool true)

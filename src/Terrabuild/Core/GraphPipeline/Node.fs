@@ -125,7 +125,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> false
 
                     cacheability, batchable, ops @ newops
-                ) (Cacheability.Never, targetConfig.Batch, [])
+                ) (Cacheability.Remote, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -149,7 +149,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if rebuild = Rebuild.Always then NodeAction.Build
                 else NodeAction.Ignore
 
-            let targetOutput = targetConfig.Outputs
+            let targetOutput =
+                if cache = Cacheability.Never then Set.empty
+                else targetConfig.Outputs
 
             let batchContent = [
                 targetConfig.Hash

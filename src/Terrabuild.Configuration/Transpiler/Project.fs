@@ -71,7 +71,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "cache"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "rebuild"; "artifacts"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -84,7 +84,7 @@ let toTarget (block: Block) =
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let rebuild = block |> tryFindAttribute "rebuild"
-    let cache = block |> tryFindAttribute "cache"
+    let cache = block |> tryFindAttribute "artifacts"
     let steps =
         block.Blocks
         |> List.map (fun step ->
