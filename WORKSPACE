@@ -21,6 +21,7 @@ locals {
 }
 
 target build {
+    rebuild = ~cascade
     depends_on = [ target.install
                    target.^build ]
 }

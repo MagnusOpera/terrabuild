@@ -60,9 +60,9 @@ let parseProject() =
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
             { TargetBlock.DependsOn = None
-              TargetBlock.Rebuild = Expr.String "auto" |> Some
+              TargetBlock.Rebuild = "auto" |> Expr.Enum |> Some
               TargetBlock.Outputs = None
-              TargetBlock.Cache = "always" |> Expr.String |> Some
+              TargetBlock.Cache = "always" |> Expr.Enum |> Some
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
                                                                                      [ Expr.Function (Function.Plus,
@@ -112,7 +112,7 @@ let parseProject2() =
               Batch = None }        
 
         let buildTarget = 
-            { TargetBlock.Rebuild = Expr.String "always" |> Some
+            { TargetBlock.Rebuild = "always" |> Expr.Enum |> Some
               TargetBlock.Outputs = Expr.List [ Expr.Function (Function.Format,
                                                                [ Expr.String "{0}{1}"
                                                                  Expr.Variable "local.wildcard"

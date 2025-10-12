@@ -35,6 +35,7 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
         | Expr.Bool bool -> Value.Bool bool
         | Expr.String str -> Value.String str
         | Expr.Number num -> Value.Number num
+        | Expr.Enum enum -> Value.Enum enum
         | Expr.Variable var ->
             // if varUsed |> Set.contains var then TerrabuildException.Raise($"Variable {var} has circular definition")
             match context.Data |> Map.tryFind var with
@@ -137,6 +138,7 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
                         | Value.Map _ -> "map"
                         | Value.Nothing -> "nothing"
                         | Value.Number _ -> "number"
+                        | Value.Enum _ -> "enum"
                         | Value.Object _ -> "object"
                         | Value.String _ -> "string"
 
@@ -148,6 +150,11 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
 
 let asStringOption = function
     | Value.String s -> s |> Some
+    | Value.Nothing -> None
+    | _ -> raiseTypeError "Failed to convert"
+
+let asEnumOption = function
+    | Value.Enum s -> s |> Some
     | Value.Nothing -> None
     | _ -> raiseTypeError "Failed to convert"
 

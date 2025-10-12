@@ -23,6 +23,7 @@ let debugPrint s = ignore s
 %token EXPRESSION_END
 %token <string> IDENTIFIER
 %token <string> KEY
+%token <string> ENUM
 %token <int> NUMBER
 
 %token LBRACE RBRACE
@@ -83,6 +84,7 @@ ExprSource:
     | Variable { $1 }
     | Function { $1 }
     | NUMBER { Expr.Number $1 }
+    | ENUM { Expr.Enum $1 }
     | InterpolatedString { $1 }
     | ExprLiteral { $1 }
 

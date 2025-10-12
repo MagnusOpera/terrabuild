@@ -26,6 +26,7 @@ type token =
   | LBRACE
   | RBRACE
   | NUMBER of (int)
+  | ENUM of (string)
   | KEY of (string)
   | IDENTIFIER of (string)
   | EXPRESSION_END
@@ -59,6 +60,7 @@ type tokenId =
     | TOKEN_LBRACE
     | TOKEN_RBRACE
     | TOKEN_NUMBER
+    | TOKEN_ENUM
     | TOKEN_KEY
     | TOKEN_IDENTIFIER
     | TOKEN_EXPRESSION_END

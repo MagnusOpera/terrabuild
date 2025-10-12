@@ -30,6 +30,7 @@ type Expr =
     | Bool of value:bool
     | String of value:string
     | Number of value:int
+    | Enum of value:string
     | Map of Map<string, Expr>
     | List of Expr list
     | Variable of name:string
@@ -46,6 +47,7 @@ type Value =
     | Bool of bool
     | String of string
     | Number of int
+    | Enum of string
     | Map of Map<string, Value>
     | List of Value list
     | Object of obj

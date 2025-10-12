@@ -43,8 +43,8 @@ target dist {
 }
 
 target docker {
-  rebuild = "auto"
-  cache = "always"
+  rebuild = ~auto
+  cache = ~always
 
   @shell echo { arguments = trim("building project1 " + local.configuration) }
   @docker build { arguments = { config: "Release" my_variable: 42 } }
