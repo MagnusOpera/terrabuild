@@ -112,11 +112,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Run = sourceControl.Run
         }
 
+        let options, config = Configuration.read options
+
         if options.Debug then
             let jsonOptions = Json.Serialize options
             jsonOptions |> IO.writeTextFile (logFile "options.json")
-
-        let options, config = Configuration.read options
 
         let token =
             if options.LocalOnly then None

@@ -28,7 +28,7 @@ let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
 
 let toWorkspace (block: Block) =
     block
-    |> checkAllowedAttributes ["id"; "ignores"; "version"; "engine"]
+    |> checkAllowedAttributes ["id"; "ignores"; "version"; "engine"; "configuration"; "environment"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -42,12 +42,25 @@ let toWorkspace (block: Block) =
         block |> tryFindAttribute "ignores"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
     let engine =
-        block |> tryFindAttribute "engine"
+        match block |> tryFindAttribute "engine" with
+        | None -> None
+        | Some expr ->
+            match expr |> simpleEval |> Eval.asEnum with
+            | Ok engine -> engine |> Some
+            | _ -> raiseTypeError "Expecting enum for engine attribute"
+    let configuration =
+        block |> tryFindAttribute "configuration"
+        |> Option.bind (Eval.asStringOption << simpleEval)
+    let environment =
+        block |> tryFindAttribute "environment"
+        |> Option.bind (Eval.asStringOption << simpleEval)
 
     { WorkspaceBlock.Id = id
       WorkspaceBlock.Ignores = ignores
       WorkspaceBlock.Version = version
-      WorkspaceBlock.Engine = engine }
+      WorkspaceBlock.Engine = engine
+      WorkspaceBlock.Configuration = configuration
+      WorkspaceBlock.Environment = environment }
 
 
 let toTarget (block: Block) =
@@ -103,7 +116,9 @@ let transpile (blocks: Block list) =
                 | None -> { WorkspaceBlock.Id = None
                             WorkspaceBlock.Version = None
                             WorkspaceBlock.Ignores = None
-                            WorkspaceBlock.Engine = None }
+                            WorkspaceBlock.Engine = None
+                            WorkspaceBlock.Configuration = None
+                            WorkspaceBlock.Environment = None }
                 | Some workspace -> workspace
 
             { WorkspaceFile.Workspace = workspace

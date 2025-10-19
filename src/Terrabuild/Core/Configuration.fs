@@ -108,7 +108,7 @@ let (|Bool|Number|String|) (value: string) =
 
 
 
-let private buildEvaluationContext (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
+let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
         | Some tag -> Value.String tag
@@ -142,12 +142,9 @@ let private buildEvaluationContext (options: ConfigOptions.Options) (workspaceCo
             | _ -> Value.Nothing
 
         let engine =
-            match options.Engine with
-            | Some "docker" -> "docker" |> Value.Enum
-            | Some "podman" -> "podman" |> Value.Enum
-            | Some "none" -> "none" |> Value.Enum
-            | None -> "none" |> Value.Enum
-            | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
+            match engine with
+            | Some engine -> Value.Enum engine
+            | None -> Value.Enum "none"
 
         Map [ "terrabuild.configuration", configValue
               "terrabuild.environment", envValue
@@ -600,37 +597,22 @@ let read (options: ConfigOptions.Options) =
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
         try
-            Terrabuild.Configuration.FrontEnd.Workspace.parse workspaceContent
+            FrontEnd.Workspace.parse workspaceContent
         with exn ->
             raiseParserError("Failed to read WORKSPACE configuration file", exn)
 
-    // check min version requirement
-    match workspaceConfig.Workspace.Version with
-    | Some minVersion ->
-        let actualVersion = Version.version()
-        if actualVersion |> Version.isAtLeast minVersion |> not then
-            raiseInvalidArg $"Workspace requires version '{minVersion}' or newer (found '{actualVersion}')."
-    | _ -> ()
-
-    let evaluationContext = buildEvaluationContext options workspaceConfig
+    let engine =
+        match options.Engine |> Option.orElse workspaceConfig.Workspace.Engine with
+        | Some "docker" -> "docker" |> Some
+        | Some "podman" -> "podman" |> Some
+        | Some "none" | None -> None
+        | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
 
     let options =
-        match workspaceConfig.Workspace.Engine with
-        | None -> options
-        | Some expr ->
-            let targetEngine =
-                match expr |> Eval.eval evaluationContext |> Eval.asEnum with
-                | Ok "docker" -> "docker" |> Some
-                | Ok "podman" -> "podman" |> Some
-                | Ok "none" -> None
-                | Ok x -> raiseParseError $"Invalid engine value '{x}'"
-                | Error error -> raiseParseError error
-            { options with Engine = targetEngine }
-    let evaluationContext =
-        match options.Engine with
-        | Some engine -> { evaluationContext with Data = evaluationContext.Data |> Map.add "terrabuild.engine" (Value.String engine) }
-        | _ -> evaluationContext
-
+        { options with
+            Engine = engine
+            Configuration = options.Configuration |> Option.orElse workspaceConfig.Workspace.Configuration
+            Environment = options.Environment |> Option.orElse workspaceConfig.Workspace.Environment }
 
     let configInfos =
         let targets = options.Targets |> String.join " "
@@ -643,7 +625,7 @@ let read (options: ConfigOptions.Options) =
             if options.WhatIf then "whatif" ] |> String.join(" ")    
         [
             if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
-            if options.Engine.IsSome then $"Container {options.Engine.Value}"
+            if options.Engine.IsSome then $"Engine {options.Engine.Value}"
             if options.Run.IsSome then $"Source control {options.Run.Value.Name}"
             if options.Configuration.IsSome then $"Configuration {options.Configuration.Value}"
             if options.Environment.IsSome then $"Environment {options.Environment.Value}"
@@ -654,9 +636,17 @@ let read (options: ConfigOptions.Options) =
         ]
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
 
+    // check min version requirement
+    match workspaceConfig.Workspace.Version with
+    | Some minVersion ->
+        let actualVersion = Version.version()
+        if actualVersion |> Version.isAtLeast minVersion |> not then
+            raiseInvalidArg $"Workspace requires version '{minVersion}' or newer (found '{actualVersion}')."
+    | _ -> ()
+
     $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
-
+    let evaluationContext = buildEvaluationContext engine options workspaceConfig
 
     let scripts = buildScripts options workspaceConfig evaluationContext
 

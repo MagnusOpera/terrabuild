@@ -9,7 +9,9 @@ type WorkspaceBlock =
     { Id: string option
       Ignores: Set<string> option
       Version: string option
-      Engine: Expr option }
+      Engine: string option
+      Configuration: string option
+      Environment: string option }
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
