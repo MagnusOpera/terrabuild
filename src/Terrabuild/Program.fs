@@ -226,7 +226,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let localOnly = runArgs.Contains(RunArgs.Local_Only)
         let tag = runArgs.TryGetResult(RunArgs.Tag)
         let whatIf = runArgs.Contains(RunArgs.What_If)
-        let containerTool =
+        let engine =
             match runArgs.TryGetResult(RunArgs.Engine) with
             | Some Engine.Docker -> Some "docker"
             | Some Engine.Podman -> Some "podman"
@@ -251,7 +251,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Labels = labels
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
-                        RunTargetOptions.Engine = containerTool }
+                        RunTargetOptions.Engine = engine }
         runTarget options
 
     let serve (serveArgs: ParseResults<ServeArgs>) =

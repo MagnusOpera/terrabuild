@@ -143,9 +143,10 @@ let private buildEvaluationContext (options: ConfigOptions.Options) (workspaceCo
 
         let engine =
             match options.Engine with
-            | Some "docker" -> "docker" |> Value.String
-            | Some "podman" -> "podman" |> Value.String
-            | Some "none" | None -> Value.Nothing
+            | Some "docker" -> "docker" |> Value.Enum
+            | Some "podman" -> "podman" |> Value.Enum
+            | Some "none" -> "none" |> Value.Enum
+            | None -> "none" |> Value.Enum
             | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
 
         Map [ "terrabuild.configuration", configValue
