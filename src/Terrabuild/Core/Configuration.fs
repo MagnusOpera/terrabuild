@@ -603,9 +603,9 @@ let read (options: ConfigOptions.Options) =
 
     let engine =
         match options.Engine |> Option.orElse workspaceConfig.Workspace.Engine with
-        | Some "docker" -> "docker" |> Some
+        | Some "docker" | None -> "docker" |> Some
         | Some "podman" -> "podman" |> Some
-        | Some "none" | None -> None
+        | Some "none" -> None
         | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
 
     let options =
