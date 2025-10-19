@@ -47,8 +47,9 @@ let parseWorkspace() =
               Batch = None }
 
         { WorkspaceFile.Workspace = { Id = "d7528db2-83e0-4164-8c8e-1e0d6d6357ca" |> Some
-                                      Ignores = Set [ "**/node_modules" ] |> Some
-                                      Version = None }
+                                      Ignores = [ "**/node_modules" ] |> Set |> Some
+                                      Version = None
+                                      Engine = None }
           WorkspaceFile.Targets = Map [ "build", targetBuild
                                         "dist", targetDist
                                         "dummy", targetDummy ]
@@ -98,7 +99,7 @@ let parseWorkspace2() =
               Defaults = None
               Batch = None }
 
-        { WorkspaceFile.Workspace = { Id = None; Ignores = None; Version = None }
+        { WorkspaceFile.Workspace = { Id = None; Ignores = None; Version = None; Engine = None }
           WorkspaceFile.Targets = Map [ "build", targetBuild
                                         "dist", targetDist
                                         "dummy", targetDummy ]

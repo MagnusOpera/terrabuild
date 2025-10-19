@@ -141,13 +141,21 @@ let private buildEvaluationContext (options: ConfigOptions.Options) (workspaceCo
             | Some env -> Value.String env
             | _ -> Value.Nothing
 
+        let engine =
+            match options.Engine with
+            | Some "docker" -> "docker" |> Value.String
+            | Some "podman" -> "podman" |> Value.String
+            | Some "none" | None -> Value.Nothing
+            | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
+
         Map [ "terrabuild.configuration", configValue
               "terrabuild.environment", envValue
               "terrabuild.branch_or_tag", Value.String options.BranchOrTag 
               "terrabuild.head_commit", Value.String options.HeadCommit.Sha
               "terrabuild.retry", Value.Bool options.Retry 
               "terrabuild.force", Value.Bool options.Force 
-              "terrabuild.ci", Value.Bool options.Run.IsSome 
+              "terrabuild.ci", Value.Bool options.Run.IsSome
+              "terrabuild.engine", engine
               "terrabuild.debug", Value.Bool options.Debug 
               "terrabuild.tag", tagValue 
               "terrabuild.note", noteValue
@@ -586,30 +594,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
 
 let read (options: ConfigOptions.Options) =
-    let configInfos =
-        let targets = options.Targets |> String.join " "
-        let labels = options.Labels |> Option.map (fun labels -> labels |> String.join " ")
-        let types = options.Types |> Option.map (fun types -> types |> String.join " ")
-        let projects = options.Projects |> Option.map (fun projects -> projects |> String.join " ")
-        let warningConfig = [
-            if options.Force then "force"
-            elif options.Retry then "retry"
-            if options.WhatIf then "whatif" ] |> String.join(" ")    
-        [
-            if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
-            if options.ContainerTool.IsSome then $"Container {options.ContainerTool.Value}"
-            if options.Run.IsSome then $"Source control {options.Run.Value.Name}"
-            if options.Configuration.IsSome then $"Configuration {options.Configuration.Value}"
-            if options.Environment.IsSome then $"Environment {options.Environment.Value}"
-            $"Targets [{targets}]"
-            if labels.IsSome then $"Labels [{labels.Value}]"
-            if types.IsSome then $"Types [{types.Value}]"
-            if projects.IsSome then $"Types [{projects.Value}]"
-        ]
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
-    configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
-
-    $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
@@ -627,6 +612,50 @@ let read (options: ConfigOptions.Options) =
     | _ -> ()
 
     let evaluationContext = buildEvaluationContext options workspaceConfig
+
+    let options =
+        match workspaceConfig.Workspace.Engine with
+        | None -> options
+        | Some expr ->
+            let targetEngine =
+                match expr |> Eval.eval evaluationContext |> Eval.asEnum with
+                | Ok "docker" -> "docker" |> Some
+                | Ok "podman" -> "podman" |> Some
+                | Ok "none" -> None
+                | Ok x -> raiseParseError $"Invalid engine value '{x}'"
+                | Error error -> raiseParseError error
+            { options with Engine = targetEngine }
+    let evaluationContext =
+        match options.Engine with
+        | Some engine -> { evaluationContext with Data = evaluationContext.Data |> Map.add "terrabuild.engine" (Value.String engine) }
+        | _ -> evaluationContext
+
+
+    let configInfos =
+        let targets = options.Targets |> String.join " "
+        let labels = options.Labels |> Option.map (fun labels -> labels |> String.join " ")
+        let types = options.Types |> Option.map (fun types -> types |> String.join " ")
+        let projects = options.Projects |> Option.map (fun projects -> projects |> String.join " ")
+        let warningConfig = [
+            if options.Force then "force"
+            elif options.Retry then "retry"
+            if options.WhatIf then "whatif" ] |> String.join(" ")    
+        [
+            if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
+            if options.Engine.IsSome then $"Container {options.Engine.Value}"
+            if options.Run.IsSome then $"Source control {options.Run.Value.Name}"
+            if options.Configuration.IsSome then $"Configuration {options.Configuration.Value}"
+            if options.Environment.IsSome then $"Environment {options.Environment.Value}"
+            $"Targets [{targets}]"
+            if labels.IsSome then $"Labels [{labels.Value}]"
+            if types.IsSome then $"Types [{types.Value}]"
+            if projects.IsSome then $"Types [{projects.Value}]"
+        ]
+    configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
+
+    $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
+
+
 
     let scripts = buildScripts options workspaceConfig evaluationContext
 
@@ -758,8 +787,9 @@ let read (options: ConfigOptions.Options) =
         workspaceConfig.Targets
         |> Map.map (fun _ target -> target.DependsOn |> Option.defaultValue Set.empty)
 
-    { Workspace.Id = workspaceId
-      Workspace.SelectedProjects = selectedProjects
-      Workspace.Projects = projects |> Map.ofDict
-      Workspace.Targets = targets }
-
+    let workspaceConfig =
+        { Workspace.Id = workspaceId
+          Workspace.SelectedProjects = selectedProjects
+          Workspace.Projects = projects |> Map.ofDict
+          Workspace.Targets = targets }
+    options, workspaceConfig

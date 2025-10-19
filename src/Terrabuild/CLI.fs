@@ -2,7 +2,7 @@ module CLI
 open Argu
 
 [<RequireQualifiedAccess>]
-type ContainerTool =
+type Engine =
     | Docker
     | Podman
     | None
@@ -59,7 +59,7 @@ type RunArgs =
     | [<Unique>] Local_Only
     | [<Unique>] Note of note:string
     | [<Unique>] Tag of tag:string
-    | [<Unique>] Container of tool:ContainerTool
+    | [<Unique>] Engine of engine:Engine
     | [<Unique; Inherit>] What_If
 with
     interface IArgParserTemplate with
@@ -79,7 +79,7 @@ with
             | Local_Only -> "Use local cache only."
             | Note _ -> "Note for the build."
             | Tag _ -> "Tag for build."
-            | Container _ -> "Container Tool to use (docker or podman)."
+            | Engine _ -> "Container engine to use (docker, podman or none)."
             | What_If -> "Prepare the action but do not apply."
 
 [<RequireQualifiedAccess>]
