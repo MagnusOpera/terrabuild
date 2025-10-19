@@ -26,7 +26,7 @@ type Options = {
     Labels: string set option
     Projects: string set option
     Variables: Map<string, string>
-    ContainerTool: string option
+    Engine: string option
 
     // from SourceControl
     BranchOrTag: string

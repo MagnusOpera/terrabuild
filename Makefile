@@ -171,15 +171,15 @@ endef
 # $(call run_integration_test, tests/cluster-layers, run build --force --debug -p 2 --log)
 
 smoke-test-cluster-layers:
-	$(call run_integration_test, tests/cluster-layers, run build --force --debug --parallel 2 --log --container docker --local-only)
+	$(call run_integration_test, tests/cluster-layers, run build --force --debug --parallel 2 --log --engine docker --local-only)
 
 smoke-test-multirefs:
-	$(call run_integration_test, tests/multirefs, run build --force --debug --parallel 2 --log --container docker --local-only)
+	$(call run_integration_test, tests/multirefs, run build --force --debug --parallel 2 --log --engine docker --local-only)
 
 smoke-test-simple:
-	$(call run_integration_test, tests/simple, run build test --force --debug --parallel 2 --log --container docker --local-only)
+	$(call run_integration_test, tests/simple, run build test --force --debug --parallel 2 --log --engine docker --local-only)
 
 smoke-indirect-target:
-	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --container docker --local-only)
+	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --engine docker --local-only)
 
 smoke-tests: smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target

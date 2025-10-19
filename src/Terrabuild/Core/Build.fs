@@ -48,7 +48,7 @@ let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
 let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     node.Operations |> List.map (fun operation ->
         let metaCommand = operation.MetaCommand
-        match options.ContainerTool, operation.Container with
+        match options.Engine, operation.Container with
         | Some cmd, Some container ->
             let wsDir = currentDir()
 

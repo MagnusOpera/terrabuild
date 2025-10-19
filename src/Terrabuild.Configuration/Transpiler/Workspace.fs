@@ -28,23 +28,39 @@ let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
 
 let toWorkspace (block: Block) =
     block
-    |> checkAllowedAttributes ["id"; "ignores"; "version"]
+    |> checkAllowedAttributes ["id"; "ignores"; "version"; "engine"; "configuration"; "environment"]
     |> checkNoNestedBlocks
     |> ignore
 
     let id =
         block |> tryFindAttribute "id"
         |> Option.bind (Eval.asStringOption << simpleEval)
+    let version =
+        block |> tryFindAttribute "version"
+        |> Option.bind (Eval.asStringOption << simpleEval)
     let ignores =
         block |> tryFindAttribute "ignores"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
-    let version =
-        block |> tryFindAttribute "version"
+    let engine =
+        match block |> tryFindAttribute "engine" with
+        | None -> None
+        | Some expr ->
+            match expr |> simpleEval |> Eval.asEnum with
+            | Ok engine -> engine |> Some
+            | _ -> raiseTypeError "Expecting enum for engine attribute"
+    let configuration =
+        block |> tryFindAttribute "configuration"
+        |> Option.bind (Eval.asStringOption << simpleEval)
+    let environment =
+        block |> tryFindAttribute "environment"
         |> Option.bind (Eval.asStringOption << simpleEval)
 
     { WorkspaceBlock.Id = id
       WorkspaceBlock.Ignores = ignores
-      WorkspaceBlock.Version = version }
+      WorkspaceBlock.Version = version
+      WorkspaceBlock.Engine = engine
+      WorkspaceBlock.Configuration = configuration
+      WorkspaceBlock.Environment = environment }
 
 
 let toTarget (block: Block) =
@@ -98,8 +114,11 @@ let transpile (blocks: Block list) =
             let workspace =
                 match builder.Workspace with
                 | None -> { WorkspaceBlock.Id = None
+                            WorkspaceBlock.Version = None
                             WorkspaceBlock.Ignores = None
-                            WorkspaceBlock.Version = None }
+                            WorkspaceBlock.Engine = None
+                            WorkspaceBlock.Configuration = None
+                            WorkspaceBlock.Environment = None }
                 | Some workspace -> workspace
 
             { WorkspaceFile.Workspace = workspace
