@@ -24,8 +24,8 @@ type Sentry() =
         let version = version |> or_default context.Hash
 
         let ops = [
-            shellOp( "npx", $"--yes -- sentry-cli {org} {project} releases new '{version}'")
-            shellOp( "npx", $"--yes -- sentry-cli {org} {project} releases files '{version}' upload-sourcemaps dist --rewrite")
-            shellOp( "npx", $"--yes -- sentry-cli {org} {project} releases finalize '{version}'")
+            shellOp( "npx", $"--yes --package=sentry-cli -- {org} {project} releases new '{version}'")
+            shellOp( "npx", $"--yes --package=sentry-cli -- {org} {project} releases files '{version}' upload-sourcemaps dist --rewrite")
+            shellOp( "npx", $"--yes --package=sentry-cli -- {org} {project} releases finalize '{version}'")
         ]
         ops
