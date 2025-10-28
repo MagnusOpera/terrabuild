@@ -9,9 +9,8 @@ open Converters
 type Sentry() =
 
     /// <summary>
-    /// Inject & upload sourcemaps using Debug IDs.
+    /// Inject and upload sourcemaps using Debug IDs.
     /// </summary>
-    /// <param name="org" example="&quot;magnusopera&quot;">Organization slug.</param> 
     /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
     /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 
     [<ExternalCacheAttribute>]
