@@ -92,8 +92,8 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     else None)
                 |> String.join " "
             let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
-            metaCommand, options.Workspace, cmd, args, operation.Container
-        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Container)
+            metaCommand, options.Workspace, cmd, args, operation.Container, operation.ErrorLevel
+        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Container, operation.ErrorLevel)
 
 
 let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
@@ -103,12 +103,13 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
     let cmdFirstStartedAt = DateTime.UtcNow
     let mutable cmdLastEndedAt = cmdFirstStartedAt
     let mutable startedAt = DateTime.UtcNow
+    let mutable cmdLastOk = true
     let allCommands = buildCommands node options projectDirectory homeDir tmpDir
-    while cmdLineIndex < allCommands.Length && lastStatusCode = 0 do
+    while cmdLineIndex < allCommands.Length && cmdLastOk do
         startedAt <-
             if cmdLineIndex > 0 then DateTime.UtcNow
             else cmdFirstStartedAt
-        let metaCommand, workDir, cmd, args, container = allCommands[cmdLineIndex]
+        let metaCommand, workDir, cmd, args, container, errorLevel = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
         Log.Debug("{Hash}: Running '{Command}' with '{Arguments}'", node.TargetHash, cmd, args)
@@ -135,6 +136,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
             stepLog |> stepLogs.Add
 
             lastStatusCode <- exitCode
+            cmdLastOk <- exitCode <= errorLevel
             Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
         with
         | exn ->

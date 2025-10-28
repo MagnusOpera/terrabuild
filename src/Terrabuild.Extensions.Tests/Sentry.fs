@@ -16,9 +16,9 @@ let ``run cacheability``() =
 [<Test>]
 let ``run some``() =
     let expected =
-        [ shellOp("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases new '12345'")
-          shellOp("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases files '12345' upload-sourcemaps dist --rewrite")
-          shellOp("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases finalize '12345'") ]
+        [ shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases new '12345'", 1)
+          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases files '12345' upload-sourcemaps dist --rewrite", 1)
+          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases finalize '12345'", 1) ]
 
     Sentry.release ciContext
                    (Some "org") // org
@@ -31,9 +31,9 @@ let ``run some``() =
 [<Test>]
 let ``run none``() =
     let expected =
-        [ shellOp("npx", "--yes --package=sentry-cli -- releases new 'ABCDEF123456789'")
-          shellOp("npx", "--yes --package=sentry-cli -- releases files 'ABCDEF123456789' upload-sourcemaps dist --rewrite")
-          shellOp("npx", "--yes --package=sentry-cli -- releases finalize 'ABCDEF123456789'") ]
+        [ shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases new 'ABCDEF123456789'", 1)
+          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases files 'ABCDEF123456789' upload-sourcemaps dist --rewrite", 1)
+          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases finalize 'ABCDEF123456789'", 1) ]
 
     Sentry.release ciContext
                    None // org

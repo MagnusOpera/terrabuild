@@ -12,8 +12,8 @@
         "*.planfile"
       ],
       "projectHash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
-      "targetHash": "4D1592B31725ACEAF63DF488628434A1CD83C433836EF515655538ABD909706E",
-      "clusterHash": "4D1592B31725ACEAF63DF488628434A1CD83C433836EF515655538ABD909706E",
+      "targetHash": "50896AD5637540EA0C63FC2C14089B7752A369850861CE9F8C1BFA8C68C2EF68",
+      "clusterHash": "50896AD5637540EA0C63FC2C14089B7752A369850861CE9F8C1BFA8C68C2EF68",
       "operations": [
         {
           "container": "hashicorp/terraform:1.10",
@@ -21,7 +21,8 @@
           "containerVariables": [],
           "metaCommand": "@terraform init",
           "command": "terraform",
-          "arguments": "init -reconfigure"
+          "arguments": "init -reconfigure",
+          "errorLevel": 0
         },
         {
           "container": "hashicorp/terraform:1.10",
@@ -29,7 +30,8 @@
           "containerVariables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022"
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -47,7 +49,7 @@
         "obj/"
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
-      "targetHash": "4AAC872759C080F3F42074A8B58E4AB689BBE9CEFC01298D74763E1FC4D23FB9",
+      "targetHash": "5DEEA515BEFC184FCE9B16DB6D58E01EB6D4548DAFEEEFF0F51813A3B333C0FE",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
@@ -56,7 +58,8 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -64,7 +67,8 @@
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug"
+          "arguments": "build --no-restore --no-dependencies --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -80,8 +84,8 @@
         "dist/**"
       ],
       "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
-      "targetHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
-      "clusterHash": "8799E00F59346D7F4A673E811D65D81D4438A23CF6AE9660085892400FDE418A",
+      "targetHash": "0A00D88656CC57EF821E9A5E423A8A150DA1492E9B2C8BC4EBF70AD767128E0E",
+      "clusterHash": "0A00D88656CC57EF821E9A5E423A8A150DA1492E9B2C8BC4EBF70AD767128E0E",
       "operations": [
         {
           "container": "node:20",
@@ -89,7 +93,8 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
@@ -97,7 +102,8 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --"
+          "arguments": "run build --",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -111,14 +117,15 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
-      "targetHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
-      "clusterHash": "A9F4FCF661509CF67056D4B8CE875C495848AC8F641035A15421472ECC623FF9",
+      "targetHash": "71724E6876207AA55D498F9E2DBD806FE5DC2617F0B5E9D156370922BFD32612",
+      "clusterHash": "71724E6876207AA55D498F9E2DBD806FE5DC2617F0B5E9D156370922BFD32612",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building library1"
+          "arguments": "building library1",
+          "errorLevel": 0
         }
       ],
       "cache": "never",
@@ -139,7 +146,7 @@
         "obj/"
       ],
       "projectHash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
-      "targetHash": "50E1939E45733694DA7457091D778790FE6AF072FF92A57661A8FBDB06D2B53E",
+      "targetHash": "74DFE2C236475D252463B34BD046EC54E84041F44EA6AD7474FF566C7A07EDDB",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
@@ -148,7 +155,8 @@
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -156,7 +164,8 @@
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -172,20 +181,22 @@
       ],
       "outputs": [],
       "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
-      "targetHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
-      "clusterHash": "F9EA4F4918D3AFF3F79A0B19E7522454D18B3DFAF5C3FE449686F04CDA6A8DB3",
+      "targetHash": "90EDD88D305190538CA9567172F55869D734A82AF0F7CA151BDF37F2467FE669",
+      "clusterHash": "90EDD88D305190538CA9567172F55869D734A82AF0F7CA151BDF37F2467FE669",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project1"
+          "arguments": "building project1",
+          "errorLevel": 0
         },
         {
           "containerVariables": [],
           "metaCommand": "@make build",
           "command": "make",
-          "arguments": "build secret=\u0022tagada\u0022"
+          "arguments": "build secret=\u0022tagada\u0022",
+          "errorLevel": 0
         }
       ],
       "cache": "never",
@@ -204,8 +215,8 @@
         "dist/**"
       ],
       "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
-      "targetHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
-      "clusterHash": "64B0CE1BE6B72DF1702DA088EFC37EFA30E2FEF58FDFD26BBE2F10BF59DA6C06",
+      "targetHash": "1814B3B443E6124F5EF36BB01FEC79D18757F0B5C0FC758CE286EAB0DCC90C38",
+      "clusterHash": "1814B3B443E6124F5EF36BB01FEC79D18757F0B5C0FC758CE286EAB0DCC90C38",
       "operations": [
         {
           "container": "node:20",
@@ -213,7 +224,8 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
@@ -221,7 +233,8 @@
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --"
+          "arguments": "run build --",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -235,8 +248,8 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
-      "targetHash": "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F",
-      "clusterHash": "7960A114733338EE1956E0CAAF3FD251FC91BC9168B2E8F5392D15A032B4CA2F",
+      "targetHash": "555020F7D7FDBFD50F43CD79BCFE4EB57FD0BB5AC9B0FB850BB2B3FE17FB4350",
+      "clusterHash": "555020F7D7FDBFD50F43CD79BCFE4EB57FD0BB5AC9B0FB850BB2B3FE17FB4350",
       "operations": [
         {
           "container": "openapitools/openapi-generator-cli:v7.10.0",
@@ -244,7 +257,8 @@
           "containerVariables": [],
           "metaCommand": "@openapi generate",
           "command": "docker-entrypoint.sh",
-          "arguments": "generate -i api.json -g typescript-axios -o src"
+          "arguments": "generate -i api.json -g typescript-axios -o src",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -261,8 +275,8 @@
         "target/release/"
       ],
       "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
-      "targetHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
-      "clusterHash": "BD16C7D209E6158ADED2A9082DDEBE32A60116A2547C9193A7060F4E3AA6AE0D",
+      "targetHash": "1A6C3C1F4A1F227D3944E971DFD6A697AA218FD67EEAC7B1259F51661DB2157A",
+      "clusterHash": "1A6C3C1F4A1F227D3944E971DFD6A697AA218FD67EEAC7B1259F51661DB2157A",
       "operations": [
         {
           "container": "rust:1.81.0-slim",
@@ -270,7 +284,8 @@
           "containerVariables": [],
           "metaCommand": "@cargo build",
           "command": "cargo",
-          "arguments": "build"
+          "arguments": "build",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -287,8 +302,8 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
-      "clusterHash": "298059EC9BD065BD7E0C903EFFF527DA00CCA438E5E2AE4B11D088993AC048C6",
+      "targetHash": "F94087BEB99DC811BE90826AE93CDCFB3D3F8EAAACF32D9A1FBC646463DAB20D",
+      "clusterHash": "F94087BEB99DC811BE90826AE93CDCFB3D3F8EAAACF32D9A1FBC646463DAB20D",
       "operations": [
         {
           "container": "node:20",
@@ -296,14 +311,16 @@
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
           "containerVariables": [],
           "metaCommand": "@playwright test",
           "command": "npx",
-          "arguments": "playwright test --project ci"
+          "arguments": "playwright test --project ci",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
