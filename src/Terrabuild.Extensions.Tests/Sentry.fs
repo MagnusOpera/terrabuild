@@ -17,10 +17,9 @@ let ``sourcemaps cacheability``() =
 let ``sourcemaps some``() =
     let expected =
         [ shellOp("sentry-cli", "sourcemaps inject path")
-          shellOp("sentry-cli", "sourcemaps upload --org 'org' --project 'project' path") ]
+          shellOp("sentry-cli", "sourcemaps upload --project project path") ]
 
-    Sentry.sourcemaps (Some "org") // org
-                      (Some "project") // project
+    Sentry.sourcemaps (Some "project") // project
                       (Some "path") // path
     |> normalize
     |> should equal expected
@@ -32,8 +31,7 @@ let ``sourcemaps none``() =
         [ shellOp("sentry-cli", "sourcemaps inject dist")
           shellOp("sentry-cli", "sourcemaps upload dist") ]
 
-    Sentry.sourcemaps None // org
-                      None // project
+    Sentry.sourcemaps None // project
                       None // path
     |> normalize
     |> should equal expected
