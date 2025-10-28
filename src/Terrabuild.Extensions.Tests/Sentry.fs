@@ -10,34 +10,28 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``run cacheability``() =
-    getCacheInfo<Sentry> "release" |> should equal Cacheability.External
+let ``sourcemaps cacheability``() =
+    getCacheInfo<Sentry> "sourcemaps" |> should equal Cacheability.External
 
 [<Test>]
-let ``run some``() =
+let ``sourcemaps some``() =
     let expected =
-        [ shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases new '12345'", 1)
-          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases files '12345' upload-sourcemaps dist --rewrite", 1)
-          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- --org 'org' --project 'project' releases finalize '12345'", 1) ]
+        [ shellOp("sentry-cli", "sourcemaps inject path")
+          shellOp("sentry-cli", "sourcemaps upload --project project path") ]
 
-    Sentry.release ciContext
-                   (Some "org") // org
-                   (Some "project") // project
-                   (Some "12345") // version
+    Sentry.sourcemaps (Some "project") // project
+                      (Some "path") // path
     |> normalize
     |> should equal expected
 
 
 [<Test>]
-let ``run none``() =
+let ``sourcemaps none``() =
     let expected =
-        [ shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases new 'ABCDEF123456789'", 1)
-          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases files 'ABCDEF123456789' upload-sourcemaps dist --rewrite", 1)
-          shellOpErrorLevel("npx", "--yes --package=sentry-cli -- releases finalize 'ABCDEF123456789'", 1) ]
+        [ shellOp("sentry-cli", "sourcemaps inject dist")
+          shellOp("sentry-cli", "sourcemaps upload dist") ]
 
-    Sentry.release ciContext
-                   None // org
-                   None // project
-                   None // version
+    Sentry.sourcemaps None // project
+                      None // path
     |> normalize
     |> should equal expected

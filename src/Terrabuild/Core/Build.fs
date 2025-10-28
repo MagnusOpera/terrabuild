@@ -103,9 +103,9 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
     let cmdFirstStartedAt = DateTime.UtcNow
     let mutable cmdLastEndedAt = cmdFirstStartedAt
     let mutable startedAt = DateTime.UtcNow
-    let mutable cmdLastOk = true
+    let mutable cmdLastSuccess = true
     let allCommands = buildCommands node options projectDirectory homeDir tmpDir
-    while cmdLineIndex < allCommands.Length && cmdLastOk do
+    while cmdLineIndex < allCommands.Length && cmdLastSuccess do
         startedAt <-
             if cmdLineIndex > 0 then DateTime.UtcNow
             else cmdFirstStartedAt
@@ -136,13 +136,14 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
             stepLog |> stepLogs.Add
 
             lastStatusCode <- exitCode
-            cmdLastOk <- exitCode <= errorLevel
+            cmdLastSuccess <- exitCode <= errorLevel
             Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
         with
         | exn ->
             // log exception - exit will happen on next turn
             let exitCode = 5
             cmdLastEndedAt <- DateTime.UtcNow
+            cmdLastSuccess <- false
             let endedAt = cmdLastEndedAt
             let duration = endedAt - startedAt
             $"{exn}" |> IO.appendTextFile logFile
@@ -160,7 +161,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
             lastStatusCode <- exitCode
             Log.Error(exn, "{Hash}: Execution failed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
 
-    lastStatusCode, (stepLogs |> List.ofSeq)
+    cmdLastSuccess, lastStatusCode, (stepLogs |> List.ofSeq)
 
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
@@ -233,7 +234,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let batchCacheEntryId = GraphDef.buildCacheKey batchNode
         let batchCacheEntry = cache.GetEntry false batchCacheEntryId
-        let lastStatusCode, stepLogs =
+        let successful, lastStatusCode, stepLogs =
             try
                 execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
             with exn ->
@@ -242,15 +243,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 Log.Error(exn, "{Hash}: Execution failed with exception", batchNode.TargetHash)
                 reraise()
 
-        let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
 
         // split duration equally between underlying tasks
         let duration = (endedAt - startedAt).Ticks / (cluster.Count |> int64) |> TimeSpan
 
         let status =
-            match lastStatusCode with
-            | 0 -> TaskStatus.Success endedAt
+            match successful with
+            | true -> TaskStatus.Success endedAt
             | _ -> TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
         // async upload summaries
@@ -313,7 +313,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let useRemote = GraphDef.isRemoteCacheable options node
         let cacheEntryId = GraphDef.buildCacheKey node
         let cacheEntry = cache.GetEntry useRemote cacheEntryId
-        let lastStatusCode, stepLogs =
+        let successful, lastStatusCode, stepLogs =
             try
                 execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
             with exn ->
@@ -332,7 +332,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 outputs
             | _ -> None
 
-        let successful = lastStatusCode = 0
         let endedAt = DateTime.UtcNow
         // async upload summary
         hub.SubscribeBackground $"Upload {node.Id}" [] (fun () ->
@@ -355,8 +354,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
             let status =
-                match lastStatusCode with
-                | 0 -> TaskStatus.Success endedAt
+                match successful with
+                | true -> TaskStatus.Success endedAt
                 | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
             nodeResults[node.Id] <- (TaskRequest.Build, status)
             match status with
