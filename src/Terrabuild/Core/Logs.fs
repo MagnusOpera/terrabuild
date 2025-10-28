@@ -60,7 +60,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                                 append "```"
                                 step.Log |> IO.readTextFile |> append
                                 append "```"
-                                $"*Exit code: {step.ExitCode}*" |> append
+                                $"*Exit code {step.ExitCode}*" |> append
                             )
                         )
                     dumpLogs

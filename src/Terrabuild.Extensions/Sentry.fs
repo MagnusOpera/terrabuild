@@ -9,23 +9,18 @@ open Converters
 type Sentry() =
 
     /// <summary>
-    /// Publish source map as new release.
+    /// Inject and upload sourcemaps using Debug IDs.
     /// </summary>
-    /// <param name="org" example="&quot;magnusopera&quot;">Organization slug.</param> 
-    /// <param name="project" example="&quot;terrabuild&quot;">Project slug.</param> 
-    /// <param name="version" example="&quot;24ab0640&quot;">Release identifier - default value is project hash.</param> 
+    /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
+    /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 
     [<ExternalCacheAttribute>]
-    static member release (context: ActionContext)
-                          (org: string option)
-                          (project: string option)
-                          (version: string option) =
-        let org = org |> map_value (fun org -> $"--org '{org}'")
-        let project = project |> map_value (fun project -> $"--project '{project}'")
-        let version = version |> or_default context.Hash
+    static member sourcemaps (project: string option)
+                             (path: string option) =
+        let project = project |> map_value (fun project -> $"--project {project}")
+        let path = path |> or_default "dist"
 
         let ops = [
-            shellOpErrorLevel( "npx", $"--yes --package=sentry-cli -- {org} {project} releases new '{version}'", 1)
-            shellOpErrorLevel( "npx", $"--yes --package=sentry-cli -- {org} {project} releases files '{version}' upload-sourcemaps dist --rewrite", 1)
-            shellOpErrorLevel( "npx", $"--yes --package=sentry-cli -- {org} {project} releases finalize '{version}'", 1)
+            shellOp( "sentry-cli", $"sourcemaps inject {path}")
+            shellOp( "sentry-cli", $"sourcemaps upload {project} {path}")
         ]
         ops
