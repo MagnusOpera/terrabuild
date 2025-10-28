@@ -354,8 +354,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
             let status =
-                match lastStatusCode with
-                | 0 -> TaskStatus.Success endedAt
+                match successful with
+                | true -> TaskStatus.Success endedAt
                 | _ -> TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
             nodeResults[node.Id] <- (TaskRequest.Build, status)
             match status with
