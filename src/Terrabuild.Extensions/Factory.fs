@@ -15,6 +15,7 @@ let systemScripts =
         "@shell", typeof<Shell>
         "@openapi", typeof<OpenApi>
         "@playwright", typeof<Playwright>
+        "@sentry", typeof<Sentry>
         "@terraform", typeof<Terraform>
         "@yarn", typeof<Yarn>
     ]

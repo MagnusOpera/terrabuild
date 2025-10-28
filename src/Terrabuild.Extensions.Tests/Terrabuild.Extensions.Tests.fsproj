@@ -23,6 +23,7 @@
     <Compile Include="Playwright.fs" />
     <Compile Include="Shell.fs" />
     <Compile Include="Yarn.fs" />
+    <Compile Include="Sentry.fs" />
     <Compile Include="Terraform.fs" />
 <!-- 
     <Compile Include="Null.fs" />
