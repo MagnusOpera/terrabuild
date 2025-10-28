@@ -146,21 +146,19 @@ module private Build =
           StartBuildInput.Context = context }
         |> Http.post headers "/builds"
 
-
     let addArtifact headers buildId project target projectHash targetHash files success: Unit =
-        [ { AddArtifactInput.Project = project
-            AddArtifactInput.Target = target
-            AddArtifactInput.ProjectHash = projectHash
-            AddArtifactInput.TargetHash = targetHash
-            AddArtifactInput.Files = files
-            AddArtifactInput.Success = success } ]
-        |> Http.post<AddArtifactInput list, Unit> headers $"/builds/{buildId}/add-artifact"
+        { AddArtifactInput.Project = project
+          AddArtifactInput.Target = target
+          AddArtifactInput.ProjectHash = projectHash
+          AddArtifactInput.TargetHash = targetHash
+          AddArtifactInput.Files = files
+          AddArtifactInput.Success = success }
+        |> Http.post<AddArtifactInput, Unit> headers $"/builds/{buildId}/add-artifact"
 
     let useArtifact headers buildId projectHash hash: Unit =
-        [ { UseArtifactInput.ProjectHash = projectHash
-            UseArtifactInput.TargetHash = hash } ]
-        |> Http.post<UseArtifactInput list, Unit> headers $"/builds/{buildId}/use-artifact"
-
+        { UseArtifactInput.ProjectHash = projectHash
+          UseArtifactInput.TargetHash = hash }
+        |> Http.post<UseArtifactInput, Unit> headers $"/builds/{buildId}/use-artifact"
 
     let completeBuild headers buildId success: Unit =
         { CompleteBuildInput.Success = success }
