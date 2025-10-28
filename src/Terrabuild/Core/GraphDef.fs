@@ -9,6 +9,7 @@ type ContaineredShellOperation = {
     MetaCommand: string
     Command: string
     Arguments: string
+    ErrorLevel: int
 }
 
 [<RequireQualifiedAccess>]

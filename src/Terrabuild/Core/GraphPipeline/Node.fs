@@ -117,7 +117,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
-                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs })
+                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
+                            ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
 
                     let batchable = 
                         match Extensions.getScriptAttribute<Terrabuild.Extensibility.BatchableAttribute> optContext.Command (Some operation.Script) with
