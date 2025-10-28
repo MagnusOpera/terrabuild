@@ -60,6 +60,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                                 append "```"
                                 step.Log |> IO.readTextFile |> append
                                 append "```"
+                                $"*Exit code: {step.ExitCode}*" |> append
                             )
                         )
                     dumpLogs
@@ -162,7 +163,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     let dumpLogs () =
                         summary.Operations |> Seq.iter (fun group ->
                             group |> Seq.iter (fun step ->
-                                $"{Ansi.Styles.yellow}{step.MetaCommand}{Ansi.Styles.reset}" |> Terminal.writeLine
+                                $"{Ansi.Styles.yellow}{step.MetaCommand} {Ansi.Styles.dimwhite}(exit code {step.ExitCode}){Ansi.Styles.reset}" |> Terminal.writeLine
                                 if options.Debug then
                                     $"{Ansi.Styles.cyan}{step.Command} {step.Arguments}{Ansi.Styles.reset}" |> Terminal.writeLine
                                 step.Log |> IO.readTextFile |> Terminal.write

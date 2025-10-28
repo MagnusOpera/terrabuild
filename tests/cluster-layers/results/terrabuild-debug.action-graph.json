@@ -11,28 +11,31 @@
         "obj/"
       ],
       "projectHash": "F6E5B2280231C394E01CDCF68C6807C42B00C2574D6FD203F030E1F5F4821135",
-      "targetHash": "5476D78BC33396DC2B11D8A9285D37C211A8782FBD399D0D1B49DAA688636183",
-      "clusterHash": "5476D78BC33396DC2B11D8A9285D37C211A8782FBD399D0D1B49DAA688636183",
+      "targetHash": "392F2FE382EBF7715C9BCF3A46D09CDD9A9D35DBF182B5DFDF61AFE19ECB8F87",
+      "clusterHash": "392F2FE382EBF7715C9BCF3A46D09CDD9A9D35DBF182B5DFDF61AFE19ECB8F87",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project"
+          "arguments": "building project",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -50,28 +53,31 @@
         "obj/"
       ],
       "projectHash": "F5ACA68B6762061FC8CDA961580F1662C5D7B829E7FAD04EE08D861CC78CCCC7",
-      "targetHash": "207C80837A5C311C6D6D4EE12123C3F4292DDAB5A5534EA303B053F4AE8E15D6",
-      "clusterHash": "207C80837A5C311C6D6D4EE12123C3F4292DDAB5A5534EA303B053F4AE8E15D6",
+      "targetHash": "46D88F0C9236AEC6E23D373B051DCFD3601815FC40D1844D7953C75CB73AE36A",
+      "clusterHash": "46D88F0C9236AEC6E23D373B051DCFD3601815FC40D1844D7953C75CB73AE36A",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project"
+          "arguments": "building project",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -90,28 +96,31 @@
         "dist/**"
       ],
       "projectHash": "983E5702E5A405D587746A5E0A1A747F0254148687F7B792678138950FBD40B0",
-      "targetHash": "7F7E0D53002E1EA8DB3FC73DCB1A20AE7F08E0C10E72BFC021C545BDE8EF1BAB",
-      "clusterHash": "7F7E0D53002E1EA8DB3FC73DCB1A20AE7F08E0C10E72BFC021C545BDE8EF1BAB",
+      "targetHash": "E7A84792BE047AD24AE94CAD5F39D99C20C7CCD692846C35A42FA171DD2C9143",
+      "clusterHash": "E7A84792BE047AD24AE94CAD5F39D99C20C7CCD692846C35A42FA171DD2C9143",
       "operations": [
         {
           "containerVariables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project"
+          "arguments": "building project",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --"
+          "arguments": "run build --",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -131,22 +140,24 @@
         "obj/"
       ],
       "projectHash": "A1E173E73E80B5C76A870D40B67CBB80EA1E5FF5B0B9CEB9BCBAB86990DFAB32",
-      "targetHash": "BB17A704F501217FBBCDDB87AA608DDA357D8AAA93D1C3CEA0587458BCD2E084",
-      "clusterHash": "BB17A704F501217FBBCDDB87AA608DDA357D8AAA93D1C3CEA0587458BCD2E084",
+      "targetHash": "190E9DF5DFCF2681B1FBD4DA4EBEB15AFDCF72FAA25F5950534CA92A906BBFF9",
+      "clusterHash": "190E9DF5DFCF2681B1FBD4DA4EBEB15AFDCF72FAA25F5950534CA92A906BBFF9",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -166,22 +177,24 @@
         "obj/"
       ],
       "projectHash": "E4D6DA14FDBD0554DCCAF4B729ED73E5DF25AD1227377199E60C1AF12C9B6F61",
-      "targetHash": "58A52B442109A266891CA42A519D489E45F855282B817B3A93422530D7D8D59B",
-      "clusterHash": "58A52B442109A266891CA42A519D489E45F855282B817B3A93422530D7D8D59B",
+      "targetHash": "14EA47BDFABAFA3791BC725065AB34B53DCC2B11F914E438E898FFBEF7143B49",
+      "clusterHash": "14EA47BDFABAFA3791BC725065AB34B53DCC2B11F914E438E898FFBEF7143B49",
       "operations": [
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode"
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
         },
         {
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "containerVariables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug"
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -200,22 +213,24 @@
         "dist/**"
       ],
       "projectHash": "668540BD9144F23A05E200C7F087B3DE20E252D001A2FD87040249521322A14D",
-      "targetHash": "5E493451CEAB753086D05637308E03891BC60FF8A92B05E813DEAE44DD17D5E6",
-      "clusterHash": "5E493451CEAB753086D05637308E03891BC60FF8A92B05E813DEAE44DD17D5E6",
+      "targetHash": "C7F1EC0542DBFF2806CF4BDF118083469A594712253FFD742E40506934EBACDE",
+      "clusterHash": "C7F1EC0542DBFF2806CF4BDF118083469A594712253FFD742E40506934EBACDE",
       "operations": [
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --"
+          "arguments": "run build --",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",
@@ -233,22 +248,24 @@
         "dist/**"
       ],
       "projectHash": "A2F0AE9082B09EE08C2DD187FD78E7491EA0F9C44E0C5D9D4E4FC9EA9801B723",
-      "targetHash": "1BF89E16A7F73B8E7041066B0C937BA682E3DB3748351429AA9865600ADF6379",
-      "clusterHash": "1BF89E16A7F73B8E7041066B0C937BA682E3DB3748351429AA9865600ADF6379",
+      "targetHash": "7906874232037783E41CE9B9F762440B9D7906E70182AC43F6DBF45A9B930EA4",
+      "clusterHash": "7906874232037783E41CE9B9F762440B9D7906E70182AC43F6DBF45A9B930EA4",
       "operations": [
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci"
+          "arguments": "ci",
+          "errorLevel": 0
         },
         {
           "container": "node:20",
           "containerVariables": [],
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --"
+          "arguments": "run build --",
+          "errorLevel": 0
         }
       ],
       "cache": "remote",

@@ -39,6 +39,7 @@ type ActionContext = {
 type ShellOperation = {
     Command: string
     Arguments: string
+    ErrorLevel: int
 }
 
 type ShellOperations = ShellOperation list
@@ -50,9 +51,12 @@ type Cacheability =
     | External
     | Remote
 
-let shellOp(cmd, args) = 
+let shellOpErrorLevel(cmd, args, errorLevel) =
     { ShellOperation.Command = cmd
-      ShellOperation.Arguments = args }
+      ShellOperation.Arguments = args
+      ShellOperation.ErrorLevel = errorLevel }
+
+let shellOp(cmd, args) = shellOpErrorLevel(cmd, args, 0) 
 
 [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
 type BatchableAttribute() =
