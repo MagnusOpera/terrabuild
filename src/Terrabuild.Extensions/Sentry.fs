@@ -4,7 +4,7 @@ open Converters
 
 
 /// <summary>
-/// Provides support for running sentry cli commands.
+/// Provides support for running sentry-cli commands.
 /// </summary>
 type Sentry() =
 
@@ -14,7 +14,6 @@ type Sentry() =
     /// <param name="org" example="&quot;magnusopera&quot;">Organization slug.</param> 
     /// <param name="project" example="&quot;terrabuild&quot;">Project slug.</param> 
     /// <param name="version" example="&quot;24ab0640&quot;">Release identifier - default value is project hash.</param> 
-    /// <param name="args" example="&quot;&quot;">Arguments to pass to sentry cli.</param> 
     [<ExternalCacheAttribute>]
     static member release (context: ActionContext)
                           (org: string option)
