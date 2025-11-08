@@ -176,6 +176,28 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let scheduledClusters = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
+    let rec summaryNode (node: GraphDef.Node) =
+        buildProgress.TaskDownloading node.Id
+
+        let useRemote = GraphDef.isRemoteCacheable options node
+        let cacheEntryId = GraphDef.buildCacheKey node
+        let status =
+            match cache.TryGetSummaryOnly useRemote cacheEntryId with
+            | Some (_, summary) ->
+                match summary.IsSuccessful with
+                | true -> TaskStatus.Success summary.EndedAt
+                | _ -> TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
+            | _ ->
+                TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
+        nodeResults[node.Id] <- (TaskRequest.Restore, status)
+        match status with
+        | TaskStatus.Success completionDate ->
+            let nodeSignal = hub.GetSignal<DateTime> node.Id
+            nodeSignal.Set completionDate
+            buildProgress.TaskCompleted node.Id true true
+        | _ ->
+            buildProgress.TaskCompleted node.Id true false
+
     let rec restoreNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 
@@ -407,6 +429,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
                 | GraphDef.NodeAction.Build -> buildNode targetNode
                 | GraphDef.NodeAction.Restore -> restoreNode targetNode
+                | GraphDef.NodeAction.Summary -> summaryNode targetNode
                 | GraphDef.NodeAction.Ignore -> ())
 
     // build root nodes (and only those that must be built)

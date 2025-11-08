@@ -30,6 +30,7 @@ type NodeAction =
     | BatchBuild
     | Build
     | Restore
+    | Summary
     | Ignore
 
 [<RequireQualifiedAccess>]

@@ -38,7 +38,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                 if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
-
+                // task is failed but restorable - ensure it's reported as failed
+                elif not summary.IsSuccessful then
+                    Log.Debug("{NodeId} must restore as failed", node.Id)
+                    (GraphDef.NodeAction.Summary, summary.EndedAt)
                 // task is cached
                 elif node.Cache = GraphDef.Cacheability.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
@@ -105,7 +108,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
 
     let rootNodes =
         graph.RootNodes
-        |> Set.filter (fun nodeId -> nodes[nodeId].Action = GraphDef.NodeAction.Build)
+        |> Set.filter (fun nodeId ->
+            match nodes[nodeId].Action with
+            | GraphDef.NodeAction.Build | GraphDef.NodeAction.Summary -> true
+            | _ -> false)
 
     let graph =
         { graph with
