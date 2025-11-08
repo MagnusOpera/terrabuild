@@ -54,7 +54,7 @@
             },
             {
               "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -71,7 +71,7 @@
             },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -134,7 +134,7 @@
             },
             {
               "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -151,7 +151,7 @@
             },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -215,7 +215,7 @@
             },
             {
               "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "install",
@@ -227,7 +227,7 @@
             },
             {
               "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "build",
@@ -271,7 +271,7 @@
           "operations": [
             {
               "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -288,7 +288,7 @@
             },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -337,7 +337,7 @@
           "operations": [
             {
               "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -354,7 +354,7 @@
             },
             {
               "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -402,7 +402,7 @@
           "operations": [
             {
               "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "install",
@@ -414,7 +414,7 @@
             },
             {
               "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "build",
@@ -456,7 +456,7 @@
           "operations": [
             {
               "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "install",
@@ -468,7 +468,7 @@
             },
             {
               "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
-              "container": "node:20",
+              "image": "node:20",
               "containerVariables": [],
               "extension": "@npm",
               "command": "build",

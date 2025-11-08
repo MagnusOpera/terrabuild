@@ -112,9 +112,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                     let newops =
                         shellOperations |> List.map (fun shellOperation -> {
-                            ContaineredShellOperation.Container = operation.Container
-                            ContaineredShellOperation.ContainerPlatform = operation.Platform
-                            ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
+                            ContaineredShellOperation.Image = operation.Image
+                            ContaineredShellOperation.Platform = operation.Platform
+                            ContaineredShellOperation.Variables = operation.ContainerVariables
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs

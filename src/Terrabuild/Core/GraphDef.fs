@@ -3,9 +3,9 @@ open Collections
 
 [<RequireQualifiedAccess>]
 type ContaineredShellOperation = {
-    Container: string option
-    ContainerPlatform: string option
-    ContainerVariables: string set
+    Image: string option
+    Platform: string option
+    Variables: string set
     MetaCommand: string
     Command: string
     Arguments: string

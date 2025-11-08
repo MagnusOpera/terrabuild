@@ -60,7 +60,7 @@
           "operations": [
             {
               "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
-              "container": "hashicorp/terraform:1.10",
+              "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
@@ -78,7 +78,7 @@
             },
             {
               "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
-              "container": "hashicorp/terraform:1.10",
+              "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
@@ -121,7 +121,7 @@
           "operations": [
             {
               "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
-              "container": "hashicorp/terraform:1.10",
+              "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
@@ -139,7 +139,7 @@
             },
             {
               "hash": "1AE28706B2980A4E84699A2D289D729BE4C880376A9313AFA12C32E1520F3B20",
-              "container": "hashicorp/terraform:1.10",
+              "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
@@ -189,7 +189,7 @@
           "operations": [
             {
               "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -211,7 +211,7 @@
             },
             {
               "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -261,7 +261,7 @@
           "operations": [
             {
               "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "container": "node:20",
+              "image": "node:20",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@npm",
@@ -274,7 +274,7 @@
             },
             {
               "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "container": "node:20",
+              "image": "node:20",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@npm",
@@ -362,7 +362,7 @@
           "operations": [
             {
               "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -384,7 +384,7 @@
             },
             {
               "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -420,7 +420,7 @@
           "operations": [
             {
               "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -442,7 +442,7 @@
             },
             {
               "hash": "83FFC378D8A4DE3E63A64813B19826BB598ECF58D153327B42418E1DB2483301",
-              "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@dotnet",
@@ -608,7 +608,7 @@
           "operations": [
             {
               "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "container": "node:20",
+              "image": "node:20",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@npm",
@@ -621,7 +621,7 @@
             },
             {
               "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "container": "node:20",
+              "image": "node:20",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@npm",
@@ -662,7 +662,7 @@
           "operations": [
             {
               "hash": "50D55A43B040D7588938348660FCC1E7DC7DE5F6B1BA6BBD75E552060D6FB2AC",
-              "container": "openapitools/openapi-generator-cli:v7.10.0",
+              "image": "openapitools/openapi-generator-cli:v7.10.0",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@openapi",
@@ -718,7 +718,7 @@
           "operations": [
             {
               "hash": "72FA6B2BF806E80FDF3BFC4BFCC4CF397C740DCC43ACBD7CD4D0DABE6F22C85A",
-              "container": "rust:1.81.0-slim",
+              "image": "rust:1.81.0-slim",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@cargo",
@@ -766,7 +766,7 @@
           "operations": [
             {
               "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "container": "node:20",
+              "image": "node:20",
               "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@npm",
@@ -779,7 +779,7 @@
             },
             {
               "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
-              "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+              "image": "mcr.microsoft.com/playwright:v1.54.0-noble",
               "containerVariables": [],
               "extension": "@playwright",
               "command": "test",
