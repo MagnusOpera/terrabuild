@@ -1,0 +1,79 @@
+{
+  "nodes": {
+    "a:build": {
+      "id": "a:build",
+      "projectDir": "A",
+      "target": "build",
+      "dependencies": [
+        "b:build",
+        "c:build"
+      ],
+      "outputs": [],
+      "projectHash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
+      "targetHash": "984A4E8731ACAA07534E54F069E3D84B586FDB210D8171B84447417E389EA7B2",
+      "clusterHash": "984A4E8731ACAA07534E54F069E3D84B586FDB210D8171B84447417E389EA7B2",
+      "operations": [
+        {
+          "containerVariables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building A",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "never",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "b:build": {
+      "id": "b:build",
+      "projectDir": "B",
+      "target": "build",
+      "dependencies": [
+        "c:build"
+      ],
+      "outputs": [],
+      "projectHash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
+      "targetHash": "0A0D59C740DDB5285BE022304BFD218F22288F048A740987E23517CC8538D73D",
+      "clusterHash": "0A0D59C740DDB5285BE022304BFD218F22288F048A740987E23517CC8538D73D",
+      "operations": [
+        {
+          "containerVariables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building B",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "never",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "c:build": {
+      "id": "c:build",
+      "projectDir": "C",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
+      "targetHash": "2CD9375ABA6831285F4B94FE01EAAD5C133B66AB1B28A32C8C092BEDC71DAE73",
+      "clusterHash": "2CD9375ABA6831285F4B94FE01EAAD5C133B66AB1B28A32C8C092BEDC71DAE73",
+      "operations": [
+        {
+          "containerVariables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building C",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "never",
+      "rebuild": "always",
+      "action": "build"
+    }
+  },
+  "rootNodes": [
+    "a:build"
+  ],
+  "clusters": {}
+}

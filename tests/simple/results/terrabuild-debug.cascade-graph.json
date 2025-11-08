@@ -1,0 +1,339 @@
+{
+  "nodes": {
+    "deployments/terraform-deploy:build": {
+      "id": "deployments/terraform-deploy:build",
+      "projectDir": "deployments/terraform-deploy",
+      "target": "build",
+      "dependencies": [
+        "projects/dotnet-app:build",
+        "projects/npm-app:build"
+      ],
+      "outputs": [
+        "*.planfile"
+      ],
+      "projectHash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
+      "targetHash": "50896AD5637540EA0C63FC2C14089B7752A369850861CE9F8C1BFA8C68C2EF68",
+      "clusterHash": "50896AD5637540EA0C63FC2C14089B7752A369850861CE9F8C1BFA8C68C2EF68",
+      "operations": [
+        {
+          "container": "hashicorp/terraform:1.10",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@terraform init",
+          "command": "terraform",
+          "arguments": "init -reconfigure",
+          "errorLevel": 0
+        },
+        {
+          "container": "hashicorp/terraform:1.10",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@terraform plan",
+          "command": "terraform",
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "libraries/dotnet-lib:build": {
+      "id": "libraries/dotnet-lib:build",
+      "projectDir": "libraries/dotnet-lib",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
+      "targetHash": "5DEEA515BEFC184FCE9B16DB6D58E01EB6D4548DAFEEEFF0F51813A3B333C0FE",
+      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
+        },
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build --no-restore --no-dependencies --configuration Debug",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "libraries/npm-lib:build": {
+      "id": "libraries/npm-lib:build",
+      "projectDir": "libraries/npm-lib",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
+      "targetHash": "0A00D88656CC57EF821E9A5E423A8A150DA1492E9B2C8BC4EBF70AD767128E0E",
+      "clusterHash": "0A00D88656CC57EF821E9A5E423A8A150DA1492E9B2C8BC4EBF70AD767128E0E",
+      "operations": [
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "arguments": "ci",
+          "errorLevel": 0
+        },
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm build",
+          "command": "npm",
+          "arguments": "run build --",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "libraries/shell-lib:build": {
+      "id": "libraries/shell-lib:build",
+      "projectDir": "libraries/shell-lib",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
+      "targetHash": "71724E6876207AA55D498F9E2DBD806FE5DC2617F0B5E9D156370922BFD32612",
+      "clusterHash": "71724E6876207AA55D498F9E2DBD806FE5DC2617F0B5E9D156370922BFD32612",
+      "operations": [
+        {
+          "containerVariables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building library1",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "never",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "projects/dotnet-app:build": {
+      "id": "projects/dotnet-app:build",
+      "projectId": "dotnet_app",
+      "projectDir": "projects/dotnet-app",
+      "target": "build",
+      "dependencies": [
+        "libraries/dotnet-lib:build"
+      ],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "projectHash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
+      "targetHash": "74DFE2C236475D252463B34BD046EC54E84041F44EA6AD7474FF566C7A07EDDB",
+      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "operations": [
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore --locked-mode",
+          "errorLevel": 0
+        },
+        {
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build --no-restore --configuration Debug",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "projects/make-app:build": {
+      "id": "projects/make-app:build",
+      "projectDir": "projects/make-app",
+      "target": "build",
+      "dependencies": [
+        "libraries/shell-lib:build"
+      ],
+      "outputs": [],
+      "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
+      "targetHash": "90EDD88D305190538CA9567172F55869D734A82AF0F7CA151BDF37F2467FE669",
+      "clusterHash": "90EDD88D305190538CA9567172F55869D734A82AF0F7CA151BDF37F2467FE669",
+      "operations": [
+        {
+          "containerVariables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building project1",
+          "errorLevel": 0
+        },
+        {
+          "containerVariables": [],
+          "metaCommand": "@make build",
+          "command": "make",
+          "arguments": "build secret=\u0022tagada\u0022",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "never",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "projects/npm-app:build": {
+      "id": "projects/npm-app:build",
+      "projectId": "npm_app",
+      "projectDir": "projects/npm-app",
+      "target": "build",
+      "dependencies": [
+        "libraries/npm-lib:build"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
+      "targetHash": "1814B3B443E6124F5EF36BB01FEC79D18757F0B5C0FC758CE286EAB0DCC90C38",
+      "clusterHash": "1814B3B443E6124F5EF36BB01FEC79D18757F0B5C0FC758CE286EAB0DCC90C38",
+      "operations": [
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "arguments": "ci",
+          "errorLevel": 0
+        },
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm build",
+          "command": "npm",
+          "arguments": "run build --",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "projects/open-api:build": {
+      "id": "projects/open-api:build",
+      "projectDir": "projects/open-api",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
+      "targetHash": "555020F7D7FDBFD50F43CD79BCFE4EB57FD0BB5AC9B0FB850BB2B3FE17FB4350",
+      "clusterHash": "555020F7D7FDBFD50F43CD79BCFE4EB57FD0BB5AC9B0FB850BB2B3FE17FB4350",
+      "operations": [
+        {
+          "container": "openapitools/openapi-generator-cli:v7.10.0",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@openapi generate",
+          "command": "docker-entrypoint.sh",
+          "arguments": "generate -i api.json -g typescript-axios -o src",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "projects/rust-app:build": {
+      "id": "projects/rust-app:build",
+      "projectDir": "projects/rust-app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "target/debug/",
+        "target/release/"
+      ],
+      "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
+      "targetHash": "1A6C3C1F4A1F227D3944E971DFD6A697AA218FD67EEAC7B1259F51661DB2157A",
+      "clusterHash": "1A6C3C1F4A1F227D3944E971DFD6A697AA218FD67EEAC7B1259F51661DB2157A",
+      "operations": [
+        {
+          "container": "rust:1.81.0-slim",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@cargo build",
+          "command": "cargo",
+          "arguments": "build",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    },
+    "tests/playwright:test": {
+      "id": "tests/playwright:test",
+      "projectId": "playwright_test",
+      "projectDir": "tests/playwright",
+      "target": "test",
+      "dependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
+      "targetHash": "F94087BEB99DC811BE90826AE93CDCFB3D3F8EAAACF32D9A1FBC646463DAB20D",
+      "clusterHash": "F94087BEB99DC811BE90826AE93CDCFB3D3F8EAAACF32D9A1FBC646463DAB20D",
+      "operations": [
+        {
+          "container": "node:20",
+          "containerPlatform": "linux/amd64",
+          "containerVariables": [],
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "arguments": "ci",
+          "errorLevel": 0
+        },
+        {
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+          "containerVariables": [],
+          "metaCommand": "@playwright test",
+          "command": "npx",
+          "arguments": "playwright test --project ci",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "build"
+    }
+  },
+  "rootNodes": [
+    "deployments/terraform-deploy:build",
+    "projects/make-app:build",
+    "projects/open-api:build",
+    "projects/rust-app:build",
+    "tests/playwright:test"
+  ],
+  "clusters": {}
+}
