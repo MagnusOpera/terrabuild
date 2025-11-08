@@ -134,7 +134,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage) :> Cache.ICache
 
         let graph = GraphPipeline.Node.build options config
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"build-graph.json")
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node-graph.json")
 
         let graph = GraphPipeline.Action.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
