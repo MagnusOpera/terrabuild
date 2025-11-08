@@ -16,7 +16,7 @@ target dist {
 target dummy { }
 
 extension dotnet {
-  container = "mcr.microsoft.com/dotnet/sdk:8.0.101"
+  image = "mcr.microsoft.com/dotnet/sdk:8.0.101"
   defaults {
     configuration1 = var.map.toto
     configuration2 = var.map.["titi"]

@@ -2,7 +2,7 @@ namespace Terrabuild.Configuration.AST
 open Terrabuild.Expressions
 
 type ExtensionBlock =
-    { Container: Expr option
+    { Image: Expr option
       Platform: Expr option
       Variables: Expr option
       Script: Expr option

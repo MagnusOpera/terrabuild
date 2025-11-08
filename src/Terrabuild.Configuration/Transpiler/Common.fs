@@ -5,11 +5,11 @@ open Helpers
 
 let toExtension (block: Block) =
     block
-    |> checkAllowedAttributes ["container"; "platform"; "variables"; "script"; "defaults"; "batch"]
+    |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "batch"]
     |> checkAllowedNestedBlocks ["defaults"]
     |> ignore
 
-    let container = block |> tryFindAttribute "container"
+    let image = block |> tryFindAttribute "image"
     let platform = block |> tryFindAttribute "platform"
     let variables = block |> tryFindAttribute "variables"
     let script = block |> tryFindAttribute "script"
@@ -26,7 +26,7 @@ let toExtension (block: Block) =
             |> List.map (fun a -> (a.Name, a.Value))
             |> Map.ofList)
 
-    { ExtensionBlock.Container = container
+    { ExtensionBlock.Image = image
       ExtensionBlock.Platform = platform
       ExtensionBlock.Variables = variables
       ExtensionBlock.Script = script

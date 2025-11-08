@@ -42,7 +42,7 @@ target publish {
 }
 
 extension @dotnet {
-    container = local.is_local_build ? nothing : "mcr.microsoft.com/dotnet/sdk:${local.versions.dotnet_sdk}"
+    image = local.is_local_build ? nothing : "mcr.microsoft.com/dotnet/sdk:${local.versions.dotnet_sdk}"
     batch = true
     defaults {
         runtime = local.runtimes.dotnet

@@ -23,7 +23,7 @@ target dist {
 target dummy { }
 
 extension dotnet {
-  container = "mcr.microsoft.com/dotnet/sdk:8.0.101"
+  image = "mcr.microsoft.com/dotnet/sdk:8.0.101"
   batch = false
   defaults {
     configuration = local.configuration
@@ -33,7 +33,7 @@ extension dotnet {
 extension docker { }
 
 extension npmext {
-    container = "node:20"
+    image = "node:20"
     script = "scripts/npm.fsx"
 }
 

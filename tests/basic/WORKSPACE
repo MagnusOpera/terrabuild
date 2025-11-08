@@ -33,7 +33,7 @@ target deploy {
 }
 
 extension @dotnet {
-  container = "mcr.microsoft.com/dotnet/sdk:9.0.202"
+  image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
   platform = "linux/amd64"
   defaults {
     configuration = local.configuration
@@ -41,7 +41,7 @@ extension @dotnet {
 }
 
 extension @terraform {
-  container = "hashicorp/terraform:1.10"
+  image = "hashicorp/terraform:1.10"
   platform = "linux/amd64"
   defaults {
     workspace = local.workspace
@@ -49,16 +49,16 @@ extension @terraform {
 }
 
 extension @cargo {
-  container = "rust:1.81.0-slim"
+  image = "rust:1.81.0-slim"
   platform = "linux/amd64"
 }
 
 extension @npm {
-  container = "node:20"
+  image = "node:20"
   platform = "linux/amd64"
 }
 
 extension @openapi {
-  container = "openapitools/openapi-generator-cli:v7.10.0"
+  image = "openapitools/openapi-generator-cli:v7.10.0"
   platform = "linux/amd64"
 }

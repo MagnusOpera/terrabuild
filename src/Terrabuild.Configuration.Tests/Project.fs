@@ -23,14 +23,14 @@ let parseProject() =
               ProjectBlock.Labels = Set [ "app"; "dotnet" ] }
 
         let extDotnet =
-            { Container = None
+            { Image = None
               Platform = None
               Variables = None
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some
               Batch = Some Expr.True }        
         let extDocker =
-            { Container = None
+            { Image = None
               Platform = None
               Variables = Expr.List [ Expr.String "ARM_TENANT_ID" ] |> Some
               Script = None
@@ -38,7 +38,7 @@ let parseProject() =
                                "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some
               Batch = None }
         let extDummy =
-            { Container = None
+            { Image = None
               Platform = None
               Variables = None
               Script = "dummy.fsx" |> Expr.String |> Some
@@ -104,7 +104,7 @@ let parseProject2() =
               ProjectBlock.Labels = Set.empty }
 
         let extDotnet =
-            { Container = None
+            { Image = None
               Platform = None
               Variables = None
               Script = None

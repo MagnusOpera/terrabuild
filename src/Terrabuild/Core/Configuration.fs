@@ -16,7 +16,7 @@ open GraphDef
 [<RequireQualifiedAccess>]
 type TargetOperation = {
     Hash: string
-    Container: string option
+    Image: string option
     Platform: string option
     ContainerVariables: string set
     Extension: string
@@ -472,8 +472,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         |> Expr.Map
                         |> Eval.eval evaluationContext
 
-                    let container =
-                        match extension.Container with
+                    let image =
+                        match extension.Image with
                         | Some container ->
                             match Eval.eval evaluationContext container with
                             | Value.String container -> Some container
@@ -507,7 +507,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
                     let hash =
                         let containerDeps =
-                            match container with
+                            match image with
                             | Some container ->
                                 let lstVariables = variables |> List.ofSeq |> List.sort
                                 let lstPlatform = platform |> Option.map (fun p -> [ p ]) |> Option.defaultValue []
@@ -519,7 +519,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
                     let targetContext = {
                         TargetOperation.Hash = hash
-                        TargetOperation.Container = container
+                        TargetOperation.Image = image
                         TargetOperation.Platform = platform
                         TargetOperation.ContainerVariables = variables
                         TargetOperation.Extension = step.Extension

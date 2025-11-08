@@ -14,7 +14,7 @@ type InvocationResult<'t> =
 let systemExtensions =
     Terrabuild.Extensions.Factory.systemScripts
     |> Seq.map (fun kvp ->
-        kvp.Key, { ExtensionBlock.Container = None
+        kvp.Key, { ExtensionBlock.Image = None
                    Platform = None
                    Variables = None
                    Script = None

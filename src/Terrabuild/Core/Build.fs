@@ -48,15 +48,15 @@ let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
 let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     node.Operations |> List.map (fun operation ->
         let metaCommand = operation.MetaCommand
-        match options.Engine, operation.Container with
-        | Some cmd, Some container ->
+        match options.Engine, operation.Image with
+        | Some cmd, Some image ->
             let wsDir = currentDir()
 
             // add platform
             let container =
-                match operation.ContainerPlatform with
-                | Some platform -> $"--platform={platform} {container}"
-                | _ -> container
+                match operation.Platform with
+                | Some platform -> $"--platform={platform} {image}"
+                | _ -> image
 
             let containerHome =
                 match containerInfos.TryGetValue(container) with
@@ -80,7 +80,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
 
             let envs =
                 let matcher = Matcher()
-                matcher.AddIncludePatterns(operation.ContainerVariables)
+                matcher.AddIncludePatterns(operation.Variables)
                 envVars()
                 |> Seq.choose (fun entry -> 
                     let key = entry.Key
@@ -92,8 +92,8 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     else None)
                 |> String.join " "
             let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
-            metaCommand, options.Workspace, cmd, args, operation.Container, operation.ErrorLevel
-        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Container, operation.ErrorLevel)
+            metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel
+        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel)
 
 
 let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =

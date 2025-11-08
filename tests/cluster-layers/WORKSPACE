@@ -3,9 +3,9 @@ target build {
 }
 
 extension @dotnet {
-  container = "mcr.microsoft.com/dotnet/sdk:9.0.202"
+  image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
 }
 
 extension @npm {
-  container = "node:20"
+  image = "node:20"
 }

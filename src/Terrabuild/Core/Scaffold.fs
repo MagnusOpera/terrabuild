@@ -35,7 +35,7 @@ type Project = {
 
 
 type Extension = {
-    Container: string option
+    Image: string option
     Defaults: Map<string, string>
     Actions: Map<Goal, string list>
 }
@@ -71,40 +71,40 @@ let extMarkers = [
 
 let extConfigs =
     Map [ 
-        Dotnet, { Container = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
+        Dotnet, { Image = None //Some "mcr.microsoft.com/dotnet/sdk:8.0"
                   Defaults = Map [ "configuration", "local.config" ]
                   Actions = Map [ Install, [ "restore"]
                                   Build, [ "build" ]
                                   Publish, [ "publish" ]
                                   Test, [ "test" ] ] }
 
-        Gradle, { Container = None //Some "gradle:jdk21"
+        Gradle, { Image = None //Some "gradle:jdk21"
                   Defaults = Map [ "configuration", "local.configuration" ]
                   Actions = Map [ Build, [ "build" ] ] }
 
-        Npm, { Container = None //Some "node:20"
+        Npm, { Image = None //Some "node:20"
                Defaults = Map.empty
                Actions = Map [ Install, [ "install" ]
                                Build, [ "build" ]
                                Test, [ "test" ] ] }
 
-        Make, { Container = None
+        Make, { Image = None
                 Defaults = Map.empty
                 Actions = Map [ Build, [ "build" ] ] }
 
-        Docker, { Container = None //Some "docker:25.0"
+        Docker, { Image = None //Some "docker:25.0"
                   Defaults = Map [ "image", "\"ghcr.io/example/${terrabuild.project_slug}\""
                                    "arguments", "{ configuration: local.config }" ]
                   Actions = Map [ Publish, [ "build" ] ] }
   
-        Terraform, { Container = None //Some "hashicorp/terraform:1.7"
+        Terraform, { Image = None //Some "hashicorp/terraform:1.7"
                      Defaults = Map.empty
                      Actions = Map [
                          Install, [ "init" ]
                          Plan, [ "plan" ]
                          Apply, [ "apply" ] ] }
  
-        Cargo, { Container = None // Some "rust:1.79.0"
+        Cargo, { Image = None // Some "rust:1.79.0"
                  Defaults = Map [ "profile", "local.configuration" ]
                  Actions = Map [ Build, [ "build" ] ] }
     ]
@@ -160,15 +160,15 @@ let genWorkspace (extensions: ExtensionType set) =
 
         for extension in extensions do
             let config = extConfigs |> Map.find extension
-            let container = config.Container
+            let image = config.Image
             let variables = config.Defaults
-            let declare = container <> None || variables <> Map.empty
+            let declare = image <> None || variables <> Map.empty
             if declare then
                 ""
                 $"extension @{extension |> toExtension} {{"
-                match container with
-                | Some container ->
-                    $"  container = \"{container}\""
+                match image with
+                | Some image ->
+                    $"  image = \"{image}\""
                 | _ -> ()
 
                 if variables <> Map.empty then

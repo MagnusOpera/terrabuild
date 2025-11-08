@@ -102,9 +102,9 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                     match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
                     | Extensions.InvocationResult.Success executionRequest ->
                         executionRequest |> List.map (fun shellOperation -> {
-                            ContaineredShellOperation.Container = operation.Container
-                            ContaineredShellOperation.ContainerPlatform = operation.Platform
-                            ContaineredShellOperation.ContainerVariables = operation.ContainerVariables
+                            ContaineredShellOperation.Image = operation.Image
+                            ContaineredShellOperation.Platform = operation.Platform
+                            ContaineredShellOperation.Variables = operation.ContainerVariables
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs

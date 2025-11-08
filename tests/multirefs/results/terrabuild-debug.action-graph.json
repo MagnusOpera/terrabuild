@@ -10,11 +10,11 @@
       ],
       "outputs": [],
       "projectHash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
-      "targetHash": "984A4E8731ACAA07534E54F069E3D84B586FDB210D8171B84447417E389EA7B2",
-      "clusterHash": "984A4E8731ACAA07534E54F069E3D84B586FDB210D8171B84447417E389EA7B2",
+      "targetHash": "26541C6E7FA974ABC551CC0E38FEC48A1905E9D34793EE3BBE727D1D3B61F185",
+      "clusterHash": "26541C6E7FA974ABC551CC0E38FEC48A1905E9D34793EE3BBE727D1D3B61F185",
       "operations": [
         {
-          "containerVariables": [],
+          "variables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building A",
@@ -34,11 +34,11 @@
       ],
       "outputs": [],
       "projectHash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
-      "targetHash": "0A0D59C740DDB5285BE022304BFD218F22288F048A740987E23517CC8538D73D",
-      "clusterHash": "0A0D59C740DDB5285BE022304BFD218F22288F048A740987E23517CC8538D73D",
+      "targetHash": "1820EC5CE34E1A5AFE895A8E868E6F80BBCA2ED30C72C7296DACB268BAD3A5F5",
+      "clusterHash": "1820EC5CE34E1A5AFE895A8E868E6F80BBCA2ED30C72C7296DACB268BAD3A5F5",
       "operations": [
         {
-          "containerVariables": [],
+          "variables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building B",
@@ -56,11 +56,11 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
-      "targetHash": "2CD9375ABA6831285F4B94FE01EAAD5C133B66AB1B28A32C8C092BEDC71DAE73",
-      "clusterHash": "2CD9375ABA6831285F4B94FE01EAAD5C133B66AB1B28A32C8C092BEDC71DAE73",
+      "targetHash": "88F91D02B22AE31A305FE4A917F106D6B6823425DAFEB5C0605F5A1A6CFE0EC8",
+      "clusterHash": "88F91D02B22AE31A305FE4A917F106D6B6823425DAFEB5C0605F5A1A6CFE0EC8",
       "operations": [
         {
-          "containerVariables": [],
+          "variables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building C",
