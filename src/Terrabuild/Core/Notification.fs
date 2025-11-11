@@ -36,7 +36,7 @@ type BuildNotification() =
 
     let buildComplete = new ManualResetEvent(false)
     let renderer = Progress.ProgressRenderer()
-    let updateTimer = System.TimeSpan.FromMilliseconds(100)
+    let updateTimer = System.TimeSpan.FromMilliseconds(100L)
 
     let handler (inbox: MailboxProcessor<PrinterProtocol>) =
 

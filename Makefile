@@ -20,10 +20,10 @@ current_dir = $(shell pwd)
 #
 
 build:
-	dotnet build -c $(config) terrabuild.sln
+	dotnet build -c $(config) terrabuild.slnx
 
 test:
-	dotnet test terrabuild.sln
+	dotnet test terrabuild.slnx
 
 parser:
 	dotnet build -c $(config) /p:DefineConstants="GENERATE_PARSER"

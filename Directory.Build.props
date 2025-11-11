@@ -1,7 +1,8 @@
 <Project>
     <PropertyGroup>
-        <Deterministic>true</Deterministic>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <TargetFramework>net10.0</TargetFramework>
+        <!-- <Deterministic>true</Deterministic> -->
+        <!-- <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile> -->
         <IsPackable>false</IsPackable>
         <VSTestLogger>trx</VSTestLogger>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -12,8 +13,4 @@
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="9.0.0" />
-    </ItemGroup>
 </Project>

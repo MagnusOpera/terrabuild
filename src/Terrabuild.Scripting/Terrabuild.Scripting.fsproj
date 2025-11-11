@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="43.9.303" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.100" />
   </ItemGroup>
 
   <ItemGroup>
