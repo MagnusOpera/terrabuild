@@ -16,12 +16,11 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "F6E5B2280231C394E01CDCF68C6807C42B00C2574D6FD203F030E1F5F4821135",
+      "hash": "90461D04D0C003A07ED28BDCFEAFEEA3130A2D50BB329B1AC9D25F9631A79AB8",
       "dependencies": [],
       "files": [
         "A.csproj",
-        "PROJECT",
-        "packages.lock.json"
+        "PROJECT"
       ],
       "targets": {
         "build": {
@@ -96,12 +95,11 @@
     },
     "b": {
       "directory": "B",
-      "hash": "F5ACA68B6762061FC8CDA961580F1662C5D7B829E7FAD04EE08D861CC78CCCC7",
+      "hash": "9E00CDDA47849B1D6BDF24E09E809BB991E70F4ECEF44BA99BE6E0729FFFD645",
       "dependencies": [],
       "files": [
         "B.csproj",
-        "PROJECT",
-        "packages.lock.json"
+        "PROJECT"
       ],
       "targets": {
         "build": {
@@ -176,7 +174,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "983E5702E5A405D587746A5E0A1A747F0254148687F7B792678138950FBD40B0",
+      "hash": "D2F9A13B1E732C0815EF0E21493172A5FA5699322C0430360A32095BEE35E539",
       "dependencies": [
         "a",
         "b"
@@ -247,14 +245,13 @@
     },
     "d": {
       "directory": "D",
-      "hash": "A1E173E73E80B5C76A870D40B67CBB80EA1E5FF5B0B9CEB9BCBAB86990DFAB32",
+      "hash": "9412CFE4112AEF4F4C65239AC15A77A63378A280554560CECFBA341182BE6693",
       "dependencies": [
         "c"
       ],
       "files": [
         "D.csproj",
-        "PROJECT",
-        "packages.lock.json"
+        "PROJECT"
       ],
       "targets": {
         "build": {
@@ -313,14 +310,13 @@
     },
     "e": {
       "directory": "E",
-      "hash": "E4D6DA14FDBD0554DCCAF4B729ED73E5DF25AD1227377199E60C1AF12C9B6F61",
+      "hash": "DDCC91B3A55F2121262B329DB6656E6ABC3AA99F662C529452A285BE3FAE549C",
       "dependencies": [
         "c"
       ],
       "files": [
         "E.csproj",
-        "PROJECT",
-        "packages.lock.json"
+        "PROJECT"
       ],
       "targets": {
         "build": {
@@ -379,7 +375,7 @@
     },
     "f": {
       "directory": "F",
-      "hash": "668540BD9144F23A05E200C7F087B3DE20E252D001A2FD87040249521322A14D",
+      "hash": "D1B53B045FE1A2359FBF50A141C6BF1D9287C1DF233590FCB386E2B9874E7D3D",
       "dependencies": [
         "d",
         "e"
@@ -434,7 +430,7 @@
     },
     "g": {
       "directory": "G",
-      "hash": "A2F0AE9082B09EE08C2DD187FD78E7491EA0F9C44E0C5D9D4E4FC9EA9801B723",
+      "hash": "F0DF26E923ED54A0AAC72C142B69299DAFDF07333F5A0821FF24268295442600",
       "dependencies": [
         "c"
       ],
