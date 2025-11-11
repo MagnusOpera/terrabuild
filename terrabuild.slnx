@@ -2,7 +2,7 @@
   <Configurations>
     <Platform Name="Any CPU" />
   </Configurations>
-  <Folder Name="Terrabuild">
+  <Folder Name="/Terrabuild/">
     <Project Path="src/Terrabuild.Common.Tests/Terrabuild.Common.Tests.fsproj" />
     <Project Path="src/Terrabuild.Common/Terrabuild.Common.fsproj" />
     <Project Path="src/Terrabuild.Configuration.Tests/Terrabuild.Configuration.Tests.fsproj" />
@@ -21,7 +21,7 @@
     <Project Path="src/Terrabuild.Tests/Terrabuild.Tests.fsproj" />
     <Project Path="src/Terrabuild/Terrabuild.fsproj" />
   </Folder>
-  <Folder Name="Tools">
+  <Folder Name="/Tools/">
     <Project Path="tools/DocGen/DocGen.fsproj" />
   </Folder>
 </Solution>
