@@ -80,10 +80,11 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
         match m.Name with
         | Command (extension, name) ->
             let fullTypename = "terrabuild.extensions." + extension
-            let extensionType = assembly.GetTypes() |> Seq.find (fun t -> t.FullName.ToLowerInvariant() = fullTypename)
-            let methodInfo = extensionType.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static)
+            let extensionType = assembly.GetTypes() |> Seq.find (fun t -> (t.FullName |> nonNull).ToLowerInvariant() = fullTypename)
+            let methodInfo = extensionType.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static) |> nonNull
             let methodArgs =
-                methodInfo.GetParameters() |> Seq.map (fun p -> p.Name) |> Set.ofSeq
+                methodInfo.GetParameters()
+                |> Seq.map (fun p -> p.Name |> nonNull) |> Set.ofSeq
                 |> Set.remove "context"
 
             let cacheability = getCacheInfo methodInfo
@@ -292,7 +293,7 @@ let main args =
     if doc.Assembly.Name <> "Terrabuild.Extensions" then failwith "Expecting documentation for Terrabuild.Extensions"
 
     let members = doc.Members |> Option.ofObj |> Option.defaultValue Array.empty
-    let assemblyFile = Path.ChangeExtension(args[0], "dll")
+    let assemblyFile = Path.ChangeExtension(args[0], "dll") |> nonNull
     let assembly = System.Reflection.Assembly.LoadFrom assemblyFile
     let extensions = buildExtensions assembly members
 
@@ -315,7 +316,7 @@ let main args =
     let genExtensions = extensions.Keys |> Set.ofSeq
     let folders =
         Directory.EnumerateDirectories(outputDir)
-        |> Seq.map Path.GetFileName
+        |> Seq.map (nonNull << Path.GetFileName)
         |> Set.ofSeq
     let removeFolders = folders - genExtensions
     for folder in removeFolders do
@@ -332,7 +333,7 @@ let main args =
             |> Set.add "_index.md"
         let commands =
             Directory.EnumerateFiles(extensionDir)
-            |> Seq.map Path.GetFileName
+            |> Seq.map (nonNull << Path.GetFileName)
             |> Set.ofSeq
         let removeCommands = commands - genCommands
         for command in removeCommands do
