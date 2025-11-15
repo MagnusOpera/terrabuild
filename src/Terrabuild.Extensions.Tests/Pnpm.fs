@@ -48,6 +48,7 @@ let ``install some``() =
 
     Pnpm.install localContext
                  (Some true) // force
+                 (Some true) // floating
                  someArgs
     |> normalize
     |> should equal expected
@@ -56,10 +57,11 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        [ shellOp("pnpm", "--recursive install") ]
+        [ shellOp("pnpm", "--recursive install --frozen-lockfile") ]
 
     Pnpm.install localContext
-                 None
+                 None // force
+                 None // floating
                  noneArgs
     |> normalize
     |> should equal expected
@@ -69,10 +71,11 @@ let ``install batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
     let expected =
-        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib install") ]
+        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib install --frozen-lockfile") ]
 
     Pnpm.install (batchContext tmpDir projectDirs)
-                 None
+                 None // force
+                 None // floating
                  noneArgs
     |> normalize
     |> should equal expected

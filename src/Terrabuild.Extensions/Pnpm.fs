@@ -50,8 +50,10 @@ type Pnpm() =
     [<BatchableAttribute>]
     static member install (context: ActionContext)
                           (force: bool option)
+                          (floating: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
+        let frozen = floating |> map_false "--frozen-lockfile"
         let args = args |> or_default ""
         let filters =
             match context.Batch with
@@ -59,7 +61,7 @@ type Pnpm() =
             | _ -> ""
 
         let ops = [
-            shellOp("pnpm", $"--recursive {filters} install {force} {args}")
+            shellOp("pnpm", $"--recursive {filters} install {frozen} {force} {args}")
         ]
         ops
 

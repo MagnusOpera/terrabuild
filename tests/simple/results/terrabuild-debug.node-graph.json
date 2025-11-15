@@ -12,8 +12,8 @@
         "*.planfile"
       ],
       "projectHash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
-      "targetHash": "48701E7DAC1DCDBDEFC3FBF5A43DD132C0A0AE3A27BD9A2B518E926B449D7029",
-      "clusterHash": "48701E7DAC1DCDBDEFC3FBF5A43DD132C0A0AE3A27BD9A2B518E926B449D7029",
+      "targetHash": "A21DBA8971D8E96FD58DB67153344FC090646B4B5E07E46CE7D13877DD2460C7",
+      "clusterHash": "A21DBA8971D8E96FD58DB67153344FC090646B4B5E07E46CE7D13877DD2460C7",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -84,7 +84,7 @@
         "dist/**"
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "targetHash": "803463973F7B44B6E405F9D9B90D7796DE928CEBF6B747094C17876985A91F60",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -93,7 +93,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install",
+          "arguments": "--recursive install --frozen-lockfile",
           "errorLevel": 0
         },
         {
@@ -215,7 +215,7 @@
         "dist/**"
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
+      "targetHash": "7B13862D098D084BD18A3C1DF94A7D3C323D016499FF8CD482360EE8DD8C5036",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -224,7 +224,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install",
+          "arguments": "--recursive install --frozen-lockfile",
           "errorLevel": 0
         },
         {
