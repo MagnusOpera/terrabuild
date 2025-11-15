@@ -19,6 +19,7 @@
     <Compile Include="Shell.fs" />
     <Compile Include="OpenApi.fs" />
     <Compile Include="Playwright.fs" />
+    <Compile Include="Pnpm.fs" />
     <Compile Include="Sentry.fs" />
     <Compile Include="Terraform.fs" />
     <Compile Include="Yarn.fs" />
