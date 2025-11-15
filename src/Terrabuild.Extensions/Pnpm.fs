@@ -55,7 +55,7 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
             | _ -> ""
 
         let ops = [
@@ -75,7 +75,7 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
             | _ -> ""
         let ops = [
             shellOp("pnpm", $"--recursive {filters} run build {args}")   
@@ -94,7 +94,7 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
             | _ -> ""
         let ops = [
             shellOp("pnpm", $"--recursive {filters} run test {args}")   

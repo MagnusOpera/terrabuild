@@ -69,7 +69,7 @@ let ``install batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
     let expected =
-        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib install") ]
+        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib install") ]
 
     Pnpm.install (batchContext tmpDir projectDirs)
                  None
@@ -113,7 +113,7 @@ let ``build batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
     let expected =
-        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib run build") ]
+        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib run build") ]
 
     Pnpm.build (batchContext tmpDir projectDirs)
                noneArgs
@@ -156,7 +156,7 @@ let ``test batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
     let expected =
-        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib run test") ]
+        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib run test") ]
 
     Pnpm.test (batchContext tmpDir projectDirs)
               noneArgs

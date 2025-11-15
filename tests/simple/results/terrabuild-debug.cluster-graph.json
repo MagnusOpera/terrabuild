@@ -49,7 +49,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive --filter libraries/npm-lib --filter projects/npm-app install",
+          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app install",
           "errorLevel": 0
         },
         {
@@ -58,7 +58,7 @@
           "variables": [],
           "metaCommand": "@pnpm build",
           "command": "pnpm",
-          "arguments": "--recursive --filter libraries/npm-lib --filter projects/npm-app run build",
+          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app run build",
           "errorLevel": 0
         }
       ],
