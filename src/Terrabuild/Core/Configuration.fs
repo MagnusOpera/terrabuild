@@ -106,7 +106,14 @@ let (|Bool|Number|String|) (value: string) =
         | true, value -> Number value
         | _ -> String value
 
-
+let default_ignores = Set [
+    "node_modules"
+    ".pnpm-store"
+    ".terrabuild"
+    "bin"
+    "obj"
+    "dist"
+]
 
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
@@ -653,7 +660,7 @@ let read (options: ConfigOptions.Options) =
     let extensions = Extensions.systemExtensions |> Map.addMap workspaceConfig.Extensions
 
     let searchProjectsAndApply() =
-        let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue Set.empty
+        let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue default_ignores
         let scanFolder = scanFolders options.Workspace workspaceIgnores
         let projectLoading = ConcurrentDictionary<string, bool>()
         let projectIds = ConcurrentDictionary<string, string>()

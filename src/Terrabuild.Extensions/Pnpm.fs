@@ -4,9 +4,9 @@ open Errors
 open Converters
 
 /// <summary>
-/// Provides support for `npm`.
+/// Provides support for `pnpm`.
 /// </summary>
-type Npm() =
+type Pnpm() =
 
     /// <summary>
     /// Provides default values.
@@ -36,7 +36,7 @@ type Npm() =
         let args = args |> or_default ""
 
         let ops = [
-            shellOp("npm", $"{cmd} {args}")
+            shellOp("pnpm", $"{cmd} {args}")
         ]
         ops
 
@@ -45,15 +45,21 @@ type Npm() =
     /// Install packages using lock file.
     /// </summary>
     /// <param name="force" example="true">Force install.</param> 
-    /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
-    static member install (force: bool option)
+    [<BatchableAttribute>]
+    static member install (context: ActionContext)
+                          (force: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
         let args = args |> or_default ""
+        let filters =
+            match context.Batch with
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | _ -> ""
 
         let ops = [
-            shellOp("npm", $"ci {force} {args}")
+            shellOp("pnpm", $"--recursive {filters} install {force} {args}")
         ]
         ops
 
@@ -61,12 +67,18 @@ type Npm() =
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="args" example="&quot;--workspaces&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
     [<RemoteCacheAttribute>]
-    static member build (args: string option) =
+    [<BatchableAttribute>]
+    static member build (context: ActionContext)
+                        (args: string option) =
         let args = args |> or_default ""
+        let filters =
+            match context.Batch with
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | _ -> ""
         let ops = [
-            shellOp("npm", $"run build -- {args}")   
+            shellOp("pnpm", $"--recursive {filters} run build {args}")   
         ]
         ops
 
@@ -76,10 +88,16 @@ type Npm() =
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
     [<RemoteCacheAttribute>]
-    static member test (args: string option) =
+    [<BatchableAttribute>]
+    static member test (context: ActionContext)
+                       (args: string option) =
         let args = args |> or_default ""
+        let filters =
+            match context.Batch with
+            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter {project}") |> String.join " "                
+            | _ -> ""
         let ops = [
-            shellOp("npm", $"run test -- {args}")   
+            shellOp("pnpm", $"--recursive {filters} run test {args}")   
         ]
         ops
 
@@ -87,26 +105,15 @@ type Npm() =
     /// Run `run` script.
     /// </summary>
     /// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param>
+    /// <param name="no_recursive" example="true">No recursive</param>
     [<LocalCacheAttribute>]
     static member run (target: string)
+                      (no_recursive: bool option)
                       (args: string option) =
         let args = args |> or_default ""
+        let recursive = no_recursive |> map_false "--recursive"
         let ops = [
-            shellOp("npm", $"run {target} -- {args}")
-        ]
-        ops
-
-    /// <summary>
-    /// Run `exec` script.
-    /// </summary>
-    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to exec.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
-    [<LocalCacheAttribute>]
-    static member exec (package: string)
-                       (args: string option) =
-        let args = args |> or_default ""
-        let ops = [
-            shellOp("npm", $"exec -- {package} {args}")
+            shellOp("pnpm", $"{recursive} run {target} {args}")
         ]
         ops

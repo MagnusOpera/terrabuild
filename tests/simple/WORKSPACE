@@ -58,9 +58,10 @@ extension @cargo {
   platform = "linux/amd64"
 }
 
-extension @npm {
-  image = "node:20"
+extension @pnpm {
+  image = "guergeiro/pnpm:20-10"
   platform = "linux/amd64"
+  batch = true
 }
 
 extension @openapi {

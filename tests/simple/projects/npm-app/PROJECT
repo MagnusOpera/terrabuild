@@ -2,11 +2,10 @@
 project npm_app {
     labels = [ "app" ]
 
-    @npm { }
+    @pnpm { }
 }
 
 target build {
-#    @npm version { args = local.npm_version }
-    @npm install { }
-    @npm build { }
+    @pnpm install { }
+    @pnpm build { }
 }

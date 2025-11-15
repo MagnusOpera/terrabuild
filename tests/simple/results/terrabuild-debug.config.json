@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
+      "hash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -96,7 +96,7 @@
                       ],
                       "npm_app_version": [
                         "string",
-                        "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6"
+                        "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4"
                       ]
                     }
                   ],
@@ -237,21 +237,23 @@
     },
     "libraries/npm-lib": {
       "directory": "libraries/npm-lib",
-      "hash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
+      "hash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
       "dependencies": [],
       "files": [
         "PROJECT",
         "package-lock.json",
         "package.json",
-        "src/index.ts",
+        "pnpm-lock.yaml",
+        "src/Button.tsx",
+        "src/index.tsx",
         "src/logger.ts",
         "src/say-hello.ts",
         "tsconfig.json"
       ],
       "targets": {
         "build": {
-          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
-          "batch": false,
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
@@ -260,11 +262,11 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "install",
               "script": {},
               "context": [
@@ -273,11 +275,11 @@
               ]
             },
             {
-              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "image": "node:20",
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "build",
               "script": {},
               "context": [
@@ -292,7 +294,7 @@
         "app"
       ],
       "types": [
-        "@npm"
+        "@pnpm"
       ]
     },
     "libraries/shell-lib": {
@@ -577,7 +579,7 @@
     "projects/npm-app": {
       "id": "npm_app",
       "directory": "projects/npm-app",
-      "hash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
+      "hash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
       "dependencies": [
         "libraries/npm-lib"
       ],
@@ -587,18 +589,21 @@
         "index.html",
         "package-lock.json",
         "package.json",
+        "pnpm-lock.yaml",
         "public/vite.svg",
+        "src/App.tsx",
         "src/counter.ts",
-        "src/main.ts",
+        "src/main.tsx",
         "src/style.css",
         "src/typescript.svg",
         "src/vite-env.d.ts",
-        "tsconfig.json"
+        "tsconfig.json",
+        "vite.config.ts"
       ],
       "targets": {
         "build": {
-          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
-          "batch": false,
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
@@ -607,11 +612,11 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "install",
               "script": {},
               "context": [
@@ -620,11 +625,11 @@
               ]
             },
             {
-              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "image": "node:20",
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "build",
               "script": {},
               "context": [
@@ -639,7 +644,7 @@
         "app"
       ],
       "types": [
-        "@npm"
+        "@pnpm"
       ]
     },
     "projects/open-api": {
@@ -755,7 +760,7 @@
       ],
       "targets": {
         "test": {
-          "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
+          "hash": "7E353E272E8F3286607C89C806E14336C15B07A72D13193C02D31EC3B11DE9A9",
           "batch": false,
           "dependsOn": [
             "build"
@@ -765,9 +770,7 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
-              "platform": "linux/amd64",
+              "hash": "F89A6D36576993F459C2C30C703CC644F6D9F7F3DE4C9915637C8E362E2250B9",
               "containerVariables": [],
               "extension": "@npm",
               "command": "install",

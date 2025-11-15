@@ -11,9 +11,9 @@
       "outputs": [
         "*.planfile"
       ],
-      "projectHash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
-      "targetHash": "242D0B95531B713CD3B32FAF2814BA7E4EC221F5D124A124989FDE0733593148",
-      "clusterHash": "242D0B95531B713CD3B32FAF2814BA7E4EC221F5D124A124989FDE0733593148",
+      "projectHash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
+      "targetHash": "48701E7DAC1DCDBDEFC3FBF5A43DD132C0A0AE3A27BD9A2B518E926B449D7029",
+      "clusterHash": "48701E7DAC1DCDBDEFC3FBF5A43DD132C0A0AE3A27BD9A2B518E926B449D7029",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -30,7 +30,7 @@
           "variables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6\u0022",
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7\u0022 -var=\u0022npm_app_version=6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4\u0022",
           "errorLevel": 0
         }
       ],
@@ -83,26 +83,26 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
-      "targetHash": "065EC60D8EC2BBA2854C85A1DD11D93C840CD617E1003C35E69FF580256C6256",
-      "clusterHash": "065EC60D8EC2BBA2854C85A1DD11D93C840CD617E1003C35E69FF580256C6256",
+      "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
+      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
-          "image": "node:20",
+          "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "ci",
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
-          "image": "node:20",
+          "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
-          "metaCommand": "@npm build",
-          "command": "npm",
-          "arguments": "run build --",
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "--recursive run build",
           "errorLevel": 0
         }
       ],
@@ -214,26 +214,26 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
-      "targetHash": "54C418A1E0BA0C8E3060D925164A36F847EAD70454E6995283B5F7E8595B1C50",
-      "clusterHash": "54C418A1E0BA0C8E3060D925164A36F847EAD70454E6995283B5F7E8595B1C50",
+      "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
+      "targetHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
-          "image": "node:20",
+          "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "ci",
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
-          "image": "node:20",
+          "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
-          "metaCommand": "@npm build",
-          "command": "npm",
-          "arguments": "run build --",
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "--recursive run build",
           "errorLevel": 0
         }
       ],
@@ -302,12 +302,10 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "0E517FB1FEFBA338E82AF4BB6523FC35DF17BDC1406939F8970BF3E40D064AF6",
-      "clusterHash": "0E517FB1FEFBA338E82AF4BB6523FC35DF17BDC1406939F8970BF3E40D064AF6",
+      "targetHash": "7FD0E7F7A8E4F9BBD6673684B0A893882289DD6D2E2E15D3F63E9CF33A48A306",
+      "clusterHash": "7FD0E7F7A8E4F9BBD6673684B0A893882289DD6D2E2E15D3F63E9CF33A48A306",
       "operations": [
         {
-          "image": "node:20",
-          "platform": "linux/amd64",
           "variables": [],
           "metaCommand": "@npm install",
           "command": "npm",

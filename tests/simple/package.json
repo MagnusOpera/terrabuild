@@ -1,0 +1,7 @@
+{
+  "name": "simple",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

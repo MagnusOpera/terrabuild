@@ -20,6 +20,7 @@
     <Compile Include="Npx.fs" />
     <Compile Include="OpenApi.fs" />
     <Compile Include="Playwright.fs" />
+    <Compile Include="Pnpm.fs" />
     <Compile Include="Shell.fs" />
     <Compile Include="Yarn.fs" />
     <Compile Include="Sentry.fs" />
