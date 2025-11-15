@@ -18,6 +18,8 @@ classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
 76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6("<b>build</b> 
 .")
+E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A("<b>build</b> 
+.")
 deployments/terraform-deploy:build("<b>build</b> 
 deployments/terraform-deploy")
 libraries/dotnet-lib:build("<b>build</b> 
@@ -39,6 +41,7 @@ projects/rust-app")
 tests/playwright:test("<b>test playwright_test</b> 
 tests/playwright")
 class 76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6 ignore
+class E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A ignore
 deployments/terraform-deploy:build --> projects/dotnet-app:build
 deployments/terraform-deploy:build --> projects/npm-app:build
 class deployments/terraform-deploy:build ignore

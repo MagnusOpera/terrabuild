@@ -253,7 +253,7 @@
       "targets": {
         "build": {
           "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-          "batch": false,
+          "batch": true,
           "dependsOn": [
             "^build"
           ],
@@ -603,7 +603,7 @@
       "targets": {
         "build": {
           "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-          "batch": false,
+          "batch": true,
           "dependsOn": [
             "^build"
           ],

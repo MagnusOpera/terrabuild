@@ -33,6 +33,39 @@
       "rebuild": "always",
       "action": "batchBuild"
     },
+    "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A": {
+      "id": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "operations": [
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "--recursive --filter libraries/npm-lib --filter projects/npm-app install",
+          "errorLevel": 0
+        },
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "--recursive --filter libraries/npm-lib --filter projects/npm-app run build",
+          "errorLevel": 0
+        }
+      ],
+      "cache": "remote",
+      "rebuild": "always",
+      "action": "batchBuild"
+    },
     "deployments/terraform-deploy:build": {
       "id": "deployments/terraform-deploy:build",
       "projectDir": "deployments/terraform-deploy",
@@ -118,7 +151,7 @@
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
       "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
-      "clusterHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -249,7 +282,7 @@
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
       "targetHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
-      "clusterHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -370,6 +403,10 @@
     "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6": [
       "libraries/dotnet-lib:build",
       "projects/dotnet-app:build"
+    ],
+    "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A": [
+      "libraries/npm-lib:build",
+      "projects/npm-app:build"
     ]
   }
 }
