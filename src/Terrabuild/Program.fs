@@ -61,7 +61,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
     let logFile name = FS.combinePath launchDir $"terrabuild-debug.{name}"
 
-    if log then
+    if debug then
         let loggerBuilder = LoggerConfiguration().WriteTo.File(logFile "log")
         let loggerBuilder =
             if debug then loggerBuilder.MinimumLevel.Debug()
