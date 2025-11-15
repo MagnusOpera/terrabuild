@@ -38,12 +38,17 @@ let ``install cacheability``() =
     getCacheInfo<Pnpm> "install" |> should equal Cacheability.Local
 
 [<Test>]
+let ``restore batchability``() =
+    getBatchInfo<Pnpm> "install" |> should equal true
+
+[<Test>]
 let ``install some``() =
     let expected =
-        [ shellOp("pnpm", "ci --force --opt1 --opt2") ]
+        [ shellOp("pnpm", "--recursive install --frozen-lockfile --force --opt1 --opt2") ]
 
-    Pnpm.install (Some true) // force
-                someArgs
+    Pnpm.install localContext
+                 (Some true) // force
+                 someArgs
     |> normalize
     |> should equal expected
 
@@ -51,10 +56,24 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        [ shellOp("pnpm", "ci") ]
+        [ shellOp("pnpm", "--recursive install --frozen-lockfile") ]
 
-    Pnpm.install None
-                noneArgs
+    Pnpm.install localContext
+                 None
+                 noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``install batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
+    let expected =
+        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib install --frozen-lockfile") ]
+
+    Pnpm.install (batchContext tmpDir projectDirs)
+                 None
+                 noneArgs
     |> normalize
     |> should equal expected
 
@@ -65,11 +84,16 @@ let ``build cacheability``() =
     getCacheInfo<Pnpm> "build" |> should equal Cacheability.Remote
 
 [<Test>]
+let ``build batchability``() =
+    getBatchInfo<Pnpm> "build" |> should equal true
+
+[<Test>]
 let ``build some``() =
     let expected =
-        [ shellOp("pnpm", "run build -- --opt1 --opt2") ]
+        [ shellOp("pnpm", "--recursive run build --opt1 --opt2") ]
 
-    Pnpm.build someArgs
+    Pnpm.build localContext
+               someArgs
     |> normalize
     |> should equal expected
 
@@ -77,9 +101,22 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        [ shellOp("pnpm", "run build --") ]
+        [ shellOp("pnpm", "--recursive run build") ]
 
-    Pnpm.build noneArgs
+    Pnpm.build localContext
+               noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``build batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
+    let expected =
+        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib run build") ]
+
+    Pnpm.build (batchContext tmpDir projectDirs)
+               noneArgs
     |> normalize
     |> should equal expected
 
@@ -89,13 +126,17 @@ let ``build none``() =
 let ``test cacheability``() =
     getCacheInfo<Pnpm> "test" |> should equal Cacheability.Remote
 
+[<Test>]
+let ``test batchability``() =
+    getBatchInfo<Pnpm> "test" |> should equal true
 
 [<Test>]
 let ``test some``() =
     let expected =
-        [ shellOp("pnpm", "run test -- --opt1 --opt2") ]
+        [ shellOp("pnpm", "--recursive run test --opt1 --opt2") ]
 
-    Pnpm.test someArgs
+    Pnpm.test localContext
+              someArgs
     |> normalize
     |> should equal expected
 
@@ -103,9 +144,22 @@ let ``test some``() =
 [<Test>]
 let ``test none``() =
     let expected =
-        [ shellOp("pnpm", "run test --") ]
+        [ shellOp("pnpm", "--recursive run test") ]
 
-    Pnpm.test noneArgs
+    Pnpm.test localContext
+              noneArgs
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``test batch``() =
+    let tmpDir = "TestFiles"
+    let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
+    let expected =
+        [ shellOp("pnpm", "--recursive --filter TestFiles/npm-app --filter TestFiles/npm-lib run test") ]
+
+    Pnpm.test (batchContext tmpDir projectDirs)
+              noneArgs
     |> normalize
     |> should equal expected
 
@@ -118,9 +172,10 @@ let ``run cacheability``() =
 [<Test>]
 let ``run some``() =
     let expected =
-        [ shellOp("pnpm", "run my-command -- --opt1 --opt2") ]
+        [ shellOp("pnpm", "run my-command --opt1 --opt2") ]
 
     Pnpm.run "my-command" // command
+             (Some true) // no_recursive
              someArgs
     |> normalize
     |> should equal expected
@@ -129,36 +184,11 @@ let ``run some``() =
 [<Test>]
 let ``run none``() =
     let expected =
-        [ shellOp("pnpm", "run my-command --") ]
+        [ shellOp("pnpm", "--recursive run my-command") ]
 
     Pnpm.run "my-command" // command
+             None
              noneArgs
     |> normalize
     |> should equal expected
 
-// ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``exec cacheability``() =
-    getCacheInfo<Pnpm> "exec" |> should equal Cacheability.Local
-
-[<Test>]
-let ``exec some``() =
-    let expected =
-        [ shellOp("pnpm", "exec -- my-package --opt1 --opt2") ]
-
-    Pnpm.exec "my-package" // command
-             someArgs
-    |> normalize
-    |> should equal expected
-
-
-[<Test>]
-let ``exec none``() =
-    let expected =
-        [ shellOp("pnpm", "exec -- my-package") ]
-
-    Pnpm.exec "my-package" // command
-             noneArgs
-    |> normalize
-    |> should equal expected

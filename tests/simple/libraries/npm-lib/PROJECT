@@ -2,10 +2,10 @@
 project {
     labels = [ "app" ]
 
-    @npm { }
+    @pnpm { }
 }
 
 target build {
-    @npm install { }
-    @npm build { }
+    @pnpm install { }
+    @pnpm build { }
 }

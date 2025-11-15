@@ -61,7 +61,7 @@ type Npm() =
     /// <summary>
     /// Run `build` script.
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--workspaces&quot;">Arguments to pass to target.</param> 
     [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
