@@ -1,6 +1,5 @@
 
 workspace {
-    ignores = [ "node_modules/"]
 }
 
 

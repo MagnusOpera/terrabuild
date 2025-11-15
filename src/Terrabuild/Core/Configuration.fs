@@ -653,7 +653,7 @@ let read (options: ConfigOptions.Options) =
     let extensions = Extensions.systemExtensions |> Map.addMap workspaceConfig.Extensions
 
     let searchProjectsAndApply() =
-        let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue Set.empty
+        let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue (Set [ "node_modules" ])
         let scanFolder = scanFolders options.Workspace workspaceIgnores
         let projectLoading = ConcurrentDictionary<string, bool>()
         let projectIds = ConcurrentDictionary<string, string>()
