@@ -6,6 +6,12 @@ settings:
 
 importers:
 
+  .:
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.8.3
+
   libraries/npm-lib:
     dependencies:
       react:

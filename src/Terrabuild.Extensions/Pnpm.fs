@@ -59,7 +59,7 @@ type Pnpm() =
             | _ -> ""
 
         let ops = [
-            shellOp("pnpm", $"--recursive {filters} install --frozen-lockfile {force} {args}")
+            shellOp("pnpm", $"--recursive {filters} install {force} {args}")
         ]
         ops
 

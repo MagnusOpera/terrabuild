@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "EC7A4790C0E3D3674F210B8A6B40F72EE2037F4491609BFE49E626317B1BB7BE",
+      "hash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -96,7 +96,7 @@
                       ],
                       "npm_app_version": [
                         "string",
-                        "C4A5F9849F0623850C10A5EC7A4220F0178A177B713DF6C08EA3326DD7A82F45"
+                        "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4"
                       ]
                     }
                   ],
@@ -237,7 +237,7 @@
     },
     "libraries/npm-lib": {
       "directory": "libraries/npm-lib",
-      "hash": "B23D547BEF380589782CCB90014B12BA00EBDFBD314A9FB687616C5D8E609B4D",
+      "hash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
       "dependencies": [],
       "files": [
         "PROJECT",
@@ -252,7 +252,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -262,11 +262,11 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "install",
               "script": {},
               "context": [
@@ -275,11 +275,11 @@
               ]
             },
             {
-              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "image": "node:20",
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "build",
               "script": {},
               "context": [
@@ -294,7 +294,7 @@
         "app"
       ],
       "types": [
-        "@npm"
+        "@pnpm"
       ]
     },
     "libraries/shell-lib": {
@@ -579,7 +579,7 @@
     "projects/npm-app": {
       "id": "npm_app",
       "directory": "projects/npm-app",
-      "hash": "C4A5F9849F0623850C10A5EC7A4220F0178A177B713DF6C08EA3326DD7A82F45",
+      "hash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
       "dependencies": [
         "libraries/npm-lib"
       ],
@@ -602,7 +602,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -612,11 +612,11 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "install",
               "script": {},
               "context": [
@@ -625,11 +625,11 @@
               ]
             },
             {
-              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
-              "image": "node:20",
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
-              "extension": "@npm",
+              "extension": "@pnpm",
               "command": "build",
               "script": {},
               "context": [
@@ -644,7 +644,7 @@
         "app"
       ],
       "types": [
-        "@npm"
+        "@pnpm"
       ]
     },
     "projects/open-api": {
@@ -760,7 +760,7 @@
       ],
       "targets": {
         "test": {
-          "hash": "AEADFD936EEBAD010879CBCD71A63E48E2DDBB991798105423AC27BC23F9F87C",
+          "hash": "7E353E272E8F3286607C89C806E14336C15B07A72D13193C02D31EC3B11DE9A9",
           "batch": false,
           "dependsOn": [
             "build"
@@ -770,9 +770,7 @@
           ],
           "operations": [
             {
-              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
-              "image": "node:20",
-              "platform": "linux/amd64",
+              "hash": "F89A6D36576993F459C2C30C703CC644F6D9F7F3DE4C9915637C8E362E2250B9",
               "containerVariables": [],
               "extension": "@npm",
               "command": "install",

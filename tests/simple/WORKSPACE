@@ -59,7 +59,7 @@ extension @cargo {
 }
 
 extension @pnpm {
-  image = "guergeiro/pnpm:20"
+  image = "guergeiro/pnpm:20-10"
   platform = "linux/amd64"
 }
 
