@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "899FB251E174A7181099B05488970478A2A23663D685D3A5C6431B05D9570782",
+      "hash": "EC7A4790C0E3D3674F210B8A6B40F72EE2037F4491609BFE49E626317B1BB7BE",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -96,7 +96,7 @@
                       ],
                       "npm_app_version": [
                         "string",
-                        "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6"
+                        "C4A5F9849F0623850C10A5EC7A4220F0178A177B713DF6C08EA3326DD7A82F45"
                       ]
                     }
                   ],
@@ -237,13 +237,15 @@
     },
     "libraries/npm-lib": {
       "directory": "libraries/npm-lib",
-      "hash": "93CCF617E00A4C756C93B1B4538A4EC5A225086698D5FBF88C15E6632EB571F4",
+      "hash": "B23D547BEF380589782CCB90014B12BA00EBDFBD314A9FB687616C5D8E609B4D",
       "dependencies": [],
       "files": [
         "PROJECT",
         "package-lock.json",
         "package.json",
-        "src/index.ts",
+        "pnpm-lock.yaml",
+        "src/Button.tsx",
+        "src/index.tsx",
         "src/logger.ts",
         "src/say-hello.ts",
         "tsconfig.json"
@@ -577,7 +579,7 @@
     "projects/npm-app": {
       "id": "npm_app",
       "directory": "projects/npm-app",
-      "hash": "37ED3ADC0FCE859AB887474C73CCC1A2CD45535746F562F664DF766EF6C1E9B6",
+      "hash": "C4A5F9849F0623850C10A5EC7A4220F0178A177B713DF6C08EA3326DD7A82F45",
       "dependencies": [
         "libraries/npm-lib"
       ],
@@ -587,13 +589,16 @@
         "index.html",
         "package-lock.json",
         "package.json",
+        "pnpm-lock.yaml",
         "public/vite.svg",
+        "src/App.tsx",
         "src/counter.ts",
-        "src/main.ts",
+        "src/main.tsx",
         "src/style.css",
         "src/typescript.svg",
         "src/vite-env.d.ts",
-        "tsconfig.json"
+        "tsconfig.json",
+        "vite.config.ts"
       ],
       "targets": {
         "build": {
