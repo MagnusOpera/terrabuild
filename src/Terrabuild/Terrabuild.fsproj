@@ -13,6 +13,8 @@
     <Compile Include="Contracts/ConfigOptions.fs" />
     <Compile Include="Contracts/BuildProgress.fs" />
     <Compile Include="Helpers/Threading.fs" />
+    <Compile Include="Helpers/Native.fs" />
+    <Compile Include="Helpers/User.fs" />
     <Compile Include="Helpers/Exec.fs" />
     <Compile Include="Helpers/Git.fs" />
     <Compile Include="Helpers/Terminal.fs" />

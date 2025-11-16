@@ -45,11 +45,11 @@ type Summary = {
 let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
 
 
-let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
+let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir userUidGid =
     node.Operations |> List.map (fun operation ->
         let metaCommand = operation.MetaCommand
         match options.Engine, operation.Image with
-        | Some cmd, Some image ->
+        | Some engine, Some image ->
             let wsDir = currentDir()
 
             // add platform
@@ -65,10 +65,10 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     containerHome
                 | _ ->
                     // discover USER
-                    let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
+                    let args = $"run --rm --name {node.TargetHash} {userUidGid} --entrypoint sh {container} \"echo -n \\$HOME\""
                     let containerHome =
                         Log.Debug("Identifying USER for {container}", container)
-                        match Exec.execCaptureOutput options.Workspace cmd args with
+                        match Exec.execCaptureOutput options.Workspace engine args with
                         | Exec.Success (containerHome, 0) -> containerHome.Trim()
                         | _ ->
                             Log.Debug("USER identification failed for {container}: using root", container)
@@ -91,12 +91,12 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                         else Some $"-e {key}={expandedValue}"
                     else None)
                 |> String.join " "
-            let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
-            metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel
+            let args = $"run --rm --name {node.TargetHash} {userUidGid} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+            metaCommand, options.Workspace, engine, args, operation.Image, operation.ErrorLevel
         | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel)
 
 
-let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
+let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir userUidGid =
     let stepLogs = List<Cache.OperationSummary>()
     let mutable lastStatusCode = 0
     let mutable cmdLineIndex = 0
@@ -104,7 +104,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
     let mutable cmdLastEndedAt = cmdFirstStartedAt
     let mutable startedAt = DateTime.UtcNow
     let mutable cmdLastSuccess = true
-    let allCommands = buildCommands node options projectDirectory homeDir tmpDir
+    let allCommands = buildCommands node options projectDirectory homeDir tmpDir userUidGid
     while cmdLineIndex < allCommands.Length && cmdLastSuccess do
         startedAt <-
             if cmdLineIndex > 0 then DateTime.UtcNow
@@ -175,6 +175,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
     let scheduledClusters = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
+
+    let userUidGid =
+        match options.Engine, User.getUidGid() with
+        | Some "docker", Some (uid, gid) -> $"--user {uid}:{gid}"
+        | _ -> ""
 
     let rec summaryNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
@@ -258,7 +263,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let batchCacheEntry = cache.GetEntry false batchCacheEntryId
         let successful, lastStatusCode, stepLogs =
             try
-                execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
+                execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir userUidGid
             with exn ->
                 beforeFiles
                 |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
@@ -337,7 +342,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let cacheEntry = cache.GetEntry useRemote cacheEntryId
         let successful, lastStatusCode, stepLogs =
             try
-                execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
+                execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir userUidGid
             with exn ->
                 nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
                 Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
