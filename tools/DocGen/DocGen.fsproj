@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
+    <ProjectReference Include="../../src/Terrabuild.Extensions/Terrabuild.Extensions.fsproj" />
   </ItemGroup>
 
 </Project>

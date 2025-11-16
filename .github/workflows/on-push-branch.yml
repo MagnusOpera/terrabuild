@@ -35,7 +35,11 @@ jobs:
       - name: Build Self
         run: |
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
-          make self-ci config=Release
+          make self-ci config=Release engine=podman
+
+      - name: Ensure docs can be generated
+        run: |
+          make try-docs config=Release
 
       - name: Create Test Report
         uses: magnusopera/test-reporter@main
