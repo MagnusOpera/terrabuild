@@ -9,24 +9,24 @@ module GradleHelpers =
 
 
 /// <summary>
-/// Add support for Gradle build.
+/// Provides build support for Gradle projects using the Gradle CLI.
+/// Defaults outputs to Gradle's `build/classes/` directory and forwards Terrabuild action names to `gradle`.
 /// </summary>
 type Gradle() =
 
     /// <summary>
-    /// Provides default values for project.
+    /// Declares default project outputs for Gradle builds.
     /// </summary>
-    /// <param name="outputs" example="[ &quot;build/classes/&quot; ]">Default values.</param>
+    /// <param name="outputs" example="[ &quot;build/classes/&quot; ]">Default output folder produced by Gradle.</param>
     static member __defaults__ () =
         let projectInfo = { ProjectInfo.Default
                             with Outputs = Set [ "build/classes/" ] }
         projectInfo
 
     /// <summary>
-    /// Run a gradle `command`.
+    /// Runs an arbitrary Gradle command (action name is forwarded to `gradle`).
     /// </summary>
-    /// <param name="__dispatch__" example="clean">Example.</param>
-    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;clean --info&quot;">Arguments appended after the Gradle command.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -38,10 +38,10 @@ type Gradle() =
 
 
     /// <summary>
-    /// Invoke build task `assemble` for `configuration`.
+    /// Invokes `gradle assemble` for the chosen configuration.
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
-    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;--scan&quot;">Additional arguments passed to `gradle assemble`.</param>
     [<RemoteCacheAttribute>]
     static member build (configuration: string option)
                         (args: string option) =

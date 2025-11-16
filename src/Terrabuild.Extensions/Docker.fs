@@ -4,15 +4,16 @@ open Terrabuild.Extensibility
 open Converters
 
 /// <summary>
-/// Add support for Docker projects.
+/// Builds and publishes container images using the Docker CLI.
+/// Uses the Terrabuild action name as the Docker subcommand for ad-hoc invocations and tags images with the action hash.
+/// CI pushes rely on `docker buildx imagetools` to publish the hashed image under an explicit tag.
 /// </summary>
 type Docker() =
 
     /// <summary>
-    /// Run a docker `command`.
+    /// Runs an arbitrary Docker CLI command (action name is forwarded to `docker`).
     /// </summary>
-    /// <param name="__dispatch__" example="image">Example.</param>
-    /// <param name="args" example="&quot;prune -f&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;image prune -f&quot;">Arguments appended after the Docker subcommand.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -24,13 +25,13 @@ type Docker() =
 
 
     /// <summary>
-    /// Build a Dockerfile. Push the image to registry if CI.
+    /// Builds a Docker image and tags it with the Terrabuild hash; pushes automatically when running in CI.
     /// </summary>
     /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
     /// <param name="dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
     /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
     /// <param name="build_args" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param> 
-    /// <param name="args" example="&quot;--debug&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;--debug&quot;">Additional arguments passed to `docker build`.</param>
     [<ExternalCacheAttribute>]
     static member build (context: ActionContext)
                         (image: string)
@@ -51,11 +52,11 @@ type Docker() =
 
 
     /// <summary>
-    /// Push target container image to registry.
+    /// Pushes the built image to the registry with a specific tag.
     /// </summary>
-    /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
-    /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Apply tag on image (use branch or tag otherwise).</param>
-    /// <param name="args" example="&quot;--disable-content-trust&quot;">Arguments for command.</param>
+    /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Repository to push.</param>
+    /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Tag applied to the image (hash tag is used as the source).</param>
+    /// <param name="args" example="&quot;--disable-content-trust&quot;">Additional arguments passed to tagging/push.</param>
     [<ExternalCacheAttribute>]
     static member push (context: ActionContext)
                        (image: string)

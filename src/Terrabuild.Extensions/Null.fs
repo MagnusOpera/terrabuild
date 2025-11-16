@@ -2,12 +2,12 @@ namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
 
 /// <summary>
-/// `null` extension is for testing purpose. It supports fake `init` and fake `dispatch`.
+/// A no-op extension used for testing or wiring minimal pipelines. Exposes fake init/dispatch to validate Terrabuild plumbing without side effects.
 /// </summary>
 type Null() =
 
     /// <summary>
-    /// Fake init.
+    /// Returns default project metadata without touching the filesystem.
     /// </summary>
     static member __defaults__ (context: ExtensionContext) =
         ProjectInfo.Default

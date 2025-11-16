@@ -3,20 +3,19 @@ open Terrabuild.Extensibility
 open Converters
 
 /// <summary>
-/// Provides support for `OpenAPI Generator`.
-/// 
-/// You must use container `openapitools/openapi-generator-cli` in the extension configuration.
+/// Generates API clients using **OpenAPI Generator**.
+/// Requires the `openapitools/openapi-generator-cli` container in the extension configuration so the `docker-entrypoint.sh` is available.
 /// </summary>
 type OpenApi() =
 
     /// <summary>
-    /// Generate api client using `openapi-generator-cli`.
+    /// Generates an API client via `openapi-generator-cli generate`.
     /// </summary>
     /// <param name="generator" required="true" example="&quot;typescript-axios&quot;">Use provided generator.</param>
-    /// <param name="input" required="true" example="&quot;src/api.json&quot;">Relative path to api json file</param>
-    /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path.</param>
-    /// <param name="properties" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional properties for generator.</param>
-    /// <param name="args" example="&quot;--type-mappings ClassA=ClassB&quot;">Additional arguments for generator.</param>
+    /// <param name="input" required="true" example="&quot;src/api.json&quot;">Relative path to the OpenAPI/Swagger definition.</param>
+    /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
+    /// <param name="properties" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
+    /// <param name="args" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
     [<RemoteCacheAttribute>]
     static member generate (generator: string)
                            (input: string)
