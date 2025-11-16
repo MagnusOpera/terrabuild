@@ -4,7 +4,10 @@ open Errors
 open Converters
 
 /// <summary>
-/// Provides support for `pnpm`.
+/// Provides build and restore support for projects using **pnpm**.
+/// 
+/// Batch (cascade) builds are supported when a **pnpm-workspace.yaml**
+/// and a root **package.json** are present at the Terrabuild workspace root.
 /// </summary>
 type Pnpm() =
 
@@ -45,6 +48,7 @@ type Pnpm() =
     /// Install packages using lock file.
     /// </summary>
     /// <param name="force" example="true">Force install.</param> 
+    /// <param name="floating" example="true">Do not use lock file</param>
     /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]

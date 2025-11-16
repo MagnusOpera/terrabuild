@@ -70,7 +70,7 @@ publish-all: clean publish publish-darwin publish-linux publish-windows
 
 docs:
 	dotnet build src/Terrabuild.Extensions -c $(config) /p:GenerateDocumentationFile=true
-	dotnet run --project tools/DocGen -- src/Terrabuild.Extensions/bin/$(config)/net9.0/Terrabuild.Extensions.xml ../terrabuild.io/content/docs/extensions
+	dotnet run --project tools/DocGen -- src/Terrabuild.Extensions/bin/$(config)/net10.0/Terrabuild.Extensions.xml ../terrabuild.io/content/docs/extensions
 
 self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --retry --debug --log --local-only
