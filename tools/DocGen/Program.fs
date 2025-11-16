@@ -290,6 +290,7 @@ let main args =
     if args.Length <> 2 then failwith "Usage: DocGen <xml-doc-file> <output-dir>"
     let doc = load args[0]
     let outputDir = args[1]
+    let write = args.Length > 2 && args[2] <> "--write"
     if doc.Assembly.Name <> "Terrabuild.Extensions" then failwith "Expecting documentation for Terrabuild.Extensions"
 
     let members = doc.Members |> Option.ofObj |> Option.defaultValue Array.empty
@@ -301,45 +302,46 @@ let main args =
     printfn "Generating docs"
     for (KeyValue(_, extension)) in extensions do
         let extensionDir = Path.Combine(outputDir, extension.Name)
-        if Directory.Exists extensionDir |> not then Directory.CreateDirectory extensionDir |> ignore
+        if write && Directory.Exists extensionDir |> not then Directory.CreateDirectory extensionDir |> ignore
 
         printfn $"  {extension.Name}"
-        writeExtension extensionDir extension
+        if write then writeExtension extensionDir extension
 
         // generate extension commands
         for cmd in extension.Commands do
             let batchCmd = extension.Commands |> List.tryFind (fun x -> x.Name = $"__{cmd.Name}__")
-            writeCommand extensionDir cmd batchCmd extension
+            if write then writeCommand extensionDir cmd batchCmd extension
 
     // cleanup
-    printfn "Cleaning output"
-    let genExtensions = extensions.Keys |> Set.ofSeq
-    let folders =
-        Directory.EnumerateDirectories(outputDir)
-        |> Seq.map (nonNull << Path.GetFileName)
-        |> Set.ofSeq
-    let removeFolders = folders - genExtensions
-    for folder in removeFolders do
-        let folder = Path.Combine(outputDir, folder)
-        printfn $"  Removing {folder}"
-        Directory.Delete(folder, true)
-
-    for (KeyValue(_, extension)) in extensions do
-        let extensionDir = Path.Combine(outputDir, extension.Name)
-        let genCommands =
-            extension.Commands
-            |> List.map (fun cmd -> $"{cmd.Name}.md")
-            |> Set.ofSeq
-            |> Set.add "_index.md"
-        let commands =
-            Directory.EnumerateFiles(extensionDir)
+    if write then
+        printfn "Cleaning output"
+        let genExtensions = extensions.Keys |> Set.ofSeq
+        let folders =
+            Directory.EnumerateDirectories(outputDir)
             |> Seq.map (nonNull << Path.GetFileName)
             |> Set.ofSeq
-        let removeCommands = commands - genCommands
-        for command in removeCommands do
-            let file = Path.Combine(extensionDir, command)
-            printfn $"  Removing {file}"
-            File.Delete(file)
+        let removeFolders = folders - genExtensions
+        for folder in removeFolders do
+            let folder = Path.Combine(outputDir, folder)
+            printfn $"  Removing {folder}"
+            Directory.Delete(folder, true)
+
+        for (KeyValue(_, extension)) in extensions do
+            let extensionDir = Path.Combine(outputDir, extension.Name)
+            let genCommands =
+                extension.Commands
+                |> List.map (fun cmd -> $"{cmd.Name}.md")
+                |> Set.ofSeq
+                |> Set.add "_index.md"
+            let commands =
+                Directory.EnumerateFiles(extensionDir)
+                |> Seq.map (nonNull << Path.GetFileName)
+                |> Set.ofSeq
+            let removeCommands = commands - genCommands
+            for command in removeCommands do
+                let file = Path.Combine(extensionDir, command)
+                printfn $"  Removing {file}"
+                File.Delete(file)
 
     printfn "Done"
     0

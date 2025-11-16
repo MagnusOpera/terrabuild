@@ -37,6 +37,10 @@ jobs:
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
           make self-ci config=Release
 
+      - name: Ensure docs can be generated
+        run: |
+          make try-docs
+
       - name: Create Test Report
         uses: magnusopera/test-reporter@main
         if: always()
