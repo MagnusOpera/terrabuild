@@ -34,12 +34,7 @@ clean:
 	-rm -rf $(PWD)/.out
 
 upgrade:
-	dotnet restore -r linux-x64 --force-evaluate
-	dotnet restore -r linux-arm64 --force-evaluate
-	dotnet restore -r win-x64 --force-evaluate
-	dotnet restore -r win-arm64 --force-evaluate
-	dotnet restore -r osx-x64 --force-evaluate
-	dotnet restore -r osx-arm64 --force-evaluate
+	dotnet restore --force-evaluate terrabuild.slnx
 
 usage:
 	$(terrabuild) --help
