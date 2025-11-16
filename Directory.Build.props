@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <Deterministic>true</Deterministic>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <!-- <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile> -->
         <IsPackable>false</IsPackable>
         <VSTestLogger>trx</VSTestLogger>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
