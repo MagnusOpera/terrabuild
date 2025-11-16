@@ -56,18 +56,18 @@ type Dotnet() =
     /// Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.
     /// </summary>
     /// <param name="dependencies" example="&quot;true&quot;">Include project-to-project dependencies (omit to add `--no-dependencies`).</param>
-    /// <param name="floating" example="&quot;true&quot;">Allow floating versions; set `false` to add `--locked-mode`.</param>
+    /// <param name="locked" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
     /// <param name="evaluate" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member restore (context: ActionContext)
                           (dependencies: bool option)
-                          (floating: bool option)
+                          (locked: bool option)
                           (evaluate: bool option)
                           (args: string option) =
         let no_dependencies = dependencies |> map_false "--no-dependencies"
-        let locked = floating |> map_false "--locked-mode"
+        let locked = locked |> map_true "--locked-mode"
         let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
         let sln =

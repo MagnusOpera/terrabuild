@@ -71,11 +71,11 @@ let ``restore batchability``() =
 [<Test>]
 let ``restore some``() =
     let expected =
-        [ shellOp("dotnet", "restore --force-evaluate --opt1 --opt2") ]
+        [ shellOp("dotnet", "restore --locked-mode --force-evaluate --opt1 --opt2") ]
 
     Dotnet.restore localContext
                    (Some true) // dependencies
-                   (Some true) // floating
+                   (Some true) // locked
                    (Some true) // evaluate
                    someArgs
     |> normalize
@@ -85,11 +85,11 @@ let ``restore some``() =
 [<Test>]
 let ``restore none``() =
     let expected =
-        [ shellOp("dotnet", "restore --no-dependencies --locked-mode") ]
+        [ shellOp("dotnet", "restore --no-dependencies") ]
 
     Dotnet.restore localContext
                    None // dependencies
-                   None // floating
+                   None // locked
                    None // evaluate
                    noneArgs
     |> normalize
@@ -100,11 +100,11 @@ let ``restore batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
     let expected =
-        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies --locked-mode") ]
+        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies") ]
 
     Dotnet.restore (batchContext tmpDir projectDirs)
                    None // dependencies
-                   None // floating
+                   None // locked
                    None // evaluate
                    noneArgs
     |> normalize

@@ -40,9 +40,10 @@ let ``install cacheability``() =
 [<Test>]
 let ``install some``() =
     let expected =
-        [ shellOp("npm", "ci --force --opt1 --opt2") ]
+        [ shellOp("npm", "clean-install --force --opt1 --opt2") ]
 
     Npm.install (Some true) // force
+                (Some true) // clean
                 someArgs
     |> normalize
     |> should equal expected
@@ -51,9 +52,10 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        [ shellOp("npm", "ci") ]
+        [ shellOp("npm", "install") ]
 
-    Npm.install None
+    Npm.install None // force
+                None // clean
                 noneArgs
     |> normalize
     |> should equal expected

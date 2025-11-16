@@ -12,8 +12,8 @@
         "*.planfile"
       ],
       "projectHash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
-      "targetHash": "A21DBA8971D8E96FD58DB67153344FC090646B4B5E07E46CE7D13877DD2460C7",
-      "clusterHash": "A21DBA8971D8E96FD58DB67153344FC090646B4B5E07E46CE7D13877DD2460C7",
+      "targetHash": "9508C71B3B04133B58D83388E482F6827BA2280443D21E4EC7F0B1FF925792C4",
+      "clusterHash": "9508C71B3B04133B58D83388E482F6827BA2280443D21E4EC7F0B1FF925792C4",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -49,7 +49,7 @@
         "obj/"
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
-      "targetHash": "5BA6CC93D4F7746D06E226FB4CE5ADB55943ECE8526B0390D740A816D686C898",
+      "targetHash": "98CDBD120004F43A48B79AEC2B7A8A04D51C9589B9E482765A34166A1DFA0AE3",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
@@ -58,7 +58,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -84,7 +84,7 @@
         "dist/**"
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "803463973F7B44B6E405F9D9B90D7796DE928CEBF6B747094C17876985A91F60",
+      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -93,7 +93,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install --frozen-lockfile",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
@@ -146,7 +146,7 @@
         "obj/"
       ],
       "projectHash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
-      "targetHash": "EAB74F907EC20E1F352DB4D115BB69523F07E61F1FD546586DD60F0AC08D54FD",
+      "targetHash": "3280E49159C06F90F721EB9289D13E84841C973EB382A937246BD470D54FEC87",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
@@ -155,7 +155,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -215,7 +215,7 @@
         "dist/**"
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "7B13862D098D084BD18A3C1DF94A7D3C323D016499FF8CD482360EE8DD8C5036",
+      "targetHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -224,7 +224,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install --frozen-lockfile",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
@@ -302,14 +302,14 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "7FD0E7F7A8E4F9BBD6673684B0A893882289DD6D2E2E15D3F63E9CF33A48A306",
-      "clusterHash": "7FD0E7F7A8E4F9BBD6673684B0A893882289DD6D2E2E15D3F63E9CF33A48A306",
+      "targetHash": "67F9C6211A964D6E840245EA96297848239E37344C1D5BE5EDCAD590AAA53027",
+      "clusterHash": "67F9C6211A964D6E840245EA96297848239E37344C1D5BE5EDCAD590AAA53027",
       "operations": [
         {
           "variables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci",
+          "arguments": "install",
           "errorLevel": 0
         },
         {

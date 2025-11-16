@@ -46,16 +46,16 @@ type Pnpm() =
     /// Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.
     /// </summary>
     /// <param name="force" example="true">Adds `--force` to reinstall when checks fail.</param> 
-    /// <param name="floating" example="true">Allow lockfile updates; set `false` to enforce `--frozen-lockfile`.</param>
+    /// <param name="frozen" example="true">Enable frozen versions; set `true` to enforce `--frozen-lockfile`.</param>
     /// <param name="args" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param> 
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member install (context: ActionContext)
                           (force: bool option)
-                          (floating: bool option)
+                          (frozen: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
-        let frozen = floating |> map_false "--frozen-lockfile"
+        let frozen = frozen |> map_true "--frozen-lockfile"
         let args = args |> or_default ""
         let filters =
             match context.Batch with
