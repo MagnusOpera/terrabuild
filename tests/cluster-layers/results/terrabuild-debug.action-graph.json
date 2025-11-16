@@ -11,8 +11,8 @@
         "obj/"
       ],
       "projectHash": "90461D04D0C003A07ED28BDCFEAFEEA3130A2D50BB329B1AC9D25F9631A79AB8",
-      "targetHash": "DADDE2359358A06C1910090CEF58D52EDFA4E65D0EFC8D15953E273951A86D4E",
-      "clusterHash": "DADDE2359358A06C1910090CEF58D52EDFA4E65D0EFC8D15953E273951A86D4E",
+      "targetHash": "436B46EE7EFDBE25EEF4A38DBC5E598F56F2382A1C5749C0ECD87A1FB8BEC21C",
+      "clusterHash": "436B46EE7EFDBE25EEF4A38DBC5E598F56F2382A1C5749C0ECD87A1FB8BEC21C",
       "operations": [
         {
           "variables": [],
@@ -26,7 +26,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -53,8 +53,8 @@
         "obj/"
       ],
       "projectHash": "9E00CDDA47849B1D6BDF24E09E809BB991E70F4ECEF44BA99BE6E0729FFFD645",
-      "targetHash": "B8B40956C04567EDF30AE87E0D0DEF7E66522F9BA3A5CEB17B2A28C7E9BF3726",
-      "clusterHash": "B8B40956C04567EDF30AE87E0D0DEF7E66522F9BA3A5CEB17B2A28C7E9BF3726",
+      "targetHash": "F5171ED9031F24DBD85AA2D05496ADEED5D07ED3280FC9F0B6558FCFAE260615",
+      "clusterHash": "F5171ED9031F24DBD85AA2D05496ADEED5D07ED3280FC9F0B6558FCFAE260615",
       "operations": [
         {
           "variables": [],
@@ -68,7 +68,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -96,8 +96,8 @@
         "dist/**"
       ],
       "projectHash": "D2F9A13B1E732C0815EF0E21493172A5FA5699322C0430360A32095BEE35E539",
-      "targetHash": "20927CC72F2196893FA7B4A16126802ECA49E1C6651E188A1EEB66D7C66E5475",
-      "clusterHash": "20927CC72F2196893FA7B4A16126802ECA49E1C6651E188A1EEB66D7C66E5475",
+      "targetHash": "B6E9BDDDB433C48E1264E2AACE766B45CDCD44127326D4D7399A3201FCC52CA1",
+      "clusterHash": "B6E9BDDDB433C48E1264E2AACE766B45CDCD44127326D4D7399A3201FCC52CA1",
       "operations": [
         {
           "variables": [],
@@ -111,7 +111,7 @@
           "variables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci",
+          "arguments": "install",
           "errorLevel": 0
         },
         {
@@ -140,15 +140,15 @@
         "obj/"
       ],
       "projectHash": "9412CFE4112AEF4F4C65239AC15A77A63378A280554560CECFBA341182BE6693",
-      "targetHash": "B7EA917354805C3351862EAB6A521CBF7D646BBE4A244225050A069FE68337A2",
-      "clusterHash": "B7EA917354805C3351862EAB6A521CBF7D646BBE4A244225050A069FE68337A2",
+      "targetHash": "F698615A1E14E7B12D29E52D981C53D54B84429B2CF181EFEEED4E315714677F",
+      "clusterHash": "F698615A1E14E7B12D29E52D981C53D54B84429B2CF181EFEEED4E315714677F",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -177,15 +177,15 @@
         "obj/"
       ],
       "projectHash": "DDCC91B3A55F2121262B329DB6656E6ABC3AA99F662C529452A285BE3FAE549C",
-      "targetHash": "09ADFAB8C936DB88BF102EA708C16F77933FE5D4FFADF6A9267FC92A3E7CEB81",
-      "clusterHash": "09ADFAB8C936DB88BF102EA708C16F77933FE5D4FFADF6A9267FC92A3E7CEB81",
+      "targetHash": "D755BFC0C7F800F387EE3FF7525443198E84FF1C37A8738A3D03AB98B5E66096",
+      "clusterHash": "D755BFC0C7F800F387EE3FF7525443198E84FF1C37A8738A3D03AB98B5E66096",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -213,15 +213,15 @@
         "dist/**"
       ],
       "projectHash": "D1B53B045FE1A2359FBF50A141C6BF1D9287C1DF233590FCB386E2B9874E7D3D",
-      "targetHash": "ABB2C9F208086F81A934BFF6347800A21B4C2126645B92825122B82EAE0BA798",
-      "clusterHash": "ABB2C9F208086F81A934BFF6347800A21B4C2126645B92825122B82EAE0BA798",
+      "targetHash": "7984902AB73D7B072D64997DA1E897AA469D59CF7A7737DD6C24ED62B439F3EF",
+      "clusterHash": "7984902AB73D7B072D64997DA1E897AA469D59CF7A7737DD6C24ED62B439F3EF",
       "operations": [
         {
           "image": "node:20",
           "variables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci",
+          "arguments": "install",
           "errorLevel": 0
         },
         {
@@ -248,15 +248,15 @@
         "dist/**"
       ],
       "projectHash": "F0DF26E923ED54A0AAC72C142B69299DAFDF07333F5A0821FF24268295442600",
-      "targetHash": "BBA25E4BAAFA19B14D7F6A57C693BD26D8D20D40E28243AF73720F60F36A0A21",
-      "clusterHash": "BBA25E4BAAFA19B14D7F6A57C693BD26D8D20D40E28243AF73720F60F36A0A21",
+      "targetHash": "2940DB9190B18497AE7F4E881D341B415A05495D1C98A2A3E49D4BED10DAFD54",
+      "clusterHash": "2940DB9190B18497AE7F4E881D341B415A05495D1C98A2A3E49D4BED10DAFD54",
       "operations": [
         {
           "image": "node:20",
           "variables": [],
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "ci",
+          "arguments": "install",
           "errorLevel": 0
         },
         {

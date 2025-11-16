@@ -45,16 +45,19 @@ type Npm() =
     /// <summary>
     /// Installs packages with `npm ci`, honoring the lock file.
     /// </summary>
-    /// <param name="force" example="true">Adds `--force` to bypass failed checks.</param> 
+    /// <param name="force" example="true">Adds `--force` to bypass failed checks.</param>
+    /// <param name="clean" example="true">Enable clean install; set `true` to enforce `clean-install`.</param>
     /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Additional arguments passed to `npm ci`.</param> 
     [<LocalCacheAttribute>]
     static member install (force: bool option)
+                          (clean: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
+        let clean = clean |> map_true "clean-"
         let args = args |> or_default ""
 
         let ops = [
-            shellOp("npm", $"ci {force} {args}")
+            shellOp("npm", $"{clean}install {force} {args}")
         ]
         ops
 
