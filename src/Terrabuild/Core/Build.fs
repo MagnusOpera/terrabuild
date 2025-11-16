@@ -178,7 +178,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let userUidGid =
         match options.Engine, User.getUidGid() with
-        | Some "docker", Some (uid, gid) -> $"--user {uid}:{gid}"
+        | Some "docker", Some (uid, gid) ->
+            Log.Debug($"User identity: {uid}:{gid}")
+            $"--user {uid}:{gid}"
         | _ -> ""
 
     let rec summaryNode (node: GraphDef.Node) =
