@@ -37,8 +37,7 @@ target deploy {
 }
 
 extension @dotnet {
-  image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
-  platform = "linux/amd64"
+  image = "mcr.microsoft.com/dotnet/sdk:10.0.100"
   batch = true
   defaults {
     configuration = local.configuration
@@ -47,7 +46,6 @@ extension @dotnet {
 
 extension @terraform {
   image = "hashicorp/terraform:1.10"
-  platform = "linux/amd64"
   defaults {
     workspace = local.workspace
   }
@@ -55,18 +53,15 @@ extension @terraform {
 
 extension @cargo {
   image = "rust:1.81.0-slim"
-  platform = "linux/amd64"
 }
 
 extension @pnpm {
   image = "guergeiro/pnpm:20-10"
-  platform = "linux/amd64"
   batch = true
 }
 
 extension @openapi {
   image = "openapitools/openapi-generator-cli:v7.10.0"
-  platform = "linux/amd64"
 }
 
 extension @playwright {

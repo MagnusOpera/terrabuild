@@ -10,9 +10,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "90461D04D0C003A07ED28BDCFEAFEEA3130A2D50BB329B1AC9D25F9631A79AB8",
-      "targetHash": "DADDE2359358A06C1910090CEF58D52EDFA4E65D0EFC8D15953E273951A86D4E",
-      "clusterHash": "DADDE2359358A06C1910090CEF58D52EDFA4E65D0EFC8D15953E273951A86D4E",
+      "projectHash": "25A6D3E351FAD40452A2D63E7DA7288784BDE82912267890E5AC2FFF313EB2BD",
+      "targetHash": "912C6663ABFA8F8C432073ED171DD81E972EE5134D707E9D839119BE8D8D6AF5",
+      "clusterHash": "912C6663ABFA8F8C432073ED171DD81E972EE5134D707E9D839119BE8D8D6AF5",
       "operations": [
         {
           "variables": [],
@@ -22,7 +22,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
@@ -30,7 +30,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
@@ -52,9 +52,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "9E00CDDA47849B1D6BDF24E09E809BB991E70F4ECEF44BA99BE6E0729FFFD645",
-      "targetHash": "B8B40956C04567EDF30AE87E0D0DEF7E66522F9BA3A5CEB17B2A28C7E9BF3726",
-      "clusterHash": "B8B40956C04567EDF30AE87E0D0DEF7E66522F9BA3A5CEB17B2A28C7E9BF3726",
+      "projectHash": "A3D7DF98CAB2B154F5CE67F811AA118C416218DB5B8795A5A00605786211B662",
+      "targetHash": "A6CA2E3E8A36A18C9FB3F020D5DB44A1EB6FF4F89E843F8BA0B388DBDCC6CC24",
+      "clusterHash": "A6CA2E3E8A36A18C9FB3F020D5DB44A1EB6FF4F89E843F8BA0B388DBDCC6CC24",
       "operations": [
         {
           "variables": [],
@@ -64,7 +64,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
@@ -72,7 +72,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
@@ -95,9 +95,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "D2F9A13B1E732C0815EF0E21493172A5FA5699322C0430360A32095BEE35E539",
-      "targetHash": "20927CC72F2196893FA7B4A16126802ECA49E1C6651E188A1EEB66D7C66E5475",
-      "clusterHash": "20927CC72F2196893FA7B4A16126802ECA49E1C6651E188A1EEB66D7C66E5475",
+      "projectHash": "7ECB2CC670586133244F61F9A906645B611F9EF6BAFA4462EF356AED8D7C7B1F",
+      "targetHash": "237F499D58BE9952830D08E017A82636CD76A84B81A38709D55D791B8DD0305F",
+      "clusterHash": "237F499D58BE9952830D08E017A82636CD76A84B81A38709D55D791B8DD0305F",
       "operations": [
         {
           "variables": [],
@@ -139,12 +139,12 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "9412CFE4112AEF4F4C65239AC15A77A63378A280554560CECFBA341182BE6693",
-      "targetHash": "B7EA917354805C3351862EAB6A521CBF7D646BBE4A244225050A069FE68337A2",
-      "clusterHash": "B7EA917354805C3351862EAB6A521CBF7D646BBE4A244225050A069FE68337A2",
+      "projectHash": "2B723146552BA8AD3894D45F21C120E8A7AEAE4DA9C38E00470E7D65BB92D375",
+      "targetHash": "99AA57132A0650E3E1C129D40B613A5CE88D2B8DB7D1ACAFBDE1B611375515D6",
+      "clusterHash": "99AA57132A0650E3E1C129D40B613A5CE88D2B8DB7D1ACAFBDE1B611375515D6",
       "operations": [
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
@@ -152,7 +152,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
@@ -176,12 +176,12 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "DDCC91B3A55F2121262B329DB6656E6ABC3AA99F662C529452A285BE3FAE549C",
-      "targetHash": "09ADFAB8C936DB88BF102EA708C16F77933FE5D4FFADF6A9267FC92A3E7CEB81",
-      "clusterHash": "09ADFAB8C936DB88BF102EA708C16F77933FE5D4FFADF6A9267FC92A3E7CEB81",
+      "projectHash": "8B73BB54DE89982DF59992326966FDB2881CF5351863A196FA2702CFA709D984",
+      "targetHash": "C36D4D5E4C5F844E73EC1FADEC04722D1255014B5D4F371947305C0FAE9998A3",
+      "clusterHash": "C36D4D5E4C5F844E73EC1FADEC04722D1255014B5D4F371947305C0FAE9998A3",
       "operations": [
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
@@ -189,7 +189,7 @@
           "errorLevel": 0
         },
         {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet build",
           "command": "dotnet",
@@ -212,9 +212,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "D1B53B045FE1A2359FBF50A141C6BF1D9287C1DF233590FCB386E2B9874E7D3D",
-      "targetHash": "ABB2C9F208086F81A934BFF6347800A21B4C2126645B92825122B82EAE0BA798",
-      "clusterHash": "ABB2C9F208086F81A934BFF6347800A21B4C2126645B92825122B82EAE0BA798",
+      "projectHash": "5AC44F4F26EB2AE1BE083DE764DA2FB54FDD3167ABA0BC84A553D172E2FF898E",
+      "targetHash": "00E1552B007387AC91BEF616C3F05CED07E6486256023429734A506CBECFE693",
+      "clusterHash": "00E1552B007387AC91BEF616C3F05CED07E6486256023429734A506CBECFE693",
       "operations": [
         {
           "image": "node:20",
@@ -247,9 +247,9 @@
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "F0DF26E923ED54A0AAC72C142B69299DAFDF07333F5A0821FF24268295442600",
-      "targetHash": "BBA25E4BAAFA19B14D7F6A57C693BD26D8D20D40E28243AF73720F60F36A0A21",
-      "clusterHash": "BBA25E4BAAFA19B14D7F6A57C693BD26D8D20D40E28243AF73720F60F36A0A21",
+      "projectHash": "C1E6255401FB1F50B711E57217469011EEC342DEDC63D694EF387DF75725D687",
+      "targetHash": "2E928C1F59F5806DC4BF0E4A6729EF21AC235F55510883CCDBF23E4DDFE7856F",
+      "clusterHash": "2E928C1F59F5806DC4BF0E4A6729EF21AC235F55510883CCDBF23E4DDFE7856F",
       "operations": [
         {
           "image": "node:20",

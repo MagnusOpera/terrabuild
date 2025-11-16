@@ -3,7 +3,7 @@ target build {
 }
 
 extension @dotnet {
-  image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
+  image = "mcr.microsoft.com/dotnet/sdk:10.0.100"
 }
 
 extension @npm {

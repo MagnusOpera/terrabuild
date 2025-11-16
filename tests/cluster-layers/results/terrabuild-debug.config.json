@@ -16,7 +16,7 @@
   "projects": {
     "a": {
       "directory": "A",
-      "hash": "90461D04D0C003A07ED28BDCFEAFEEA3130A2D50BB329B1AC9D25F9631A79AB8",
+      "hash": "25A6D3E351FAD40452A2D63E7DA7288784BDE82912267890E5AC2FFF313EB2BD",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -24,7 +24,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "hash": "3BA0F8BDAD17EE382CC16FFA63DDAA7C730C897C6B27B220611E208F3C395B5D",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -52,8 +52,8 @@
               ]
             },
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -69,8 +69,8 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -95,7 +95,7 @@
     },
     "b": {
       "directory": "B",
-      "hash": "9E00CDDA47849B1D6BDF24E09E809BB991E70F4ECEF44BA99BE6E0729FFFD645",
+      "hash": "A3D7DF98CAB2B154F5CE67F811AA118C416218DB5B8795A5A00605786211B662",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -103,7 +103,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "hash": "3BA0F8BDAD17EE382CC16FFA63DDAA7C730C897C6B27B220611E208F3C395B5D",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -131,8 +131,8 @@
               ]
             },
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -148,8 +148,8 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -174,7 +174,7 @@
     },
     "c": {
       "directory": "C",
-      "hash": "D2F9A13B1E732C0815EF0E21493172A5FA5699322C0430360A32095BEE35E539",
+      "hash": "7ECB2CC670586133244F61F9A906645B611F9EF6BAFA4462EF356AED8D7C7B1F",
       "dependencies": [
         "a",
         "b"
@@ -245,7 +245,7 @@
     },
     "d": {
       "directory": "D",
-      "hash": "9412CFE4112AEF4F4C65239AC15A77A63378A280554560CECFBA341182BE6693",
+      "hash": "2B723146552BA8AD3894D45F21C120E8A7AEAE4DA9C38E00470E7D65BB92D375",
       "dependencies": [
         "c"
       ],
@@ -255,7 +255,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "hash": "87408F4C98266C89FF5398323413E5F833C238735CE098AA9876573D73A72FE9",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -267,8 +267,8 @@
           ],
           "operations": [
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -284,8 +284,8 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -310,7 +310,7 @@
     },
     "e": {
       "directory": "E",
-      "hash": "DDCC91B3A55F2121262B329DB6656E6ABC3AA99F662C529452A285BE3FAE549C",
+      "hash": "8B73BB54DE89982DF59992326966FDB2881CF5351863A196FA2702CFA709D984",
       "dependencies": [
         "c"
       ],
@@ -320,7 +320,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "hash": "87408F4C98266C89FF5398323413E5F833C238735CE098AA9876573D73A72FE9",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -332,8 +332,8 @@
           ],
           "operations": [
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -349,8 +349,8 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -375,7 +375,7 @@
     },
     "f": {
       "directory": "F",
-      "hash": "D1B53B045FE1A2359FBF50A141C6BF1D9287C1DF233590FCB386E2B9874E7D3D",
+      "hash": "5AC44F4F26EB2AE1BE083DE764DA2FB54FDD3167ABA0BC84A553D172E2FF898E",
       "dependencies": [
         "d",
         "e"
@@ -430,7 +430,7 @@
     },
     "g": {
       "directory": "G",
-      "hash": "F0DF26E923ED54A0AAC72C142B69299DAFDF07333F5A0821FF24268295442600",
+      "hash": "C1E6255401FB1F50B711E57217469011EEC342DEDC63D694EF387DF75725D687",
       "dependencies": [
         "c"
       ],

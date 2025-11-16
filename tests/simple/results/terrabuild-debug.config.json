@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
+      "hash": "8CBF29CDE9A807D9B203B1BD6C9A25773B9AB3870915BCBF0AE1B5F02F7165B0",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -49,7 +49,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
+          "hash": "2D222A44000535574131866EB7FAD5426D4ECDF278472DD8D2AE694C7FB99B4A",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -59,9 +59,8 @@
           ],
           "operations": [
             {
-              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
+              "hash": "43CE4F5E03081471E6768CCEA294BF2B2AB90EDA5E779B99C5E69A9A4B194026",
               "image": "hashicorp/terraform:1.10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
               "command": "init",
@@ -77,9 +76,8 @@
               ]
             },
             {
-              "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
+              "hash": "EB059C317B64D7D2F91175C6BC0243CB5DFA7BD393337A4808AB170AA3852746",
               "image": "hashicorp/terraform:1.10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
               "command": "plan",
@@ -92,7 +90,7 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7"
+                        "5E5E0B70DB3D1BE79D61C0CB7F6608ED490652FA97F74CC8EC275C5E99343ABE"
                       ],
                       "npm_app_version": [
                         "string",
@@ -110,7 +108,7 @@
           ]
         },
         "deploy": {
-          "hash": "B3E1E648F36E350D97062C1E7799E556783366AC32DB75B59BCD8ADF32A7A696",
+          "hash": "ED0D888065F3A3A89AF1767BB78BA380314B2CA3781CB6619B4F9EBEF418400C",
           "batch": false,
           "dependsOn": [
             "push"
@@ -120,9 +118,8 @@
           ],
           "operations": [
             {
-              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
+              "hash": "43CE4F5E03081471E6768CCEA294BF2B2AB90EDA5E779B99C5E69A9A4B194026",
               "image": "hashicorp/terraform:1.10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
               "command": "init",
@@ -138,9 +135,8 @@
               ]
             },
             {
-              "hash": "1AE28706B2980A4E84699A2D289D729BE4C880376A9313AFA12C32E1520F3B20",
+              "hash": "CA1758370E30A80E9A6F163049296FA957C4803FCAB76DEEAEB59AF33C2B4C31",
               "image": "hashicorp/terraform:1.10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@terraform",
               "command": "apply",
@@ -176,7 +172,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+          "hash": "87408F4C98266C89FF5398323413E5F833C238735CE098AA9876573D73A72FE9",
           "batch": true,
           "dependsOn": [
             "^build"
@@ -188,9 +184,8 @@
           ],
           "operations": [
             {
-              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -210,9 +205,8 @@
               ]
             },
             {
-              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -252,7 +246,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "hash": "12C0E8E4AF7EC56F207E4C041A4409878AB37ED25DC6077C3B36787EB8C623EF",
           "batch": true,
           "dependsOn": [
             "^build"
@@ -262,9 +256,8 @@
           ],
           "operations": [
             {
-              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "hash": "6E1AAB0AF92E8ED7264DCB803F336FF68F7234C554261A366638C0024C2A70C6",
               "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@pnpm",
               "command": "install",
@@ -275,9 +268,8 @@
               ]
             },
             {
-              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "hash": "4C8E599A7E79B5FD05D1BDBCB0F2734106BDE4CF8AC72DD3BFCA33383F0505BB",
               "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@pnpm",
               "command": "build",
@@ -338,7 +330,7 @@
     "projects/dotnet-app": {
       "id": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
+      "hash": "5E5E0B70DB3D1BE79D61C0CB7F6608ED490652FA97F74CC8EC275C5E99343ABE",
       "dependencies": [
         "libraries/dotnet-lib"
       ],
@@ -347,11 +339,12 @@
         "Dockerfile",
         "PROJECT",
         "Program.cs",
-        "dotnet-app.csproj"
+        "dotnet-app.csproj",
+        "packages.lock.json"
       ],
       "targets": {
         "build": {
-          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+          "hash": "87408F4C98266C89FF5398323413E5F833C238735CE098AA9876573D73A72FE9",
           "batch": true,
           "dependsOn": [
             "^build"
@@ -363,9 +356,8 @@
           ],
           "operations": [
             {
-              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -385,9 +377,8 @@
               ]
             },
             {
-              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "80F54D4392E7176C431A77B661A7ACF835E9C2F71941B85042DC14BC8826D779",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "build",
@@ -409,7 +400,7 @@
           ]
         },
         "dist": {
-          "hash": "71B04C660C84F005AA77AE72F1B798B933FC718D638C3DEEBC029BA8451DCA24",
+          "hash": "821B2CB980BE19F7EC1CBCA0C801620492435732201BEA7C6624F28324E94AE2",
           "batch": true,
           "dependsOn": [
             "build"
@@ -421,9 +412,8 @@
           ],
           "operations": [
             {
-              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "EC44CD485EDFFEB8129BC346664055AAD41422A8E3487400BB5D686E8133D321",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "restore",
@@ -443,9 +433,8 @@
               ]
             },
             {
-              "hash": "83FFC378D8A4DE3E63A64813B19826BB598ECF58D153327B42418E1DB2483301",
-              "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-              "platform": "linux/amd64",
+              "hash": "F44BDE40C302D2886DA26C2C8F4A13857440B7AAF562E90E51A444D29C307AEC",
+              "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
               "containerVariables": [],
               "extension": "@dotnet",
               "command": "publish",
@@ -602,7 +591,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "hash": "12C0E8E4AF7EC56F207E4C041A4409878AB37ED25DC6077C3B36787EB8C623EF",
           "batch": true,
           "dependsOn": [
             "^build"
@@ -612,9 +601,8 @@
           ],
           "operations": [
             {
-              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "hash": "6E1AAB0AF92E8ED7264DCB803F336FF68F7234C554261A366638C0024C2A70C6",
               "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@pnpm",
               "command": "install",
@@ -625,9 +613,8 @@
               ]
             },
             {
-              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "hash": "4C8E599A7E79B5FD05D1BDBCB0F2734106BDE4CF8AC72DD3BFCA33383F0505BB",
               "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@pnpm",
               "command": "build",
@@ -658,7 +645,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "368590893C4C4CB86F11CE435BED211B8E67BBAA776E88A26BA9786A25B48841",
+          "hash": "452C3BECEF820BD9F5351618E31CF2E62C7D5D3179166501BC7BE624F6C69299",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -666,9 +653,8 @@
           "outputs": [],
           "operations": [
             {
-              "hash": "50D55A43B040D7588938348660FCC1E7DC7DE5F6B1BA6BBD75E552060D6FB2AC",
+              "hash": "4A8E18C26FBA6F585C31836EE5AA86F094F58C9AAE622079FD2825E9EFD83114",
               "image": "openapitools/openapi-generator-cli:v7.10.0",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@openapi",
               "command": "generate",
@@ -711,7 +697,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "5F97E6095B871F9045214CFE08ABC4C8E778379ACCA4D34A94079C508D24D5C4",
+          "hash": "CE4486607AE6F79467FD036FE99464F3A22629A41144375622171E10A8E901B2",
           "batch": false,
           "dependsOn": [
             "^build"
@@ -722,9 +708,8 @@
           ],
           "operations": [
             {
-              "hash": "72FA6B2BF806E80FDF3BFC4BFCC4CF397C740DCC43ACBD7CD4D0DABE6F22C85A",
+              "hash": "70B1806A1714857ABE6C8D946A9B08BEF1069B8BD6B3AC12AF84ABF24096A390",
               "image": "rust:1.81.0-slim",
-              "platform": "linux/amd64",
               "containerVariables": [],
               "extension": "@cargo",
               "command": "build",
