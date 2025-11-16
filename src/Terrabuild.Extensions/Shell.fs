@@ -4,15 +4,14 @@ open Converters
 
 
 /// <summary>
-/// Provides support for running shell commands.
+/// Executes generic shell commands from Terrabuild actions (for simple scripting hooks).
 /// </summary>
 type Shell() =
 
     /// <summary>
-    /// Run a shell `command` using provided arguments.
+    /// Runs the Terrabuild action name as the shell command.
     /// </summary>
-    /// <param name="__dispatch__" example="echo">Example.</param>
-    /// <param name="args" example="&quot;Hello Terrabuild&quot;">Arguments to pass to command.</param>
+    /// <param name="args" example="&quot;Hello Terrabuild&quot;">Arguments passed to the command.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =

@@ -4,16 +4,17 @@ open Converters
 
 
 /// <summary>
-/// Add support for .net projects.
+/// Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`).
+/// Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.
 /// </summary>
 type Dotnet() =
 
     /// <summary>
-    /// Provides default values for project.
+    /// Infers project metadata from the nearest SDK project file (dependencies and default outputs).
     /// </summary>
-    /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]">Default values.</param>
-    /// <param name="dependencies" example="[ &lt;ProjectReference /&gt; from project ]">Default values.</param>
+    /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]">Default ignore patterns (binlogs).</param>
+    /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]">Default outputs produced by dotnet build/publish.</param>
+    /// <param name="dependencies" example="[ &lt;ProjectReference /&gt; from project ]">Project references discovered in the SDK project file.</param>
     static member __defaults__ (context: ExtensionContext) =
         let projectFile = DotnetHelpers.findProjectFile context.Directory
         let dependencies = projectFile |> DotnetHelpers.findDependencies 
@@ -25,10 +26,9 @@ type Dotnet() =
 
 
     /// <summary>
-    /// Run a dotnet `command`.
+    /// Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).
     /// </summary>
-    /// <param name="__dispatch__" example="run">Example.</param>
-    /// <param name="args" example="&quot;-v&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;run -- -v&quot;">Arguments appended after the dotnet command.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -40,9 +40,9 @@ type Dotnet() =
 
 
     /// <summary>
-    /// Run a dotnet tool.
+    /// Executes `dotnet tool ...` commands.
     /// </summary>
-    /// <param name="args" example="&quot;install MagnusOpera.OpenApiGen&quot;">Example.</param>
+    /// <param name="args" example="&quot;install MagnusOpera.OpenApiGen&quot;">Arguments appended after `dotnet tool`.</param>
     [<LocalCacheAttribute>]
     static member tool (args: string option) =
         let args = args |> or_default ""
@@ -53,12 +53,12 @@ type Dotnet() =
 
 
     /// <summary>
-    /// Restore packages.
+    /// Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.
     /// </summary>
-    /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
-    /// <param name="floating" example="&quot;true&quot;">Floating mode restore.</param>
-    /// <param name="evaluate" example="&quot;true&quot;">Force package evaluation.</param>
-    /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
+    /// <param name="dependencies" example="&quot;true&quot;">Include project-to-project dependencies (omit to add `--no-dependencies`).</param>
+    /// <param name="floating" example="&quot;true&quot;">Allow floating versions; set `false` to add `--locked-mode`.</param>
+    /// <param name="evaluate" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
+    /// <param name="args" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member restore (context: ActionContext)
@@ -85,15 +85,15 @@ type Dotnet() =
 
 
     /// <summary title="Build project.">
-    /// Build project.
+    /// Builds the project or batch solution via `dotnet build`.
     /// </summary>
-    /// <param name="configuration" example="&quot;Release&quot;">Configuration to use to build project. Default is `Debug`.</param>
-    /// <param name="parallel" example="1">Max worker processes to build the project.</param>
-    /// <param name="log" example="true">Enable binlog for the build.</param>
-    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
-    /// <param name="version" example="&quot;1.2.3&quot;">Build version.</param>
-    /// <param name="dependencies" example="true">Restore dependencies as well.</param>
-    /// <param name="args" example="&quot;--no-incremental&quot;">Arguments for command.</param>
+    /// <param name="configuration" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+    /// <param name="parallel" example="1">Max worker processes (`-maxcpucount`).</param>
+    /// <param name="log" example="true">Emit a binary log (`-bl`).</param>
+    /// <param name="restore" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+    /// <param name="version" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
+    /// <param name="dependencies" example="true">Include project dependencies (omit to add `--no-dependencies`).</param>
+    /// <param name="args" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member build (context: ActionContext)
@@ -126,13 +126,13 @@ type Dotnet() =
 
 
     /// <summary>
-    /// Pack project.
+    /// Packs the project into a NuGet package via `dotnet pack`.
     /// </summary>
-    /// <param name="configuration" example="&quot;Release&quot;">Configuration for pack command.</param>
-    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
-    /// <param name="build" example="&quot;true&quot;">Build project.</param>
-    /// <param name="version" example="&quot;1.0.0&quot;">Version for pack command.</param>
-    /// <param name="args" example="&quot;--include-symbols&quot;">Arguments for command.</param>
+    /// <param name="configuration" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+    /// <param name="restore" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+    /// <param name="build" example="&quot;true&quot;">Build before packing (omit to add `--no-build`).</param>
+    /// <param name="version" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
+    /// <param name="args" example="&quot;--include-symbols&quot;">Additional arguments for `dotnet pack`.</param>
     [<RemoteCacheAttribute>]
     static member pack (configuration: string option)
                        (version: string option)
@@ -151,15 +151,15 @@ type Dotnet() =
         ops
 
     /// <summary>
-    /// Publish project.
+    /// Publishes binaries via `dotnet publish`, optionally self-contained/trimmed and batched via a generated solution.
     /// </summary>
-    /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
-    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
-    /// <param name="build" example="&quot;true&quot;">Build project.</param>
-    /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime for publish.</param>
-    /// <param name="trim" example="true">Instruct to trim published project.</param>
-    /// <param name="single" example="true">Instruct to publish project as self-contained.</param>
-    /// <param name="args" example="&quot;--version-suffix beta&quot;">Arguments for command.</param>
+    /// <param name="configuration" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+    /// <param name="restore" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+    /// <param name="build" example="&quot;true&quot;">Build before publish (omit to add `--no-build`).</param>
+    /// <param name="runtime" example="&quot;linux-x64&quot;">Runtime identifier (`-r`).</param>
+    /// <param name="trim" example="true">Adds `-p:PublishTrimmed=true`.</param>
+    /// <param name="single" example="true">Publishes self-contained (`--self-contained`).</param>
+    /// <param name="args" example="&quot;--version-suffix beta&quot;">Additional arguments for `dotnet publish`.</param>
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member publish (context: ActionContext)
@@ -191,13 +191,13 @@ type Dotnet() =
         ops
 
     /// <summary>
-    /// Test project.
+    /// Runs tests via `dotnet test`, optionally batched through a generated solution.
     /// </summary>
-    /// <param name="configuration" example="&quot;Release&quot;">Configuration for publish command.</param>
-    /// <param name="restore" example="&quot;true&quot;">Restore packages.</param>
-    /// <param name="build" example="&quot;true&quot;">Build project.</param>
-    /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Run selected unit tests.</param>
-    /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
+    /// <param name="configuration" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+    /// <param name="restore" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+    /// <param name="build" example="&quot;true&quot;">Build before testing (omit to add `--no-build`).</param>
+    /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Test filter expression (`--filter`).</param>
+    /// <param name="args" example="&quot;--blame-hang&quot;">Additional arguments for `dotnet test`.</param>
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member test (context: ActionContext)

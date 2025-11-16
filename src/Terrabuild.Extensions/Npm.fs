@@ -4,15 +4,16 @@ open Errors
 open Converters
 
 /// <summary>
-/// Provides support for `npm`.
+/// Provides build, test, and exec helpers for projects that use **npm** and a `package.json` at the project root.
+/// Infers dependencies from `package.json` to wire Terrabuild graphs and defaults outputs to `dist/**`.
 /// </summary>
 type Npm() =
 
     /// <summary>
-    /// Provides default values.
+    /// Infers project metadata from `package.json` (dependencies and default outputs).
     /// </summary>
-    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default values.</param>
+    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default ignore patterns used by Terrabuild.</param>
+    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default output globs produced by npm builds.</param>
     static member __defaults__(context: ExtensionContext) =
         try
             let projectFile = NpmHelpers.findProjectFile context.Directory
@@ -26,9 +27,9 @@ type Npm() =
             exn -> forwardExternalError($"Error while processing project {context.Directory}", exn)
 
     /// <summary>
-    /// Run npm command.
+    /// Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments appended to the npm command.</param> 
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -42,10 +43,10 @@ type Npm() =
 
 
     /// <summary>
-    /// Install packages using lock file.
+    /// Installs packages with `npm ci`, honoring the lock file.
     /// </summary>
-    /// <param name="force" example="true">Force install.</param> 
-    /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Arguments to pass to target.</param> 
+    /// <param name="force" example="true">Adds `--force` to bypass failed checks.</param> 
+    /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Additional arguments passed to `npm ci`.</param> 
     [<LocalCacheAttribute>]
     static member install (force: bool option)
                           (args: string option) =
@@ -59,9 +60,9 @@ type Npm() =
 
 
     /// <summary>
-    /// Run `build` script.
+    /// Runs the `build` script via `npm run build`.
     /// </summary>
-    /// <param name="args" example="&quot;--workspaces&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--workspaces&quot;">Extra arguments forwarded after `--`.</param> 
     [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
@@ -72,9 +73,9 @@ type Npm() =
 
 
     /// <summary>
-    /// Run `test` script.
+    /// Runs the `test` script via `npm run test`.
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Extra arguments forwarded after `--`.</param> 
     [<RemoteCacheAttribute>]
     static member test (args: string option) =
         let args = args |> or_default ""
@@ -84,10 +85,10 @@ type Npm() =
         ops
 
     /// <summary>
-    /// Run `run` script.
+    /// Runs an arbitrary npm script via `npm run &lt;target&gt;`.
     /// </summary>
-    /// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    /// <param name="target" example="&quot;build-prod&quot;">Script target to invoke.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Extra arguments forwarded after `--`.</param> 
     [<LocalCacheAttribute>]
     static member run (target: string)
                       (args: string option) =
@@ -98,10 +99,10 @@ type Npm() =
         ops
 
     /// <summary>
-    /// Run `exec` script.
+    /// Executes a package binary via `npm exec`.
     /// </summary>
-    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to exec.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to run with `npm exec`.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Arguments passed to the package command.</param> 
     [<LocalCacheAttribute>]
     static member exec (package: string)
                        (args: string option) =

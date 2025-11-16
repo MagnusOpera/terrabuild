@@ -4,15 +4,15 @@ open Converters
 
 
 /// <summary>
-/// Provides support for running npx commands.
+/// Runs transient npm packages with **npx** (auto-accepts prompts with `--yes`).
 /// </summary>
 type Npx() =
 
     /// <summary>
-    /// Run an npx command.
+    /// Executes a package binary via `npx --yes`.
     /// </summary>
-    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to exec.</param> 
-    /// <param name="args" example="&quot;&quot;">Arguments to pass to npx.</param> 
+    /// <param name="package" example="&quot;hello-world-npm&quot;">Package to execute.</param> 
+    /// <param name="args" example="&quot;&quot;">Arguments forwarded to the package.</param> 
     [<LocalCacheAttribute>]
     static member run (package: string)
                       (args: string option) =

@@ -4,12 +4,12 @@ open Converters
 
 
 /// <summary>
-/// Provides support for running sentry-cli commands.
+/// Uploads source maps and assets with **sentry-cli**, using Debug IDs for mapping.
 /// </summary>
 type Sentry() =
 
     /// <summary>
-    /// Inject and upload sourcemaps using Debug IDs.
+    /// Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.
     /// </summary>
     /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
     /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 

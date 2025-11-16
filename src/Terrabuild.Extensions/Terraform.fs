@@ -4,7 +4,7 @@ open Converters
 
 
 /// <summary>
-/// `terraform` extension provides commands to handle a Terraform project.
+/// Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.
 ///
 /// {{&lt; callout type="warning" &gt;}}
 /// This extension relies on external Terraform state.
@@ -13,10 +13,10 @@ open Converters
 type Terraform() =
 
     /// <summary>
-    /// Provides default values for project.
+    /// Declares default outputs for Terraform runs.
     /// </summary>
-    /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;*.planfile&quot; ]">Default values.</param>
+    /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]">Default ignore patterns (state and caches).</param>
+    /// <param name="outputs" example="[ &quot;*.planfile&quot; ]">Default outputs (plan files).</param>
     static member __defaults__() =
         let projectInfo = 
             { ProjectInfo.Default
@@ -25,10 +25,9 @@ type Terraform() =
 
 
     /// <summary>
-    /// Run a terraform `command`.
+    /// Runs an arbitrary Terraform command (action name is forwarded to `terraform`).
     /// </summary>
-    /// <param name="__dispatch__" example="fmt">Example.</param>
-    /// <param name="args" example="&quot;-write=false&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;fmt -write=false&quot;">Arguments appended after the Terraform subcommand.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -39,10 +38,10 @@ type Terraform() =
 
 
     /// <summary weight="1">
-    /// Init Terraform.
+    /// Initializes Terraform providers and backend.
     /// </summary>
-    /// <param name="config" example="&quot;backend.prod.config&quot;">Set configuration for init.</param>
-    /// <param name="args" example="&quot;-upgrade&quot;">Arguments for command.</param>
+    /// <param name="config" example="&quot;backend.prod.config&quot;">Backend config file passed to `terraform init -backend-config`.</param>
+    /// <param name="args" example="&quot;-upgrade&quot;">Additional arguments for `terraform init`.</param>
     [<LocalCacheAttribute>]
     static member init (config: string option)
                        (args: string option) =
@@ -56,9 +55,9 @@ type Terraform() =
 
 
     /// <summary weight="2" title="Generate plan file.">
-    /// Validate project.
+    /// Validates configuration before planning/applying.
     /// </summary>
-    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform validate`.</param>
     [<RemoteCacheAttribute>]
     static member validate (args: string option) =
         let args = args |> or_default ""
@@ -72,11 +71,11 @@ type Terraform() =
 
 
     /// <summary weight="2" title="Select workspace.">
-    /// Select a workspace.
+    /// Selects or creates a Terraform workspace before planning/applying.
     /// </summary>
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
-    /// <param name="create" example="true">Create workspace if it does not exist.</param>
-    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    /// <param name="create" example="true">Create the workspace when it does not exist.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform workspace select`.</param>
     [<NoCacheAttribute>]
     static member select (workspace: string option)
                          (create: bool option)
@@ -93,10 +92,10 @@ type Terraform() =
   
 
     /// <summary weight="3" title="Generate plan file.">
-    /// Generate the planfile.
+    /// Generates a plan file for review/apply.
     /// </summary>
-    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param> 
+    /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform plan`.</param>
     [<RemoteCache>]
     static member plan (variables: Map<string, string> option)
                        (args: string option) =
@@ -110,10 +109,10 @@ type Terraform() =
   
 
     /// <summary weight="4" title="Apply plan file.">
-    /// Apply the plan file.
+    /// Applies the generated plan (or runs `apply` without a plan when requested).
     /// </summary>
-    /// <param name="no_plan" example="true">Apply without plan file.</param>
-    /// <param name="args" example="&quot;-no-color&quot;">Arguments for command.</param>
+    /// <param name="no_plan" example="true">Run `apply` without `-out` plan file.</param>
+    /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform apply`.</param>
     [<RemoteCacheAttribute>]
     static member apply (no_plan: bool option)
                         (args: string option) =
@@ -126,10 +125,10 @@ type Terraform() =
         ops
 
     /// <summary weight="4" title="Destroy the deployment.">
-    /// Destroy the deployment.
+    /// Destroys all managed resources for the current workspace.
     /// </summary>
-    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables for plan (see Terraform [Variables](https://developer.hashicorp.com/terraform/language/values/variables#variables-on-the-command-line)).</param> 
-    /// <param name="args" example="&quot;&quot;">Arguments for command.</param>
+    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param> 
+    /// <param name="args" example="&quot;&quot;">Additional arguments for `terraform destroy`.</param>
     [<RemoteCacheAttribute>]
     static member destroy (variables: Map<string, string> option)
                           (args: string option) =

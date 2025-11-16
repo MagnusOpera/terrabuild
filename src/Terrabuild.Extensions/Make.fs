@@ -3,15 +3,16 @@ open Terrabuild.Extensibility
 open Converters
 
 /// <summary>
-/// Add support for Makefile.
+/// Invokes GNU Make targets, passing variables and extra arguments through Terrabuild.
+/// Assumes a `Makefile` in the project directory.
 /// </summary>
 type Make() =
 
     /// <summary>
-    /// Invoke make target.
+    /// Invokes the Terrabuild action name as the make target.
     /// </summary>
-    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables to pass to make target.</param>
-    /// <param name="args" example="&quot;-d&quot;">Arguments for command.</param>
+    /// <param name="variables" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` variables injected before the target.</param>
+    /// <param name="args" example="&quot;-d&quot;">Additional arguments passed to `make`.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (variables: Map<string, string> option)

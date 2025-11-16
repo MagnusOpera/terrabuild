@@ -5,16 +5,17 @@ open Converters
 
 
 /// <summary>
-/// Add support for cargo (rust) projects.
+/// Provides build/test helpers for Rust projects using **Cargo** and a `Cargo.toml` at the project root.
+/// Infers dependencies from `Cargo.toml` to link Terrabuild graphs and defaults outputs to `target/{debug,release}`.
 /// </summary>
 type Cargo() =
 
     /// <summary>
-    /// Provides default values for project.
+    /// Infers project metadata from `Cargo.toml` (dependencies and default outputs).
     /// </summary>
-    /// <param name="ignores" example="[ ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]">Default values.</param>
-    /// <param name="dependencies" example="[ &lt;&quot;path from project&gt; ]">Default values.</param>
+    /// <param name="ignores" example="[ ]">Default ignore patterns (none by default).</param>
+    /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]">Default output directories produced by Cargo.</param>
+    /// <param name="dependencies" example="[ &lt;&quot;path from project&gt; ]">Local path dependencies extracted from `Cargo.toml`.</param>
     static member __defaults__ (context: ExtensionContext) =
         let projectFile = CargoHelpers.findProjectFile context.Directory
         let dependencies = projectFile |> CargoHelpers.findDependencies 
@@ -26,10 +27,9 @@ type Cargo() =
 
 
     /// <summary>
-    /// Run a cargo `command`.
+    /// Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).
     /// </summary>
-    /// <param name="__dispatch__" example="format">Example.</param>
-    /// <param name="args" example="&quot;check&quot;">Arguments for command.</param>
+    /// <param name="args" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -41,10 +41,10 @@ type Cargo() =
 
 
     /// <summary title="Build project.">
-    /// Build project.
+    /// Builds the project with `cargo build`.
     /// </summary>
-    /// <param name="profile" example="&quot;release&quot;">Profile to use to build project. Default is `dev`.</param>
-    /// <param name="args" example="&quot;--keep-going&quot;">Arguments for command.</param>
+    /// <param name="profile" example="&quot;release&quot;">Cargo profile (defaults to `dev`).</param>
+    /// <param name="args" example="&quot;--keep-going&quot;">Additional arguments passed to `cargo build`.</param>
     [<RemoteCacheAttribute>]
     static member build (profile: string option)
                         (args: string option) =
@@ -58,10 +58,10 @@ type Cargo() =
 
 
     /// <summary>
-    /// Test project.
+    /// Runs tests with `cargo test`.
     /// </summary>
-    /// <param name="profile" example="&quot;release&quot;">Profile for test command.</param>
-    /// <param name="args" example="&quot;--blame-hang&quot;">Arguments for command.</param>
+    /// <param name="profile" example="&quot;release&quot;">Cargo profile for tests (defaults to `dev`).</param>
+    /// <param name="args" example="&quot;--blame-hang&quot;">Additional arguments passed to `cargo test`.</param>
     [<RemoteCacheAttribute>]
     static member test (profile: string option)
                        (args: string option) =

@@ -4,15 +4,16 @@ open Converters
 
 
 /// <summary>
-/// Provides support for `yarn`.
+/// Provides build/test helpers for projects using **yarn** and a `package.json`.
+/// Defaults outputs to `dist/**` and infers dependencies from `package.json` to link Terrabuild graphs.
 /// </summary>
 type Yarn() =
 
     /// <summary>
-    /// Provides default values.
+    /// Infers project metadata from `package.json` (dependencies and default outputs).
     /// </summary>
-    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default values.</param>
+    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default ignore patterns used by Terrabuild.</param>
+    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default outputs produced by yarn builds.</param>
     static member __defaults__(context: ExtensionContext) =
         let projectFile = NpmHelpers.findProjectFile context.Directory
         let dependencies = projectFile |> NpmHelpers.findDependencies 
@@ -24,9 +25,9 @@ type Yarn() =
 
 
     /// <summary>
-    /// Run yarn `command`.
+    /// Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments appended after the yarn command.</param> 
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -39,11 +40,11 @@ type Yarn() =
 
 
     /// <summary>
-    /// Install packages using lock file.
+    /// Installs packages with `yarn install`, optionally updating the lockfile or ignoring engines.
     /// </summary>
-    /// <param name="update" example="true">Restore and update lock file.</param> 
-    /// <param name="ignore-engines" example="true">Ignore engines on install.</param> 
-    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    /// <param name="update" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param> 
+    /// <param name="ignore-engines" example="true">Adds `--ignore-engines`.</param> 
+    /// <param name="args" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param> 
     [<LocalCacheAttribute>]
     static member install (update: bool option)
                           (``ignore-engines``: bool option)
@@ -57,9 +58,9 @@ type Yarn() =
 
 
     /// <summary>
-    /// Run `build` script.
+    /// Runs the `build` script via `yarn build`.
     /// </summary>
-    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param> 
     [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
@@ -71,9 +72,9 @@ type Yarn() =
 
 
     /// <summary>
-    /// Run `test` script.
+    /// Runs the `test` script via `yarn test`.
     /// </summary>
-    /// <param name="args" example="&quot;--verbose&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param> 
     [<RemoteCacheAttribute>]
     static member test (args: string option) =
         let args = args |> or_default ""
@@ -84,10 +85,10 @@ type Yarn() =
         ops
 
     /// <summary>
-    /// Run `run` script.
+    /// Runs an arbitrary yarn script (`yarn &lt;command&gt;`).
     /// </summary>
     /// <param name="command" example="&quot;build-prod&quot;">Command to run.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;build-prod&quot;">Additional arguments forwarded after `--`.</param> 
     [<LocalCacheAttribute>]
     static member run (command: string)
                       (args: string option) =

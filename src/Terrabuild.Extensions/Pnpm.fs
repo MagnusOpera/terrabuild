@@ -4,18 +4,16 @@ open Errors
 open Converters
 
 /// <summary>
-/// Provides build and restore support for projects using **pnpm**.
-/// 
-/// Batch (cascade) builds are supported when a **pnpm-workspace.yaml**
-/// and a root **package.json** are present at the Terrabuild workspace root.
+/// Provides build/install/test helpers for projects using **pnpm** and a `package.json`.
+/// Supports batch (cascade) builds when `pnpm-workspace.yaml` and a root `package.json` exist at the Terrabuild workspace root.
 /// </summary>
 type Pnpm() =
 
     /// <summary>
-    /// Provides default values.
+    /// Infers project metadata from `package.json` (dependencies and default outputs).
     /// </summary>
-    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default values.</param>
-    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default values.</param>
+    /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default ignore patterns used by Terrabuild.</param>
+    /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default outputs produced by pnpm builds.</param>
     static member __defaults__(context: ExtensionContext) =
         try
             let projectFile = NpmHelpers.findProjectFile context.Directory
@@ -29,9 +27,9 @@ type Pnpm() =
             exn -> forwardExternalError($"Error while processing project {context.Directory}", exn)
 
     /// <summary>
-    /// Run npm command.
+    /// Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param> 
     [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
@@ -45,11 +43,11 @@ type Pnpm() =
 
 
     /// <summary>
-    /// Install packages using lock file.
+    /// Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.
     /// </summary>
-    /// <param name="force" example="true">Force install.</param> 
-    /// <param name="floating" example="true">Do not use lock file</param>
-    /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
+    /// <param name="force" example="true">Adds `--force` to reinstall when checks fail.</param> 
+    /// <param name="floating" example="true">Allow lockfile updates; set `false` to enforce `--frozen-lockfile`.</param>
+    /// <param name="args" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param> 
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member install (context: ActionContext)
@@ -71,9 +69,9 @@ type Pnpm() =
 
 
     /// <summary>
-    /// Run `build` script.
+    /// Runs the `build` script (`pnpm run build`) across targeted workspaces.
     /// </summary>
-    /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--no-color&quot;">Additional arguments for the script.</param> 
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member build (context: ActionContext)
@@ -90,9 +88,9 @@ type Pnpm() =
 
 
     /// <summary>
-    /// Run `test` script.
+    /// Runs the `test` script (`pnpm run test`) across targeted workspaces.
     /// </summary>
-    /// <param name="args" example="&quot;--port=1337&quot;">Arguments to pass to target.</param> 
+    /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments for the script.</param> 
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member test (context: ActionContext)
@@ -108,11 +106,11 @@ type Pnpm() =
         ops
 
     /// <summary>
-    /// Run `run` script.
+    /// Runs an arbitrary pnpm script (`pnpm run &lt;target&gt;`).
     /// </summary>
     /// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param> 
-    /// <param name="args" example="&quot;build-prod&quot;">Arguments to pass to target.</param>
-    /// <param name="no_recursive" example="true">No recursive</param>
+    /// <param name="args" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
+    /// <param name="no_recursive" example="true">Skip `--recursive` when targeting a single workspace.</param>
     [<LocalCacheAttribute>]
     static member run (target: string)
                       (no_recursive: bool option)
