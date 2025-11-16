@@ -287,14 +287,20 @@ let writeExtension extensionDir (extension: Extension) =
 
 [<EntryPoint>]
 let main args =
-    if args.Length <> 2 then failwith "Usage: DocGen <xml-doc-file> <output-dir>"
-    let doc = load args[0]
-    let outputDir = args[1]
-    let write = args.Length > 2 && args[2] <> "--write"
+    let outputDir, write =
+        match args with
+        | [| outputDir |] -> outputDir, false
+        | [| outputDir; "--write" |] -> outputDir, true
+        | _ -> failwith "Usage: DocGen <output-dir> [<--write>]"
+
+    let assemblyPath = Assembly.GetExecutingAssembly().Location
+    let docPath = Path.GetDirectoryName(assemblyPath) |> nonNull
+    let docFile = Path.Combine(docPath, "Terrabuild.Extensions.xml")
+    let doc = load docFile
     if doc.Assembly.Name <> "Terrabuild.Extensions" then failwith "Expecting documentation for Terrabuild.Extensions"
 
     let members = doc.Members |> Option.ofObj |> Option.defaultValue Array.empty
-    let assemblyFile = Path.ChangeExtension(args[0], "dll") |> nonNull
+    let assemblyFile = Path.ChangeExtension(docFile, "dll") |> nonNull
     let assembly = System.Reflection.Assembly.LoadFrom assemblyFile
     let extensions = buildExtensions assembly members
 
