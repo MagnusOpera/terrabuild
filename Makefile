@@ -69,10 +69,10 @@ publish-windows:
 publish-all: clean publish publish-darwin publish-linux publish-windows
 
 docs:
-	dotnet run --project tools/DocGen -- ../terrabuild.io/content/docs/extensions --write
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.io/content/docs/extensions --write
 
 try-docs:
-	dotnet run --project tools/DocGen -- ../terrabuild.tagada
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.tagada
 
 self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --retry --debug --log --local-only
