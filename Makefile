@@ -4,6 +4,7 @@ config ?= Debug
 terrabuild ?= dotnet run --project $(ROOT_DIR)src/Terrabuild -c $(config) --
 refresh ?= false
 version ?= 0.0.0
+engine ?= docker
 
 current_dir = $(shell pwd)
 
@@ -75,10 +76,10 @@ try-docs:
 	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.tagada
 
 self: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --retry --debug --log --local-only
+	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --engine $(engine) --retry --debug --log --local-only
 
 self-ci: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --engine $(engine) --retry --debug --log --local-only
 
 self-logs:
 	$(PWD)/.out/dotnet/terrabuild logs build test dist --configuration $(config) --debug --log --local-only
