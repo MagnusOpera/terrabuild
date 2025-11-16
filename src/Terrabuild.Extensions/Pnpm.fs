@@ -48,16 +48,16 @@ type Pnpm() =
     /// Install packages using lock file.
     /// </summary>
     /// <param name="force" example="true">Force install.</param> 
-    /// <param name="floating" example="true">Do not use lock file</param>
+    /// <param name="locked" example="true">Use lock file for restore</param>
     /// <param name="args" example="&quot;--no-color&quot;">Arguments to pass to target.</param> 
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member install (context: ActionContext)
                           (force: bool option)
-                          (floating: bool option)
+                          (locked: bool option)
                           (args: string option) =
         let force = force |> map_true "--force"
-        let frozen = floating |> map_false "--frozen-lockfile"
+        let frozen = locked |> map_true "--frozen-lockfile"
         let args = args |> or_default ""
         let filters =
             match context.Batch with

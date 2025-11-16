@@ -56,18 +56,18 @@ type Dotnet() =
     /// Restore packages.
     /// </summary>
     /// <param name="dependencies" example="&quot;true&quot;">Restore dependencies.</param>
-    /// <param name="floating" example="&quot;true&quot;">Floating mode restore.</param>
+    /// <param name="locked" example="&quot;true&quot;">Use lock file for restore.</param>
     /// <param name="evaluate" example="&quot;true&quot;">Force package evaluation.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Arguments for command.</param>
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member restore (context: ActionContext)
                           (dependencies: bool option)
-                          (floating: bool option)
+                          (locked: bool option)
                           (evaluate: bool option)
                           (args: string option) =
         let no_dependencies = dependencies |> map_false "--no-dependencies"
-        let locked = floating |> map_false "--locked-mode"
+        let locked = locked |> map_true "--locked-mode"
         let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
         let sln =

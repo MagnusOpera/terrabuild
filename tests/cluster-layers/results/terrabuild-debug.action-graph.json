@@ -11,8 +11,8 @@
         "obj/"
       ],
       "projectHash": "25A6D3E351FAD40452A2D63E7DA7288784BDE82912267890E5AC2FFF313EB2BD",
-      "targetHash": "912C6663ABFA8F8C432073ED171DD81E972EE5134D707E9D839119BE8D8D6AF5",
-      "clusterHash": "912C6663ABFA8F8C432073ED171DD81E972EE5134D707E9D839119BE8D8D6AF5",
+      "targetHash": "A31175DE46A23349B9BE473B10E20BC3FB57425293077EE16BA98DB961ABABF7",
+      "clusterHash": "A31175DE46A23349B9BE473B10E20BC3FB57425293077EE16BA98DB961ABABF7",
       "operations": [
         {
           "variables": [],
@@ -26,7 +26,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -53,8 +53,8 @@
         "obj/"
       ],
       "projectHash": "A3D7DF98CAB2B154F5CE67F811AA118C416218DB5B8795A5A00605786211B662",
-      "targetHash": "A6CA2E3E8A36A18C9FB3F020D5DB44A1EB6FF4F89E843F8BA0B388DBDCC6CC24",
-      "clusterHash": "A6CA2E3E8A36A18C9FB3F020D5DB44A1EB6FF4F89E843F8BA0B388DBDCC6CC24",
+      "targetHash": "764E018C1B2B390C9C946182AE64EC936C73FCA0FB18B1F9D5DAAA3AE272FEA8",
+      "clusterHash": "764E018C1B2B390C9C946182AE64EC936C73FCA0FB18B1F9D5DAAA3AE272FEA8",
       "operations": [
         {
           "variables": [],
@@ -68,7 +68,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -96,8 +96,8 @@
         "dist/**"
       ],
       "projectHash": "7ECB2CC670586133244F61F9A906645B611F9EF6BAFA4462EF356AED8D7C7B1F",
-      "targetHash": "237F499D58BE9952830D08E017A82636CD76A84B81A38709D55D791B8DD0305F",
-      "clusterHash": "237F499D58BE9952830D08E017A82636CD76A84B81A38709D55D791B8DD0305F",
+      "targetHash": "648BCB184F283B53F73E528EF8DA91E0B247C7C5BA6F7AA681085B1025B89FAA",
+      "clusterHash": "648BCB184F283B53F73E528EF8DA91E0B247C7C5BA6F7AA681085B1025B89FAA",
       "operations": [
         {
           "variables": [],
@@ -140,15 +140,15 @@
         "obj/"
       ],
       "projectHash": "2B723146552BA8AD3894D45F21C120E8A7AEAE4DA9C38E00470E7D65BB92D375",
-      "targetHash": "99AA57132A0650E3E1C129D40B613A5CE88D2B8DB7D1ACAFBDE1B611375515D6",
-      "clusterHash": "99AA57132A0650E3E1C129D40B613A5CE88D2B8DB7D1ACAFBDE1B611375515D6",
+      "targetHash": "BD0689BE69F65593AC188090D9A292D6B5D6DC597824146CB4CC63B359334993",
+      "clusterHash": "BD0689BE69F65593AC188090D9A292D6B5D6DC597824146CB4CC63B359334993",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -177,15 +177,15 @@
         "obj/"
       ],
       "projectHash": "8B73BB54DE89982DF59992326966FDB2881CF5351863A196FA2702CFA709D984",
-      "targetHash": "C36D4D5E4C5F844E73EC1FADEC04722D1255014B5D4F371947305C0FAE9998A3",
-      "clusterHash": "C36D4D5E4C5F844E73EC1FADEC04722D1255014B5D4F371947305C0FAE9998A3",
+      "targetHash": "B72FAEE917D1E03836226B4A3DE5C7181EA11555F029F62A51ED575533AE31D8",
+      "clusterHash": "B72FAEE917D1E03836226B4A3DE5C7181EA11555F029F62A51ED575533AE31D8",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:10.0.100",
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -213,8 +213,8 @@
         "dist/**"
       ],
       "projectHash": "5AC44F4F26EB2AE1BE083DE764DA2FB54FDD3167ABA0BC84A553D172E2FF898E",
-      "targetHash": "00E1552B007387AC91BEF616C3F05CED07E6486256023429734A506CBECFE693",
-      "clusterHash": "00E1552B007387AC91BEF616C3F05CED07E6486256023429734A506CBECFE693",
+      "targetHash": "864202A8D9379BB5024E563C7FD9EC61C8B22E9AD3637C54B98E81DF04E355CE",
+      "clusterHash": "864202A8D9379BB5024E563C7FD9EC61C8B22E9AD3637C54B98E81DF04E355CE",
       "operations": [
         {
           "image": "node:20",
@@ -248,8 +248,8 @@
         "dist/**"
       ],
       "projectHash": "C1E6255401FB1F50B711E57217469011EEC342DEDC63D694EF387DF75725D687",
-      "targetHash": "2E928C1F59F5806DC4BF0E4A6729EF21AC235F55510883CCDBF23E4DDFE7856F",
-      "clusterHash": "2E928C1F59F5806DC4BF0E4A6729EF21AC235F55510883CCDBF23E4DDFE7856F",
+      "targetHash": "A39AF8183345D615DFFC0380A349EFBC9C5A03833B14E31A41703BF4826CCDEC",
+      "clusterHash": "A39AF8183345D615DFFC0380A349EFBC9C5A03833B14E31A41703BF4826CCDEC",
       "operations": [
         {
           "image": "node:20",

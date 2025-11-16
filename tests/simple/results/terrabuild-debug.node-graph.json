@@ -12,8 +12,8 @@
         "*.planfile"
       ],
       "projectHash": "8CBF29CDE9A807D9B203B1BD6C9A25773B9AB3870915BCBF0AE1B5F02F7165B0",
-      "targetHash": "4767AFE3209A985212A3B0E8FD81C60665D549A7897FC83C46E15B9BD43DB8A8",
-      "clusterHash": "4767AFE3209A985212A3B0E8FD81C60665D549A7897FC83C46E15B9BD43DB8A8",
+      "targetHash": "05451279CB8B18A870F4A458D981345E5AD1D139FF67DAB106523707F327C9F5",
+      "clusterHash": "05451279CB8B18A870F4A458D981345E5AD1D139FF67DAB106523707F327C9F5",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -47,7 +47,7 @@
         "obj/"
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
-      "targetHash": "6B64619FDF409A2065B0D39306738AEA47B40889A59AC96C97C50DE93A8B59DE",
+      "targetHash": "2BF4AFF8EB64FA1BC1111325C261CB3311A985F45869381262D1E00B81E7EA47",
       "clusterHash": "EF2C594E75AEFBC98D3ED0EFB175C02347454B326B734D21A497C1A12E3FBB0D",
       "operations": [
         {
@@ -55,7 +55,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -80,7 +80,7 @@
         "dist/**"
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "A374DEE5276F39FD6CE77FD5AC2DE8D865D679B97C239A0E8706F055A62478E1",
+      "targetHash": "8DB314F58F90A3E54D61BC401D676CDC2996028B49BD6B15FDED4587411F654C",
       "clusterHash": "D3984AFC9D549D42ADECBD6459B06E6B08B15A33086AC8611A1C78C8798D8E3B",
       "operations": [
         {
@@ -88,7 +88,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install --frozen-lockfile",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
@@ -140,7 +140,7 @@
         "obj/"
       ],
       "projectHash": "5E5E0B70DB3D1BE79D61C0CB7F6608ED490652FA97F74CC8EC275C5E99343ABE",
-      "targetHash": "8823AC2085719B930869653AD7CCE8F0F4C9E4675E250E31180EEAB47B9FEAB2",
+      "targetHash": "B8BA55C87D7EF1789C0940C091EB92E494FE4AC2FB4EA45754ECD2A4C99D8E0B",
       "clusterHash": "EF2C594E75AEFBC98D3ED0EFB175C02347454B326B734D21A497C1A12E3FBB0D",
       "operations": [
         {
@@ -148,7 +148,7 @@
           "variables": [],
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore",
           "errorLevel": 0
         },
         {
@@ -207,7 +207,7 @@
         "dist/**"
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "3E665270E68328F2E2B2D4658606DC1D7ABF6BF35A926ED36718CDF45AE2415C",
+      "targetHash": "6A547C78D0FF547A69FEFC7D6EB4CED4928A36E793ED79AB51933700482DC541",
       "clusterHash": "D3984AFC9D549D42ADECBD6459B06E6B08B15A33086AC8611A1C78C8798D8E3B",
       "operations": [
         {
@@ -215,7 +215,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install --frozen-lockfile",
+          "arguments": "--recursive install",
           "errorLevel": 0
         },
         {
