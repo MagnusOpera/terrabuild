@@ -15,15 +15,15 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
-    let getNodeAction (node: GraphDef.Node) hasChildRebuilding =
+    let getNodeAction (node: GraphDef.Node) hasChildBuilding =
         // task is forced to build
         if node.Action = GraphDef.NodeAction.Build then
             Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         // child task is building (upward cascading)
-        elif hasChildRebuilding then
-            Log.Debug("{NodeId} must rebuild because child is rebuilding", node.Id)
+        elif hasChildBuilding then
+            Log.Debug("{NodeId} must build because child is building", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         // cache related rules
@@ -36,7 +36,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
 
                 // retry requested and task is failed
                 if options.Retry && (not summary.IsSuccessful) then
-                    Log.Debug("{NodeId} must rebuild because retry requested and node is failed", node.Id)
+                    Log.Debug("{NodeId} must build because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed
                 elif not summary.IsSuccessful then
@@ -71,8 +71,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
-                let hasChildRebuilding = node.Dependencies |> Seq.exists (fun projectId -> nodeResults[projectId].IsBuild)
-                let (buildRequest, buildDate) = getNodeAction node hasChildRebuilding
+                let hasChildBuilding = node.Dependencies |> Seq.exists (fun projectId -> nodeResults[projectId].IsBuild)
+                let (buildRequest, buildDate) = getNodeAction node hasChildBuilding
 
                 // skip ignore nodes on dependencies
                 let actionableDependencies =

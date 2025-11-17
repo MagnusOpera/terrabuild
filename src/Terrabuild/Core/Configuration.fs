@@ -28,7 +28,7 @@ type TargetOperation = {
 [<RequireQualifiedAccess>]
 type Target = {
     Hash: string
-    Rebuild: Rebuild option
+    Build: Build option
     Batch: bool
     DependsOn: string set
     Outputs: string set
@@ -309,11 +309,11 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         projectConfig.Targets |> Map.map (fun targetName targetBlock ->
             // apply workspace default value
             let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
-            let rebuild = targetBlock.Rebuild |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Rebuild)
+            let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
             let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
             let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
             { targetBlock with 
-                Rebuild = rebuild
+                Build = build
                 DependsOn = dependsOn
                 Cache = cache })
 
@@ -454,16 +454,16 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
             // use value from project target
             // otherwise use workspace target
             // defaults to allow caching
-            let targetRebuild =
-                match target.Rebuild with
+            let targetBuild =
+                match target.Build with
                 | None -> None
-                | Some targetRebuild ->
-                    let targetRebuild = targetRebuild |> Eval.eval evaluationContext |> Eval.asEnum
-                    match targetRebuild with
-                    | Ok "auto" -> Some Rebuild.Auto
-                    | Ok "cascade" -> Some Rebuild.Cascade
-                    | Ok "always" -> Some Rebuild.Always
-                    | Ok x -> raiseParseError $"Invalid rebuild value '{x}'"
+                | Some targetBuild ->
+                    let targetBuild = targetBuild |> Eval.eval evaluationContext |> Eval.asEnum
+                    match targetBuild with
+                    | Ok "auto" -> Some Build.Auto
+                    | Ok "cascade" -> Some Build.Cascade
+                    | Ok "always" -> Some Build.Always
+                    | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
             let targetBatch, targetOperations =
@@ -569,7 +569,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
             let target =
                 { Target.Hash = targetHash
-                  Target.Rebuild = targetRebuild
+                  Target.Build = targetBuild
                   Target.Batch = targetBatch
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache

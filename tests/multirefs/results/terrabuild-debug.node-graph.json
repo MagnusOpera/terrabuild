@@ -22,7 +22,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "b:build": {
@@ -46,7 +46,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "c:build": {
@@ -68,7 +68,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     }
   },

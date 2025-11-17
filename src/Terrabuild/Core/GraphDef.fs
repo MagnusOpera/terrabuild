@@ -20,7 +20,7 @@ type Cacheability =
     | Remote
 
 [<RequireQualifiedAccess>]
-type Rebuild =
+type Build =
     | Auto
     | Cascade
     | Always
@@ -50,7 +50,7 @@ type Node = {
 
     Operations: ContaineredShellOperation list
     Cache: Cacheability
-    Rebuild: Rebuild
+    Build: Build
 
     Action: NodeAction
 }

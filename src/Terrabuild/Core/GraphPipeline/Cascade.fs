@@ -10,9 +10,9 @@ let build (graph: Graph) =
         if processedNodes.TryAdd(nodeId, true) then
             let mutable node = graph.Nodes[nodeId]
             let build =
-                match node.Action, node.Rebuild with
+                match node.Action, node.Build with
                 | NodeAction.Build, _ -> true
-                | NodeAction.Restore, Rebuild.Cascade ->
+                | NodeAction.Restore, Build.Cascade ->
                     node <- { node with Action = NodeAction.Build; Cache = Cacheability.Local }
                     true
                 | _ ->

@@ -20,7 +20,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "b:apply": {
@@ -45,7 +45,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "b:plan": {
@@ -68,7 +68,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "auto",
+      "build": "auto",
       "action": "build"
     },
     "c:build": {
@@ -91,7 +91,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     }
   },

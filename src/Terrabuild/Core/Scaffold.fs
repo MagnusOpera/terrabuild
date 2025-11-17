@@ -47,7 +47,7 @@ let targetConfigs =
         Build, ([ "cache = \"local\"" ], [ "target.install"; "target.^build" ])
         Test, ([], [ "target.install" ])
         Publish, ([], [ "target.build" ])
-        Plan, ([ "rebuild = terrabuild.retry" ], [ "target.install"; "target.^plan"; "target.publish" ])
+        Plan, ([ "build = terrabuild.retry" ], [ "target.install"; "target.^plan"; "target.publish" ])
         Apply, ([], [ "target.^apply"; "target.plan" ])
     ]
 

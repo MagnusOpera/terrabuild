@@ -39,7 +39,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "b:build": {
@@ -81,7 +81,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "c:build": {
@@ -124,7 +124,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "d:build": {
@@ -161,7 +161,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "e:build": {
@@ -198,7 +198,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "f:build": {
@@ -234,7 +234,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "g:build": {
@@ -269,7 +269,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     }
   },

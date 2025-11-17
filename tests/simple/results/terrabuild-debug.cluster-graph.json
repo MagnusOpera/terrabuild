@@ -30,7 +30,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "batchBuild"
     },
     "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A": {
@@ -63,7 +63,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "batchBuild"
     },
     "deployments/terraform-deploy:build": {
@@ -101,7 +101,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "libraries/dotnet-lib:build": {
@@ -138,7 +138,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "libraries/npm-lib:build": {
@@ -173,7 +173,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "libraries/shell-lib:build": {
@@ -195,7 +195,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "projects/dotnet-app:build": {
@@ -235,7 +235,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "projects/make-app:build": {
@@ -266,7 +266,7 @@
         }
       ],
       "cache": "never",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "projects/npm-app:build": {
@@ -304,7 +304,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "projects/open-api:build": {
@@ -328,7 +328,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "projects/rust-app:build": {
@@ -355,7 +355,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     },
     "tests/playwright:test": {
@@ -388,7 +388,7 @@
         }
       ],
       "cache": "remote",
-      "rebuild": "always",
+      "build": "always",
       "action": "build"
     }
   },

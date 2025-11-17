@@ -43,7 +43,7 @@ target dist {
 }
 
 target docker {
-  rebuild = ~auto
+  build = ~auto
   artifacts = ~remote
 
   @shell echo { arguments = trim("building project1 " + local.configuration) }
