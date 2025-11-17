@@ -24,7 +24,7 @@ type Step =
 type TargetBlock =
     { Outputs: Expr option
       DependsOn: Set<string> option
-      Rebuild: Expr option
+      Build: Expr option
       Cache: Expr option
       Steps: Step list }
 

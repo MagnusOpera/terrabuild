@@ -131,7 +131,7 @@
         },
         "plan": {
           "hash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
-          "rebuild": "auto",
+          "build": "auto",
           "batch": false,
           "dependsOn": [
             "^plan",

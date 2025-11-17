@@ -16,7 +16,7 @@ target build { # comment at end of line
 
 target dist {
   depends_on = [ target.build ]
-  rebuild = ~cascade
+  build = ~cascade
   artifacts = ~none
 }
 
