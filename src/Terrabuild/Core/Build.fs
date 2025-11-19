@@ -287,9 +287,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 // cache files but external
                 let outputs =
-                    match node.Cache with
-                    | GraphDef.Cacheability.Local
-                    | GraphDef.Cacheability.Remote ->
+                    match node.Artifacts with
+                    | GraphDef.Artifacts.Workspace
+                    | GraphDef.Artifacts.Managed ->
                         let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
                         let outputs = IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
                         outputs
@@ -305,7 +305,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                       Cache.TargetSummary.StartedAt = startedAt
                       Cache.TargetSummary.EndedAt = endedAt
                       Cache.TargetSummary.Duration = duration
-                      Cache.TargetSummary.Cache = node.Cache }
+                      Cache.TargetSummary.Cache = node.Artifacts }
                 nodeResults[nodeId] <- (TaskRequest.Build, status)
 
                 // create an archive with new files
@@ -345,9 +345,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         // cache files but external
         let outputs =
-            match node.Cache with
-            | GraphDef.Cacheability.Local
-            | GraphDef.Cacheability.Remote ->
+            match node.Artifacts with
+            | GraphDef.Artifacts.Workspace
+            | GraphDef.Artifacts.Managed ->
                 let afterFiles = IO.createSnapshot node.Outputs projectDirectory
                 let newFiles = afterFiles - IO.Snapshot.Empty
                 let outputs = IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
@@ -368,7 +368,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.StartedAt = startedAt
                   Cache.TargetSummary.EndedAt = endedAt
                   Cache.TargetSummary.Duration = endedAt - startedAt
-                  Cache.TargetSummary.Cache = node.Cache }
+                  Cache.TargetSummary.Cache = node.Artifacts }
 
             // create an archive with new files
             Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)

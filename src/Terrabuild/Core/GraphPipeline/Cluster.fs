@@ -122,7 +122,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                   GraphDef.Node.ProjectDir = "."
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Operations = ops
-                  GraphDef.Node.Cache = headNode.Cache
+                  GraphDef.Node.Artifacts = headNode.Artifacts
                   GraphDef.Node.Dependencies = clusterDependencies
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = clusterHash

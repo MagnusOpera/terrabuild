@@ -13,17 +13,17 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
-type Cacheability =
-    | Never
-    | Local
+type Artifacts =
+    | None
+    | Workspace
+    | Managed
     | External
-    | Remote
 
 [<RequireQualifiedAccess>]
 type Build =
     | Auto
-    | Cascade
     | Always
+    | Cascade
 
 [<RequireQualifiedAccess>]
 type NodeAction =
@@ -49,7 +49,7 @@ type Node = {
     ClusterHash: string
 
     Operations: ContaineredShellOperation list
-    Cache: Cacheability
+    Artifacts: Artifacts
     Build: Build
 
     Action: NodeAction
@@ -66,7 +66,7 @@ type Graph = {
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
 
 let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
-    match node.Cache with
-    | Cacheability.Remote
-    | Cacheability.External -> options.LocalOnly |> not
+    match node.Artifacts with
+    | Artifacts.Managed
+    | Artifacts.External -> options.LocalOnly |> not
     | _ -> false

@@ -29,7 +29,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "batchBuild"
     },
@@ -62,7 +62,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "batchBuild"
     },
@@ -100,7 +100,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -137,7 +137,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -172,7 +172,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -194,7 +194,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "always",
       "action": "build"
     },
@@ -234,7 +234,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -265,7 +265,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "always",
       "action": "build"
     },
@@ -303,7 +303,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -327,7 +327,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -354,7 +354,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -387,7 +387,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     }

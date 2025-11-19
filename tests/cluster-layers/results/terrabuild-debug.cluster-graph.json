@@ -38,7 +38,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -80,7 +80,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -123,7 +123,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -160,7 +160,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -197,7 +197,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -233,7 +233,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -268,7 +268,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "remote",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     }

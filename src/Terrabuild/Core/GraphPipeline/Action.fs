@@ -27,7 +27,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         // cache related rules
-        elif node.Cache <> GraphDef.Cacheability.Never then
+        elif node.Artifacts <> GraphDef.Artifacts.None then
             let useRemote = GraphDef.isRemoteCacheable options node
             let cacheEntryId = GraphDef.buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
@@ -43,7 +43,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     Log.Debug("{NodeId} must restore as failed", node.Id)
                     (GraphDef.NodeAction.Summary, summary.EndedAt)
                 // task is cached
-                elif node.Cache = GraphDef.Cacheability.External then
+                elif node.Artifacts = GraphDef.Artifacts.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Ignore, summary.EndedAt)
                 else

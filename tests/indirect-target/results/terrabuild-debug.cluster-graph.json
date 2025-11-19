@@ -19,7 +19,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "always",
       "action": "build"
     },
@@ -44,7 +44,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "always",
       "action": "build"
     },
@@ -67,7 +67,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "auto",
       "action": "build"
     },
@@ -90,7 +90,7 @@
           "errorLevel": 0
         }
       ],
-      "cache": "never",
+      "artifacts": "none",
       "build": "always",
       "action": "build"
     }
