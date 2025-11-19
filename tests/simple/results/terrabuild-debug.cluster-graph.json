@@ -194,7 +194,7 @@
           "errorLevel": 0
         }
       ],
-      "artifacts": "none",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
@@ -245,7 +245,9 @@
       "dependencies": [
         "libraries/shell-lib:build"
       ],
-      "outputs": [],
+      "outputs": [
+        "dist"
+      ],
       "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
       "targetHash": "6D642BC6327271CDE1CF1B1ACE6A650DDAC5D6070431CB55D71284782E649091",
       "clusterHash": "6D642BC6327271CDE1CF1B1ACE6A650DDAC5D6070431CB55D71284782E649091",
@@ -265,7 +267,7 @@
           "errorLevel": 0
         }
       ],
-      "artifacts": "none",
+      "artifacts": "managed",
       "build": "always",
       "action": "build"
     },
