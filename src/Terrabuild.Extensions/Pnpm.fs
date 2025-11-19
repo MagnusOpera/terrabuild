@@ -30,7 +30,6 @@ type Pnpm() =
     /// Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param> 
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let cmd = context.Command
@@ -48,7 +47,6 @@ type Pnpm() =
     /// <param name="force" example="true">Adds `--force` to reinstall when checks fail.</param> 
     /// <param name="frozen" example="true">Enable frozen versions; set `true` to enforce `--frozen-lockfile`.</param>
     /// <param name="args" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param> 
-    [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member install (context: ActionContext)
                           (force: bool option)
@@ -72,7 +70,6 @@ type Pnpm() =
     /// Runs the `build` script (`pnpm run build`) across targeted workspaces.
     /// </summary>
     /// <param name="args" example="&quot;--no-color&quot;">Additional arguments for the script.</param> 
-    [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member build (context: ActionContext)
                         (args: string option) =
@@ -91,7 +88,6 @@ type Pnpm() =
     /// Runs the `test` script (`pnpm run test`) across targeted workspaces.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments for the script.</param> 
-    [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member test (context: ActionContext)
                        (args: string option) =
@@ -111,7 +107,6 @@ type Pnpm() =
     /// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
     /// <param name="no_recursive" example="true">Skip `--recursive` when targeting a single workspace.</param>
-    [<LocalCacheAttribute>]
     static member run (target: string)
                       (no_recursive: bool option)
                       (args: string option) =

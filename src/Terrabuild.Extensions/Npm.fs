@@ -30,7 +30,6 @@ type Npm() =
     /// Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Additional arguments appended to the npm command.</param> 
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let cmd = context.Command
@@ -48,7 +47,6 @@ type Npm() =
     /// <param name="force" example="true">Adds `--force` to bypass failed checks.</param>
     /// <param name="clean" example="true">Enable clean install; set `true` to enforce `clean-install`.</param>
     /// <param name="args" example="&quot;--install-strategy hoisted&quot;">Additional arguments passed to `npm ci`.</param> 
-    [<LocalCacheAttribute>]
     static member install (force: bool option)
                           (clean: bool option)
                           (args: string option) =
@@ -66,7 +64,6 @@ type Npm() =
     /// Runs the `build` script via `npm run build`.
     /// </summary>
     /// <param name="args" example="&quot;--workspaces&quot;">Extra arguments forwarded after `--`.</param> 
-    [<RemoteCacheAttribute>]
     static member build (args: string option) =
         let args = args |> or_default ""
         let ops = [
@@ -79,7 +76,6 @@ type Npm() =
     /// Runs the `test` script via `npm run test`.
     /// </summary>
     /// <param name="args" example="&quot;--port=1337&quot;">Extra arguments forwarded after `--`.</param> 
-    [<RemoteCacheAttribute>]
     static member test (args: string option) =
         let args = args |> or_default ""
         let ops = [
@@ -92,7 +88,6 @@ type Npm() =
     /// </summary>
     /// <param name="target" example="&quot;build-prod&quot;">Script target to invoke.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Extra arguments forwarded after `--`.</param> 
-    [<LocalCacheAttribute>]
     static member run (target: string)
                       (args: string option) =
         let args = args |> or_default ""
@@ -106,7 +101,6 @@ type Npm() =
     /// </summary>
     /// <param name="package" example="&quot;hello-world-npm&quot;">Package to run with `npm exec`.</param> 
     /// <param name="args" example="&quot;build-prod&quot;">Arguments passed to the package command.</param> 
-    [<LocalCacheAttribute>]
     static member exec (package: string)
                        (args: string option) =
         let args = args |> or_default ""

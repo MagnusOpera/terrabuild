@@ -10,10 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Terraform> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("terraform", "ci-command --opt1 --opt2") ]
@@ -33,10 +29,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``init cacheability``() =
-    getCacheInfo<Terraform> "init" |> should equal Cacheability.Local
 
 [<Test>]
 let ``init some``() =
@@ -62,10 +54,6 @@ let ``init none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``validate cacheability``() =
-    getCacheInfo<Terraform> "validate" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``validate some``() =
     let expected =
         [ shellOp("terraform", "validate --opt1 --opt2") ]
@@ -85,10 +73,6 @@ let ``validate none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``select cacheability``() =
-    getCacheInfo<Terraform> "select" |> should equal Cacheability.Never
 
 [<Test>]
 let ``select some``() =
@@ -111,10 +95,6 @@ let ``select none``() =
     |> should be Empty
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``plan cacheability``() =
-    getCacheInfo<Terraform> "plan" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``plan some``() =
@@ -140,10 +120,6 @@ let ``plan none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``apply cacheability``() =
-    getCacheInfo<Terraform> "apply" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``apply some``() =
     let expected =
         [ shellOp("terraform", "apply -input=false --opt1 --opt2") ]
@@ -165,10 +141,6 @@ let ``apply none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``destroy cacheability``() =
-    getCacheInfo<Terraform> "destroy" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``destroy some``() =

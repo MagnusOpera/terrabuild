@@ -9,10 +9,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Npm> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("npm", "ci-command --opt1 --opt2") ]
@@ -32,10 +28,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``install cacheability``() =
-    getCacheInfo<Npm> "install" |> should equal Cacheability.Local
 
 [<Test>]
 let ``install some``() =
@@ -63,10 +55,6 @@ let ``install none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Npm> "build" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``build some``() =
     let expected =
         [ shellOp("npm", "run build -- --opt1 --opt2") ]
@@ -86,11 +74,6 @@ let ``build none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``test cacheability``() =
-    getCacheInfo<Npm> "test" |> should equal Cacheability.Remote
-
 
 [<Test>]
 let ``test some``() =
@@ -114,10 +97,6 @@ let ``test none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``run cacheability``() =
-    getCacheInfo<Npm> "run" |> should equal Cacheability.Local
-
-[<Test>]
 let ``run some``() =
     let expected =
         [ shellOp("npm", "run my-command -- --opt1 --opt2") ]
@@ -139,10 +118,6 @@ let ``run none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``exec cacheability``() =
-    getCacheInfo<Npm> "exec" |> should equal Cacheability.Local
 
 [<Test>]
 let ``exec some``() =

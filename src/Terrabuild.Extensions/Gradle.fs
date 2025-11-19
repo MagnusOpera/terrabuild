@@ -27,7 +27,6 @@ type Gradle() =
     /// Runs an arbitrary Gradle command (action name is forwarded to `gradle`).
     /// </summary>
     /// <param name="args" example="&quot;clean --info&quot;">Arguments appended after the Gradle command.</param>
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -42,7 +41,6 @@ type Gradle() =
     /// </summary>
     /// <param name="configuration" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
     /// <param name="args" example="&quot;--scan&quot;">Additional arguments passed to `gradle assemble`.</param>
-    [<RemoteCacheAttribute>]
     static member build (configuration: string option)
                         (args: string option) =
         let configuration = configuration |> Option.defaultValue GradleHelpers.defaultConfiguration

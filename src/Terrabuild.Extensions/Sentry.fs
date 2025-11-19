@@ -13,7 +13,6 @@ type Sentry() =
     /// </summary>
     /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
     /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 
-    [<ExternalCacheAttribute>]
     static member sourcemaps (project: string option)
                              (path: string option) =
         let project = project |> map_value (fun project -> $"--project {project}")

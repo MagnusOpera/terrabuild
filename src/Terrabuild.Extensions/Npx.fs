@@ -13,7 +13,6 @@ type Npx() =
     /// </summary>
     /// <param name="package" example="&quot;hello-world-npm&quot;">Package to execute.</param> 
     /// <param name="args" example="&quot;&quot;">Arguments forwarded to the package.</param> 
-    [<LocalCacheAttribute>]
     static member run (package: string)
                       (args: string option) =
         let args = args |> or_default ""

@@ -30,7 +30,6 @@ type Cargo() =
     /// Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).
     /// </summary>
     /// <param name="args" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -45,7 +44,6 @@ type Cargo() =
     /// </summary>
     /// <param name="profile" example="&quot;release&quot;">Cargo profile (defaults to `dev`).</param>
     /// <param name="args" example="&quot;--keep-going&quot;">Additional arguments passed to `cargo build`.</param>
-    [<RemoteCacheAttribute>]
     static member build (profile: string option)
                         (args: string option) =
         let profile = profile |> map_value (fun profile -> $"--profile {profile}")
@@ -62,7 +60,6 @@ type Cargo() =
     /// </summary>
     /// <param name="profile" example="&quot;release&quot;">Cargo profile for tests (defaults to `dev`).</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Additional arguments passed to `cargo test`.</param>
-    [<RemoteCacheAttribute>]
     static member test (profile: string option)
                        (args: string option) =
         let profile = profile |> map_value (fun profile -> $"--profile {profile}")

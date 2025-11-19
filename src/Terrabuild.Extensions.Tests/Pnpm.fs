@@ -9,10 +9,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Pnpm> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("pnpm", "ci-command --opt1 --opt2") ]
@@ -32,10 +28,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``install cacheability``() =
-    getCacheInfo<Pnpm> "install" |> should equal Cacheability.Local
 
 [<Test>]
 let ``restore batchability``() =
@@ -83,10 +75,6 @@ let ``install batch``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Pnpm> "build" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``build batchability``() =
     getBatchInfo<Pnpm> "build" |> should equal true
 
@@ -126,10 +114,6 @@ let ``build batch``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``test cacheability``() =
-    getCacheInfo<Pnpm> "test" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``test batchability``() =
     getBatchInfo<Pnpm> "test" |> should equal true
 
@@ -167,10 +151,6 @@ let ``test batch``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``run cacheability``() =
-    getCacheInfo<Pnpm> "run" |> should equal Cacheability.Local
 
 [<Test>]
 let ``run some``() =

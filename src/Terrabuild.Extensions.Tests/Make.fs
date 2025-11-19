@@ -10,10 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Make> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("make", "ci-command arg1=\"value1\" arg2=\"value2\" --opt1 --opt2") ]

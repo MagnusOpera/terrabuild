@@ -9,10 +9,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Dotnet> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("dotnet", "ci-command --opt1 --opt2") ]
@@ -36,10 +32,6 @@ let ``__dispatch__ none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``tool__ cacheability``() =
-    getCacheInfo<Dotnet> "tool" |> should equal Cacheability.Local
-
-[<Test>]
 let ``tool_some``() =
     let expected =
         [ shellOp("dotnet", "tool --opt1 --opt2") ]
@@ -59,10 +51,6 @@ let ``tool_none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``restore cacheability``() =
-    getCacheInfo<Dotnet> "restore" |> should equal Cacheability.Local
 
 [<Test>]
 let ``restore batchability``() =
@@ -111,10 +99,6 @@ let ``restore batch``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Dotnet> "build" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build batchability``() =
@@ -175,10 +159,6 @@ let ``build batch``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``pack cacheability``() =
-    getCacheInfo<Dotnet> "pack" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``pack some``() =
     let expected =
         [ shellOp("dotnet", "pack --configuration Release /p:Version=1.2.3 /p:TargetsForTfmSpecificContentInPackage= --opt1 --opt2") ]
@@ -206,10 +186,6 @@ let ``pack none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``publish cacheability``() =
-    getCacheInfo<Dotnet> "publish" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``publish batchability``() =
@@ -266,10 +242,6 @@ let ``publish batch``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``test cacheability``() =
-    getCacheInfo<Dotnet> "test" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``test batchability``() =

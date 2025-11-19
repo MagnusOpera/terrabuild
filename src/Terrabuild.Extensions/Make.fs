@@ -13,7 +13,6 @@ type Make() =
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` variables injected before the target.</param>
     /// <param name="args" example="&quot;-d&quot;">Additional arguments passed to `make`.</param>
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (variables: Map<string, string> option)
                                (args: string option) =

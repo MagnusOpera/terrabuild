@@ -9,10 +9,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Yarn> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("yarn", "ci-command -- --opt1 --opt2") ]
@@ -32,10 +28,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``install cacheability``() =
-    getCacheInfo<Yarn> "install" |> should equal Cacheability.Local
 
 [<Test>]
 let ``install some``() =
@@ -63,10 +55,6 @@ let ``install none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Yarn> "build" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``build some``() =
     let expected =
         [ shellOp("yarn", "build -- --opt1 --opt2") ]
@@ -88,11 +76,6 @@ let ``build none``() =
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``test cacheability``() =
-    getCacheInfo<Yarn> "test" |> should equal Cacheability.Remote
-
-
-[<Test>]
 let ``test some``() =
     let expected =
         [ shellOp("yarn", "test -- --opt1 --opt2") ]
@@ -112,10 +95,6 @@ let ``test none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``run cacheability``() =
-    getCacheInfo<Yarn> "run" |> should equal Cacheability.Local
 
 [<Test>]
 let ``run some``() =

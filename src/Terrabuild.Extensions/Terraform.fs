@@ -28,7 +28,6 @@ type Terraform() =
     /// Runs an arbitrary Terraform command (action name is forwarded to `terraform`).
     /// </summary>
     /// <param name="args" example="&quot;fmt -write=false&quot;">Arguments appended after the Terraform subcommand.</param>
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -42,7 +41,6 @@ type Terraform() =
     /// </summary>
     /// <param name="config" example="&quot;backend.prod.config&quot;">Backend config file passed to `terraform init -backend-config`.</param>
     /// <param name="args" example="&quot;-upgrade&quot;">Additional arguments for `terraform init`.</param>
-    [<LocalCacheAttribute>]
     static member init (config: string option)
                        (args: string option) =
         let config = config |> map_value (fun config -> $"-backend-config={config}")
@@ -58,7 +56,6 @@ type Terraform() =
     /// Validates configuration before planning/applying.
     /// </summary>
     /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform validate`.</param>
-    [<RemoteCacheAttribute>]
     static member validate (args: string option) =
         let args = args |> or_default ""
 
@@ -76,7 +73,6 @@ type Terraform() =
     /// <param name="workspace" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
     /// <param name="create" example="true">Create the workspace when it does not exist.</param>
     /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform workspace select`.</param>
-    [<NoCacheAttribute>]
     static member select (workspace: string option)
                          (create: bool option)
                          (args: string option) =
@@ -96,7 +92,6 @@ type Terraform() =
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param> 
     /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform plan`.</param>
-    [<RemoteCache>]
     static member plan (variables: Map<string, string> option)
                        (args: string option) =
         let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")
@@ -113,7 +108,6 @@ type Terraform() =
     /// </summary>
     /// <param name="no_plan" example="true">Run `apply` without `-out` plan file.</param>
     /// <param name="args" example="&quot;-no-color&quot;">Additional arguments for `terraform apply`.</param>
-    [<RemoteCacheAttribute>]
     static member apply (no_plan: bool option)
                         (args: string option) =
         let planfile = no_plan |> map_false "terrabuild.planfile"
@@ -129,7 +123,6 @@ type Terraform() =
     /// </summary>
     /// <param name="variables" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param> 
     /// <param name="args" example="&quot;&quot;">Additional arguments for `terraform destroy`.</param>
-    [<RemoteCacheAttribute>]
     static member destroy (variables: Map<string, string> option)
                           (args: string option) =
         let vars = variables |> format_space (fun kvp -> $"-var=\"{kvp.Key}={kvp.Value}\"")

@@ -10,10 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``sourcemaps cacheability``() =
-    getCacheInfo<Sentry> "sourcemaps" |> should equal Cacheability.External
-
-[<Test>]
 let ``sourcemaps some``() =
     let expected =
         [ shellOp("sentry-cli", "sourcemaps inject path")

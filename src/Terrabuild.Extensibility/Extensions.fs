@@ -61,21 +61,3 @@ let shellOp(cmd, args) = shellOpErrorLevel(cmd, args, 0)
 [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
 type BatchableAttribute() =
     inherit Attribute()
-
-[<AbstractClass>]
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
-type CacheableAttribute(cacheability: Cacheability) =
-    inherit Attribute()
-    member _.Cacheability = cacheability
-
-type ExternalCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.External)
-
-type RemoteCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Remote)
-
-type LocalCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Local)
-
-type NoCacheAttribute() =
-    inherit CacheableAttribute(Cacheability.Never)

@@ -29,7 +29,6 @@ type Dotnet() =
     /// Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).
     /// </summary>
     /// <param name="args" example="&quot;run -- -v&quot;">Arguments appended after the dotnet command.</param>
-    [<NoCacheAttribute>]
     static member __dispatch__ (context: ActionContext)
                                (args: string option) =
         let args = args |> or_default ""
@@ -43,7 +42,6 @@ type Dotnet() =
     /// Executes `dotnet tool ...` commands.
     /// </summary>
     /// <param name="args" example="&quot;install MagnusOpera.OpenApiGen&quot;">Arguments appended after `dotnet tool`.</param>
-    [<LocalCacheAttribute>]
     static member tool (args: string option) =
         let args = args |> or_default ""
         let ops = [
@@ -59,7 +57,6 @@ type Dotnet() =
     /// <param name="locked" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
     /// <param name="evaluate" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
-    [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member restore (context: ActionContext)
                           (dependencies: bool option)
@@ -94,7 +91,6 @@ type Dotnet() =
     /// <param name="version" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
     /// <param name="dependencies" example="true">Include project dependencies (omit to add `--no-dependencies`).</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
-    [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member build (context: ActionContext)
                         (configuration: string option)
@@ -133,7 +129,6 @@ type Dotnet() =
     /// <param name="build" example="&quot;true&quot;">Build before packing (omit to add `--no-build`).</param>
     /// <param name="version" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
     /// <param name="args" example="&quot;--include-symbols&quot;">Additional arguments for `dotnet pack`.</param>
-    [<RemoteCacheAttribute>]
     static member pack (configuration: string option)
                        (version: string option)
                        (restore: bool option)
@@ -160,7 +155,6 @@ type Dotnet() =
     /// <param name="trim" example="true">Adds `-p:PublishTrimmed=true`.</param>
     /// <param name="single" example="true">Publishes self-contained (`--self-contained`).</param>
     /// <param name="args" example="&quot;--version-suffix beta&quot;">Additional arguments for `dotnet publish`.</param>
-    [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member publish (context: ActionContext)
                           (configuration: string option)
@@ -198,7 +192,6 @@ type Dotnet() =
     /// <param name="build" example="&quot;true&quot;">Build before testing (omit to add `--no-build`).</param>
     /// <param name="filter" example="&quot;TestCategory!=integration&quot;">Test filter expression (`--filter`).</param>
     /// <param name="args" example="&quot;--blame-hang&quot;">Additional arguments for `dotnet test`.</param>
-    [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
     static member test (context: ActionContext)
                        (configuration: string option)

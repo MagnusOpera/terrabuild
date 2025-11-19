@@ -10,11 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Docker> "__dispatch__"
-    |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("docker", "ci-command --opt1 --opt2") ]
@@ -33,10 +28,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Docker> "build" |> should equal Cacheability.External
 
 [<Test>]
 let ``build some ci``() =
@@ -83,11 +74,6 @@ let ``build none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``push cacheability``() =
-    getCacheInfo<Docker> "push" |> should equal Cacheability.External
-
 
 [<Test>]
 let ``push some ci``() =

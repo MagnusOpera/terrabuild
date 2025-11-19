@@ -10,10 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``__dispatch__ cacheability``() =
-    getCacheInfo<Gradle> "__dispatch__" |> should equal Cacheability.Never
-
-[<Test>]
 let ``__dispatch__ some``() =
     let expected =
         [ shellOp("gradle", "ci-command --opt1 --opt2") ]
@@ -32,10 +28,6 @@ let ``__dispatch__ none``() =
     |> should equal expected
 
 // ------------------------------------------------------------------------------------------------
-
-[<Test>]
-let ``build cacheability``() =
-    getCacheInfo<Gradle> "build" |> should equal Cacheability.Remote
 
 [<Test>]
 let ``build some``() =

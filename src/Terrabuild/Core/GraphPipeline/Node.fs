@@ -77,8 +77,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             for (project, target) in allDeps do
                 buildNode project target
 
-            let cachable, batchable, ops =
-                targetConfig.Operations |> List.fold (fun (_, batchable, ops) operation ->
+            let batchable, ops =
+                targetConfig.Operations |> List.fold (fun (batchable, ops) operation ->
                     let optContext =
                         { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
                           Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
@@ -93,16 +93,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             |> Map.add "context" (Terrabuild.Expressions.Value.Object optContext)
                             |> Terrabuild.Expressions.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
-
-                    let cacheability =
-                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
-                        | Some attr ->
-                            match attr.Cacheability with
-                            | Terrabuild.Extensibility.Cacheability.Never -> Artifacts.None
-                            | Terrabuild.Extensibility.Cacheability.Local -> Artifacts.Workspace
-                            | Terrabuild.Extensibility.Cacheability.Remote -> Artifacts.Managed
-                            | Terrabuild.Extensibility.Cacheability.External -> Artifacts.External
-                        | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
                         match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
@@ -125,8 +115,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | Some _ -> batchable
                         | _ -> false
 
-                    cacheability, batchable, ops @ newops
-                ) (Artifacts.Managed, targetConfig.Batch, [])
+                    batchable, ops @ newops
+                ) (targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -139,8 +129,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {targetHash}")
 
-            // cacheability can be overriden by the target
-            let cache = targetConfig.Cache |> Option.defaultValue cachable
+            // managed by default unless overriden on target
+            let cache = targetConfig.Cache |> Option.defaultValue Artifacts.Managed
 
             // no build by default unless force
             let build =

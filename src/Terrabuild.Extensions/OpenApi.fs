@@ -16,7 +16,6 @@ type OpenApi() =
     /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
     /// <param name="properties" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
     /// <param name="args" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
-    [<RemoteCacheAttribute>]
     static member generate (generator: string)
                            (input: string)
                            (output: string)

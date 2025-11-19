@@ -10,10 +10,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``test cacheability``() =
-    getCacheInfo<Playwright> "test" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``test some``() =
     let expected =
         [ shellOp("npx", "playwright test --browser webkit --project my-project --opt1 --opt2") ]

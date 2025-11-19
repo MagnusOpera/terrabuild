@@ -24,7 +24,6 @@ type Command = {
     Name: string
     Weight: int option
     Title: string option
-    Cacheability: Cacheability option
     Batchability: bool
     Summary: string
     mutable Parameters: Parameter list
@@ -52,11 +51,6 @@ let (|Extension|Command|) s =
     | Regex "^M:Terrabuild\.Extensions\.([^.]+)\.([^(]+)" [extension; name] -> Command (extension.ToLowerInvariant(), name.ToLowerInvariant())
     | _ -> failwith $"Unknown member kind: {s}"
 
-
-let getCacheInfo (methodInfo: MethodInfo) =
-    match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
-    | :? CacheableAttribute as attr -> Some attr.Cacheability
-    | _ -> None
 
 let getBatchInfo (methodInfo: MethodInfo) = 
     match methodInfo.GetCustomAttribute(typeof<BatchableAttribute>) with
@@ -87,7 +81,6 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
                 |> Seq.map (fun p -> p.Name |> nonNull) |> Set.ofSeq
                 |> Set.remove "context"
 
-            let cacheability = getCacheInfo methodInfo
             let batchability = getBatchInfo methodInfo
 
             match extensions |> Map.tryFind extension with
@@ -113,7 +106,6 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
                 let cmd = { Name = name
                             Title = m.Summary.Title
                             Summary = m.Summary.Value.Trim()
-                            Cacheability = cacheability
                             Batchability = batchability
                             Parameters = prms
                             Weight = m.Summary.Weight }
@@ -129,14 +121,6 @@ let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
 
 let writeCommand extensionDir (command: Command) (batchCommand: Command option) (extension: Extension) =
     
-    let cacheInfo =
-        match command.Cacheability with
-        | None -> "never"
-        | Some Cacheability.Never -> "never"
-        | Some Cacheability.Local -> "local"
-        | Some Cacheability.Remote -> "remote"
-        | Some Cacheability.External -> "external"
-
     let batchInfo =
         if command.Batchability then "yes"
         else "no"
@@ -184,7 +168,6 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
             ""
             "| Capability | Info |"
             "|------------|------|"
-            $"| Cache      | {cacheInfo}"
             $"| Bach      | {batchInfo}"
             ""
 

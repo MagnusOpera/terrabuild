@@ -9,10 +9,6 @@ open TestHelpers
 // ------------------------------------------------------------------------------------------------
 
 [<Test>]
-let ``generate cacheability``() =
-    getCacheInfo<OpenApi> "generate" |> should equal Cacheability.Remote
-
-[<Test>]
 let ``generate some``() =
     let expected =
         [ shellOp("docker-entrypoint.sh", "generate -i api.json -g typescript-axios -o src/api/client --additional-properties={x} --opt1 --opt2") ]
