@@ -17,7 +17,7 @@ let ``check cluster computation``() =
           Node.TargetHash = ""
           Node.ClusterHash = $"hash-{hash}"
           Node.Operations = []
-          Node.Cache = Cacheability.Local
+          Node.Artifacts = Artifacts.Workspace
           Node.Action = action
           Node.Build = Build.Auto }
 

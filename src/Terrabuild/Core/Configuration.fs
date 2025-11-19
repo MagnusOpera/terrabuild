@@ -32,7 +32,7 @@ type Target = {
     Batch: bool
     DependsOn: string set
     Outputs: string set
-    Cache: Cacheability option
+    Cache: Artifacts option
     Operations: TargetOperation list
 }
 
@@ -555,10 +555,10 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some targetCache ->
                     let targetCache = targetCache |> Eval.eval evaluationContext |> Eval.asEnum
                     match targetCache with
-                    | Ok "none" -> Some Cacheability.Never
-                    | Ok "workspace" -> Some Cacheability.Local
-                    | Ok "managed" -> Some Cacheability.Remote
-                    | Ok "external" -> Some Cacheability.External
+                    | Ok "none" -> Some Artifacts.None
+                    | Ok "workspace" -> Some Artifacts.Workspace
+                    | Ok "managed" -> Some Artifacts.Managed
+                    | Ok "external" -> Some Artifacts.External
                     | Ok x -> raiseParseError $"Invalid artifacts value '{x}'"
                     | Error error -> raiseParseError error
 

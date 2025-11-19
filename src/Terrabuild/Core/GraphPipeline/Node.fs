@@ -98,10 +98,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
                         | Some attr ->
                             match attr.Cacheability with
-                            | Terrabuild.Extensibility.Cacheability.Never -> Cacheability.Never
-                            | Terrabuild.Extensibility.Cacheability.Local -> Cacheability.Local
-                            | Terrabuild.Extensibility.Cacheability.Remote -> Cacheability.Remote
-                            | Terrabuild.Extensibility.Cacheability.External -> Cacheability.External
+                            | Terrabuild.Extensibility.Cacheability.Never -> Artifacts.None
+                            | Terrabuild.Extensibility.Cacheability.Local -> Artifacts.Workspace
+                            | Terrabuild.Extensibility.Cacheability.Remote -> Artifacts.Managed
+                            | Terrabuild.Extensibility.Cacheability.External -> Artifacts.External
                         | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
@@ -126,7 +126,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> false
 
                     cacheability, batchable, ops @ newops
-                ) (Cacheability.Remote, targetConfig.Batch, [])
+                ) (Artifacts.Managed, targetConfig.Batch, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -151,7 +151,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 else NodeAction.Ignore
 
             let targetOutput =
-                if cache = Cacheability.Never then Set.empty
+                if cache = Artifacts.None then Set.empty
                 else targetConfig.Outputs
 
             let batchContent = [
@@ -171,7 +171,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.ProjectDir = projectConfig.Directory
                   Node.Target = target
                   Node.Operations = ops
-                  Node.Cache = cache
+                  Node.Artifacts = cache
                   Node.Build = build
 
                   Node.Dependencies = children

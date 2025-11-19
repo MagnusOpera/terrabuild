@@ -13,7 +13,7 @@ let build (graph: Graph) =
                 match node.Action, node.Build with
                 | NodeAction.Build, _ -> true
                 | NodeAction.Restore, Build.Cascade ->
-                    node <- { node with Action = NodeAction.Build; Cache = Cacheability.Local }
+                    node <- { node with Action = NodeAction.Build; Artifacts = Artifacts.Workspace }
                     true
                 | _ ->
                     false
