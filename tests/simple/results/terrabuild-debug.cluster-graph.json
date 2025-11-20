@@ -40,7 +40,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
-      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "targetHash": "1C4D1FE8B55F96A32EE26E218F07C6A63B4D20BFF39DF6DEFBEC84B9A802057E",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -78,8 +78,8 @@
         "*.planfile"
       ],
       "projectHash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
-      "targetHash": "9508C71B3B04133B58D83388E482F6827BA2280443D21E4EC7F0B1FF925792C4",
-      "clusterHash": "9508C71B3B04133B58D83388E482F6827BA2280443D21E4EC7F0B1FF925792C4",
+      "targetHash": "C49F3EDC1FECB95D73844F3FC70EC02395B11AFA6ABD89BB17B99908D3EECBCC",
+      "clusterHash": "C49F3EDC1FECB95D73844F3FC70EC02395B11AFA6ABD89BB17B99908D3EECBCC",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -150,7 +150,7 @@
         "dist/**"
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "CDC065506087634A3799E960A808D126EE572F329612E6C6587A2E6C0047F71A",
+      "targetHash": "1C4D1FE8B55F96A32EE26E218F07C6A63B4D20BFF39DF6DEFBEC84B9A802057E",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -159,7 +159,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install",
+          "arguments": "install",
           "errorLevel": 0
         },
         {
@@ -168,7 +168,7 @@
           "variables": [],
           "metaCommand": "@pnpm build",
           "command": "pnpm",
-          "arguments": "--recursive run build",
+          "arguments": "run build",
           "errorLevel": 0
         }
       ],
@@ -281,7 +281,7 @@
         "dist/**"
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "8BF9867092EBB9158D69619C012BB547B15EC31CAE6398C30E0432C2E2AFF90B",
+      "targetHash": "DCC30DE939178E1876037B1B23A2C2750D8B241EFA0DD5767E56058C4FFFC121",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -290,7 +290,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive install",
+          "arguments": "install",
           "errorLevel": 0
         },
         {
@@ -299,7 +299,7 @@
           "variables": [],
           "metaCommand": "@pnpm build",
           "command": "pnpm",
-          "arguments": "--recursive run build",
+          "arguments": "run build",
           "errorLevel": 0
         }
       ],
