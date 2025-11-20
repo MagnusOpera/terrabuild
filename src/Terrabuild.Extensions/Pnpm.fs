@@ -59,11 +59,11 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
+            | Some batch -> batch.ProjectPaths |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
             | _ -> ""
 
         let ops = [
-            shellOp("pnpm", $"--recursive {filters} install {frozen} {force} {args}")
+            shellOp("pnpm", $"{filters} install {frozen} {force} {args}")
         ]
         ops
 
@@ -79,10 +79,10 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
+            | Some batch -> batch.ProjectPaths |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
             | _ -> ""
         let ops = [
-            shellOp("pnpm", $"--recursive {filters} run build {args}")   
+            shellOp("pnpm", $"{filters} run build {args}")
         ]
         ops
 
@@ -98,10 +98,10 @@ type Pnpm() =
         let args = args |> or_default ""
         let filters =
             match context.Batch with
-            | Some batch -> batch.ProjectPaths |> List.map (fun project -> $"--filter ./{project}") |> String.join " "
+            | Some batch -> batch.ProjectPaths |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
             | _ -> ""
         let ops = [
-            shellOp("pnpm", $"--recursive {filters} run test {args}")   
+            shellOp("pnpm", $"{filters} run test {args}")
         ]
         ops
 

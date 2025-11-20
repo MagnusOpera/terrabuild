@@ -44,7 +44,7 @@ let ``restore batchability``() =
 [<Test>]
 let ``install some``() =
     let expected =
-        [ shellOp("pnpm", "--recursive install --frozen-lockfile --force --opt1 --opt2") ]
+        [ shellOp("pnpm", "install --frozen-lockfile --force --opt1 --opt2") ]
 
     Pnpm.install localContext
                  (Some true) // force
@@ -57,7 +57,7 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        [ shellOp("pnpm", "--recursive install") ]
+        [ shellOp("pnpm", "install") ]
 
     Pnpm.install localContext
                  None // force
@@ -93,7 +93,7 @@ let ``build batchability``() =
 [<Test>]
 let ``build some``() =
     let expected =
-        [ shellOp("pnpm", "--recursive run build --opt1 --opt2") ]
+        [ shellOp("pnpm", "run build --opt1 --opt2") ]
 
     Pnpm.build localContext
                someArgs
@@ -104,7 +104,7 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        [ shellOp("pnpm", "--recursive run build") ]
+        [ shellOp("pnpm", "run build") ]
 
     Pnpm.build localContext
                noneArgs
@@ -136,7 +136,7 @@ let ``test batchability``() =
 [<Test>]
 let ``test some``() =
     let expected =
-        [ shellOp("pnpm", "--recursive run test --opt1 --opt2") ]
+        [ shellOp("pnpm", "run test --opt1 --opt2") ]
 
     Pnpm.test localContext
               someArgs
@@ -147,7 +147,7 @@ let ``test some``() =
 [<Test>]
 let ``test none``() =
     let expected =
-        [ shellOp("pnpm", "--recursive run test") ]
+        [ shellOp("pnpm", "run test") ]
 
     Pnpm.test localContext
               noneArgs
