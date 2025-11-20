@@ -12,7 +12,7 @@ open Terrabuild.Expressions
 let parseWorkspace() =
     let expectedWorkspace =
         let targetBuild = 
-            { TargetBlock.DependsOn = Set [ "^build" ] |> Some
+            { TargetBlock.DependsOn = Set [ "install"; "^build" ] |> Some
               TargetBlock.Build = None
               TargetBlock.Cache = None }
         let targetDist =

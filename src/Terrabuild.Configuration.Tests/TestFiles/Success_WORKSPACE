@@ -9,7 +9,7 @@ workspace {
 }
 
 target build { # comment at end of line
-  depends_on = [ target.^build ]
+  depends_on = [ target.install, target.^build ]
 }
 
 # comment in the middle of the file

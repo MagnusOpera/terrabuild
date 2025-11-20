@@ -25,8 +25,7 @@ extension dummy {
 project id {
   dependencies = [ "../../libraries/shell-lib" ]
   outputs = [ "dist" ]
-  labels = [ "app"
-             "dotnet" ]
+  labels = [ "app", "dotnet" ]
 
   @dotnet { }
 }
@@ -47,7 +46,7 @@ target docker {
   artifacts = ~remote
 
   @shell echo { arguments = trim("building project1 " + local.configuration) }
-  @docker build { arguments = { config: "Release" my_variable: 42 } }
+  @docker build { arguments = { config: "Release", my_variable: 42 } }
   @npm version { arguments = local.npm_version
                  version = "1.0.0" }
 }
