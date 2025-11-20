@@ -1019,7 +1019,7 @@ let _fsyacc_reductions = lazy [|
                 (
                    (
 # 164 "Parser.fsy"
-                                                         _1 @ [_3] 
+                                                        _1 @ [_3] 
                    )
 # 164 "Parser.fsy"
                  : 'gentype_ExprListContent));

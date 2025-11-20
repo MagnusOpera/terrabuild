@@ -161,7 +161,7 @@ ExprList:
 ExprListContent:
     | /* empty */ { [] }
     | ExprListContent Expr { $1 @ [$2] }
-    | ExprListContent COMMA Expr  { $1 @ [$3] }
+    | ExprListContent COMMA Expr { $1 @ [$3] }
 
 ExprMap:
     | LBRACE ExprMapContent RBRACE { $2 }
