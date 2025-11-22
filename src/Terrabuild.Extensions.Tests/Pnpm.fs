@@ -44,7 +44,7 @@ let ``restore batchability``() =
 [<Test>]
 let ``install some``() =
     let expected =
-        [ shellOp("pnpm", "install --frozen-lockfile --force --opt1 --opt2") ]
+        [ shellOp("pnpm", "install --frozen-lockfile --link-workspace-packages --force --opt1 --opt2") ]
 
     Pnpm.install localContext
                  (Some true) // force
@@ -57,7 +57,7 @@ let ``install some``() =
 [<Test>]
 let ``install none``() =
     let expected =
-        [ shellOp("pnpm", "install") ]
+        [ shellOp("pnpm", "install --link-workspace-packages") ]
 
     Pnpm.install localContext
                  None // force
@@ -71,7 +71,7 @@ let ``install batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/npm-app"; "TestFiles/npm-lib" ]
     let expected =
-        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib install") ]
+        [ shellOp("pnpm", "--recursive --filter ./TestFiles/npm-app --filter ./TestFiles/npm-lib install --link-workspace-packages") ]
 
     Pnpm.install (batchContext tmpDir projectDirs)
                  None // force

@@ -63,7 +63,7 @@ type Pnpm() =
             | _ -> ""
 
         let ops = [
-            shellOp("pnpm", $"{filters} install {frozen} {force} {args}")
+            shellOp("pnpm", $"{filters} install {frozen} --link-workspace-packages {force} {args}")
         ]
         ops
 
