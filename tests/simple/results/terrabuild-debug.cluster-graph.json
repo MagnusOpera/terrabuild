@@ -40,7 +40,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
-      "targetHash": "1C4D1FE8B55F96A32EE26E218F07C6A63B4D20BFF39DF6DEFBEC84B9A802057E",
+      "targetHash": "E633CCE4EAE393850477FF17C749A6C4D6DDD735305603BA147A6D262CC7875D",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -49,7 +49,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app install",
+          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app install --link-workspace-packages",
           "errorLevel": 0
         },
         {
@@ -78,8 +78,8 @@
         "*.planfile"
       ],
       "projectHash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
-      "targetHash": "C49F3EDC1FECB95D73844F3FC70EC02395B11AFA6ABD89BB17B99908D3EECBCC",
-      "clusterHash": "C49F3EDC1FECB95D73844F3FC70EC02395B11AFA6ABD89BB17B99908D3EECBCC",
+      "targetHash": "362E32D74B6E7A57384F6837CECEE5E1FCFF85667A97DCBF82A81773D0D7796B",
+      "clusterHash": "362E32D74B6E7A57384F6837CECEE5E1FCFF85667A97DCBF82A81773D0D7796B",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -150,7 +150,7 @@
         "dist/**"
       ],
       "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "1C4D1FE8B55F96A32EE26E218F07C6A63B4D20BFF39DF6DEFBEC84B9A802057E",
+      "targetHash": "E633CCE4EAE393850477FF17C749A6C4D6DDD735305603BA147A6D262CC7875D",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -159,7 +159,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "install",
+          "arguments": "install --link-workspace-packages",
           "errorLevel": 0
         },
         {
@@ -281,7 +281,7 @@
         "dist/**"
       ],
       "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "DCC30DE939178E1876037B1B23A2C2750D8B241EFA0DD5767E56058C4FFFC121",
+      "targetHash": "1B65587583E4485AACB45C282E44DE11B2E6BB2AE5674382195103B19A9488BB",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
@@ -290,7 +290,7 @@
           "variables": [],
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "install",
+          "arguments": "install --link-workspace-packages",
           "errorLevel": 0
         },
         {
