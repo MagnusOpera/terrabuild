@@ -1,0 +1,31 @@
+{
+  "nodes": {
+    "app:build": {
+      "id": "app:build",
+      "projectId": "app",
+      "projectDir": "app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "B793770F4B97033578C958110E6ED19D2EEF3B1065CFD04BE9533B57CBFAF8A7",
+      "targetHash": "226E04B6CA86EB3638D42F6AA311C8E0F8112E5EE0FC3728CE3E92C39F369E2A",
+      "clusterHash": "226E04B6CA86EB3638D42F6AA311C8E0F8112E5EE0FC3728CE3E92C39F369E2A",
+      "operations": [
+        {
+          "variables": [],
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building app with lib version: 7FD817155866617209934E42ADA9F1D73CBB4E3E05654C150D935FDC19525991",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
+      "build": "always",
+      "action": "build"
+    }
+  },
+  "rootNodes": [
+    "app:build"
+  ],
+  "clusters": {}
+}

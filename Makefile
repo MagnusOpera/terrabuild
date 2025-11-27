@@ -172,7 +172,8 @@ define run_integration_test
 	$(call diff_results,$(1))
 endef
 
-# $(call run_integration_test, tests/cluster-layers, run build --force --debug -p 2 --log)
+smoke-test-basic:
+	$(call run_integration_test, tests/basic, run build --environment dev --force --debug --parallel 2 --log --engine docker --local-only)
 
 smoke-test-cluster-layers:
 	$(call run_integration_test, tests/cluster-layers, run build --force --debug --parallel 2 --log --engine docker --local-only)
@@ -186,4 +187,4 @@ smoke-test-simple:
 smoke-indirect-target:
 	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --engine docker --local-only)
 
-smoke-tests: smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target
+smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target
