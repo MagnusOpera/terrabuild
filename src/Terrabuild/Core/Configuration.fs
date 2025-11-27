@@ -324,8 +324,8 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             match options.Environment, environments with
             | Some environment, Some environments ->
                 let matcher = Matcher()
-                matcher.AddIncludePatterns(environments)
-                matcher.Match([environment]).HasMatches
+                matcher.AddIncludePatterns(environments |> Seq.map String.toLower)
+                matcher.Match([environment |> String.toLower]).HasMatches
             | _ -> true
         if isProjectEnabledForEnvironment then
             Log.Debug("Enabling project '{ProjectId}'", projectDir)
