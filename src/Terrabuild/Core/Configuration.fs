@@ -325,10 +325,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             | Some environment, Some environments -> environments |> Set.contains environment
             | _ -> true
         if isProjectEnabledForEnvironment then
-            Log.Debug("Including project '{ProjectId}'", projectDir)
+            Log.Debug("Enabling project '{ProjectId}'", projectDir)
             buildProjectTargets()
         else
-            Log.Debug("Excluding project '{ProjectId}'", projectDir)
+            Log.Debug("Disabling project '{ProjectId}'", projectDir)
             Map.empty
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
