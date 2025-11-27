@@ -45,7 +45,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                 // task is cached
                 elif node.Artifacts = GraphDef.Artifacts.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
-                    (GraphDef.NodeAction.Ignore, summary.EndedAt)
+                    (GraphDef.NodeAction.Summary, summary.EndedAt)
                 else
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Restore, summary.EndedAt)
