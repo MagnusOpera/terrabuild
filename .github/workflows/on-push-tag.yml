@@ -98,10 +98,10 @@ jobs:
 
       - name: Sign Binaries
         run: |
-          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/x64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
           codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/arm64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
-          (cd .out/darwin/x64; zip ../terrabuild-${BUILD_VERSION}-darwin-x64.zip ./*)
+          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/x64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
           (cd .out/darwin/arm64; zip ../terrabuild-${BUILD_VERSION}-darwin-arm64.zip ./*)
+          (cd .out/darwin/x64; zip ../terrabuild-${BUILD_VERSION}-darwin-x64.zip ./*)
 
       - name: Archive Signed Binaries
         uses: actions/upload-artifact@v4
