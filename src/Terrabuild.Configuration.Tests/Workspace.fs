@@ -55,7 +55,7 @@ let parseWorkspace() =
           WorkspaceFile.Targets = Map [ "build", targetBuild
                                         "dist", targetDist
                                         "dummy", targetDummy ]
-          WorkspaceFile.Variables = Map.empty
+          WorkspaceFile.Variables = Map [ "infra_env", Expr.String "dev" |> Some ]
           WorkspaceFile.Locals = Map.empty
           WorkspaceFile.Extensions = Map [ "dotnet", extDotnet
                                            "docker", extDocker
