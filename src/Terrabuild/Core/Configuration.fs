@@ -306,16 +306,25 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let projectTargets =
         // apply target override
-        projectConfig.Targets |> Map.map (fun targetName targetBlock ->
-            // apply workspace default value
-            let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
-            let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
-            let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
-            let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
-            { targetBlock with 
-                Build = build
-                DependsOn = dependsOn
-                Cache = cache })
+        let buildProjectTargets() =
+            projectConfig.Targets |> Map.map (fun targetName targetBlock ->
+                // apply workspace default value
+                let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
+                let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
+                let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
+                let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+                { targetBlock with 
+                    Build = build
+                    DependsOn = dependsOn
+                    Cache = cache })
+        let environments =
+            projectConfig.Project.Environments
+            |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
+        match options.Environment, environments with
+        | Some environment, Some environments ->
+            if environments |> Set.contains environment then buildProjectTargets()
+            else Map.empty
+        | _ -> buildProjectTargets()
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =

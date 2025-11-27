@@ -20,7 +20,8 @@ let parseProject() =
               ProjectBlock.Outputs = Expr.List [ Expr.String "dist" ] |> Some
               ProjectBlock.Ignores = None
               ProjectBlock.Includes = None
-              ProjectBlock.Labels = Set [ "app"; "dotnet" ] }
+              ProjectBlock.Labels = Set [ "app"; "dotnet" ]
+              ProjectBlock.Environments = Expr.List [ Expr.String "dev"] |> Some }
 
         let extDotnet =
             { Image = None
@@ -101,7 +102,8 @@ let parseProject2() =
               ProjectBlock.Outputs = None
               ProjectBlock.Ignores = None
               ProjectBlock.Includes = None
-              ProjectBlock.Labels = Set.empty }
+              ProjectBlock.Labels = Set.empty
+              ProjectBlock.Environments = None }
 
         let extDotnet =
             { Image = None

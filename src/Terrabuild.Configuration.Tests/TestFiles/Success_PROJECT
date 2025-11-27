@@ -26,13 +26,13 @@ project id {
   dependencies = [ "../../libraries/shell-lib" ]
   outputs = [ "dist" ]
   labels = [ "app", "dotnet" ]
+  environments = [ "dev" ]
 
   @dotnet { }
 }
 
 target build {
   depends_on = [ target.dist ]
-
   @dotnet build { }
 }
 

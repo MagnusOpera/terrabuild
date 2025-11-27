@@ -12,7 +12,8 @@ type ProjectBlock =
       Outputs: Expr option
       Ignores: Expr option
       Includes: Expr option
-      Labels: Set<string> }
+      Labels: Set<string>
+      Environments: Expr option }
 
 
 type Step =
