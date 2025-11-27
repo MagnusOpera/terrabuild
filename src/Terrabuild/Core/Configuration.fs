@@ -306,16 +306,30 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let projectTargets =
         // apply target override
-        projectConfig.Targets |> Map.map (fun targetName targetBlock ->
-            // apply workspace default value
-            let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
-            let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
-            let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
-            let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
-            { targetBlock with 
-                Build = build
-                DependsOn = dependsOn
-                Cache = cache })
+        let buildProjectTargets() =
+            projectConfig.Targets |> Map.map (fun targetName targetBlock ->
+                // apply workspace default value
+                let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
+                let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
+                let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
+                let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+                { targetBlock with 
+                    Build = build
+                    DependsOn = dependsOn
+                    Cache = cache })
+        let environments =
+            projectConfig.Project.Environments
+            |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
+        let isProjectEnabledForEnvironment =
+            match options.Environment, environments with
+            | Some environment, Some environments -> environments |> Set.contains environment
+            | _ -> true
+        if isProjectEnabledForEnvironment then
+            Log.Debug("Enabling project '{ProjectId}'", projectDir)
+            buildProjectTargets()
+        else
+            Log.Debug("Disabling project '{ProjectId}'", projectDir)
+            Map.empty
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =

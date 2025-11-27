@@ -27,7 +27,7 @@ let (|Project|Extension|Target|Locals|UnknownBlock|) (block: Block) =
 
 let toProject (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "dependencies"; "outputs"; "ignores"; "includes"; "labels"]
+    |> checkAllowedAttributes ["depends_on"; "dependencies"; "outputs"; "ignores"; "includes"; "labels"; "environments"]
     |> ignore
 
     let dependsOn =
@@ -59,6 +59,8 @@ let toProject (block: Block) =
         |> Option.bind (Eval.asStringSetOption << simpleEval)
         |> Option.defaultValue Set.empty
 
+    let environments = block |> tryFindAttribute "environments"
+
     { ProjectBlock.Initializers = initializers
       ProjectBlock.Id = block.Id
       ProjectBlock.DependsOn = dependsOn
@@ -66,7 +68,8 @@ let toProject (block: Block) =
       ProjectBlock.Outputs = outputs
       ProjectBlock.Ignores = ignores
       ProjectBlock.Includes = includes
-      ProjectBlock.Labels = labels }
+      ProjectBlock.Labels = labels
+      ProjectBlock.Environments = environments }
 
 
 let toTarget (block: Block) =
@@ -127,7 +130,8 @@ let transpile (blocks: Block list) =
                             ProjectBlock.Outputs = None
                             ProjectBlock.Ignores = None
                             ProjectBlock.Includes = None
-                            ProjectBlock.Labels = Set.empty }
+                            ProjectBlock.Labels = Set.empty
+                            ProjectBlock.Environments = None }
                 | Some workspace -> workspace
 
             { ProjectFile.Project = project

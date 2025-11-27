@@ -34,7 +34,7 @@
   "projects": {
     "deployments/terraform-deploy": {
       "directory": "deployments/terraform-deploy",
-      "hash": "E2BE58C267E3651A329315363D8412FAAEFBD93DBB4BEDF998B26BBF1B4062B9",
+      "hash": "4391D0F802D1B03FCB5F13DDCF72C7D3742413F9F95DE401391A76C03E2A1FF5",
       "dependencies": [
         "projects/dotnet-app",
         "projects/npm-app"
@@ -92,7 +92,7 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7"
+                        "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332"
                       ],
                       "npm_app_version": [
                         "string",
@@ -338,7 +338,7 @@
     "projects/dotnet-app": {
       "id": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "382AD95EEE440DED4B7908B9B51131966F7D1AB704314FDF57B798412D048BD7",
+      "hash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "dependencies": [
         "libraries/dotnet-lib"
       ],
