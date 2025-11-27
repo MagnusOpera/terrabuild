@@ -320,11 +320,16 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         let environments =
             projectConfig.Project.Environments
             |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
-        match options.Environment, environments with
-        | Some environment, Some environments ->
-            if environments |> Set.contains environment then buildProjectTargets()
-            else Map.empty
-        | _ -> buildProjectTargets()
+        let isProjectEnabledForEnvironment =
+            match options.Environment, environments with
+            | Some environment, Some environments -> environments |> Set.contains environment
+            | _ -> true
+        if isProjectEnabledForEnvironment then
+            Log.Debug("Including project '{ProjectId}'", projectDir)
+            buildProjectTargets()
+        else
+            Log.Debug("Excluding project '{ProjectId}'", projectDir)
+            Map.empty
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
