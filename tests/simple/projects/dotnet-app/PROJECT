@@ -13,6 +13,8 @@ project dotnet_app {
     includes = [ "**/*"
                  "../shared-folder/**/*" ]
 
+    environments = [ "dev" ]
+
     @dotnet { }
 }
 
