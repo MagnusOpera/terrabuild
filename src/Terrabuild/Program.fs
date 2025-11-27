@@ -221,7 +221,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = runArgs.TryGetResult(RunArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
-        let variables = runArgs.GetResults(RunArgs.Variable) |> Map
+        let variables = runArgs.GetResults(RunArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
         let maxConcurrency = runArgs.GetResult(RunArgs.Parallel, defaultValue = Environment.ProcessorCount/2) |> max 1
         let localOnly = runArgs.Contains(RunArgs.Local_Only)
         let tag = runArgs.TryGetResult(RunArgs.Tag)
@@ -267,7 +267,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let types = serveArgs.TryGetResult(ServeArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = serveArgs.TryGetResult(ServeArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = serveArgs.TryGetResult(ServeArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
-        let variables = serveArgs.GetResults(ServeArgs.Variable) |> Map
+        let variables = serveArgs.GetResults(ServeArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.WhatIf = false
                         RunTargetOptions.Debug = debug
@@ -303,7 +303,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let types = logsArgs.TryGetResult(LogsArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = logsArgs.TryGetResult(LogsArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = logsArgs.TryGetResult(LogsArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
-        let variables = logsArgs.GetResults(LogsArgs.Variable) |> Map
+        let variables = logsArgs.GetResults(LogsArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.WhatIf = true
