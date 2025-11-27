@@ -2,6 +2,7 @@
 project app {
     outputs = [ "dist" ]
     labels = [ "app" ]
+    environments = [ "dev*" ]
 
     @shell { }
 }
