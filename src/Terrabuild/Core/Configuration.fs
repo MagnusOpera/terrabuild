@@ -196,12 +196,12 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
                     expr |> Eval.eval evaluationContext |> Some
 
             let value =
-                match $"TB_VAR_{name}" |> Environment.GetEnvironmentVariable with
-                | null ->
+                match $"TB_VAR_{name}" |> Environment.getEnvVar with
+                | Some value -> convertToVarType name defaultValue value |> Some
+                | _ ->
                     match options.Variables |> Map.tryFind name with
                     | None -> defaultValue
                     | Some value -> convertToVarType name defaultValue value |> Some
-                | value -> convertToVarType name defaultValue value |> Some
 
             match value with
             | Some expr -> expr
