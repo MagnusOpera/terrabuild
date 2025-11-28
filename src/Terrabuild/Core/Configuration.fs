@@ -288,7 +288,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let projectId, projectType, realProjectType =
         match projectConfig.Project.Type with
-        | None -> projectId, SCOPE_PATH, None
+        | None -> projectId |> String.toLower, SCOPE_PATH, None
         | Some projectType ->
             let result =
                 Extensions.getScript projectType scripts
@@ -301,7 +301,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
             match canonicalId with
             | Some canonicalId -> canonicalId, $"{projectType}", Some projectType
-            | _ -> projectId, SCOPE_PATH, None
+            | _ -> projectId |> String.toLower, SCOPE_PATH, None
 
     let initProjectInfo =
         projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
@@ -731,7 +731,7 @@ let read (options: ConfigOptions.Options) =
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
-                            let loadedProject = loadProjectDef options workspaceConfig evaluationContext extensions scripts projectPathId
+                            let loadedProject = loadProjectDef options workspaceConfig evaluationContext extensions scripts projectDir
                             match loadedProject.Name with
                             | Some projectId ->
                                 if projectIds.TryAdd(projectId, projectDir) |> not then
