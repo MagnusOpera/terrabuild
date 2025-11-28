@@ -15,6 +15,7 @@
     <Compile Include="Converters.fs" />
     <Compile Include="Humanizer.fs" />
     <Compile Include="Version.fs" />
+    <Compile Include="Environment.fs" />
   </ItemGroup>
 
   <ItemGroup>
