@@ -726,7 +726,7 @@ let read (options: ConfigOptions.Options) =
             if projectLoading.TryAdd(projectDir, true) then
 
                 // parallel load of projects
-                hub.Subscribe projectDir [] (fun () ->
+                hub.SubscribeBackground projectDir [] (fun () ->
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
