@@ -196,7 +196,7 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
                     expr |> Eval.eval evaluationContext |> Some
 
             let value =
-                match $"TB_VAR_{name}" |> Environment.getEnvVar with
+                match name |> Environment.getTerrabuildEnvVar with
                 | Some value -> convertToVarType name defaultValue value |> Some
                 | _ ->
                     match options.Variables |> Map.tryFind name with

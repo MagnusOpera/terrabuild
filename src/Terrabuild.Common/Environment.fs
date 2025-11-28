@@ -19,12 +19,12 @@ let expandTerrabuildHome (terrabuildHome: string) (input: string) : string =
     let pattern = @"(?<!\w)\$(TERRABUILD_HOME)(?![\w])|\$\{TERRABUILD_HOME\}"
     Regex.Replace(input, pattern, terrabuildHome)
 
-let getEnvVar name =
+let getTerrabuildEnvVar name =
     Environment.GetEnvironmentVariables()
     |> Seq.cast<DictionaryEntry>
     |> Seq.tryPick (fun entry ->
         let key = entry.Key :?> string
-        if String.Equals(key, name, StringComparison.OrdinalIgnoreCase) then
+        if key.StartsWith("TB_VAR_") && String.Equals(key, $"TB_VAR_{name}", StringComparison.OrdinalIgnoreCase) then
             Some (entry.Value |> nonNull :?> string)
         else
             None)
