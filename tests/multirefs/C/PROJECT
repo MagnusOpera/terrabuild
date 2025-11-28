@@ -1,3 +1,4 @@
+project c { }
 
 target build {
     @shell echo { args = "building C" }

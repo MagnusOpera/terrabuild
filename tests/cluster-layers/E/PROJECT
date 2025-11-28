@@ -1,5 +1,5 @@
-project {
-    dependencies = [ "/C" ]
+project e {
+    depends_on = [ project.c ]
 
     @dotnet { }
 }

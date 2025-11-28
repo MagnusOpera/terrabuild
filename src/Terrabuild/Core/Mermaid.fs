@@ -23,7 +23,7 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
                 |> Option.defaultValue ""
 
             let nodeTitle =
-                match node.ProjectId with
+                match node.ProjectName with
                 | None -> node.Target
                 | Some projectId -> $"{node.Target} {projectId}"
             $"{node.Id}(\"<b>{nodeTitle}</b> {status}\n{node.ProjectDir}\")"

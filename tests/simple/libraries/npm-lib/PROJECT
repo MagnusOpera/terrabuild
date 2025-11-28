@@ -1,5 +1,5 @@
 
-project {
+project npm_lib {
     labels = [ "app" ]
 
     @pnpm { }

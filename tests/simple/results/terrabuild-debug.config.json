@@ -1,15 +1,15 @@
 {
   "selectedProjects": [
-    "deployments/terraform-deploy",
-    "libraries/dotnet-lib",
-    "libraries/npm-lib",
-    "libraries/shell-lib",
-    "projects/dotnet-app",
-    "projects/make-app",
-    "projects/npm-app",
-    "projects/open-api",
-    "projects/rust-app",
-    "tests/playwright"
+    "@pnpm(npm-app)",
+    "@pnpm(npm-lib)",
+    "workspace/path(deployments/terraform-deploy)",
+    "workspace/path(libraries/dotnet-lib)",
+    "workspace/path(libraries/shell-lib)",
+    "workspace/path(projects/dotnet-app)",
+    "workspace/path(projects/make-app)",
+    "workspace/path(projects/open-api)",
+    "workspace/path(projects/rust-app)",
+    "workspace/path(tests/playwright)"
   ],
   "targets": {
     "build": [
@@ -32,12 +32,147 @@
     ]
   },
   "projects": {
-    "deployments/terraform-deploy": {
-      "directory": "deployments/terraform-deploy",
-      "hash": "4391D0F802D1B03FCB5F13DDCF72C7D3742413F9F95DE401391A76C03E2A1FF5",
+    "@pnpm(npm-app)": {
+      "id": "@pnpm(npm-app)",
+      "name": "npm_app",
+      "directory": "projects/npm-app",
+      "hash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
       "dependencies": [
-        "projects/dotnet-app",
-        "projects/npm-app"
+        "@pnpm(npm-lib)"
+      ],
+      "files": [
+        ".gitignore",
+        "PROJECT",
+        "index.html",
+        "package.json",
+        "pnpm-lock.yaml",
+        "public/vite.svg",
+        "src/App.tsx",
+        "src/counter.ts",
+        "src/main.tsx",
+        "src/style.css",
+        "src/typescript.svg",
+        "src/vite-env.d.ts",
+        "tsconfig.json",
+        "vite.config.ts"
+      ],
+      "targets": {
+        "build": {
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "batch": true,
+          "dependsOn": [
+            "^build"
+          ],
+          "outputs": [
+            "dist/**"
+          ],
+          "operations": [
+            {
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@pnpm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
+            {
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@pnpm",
+              "command": "build",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app"
+      ],
+      "types": [
+        "@pnpm"
+      ]
+    },
+    "@pnpm(npm-lib)": {
+      "id": "@pnpm(npm-lib)",
+      "name": "npm_lib",
+      "directory": "libraries/npm-lib",
+      "hash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
+      "dependencies": [],
+      "files": [
+        "PROJECT",
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/Button.tsx",
+        "src/index.tsx",
+        "src/logger.ts",
+        "src/say-hello.ts",
+        "tsconfig.json"
+      ],
+      "targets": {
+        "build": {
+          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
+          "batch": true,
+          "dependsOn": [
+            "^build"
+          ],
+          "outputs": [
+            "dist/**"
+          ],
+          "operations": [
+            {
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
+              "image": "guergeiro/pnpm:20-10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@pnpm",
+              "command": "install",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            },
+            {
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
+              "image": "guergeiro/pnpm:20-10",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "extension": "@pnpm",
+              "command": "build",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app"
+      ],
+      "types": [
+        "@pnpm"
+      ]
+    },
+    "workspace/path(deployments/terraform-deploy)": {
+      "id": "workspace/path(deployments/terraform-deploy)",
+      "directory": "deployments/terraform-deploy",
+      "hash": "3CBDEDC0FBF6FC914B350938367420CBB48C4245A2F5E27010092EDF137A1D64",
+      "dependencies": [
+        "@pnpm(npm-app)",
+        "workspace/path(projects/dotnet-app)"
       ],
       "files": [
         ".gitignore",
@@ -96,7 +231,7 @@
                       ],
                       "npm_app_version": [
                         "string",
-                        "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4"
+                        "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E"
                       ]
                     }
                   ],
@@ -165,7 +300,8 @@
         "@terraform"
       ]
     },
-    "libraries/dotnet-lib": {
+    "workspace/path(libraries/dotnet-lib)": {
+      "id": "workspace/path(libraries/dotnet-lib)",
       "directory": "libraries/dotnet-lib",
       "hash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "dependencies": [],
@@ -235,71 +371,11 @@
         "@dotnet"
       ]
     },
-    "libraries/npm-lib": {
-      "directory": "libraries/npm-lib",
-      "hash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "dependencies": [],
-      "files": [
-        "PROJECT",
-        "package-lock.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/Button.tsx",
-        "src/index.tsx",
-        "src/logger.ts",
-        "src/say-hello.ts",
-        "tsconfig.json"
-      ],
-      "targets": {
-        "build": {
-          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-          "batch": true,
-          "dependsOn": [
-            "^build"
-          ],
-          "outputs": [
-            "dist/**"
-          ],
-          "operations": [
-            {
-              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
-              "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
-              "containerVariables": [],
-              "extension": "@pnpm",
-              "command": "install",
-              "script": {},
-              "context": [
-                "map",
-                {}
-              ]
-            },
-            {
-              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
-              "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
-              "containerVariables": [],
-              "extension": "@pnpm",
-              "command": "build",
-              "script": {},
-              "context": [
-                "map",
-                {}
-              ]
-            }
-          ]
-        }
-      },
-      "labels": [
-        "app"
-      ],
-      "types": [
-        "@pnpm"
-      ]
-    },
-    "libraries/shell-lib": {
+    "workspace/path(libraries/shell-lib)": {
+      "id": "workspace/path(libraries/shell-lib)",
+      "name": "shell_lib",
       "directory": "libraries/shell-lib",
-      "hash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
+      "hash": "F5BF463EE65DE11178E5493A4A2524D840424991FD309D92A4EA1E6F04ECBB19",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -335,12 +411,13 @@
       "labels": [],
       "types": []
     },
-    "projects/dotnet-app": {
-      "id": "dotnet_app",
+    "workspace/path(projects/dotnet-app)": {
+      "id": "workspace/path(projects/dotnet-app)",
+      "name": "dotnet_app",
       "directory": "projects/dotnet-app",
       "hash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "dependencies": [
-        "libraries/dotnet-lib"
+        "workspace/path(libraries/dotnet-lib)"
       ],
       "files": [
         "../shared-folder/Terminal.cs",
@@ -510,11 +587,12 @@
         "@dotnet"
       ]
     },
-    "projects/make-app": {
+    "workspace/path(projects/make-app)": {
+      "id": "workspace/path(projects/make-app)",
       "directory": "projects/make-app",
-      "hash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
+      "hash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
       "dependencies": [
-        "libraries/shell-lib"
+        "workspace/path(libraries/shell-lib)"
       ],
       "files": [
         "Makefile",
@@ -576,78 +654,8 @@
       ],
       "types": []
     },
-    "projects/npm-app": {
-      "id": "npm_app",
-      "directory": "projects/npm-app",
-      "hash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "dependencies": [
-        "libraries/npm-lib"
-      ],
-      "files": [
-        ".gitignore",
-        "PROJECT",
-        "index.html",
-        "package-lock.json",
-        "package.json",
-        "pnpm-lock.yaml",
-        "public/vite.svg",
-        "src/App.tsx",
-        "src/counter.ts",
-        "src/main.tsx",
-        "src/style.css",
-        "src/typescript.svg",
-        "src/vite-env.d.ts",
-        "tsconfig.json",
-        "vite.config.ts"
-      ],
-      "targets": {
-        "build": {
-          "hash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-          "batch": true,
-          "dependsOn": [
-            "^build"
-          ],
-          "outputs": [
-            "dist/**"
-          ],
-          "operations": [
-            {
-              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
-              "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
-              "containerVariables": [],
-              "extension": "@pnpm",
-              "command": "install",
-              "script": {},
-              "context": [
-                "map",
-                {}
-              ]
-            },
-            {
-              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
-              "image": "guergeiro/pnpm:20-10",
-              "platform": "linux/amd64",
-              "containerVariables": [],
-              "extension": "@pnpm",
-              "command": "build",
-              "script": {},
-              "context": [
-                "map",
-                {}
-              ]
-            }
-          ]
-        }
-      },
-      "labels": [
-        "app"
-      ],
-      "types": [
-        "@pnpm"
-      ]
-    },
-    "projects/open-api": {
+    "workspace/path(projects/open-api)": {
+      "id": "workspace/path(projects/open-api)",
       "directory": "projects/open-api",
       "hash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
       "dependencies": [],
@@ -699,7 +707,8 @@
         "@openapi"
       ]
     },
-    "projects/rust-app": {
+    "workspace/path(projects/rust-app)": {
+      "id": "workspace/path(projects/rust-app)",
       "directory": "projects/rust-app",
       "hash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
       "dependencies": [],
@@ -745,8 +754,9 @@
         "@cargo"
       ]
     },
-    "tests/playwright": {
-      "id": "playwright_test",
+    "workspace/path(tests/playwright)": {
+      "id": "workspace/path(tests/playwright)",
+      "name": "playwright_test",
       "directory": "tests/playwright",
       "hash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
       "dependencies": [],

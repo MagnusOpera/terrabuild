@@ -168,6 +168,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 { Node.Id = nodeId
 
                   Node.ProjectId = projectConfig.Id
+                  Node.ProjectName = projectConfig.Name
                   Node.ProjectDir = projectConfig.Directory
                   Node.Target = target
                   Node.Operations = ops

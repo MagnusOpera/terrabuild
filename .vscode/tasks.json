@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Terrabuild.sln",
+                "${workspaceFolder}/Terrabuild.slnx",
                 "/property:GenerateFullPaths=true",
                 "/property:GenerateDocumentationFile=true",
                 "/consoleloggerparameters:NoSummary"

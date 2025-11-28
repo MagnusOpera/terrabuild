@@ -27,7 +27,7 @@ let (|Project|Extension|Target|Locals|UnknownBlock|) (block: Block) =
 
 let toProject (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "dependencies"; "outputs"; "ignores"; "includes"; "labels"; "environments"]
+    |> checkAllowedAttributes ["depends_on"; "outputs"; "ignores"; "includes"; "labels"; "environments"]
     |> ignore
 
     let dependsOn =
@@ -39,7 +39,6 @@ let toProject (block: Block) =
                 match dependency with
                 | String.Regex "^project\.(.*)$" [_] -> dependency
                 | _ -> raiseInvalidArg $"Invalid project dependency '{dependency}'"))
-    let dependencies = block |> tryFindAttribute "dependencies"
     let outputs = block |> tryFindAttribute "outputs"
     let ignores = block |> tryFindAttribute "ignores"
     let includes = block |> tryFindAttribute "includes"
@@ -54,6 +53,8 @@ let toProject (block: Block) =
         |> Set.ofList
     if initializers.Count <> block.Blocks.Length then raiseInvalidArg $"Duplicated initializers detected"
 
+    let ``type`` = block.Blocks |> List.tryHead |> Option.map (fun block -> block.Resource)
+
     let labels =
         block |> tryFindAttribute "labels"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
@@ -61,10 +62,10 @@ let toProject (block: Block) =
 
     let environments = block |> tryFindAttribute "environments"
 
-    { ProjectBlock.Initializers = initializers
-      ProjectBlock.Id = block.Id
+    { ProjectBlock.Type = ``type``
+      ProjectBlock.Initializers = initializers
+      ProjectBlock.Name = block.Id
       ProjectBlock.DependsOn = dependsOn
-      ProjectBlock.Dependencies = dependencies
       ProjectBlock.Outputs = outputs
       ProjectBlock.Ignores = ignores
       ProjectBlock.Includes = includes
@@ -123,10 +124,10 @@ let transpile (blocks: Block list) =
         | [] ->
             let project =
                 match builder.Project with
-                | None -> { ProjectBlock.Id = None
+                | None -> { ProjectBlock.Type = None
+                            ProjectBlock.Name = None
                             ProjectBlock.Initializers = Set.empty
                             ProjectBlock.DependsOn = None
-                            ProjectBlock.Dependencies = None
                             ProjectBlock.Outputs = None
                             ProjectBlock.Ignores = None
                             ProjectBlock.Includes = None

@@ -16,33 +16,33 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-a:build("<b>build</b> 
+workspace/path(a):build("<b>build a</b> 
 A")
-b:build("<b>build</b> 
+workspace/path(b):build("<b>build b</b> 
 B")
-c:build("<b>build</b> 
+workspace/path(c):build("<b>build c</b> 
 C")
-d:build("<b>build</b> 
+workspace/path(d):build("<b>build d</b> 
 D")
-e:build("<b>build</b> 
+workspace/path(e):build("<b>build e</b> 
 E")
-f:build("<b>build</b> 
+workspace/path(f):build("<b>build f</b> 
 F")
-g:build("<b>build</b> 
+workspace/path(g):build("<b>build g</b> 
 G")
-class a:build ignore
-class b:build ignore
-c:build --> a:build
-c:build --> b:build
-class c:build ignore
-d:build --> c:build
-class d:build ignore
-e:build --> c:build
-class e:build ignore
-f:build --> d:build
-f:build --> e:build
-class f:build ignore
-g:build --> c:build
-class g:build ignore
+class workspace/path(a):build ignore
+class workspace/path(b):build ignore
+workspace/path(c):build --> workspace/path(a):build
+workspace/path(c):build --> workspace/path(b):build
+class workspace/path(c):build ignore
+workspace/path(d):build --> workspace/path(c):build
+class workspace/path(d):build ignore
+workspace/path(e):build --> workspace/path(c):build
+class workspace/path(e):build ignore
+workspace/path(f):build --> workspace/path(d):build
+workspace/path(f):build --> workspace/path(e):build
+class workspace/path(f):build ignore
+workspace/path(g):build --> workspace/path(c):build
+class workspace/path(g):build ignore
 ```
 

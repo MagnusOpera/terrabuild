@@ -17,10 +17,12 @@ type Pnpm() =
     static member __defaults__(context: ExtensionContext) =
         try
             let projectFile = NpmHelpers.findProjectFile context.Directory
-            let dependencies = projectFile |> NpmHelpers.findDependencies 
+            let dependencies = projectFile |> PnpmHelpers.findDependencies 
+            let name = projectFile |> PnpmHelpers.findName 
             let projectInfo = 
                 { ProjectInfo.Default
-                  with Outputs = Set [ "dist/**" ]
+                  with Id = Some name
+                       Outputs = Set [ "dist/**" ]
                        Dependencies = dependencies }
             projectInfo
         with

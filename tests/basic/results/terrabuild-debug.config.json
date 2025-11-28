@@ -1,7 +1,7 @@
 {
   "selectedProjects": [
-    "app",
-    "lib"
+    "workspace/path(app)",
+    "workspace/path(lib)"
   ],
   "targets": {
     "build": [
@@ -21,12 +21,13 @@
     ]
   },
   "projects": {
-    "app": {
-      "id": "app",
+    "workspace/path(app)": {
+      "id": "workspace/path(app)",
+      "name": "appprj",
       "directory": "app",
-      "hash": "B793770F4B97033578C958110E6ED19D2EEF3B1065CFD04BE9533B57CBFAF8A7",
+      "hash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
       "dependencies": [
-        "lib"
+        "workspace/path(lib)"
       ],
       "files": [
         "PROJECT"
@@ -53,7 +54,7 @@
                 {
                   "args": [
                     "string",
-                    "building app with lib version: 7FD817155866617209934E42ADA9F1D73CBB4E3E05654C150D935FDC19525991"
+                    "building app with lib version: CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C"
                   ]
                 }
               ]
@@ -68,10 +69,11 @@
         "@shell"
       ]
     },
-    "lib": {
-      "id": "lib",
+    "workspace/path(lib)": {
+      "id": "workspace/path(lib)",
+      "name": "libprj",
       "directory": "lib",
-      "hash": "7FD817155866617209934E42ADA9F1D73CBB4E3E05654C150D935FDC19525991",
+      "hash": "CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C",
       "dependencies": [],
       "files": [
         "PROJECT"
