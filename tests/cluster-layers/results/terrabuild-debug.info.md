@@ -16,33 +16,33 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-workspace/path|A:build("<b>build a</b> 
+workspace/path(a):build("<b>build a</b> 
 A")
-workspace/path|B:build("<b>build b</b> 
+workspace/path(b):build("<b>build b</b> 
 B")
-workspace/path|C:build("<b>build c</b> 
+workspace/path(c):build("<b>build c</b> 
 C")
-workspace/path|D:build("<b>build d</b> 
+workspace/path(d):build("<b>build d</b> 
 D")
-workspace/path|E:build("<b>build e</b> 
+workspace/path(e):build("<b>build e</b> 
 E")
-workspace/path|F:build("<b>build f</b> 
+workspace/path(f):build("<b>build f</b> 
 F")
-workspace/path|G:build("<b>build g</b> 
+workspace/path(g):build("<b>build g</b> 
 G")
-class workspace/path|A:build ignore
-class workspace/path|B:build ignore
-workspace/path|C:build --> workspace/path|A:build
-workspace/path|C:build --> workspace/path|B:build
-class workspace/path|C:build ignore
-workspace/path|D:build --> workspace/path|C:build
-class workspace/path|D:build ignore
-workspace/path|E:build --> workspace/path|C:build
-class workspace/path|E:build ignore
-workspace/path|F:build --> workspace/path|D:build
-workspace/path|F:build --> workspace/path|E:build
-class workspace/path|F:build ignore
-workspace/path|G:build --> workspace/path|C:build
-class workspace/path|G:build ignore
+class workspace/path(a):build ignore
+class workspace/path(b):build ignore
+workspace/path(c):build --> workspace/path(a):build
+workspace/path(c):build --> workspace/path(b):build
+class workspace/path(c):build ignore
+workspace/path(d):build --> workspace/path(c):build
+class workspace/path(d):build ignore
+workspace/path(e):build --> workspace/path(c):build
+class workspace/path(e):build ignore
+workspace/path(f):build --> workspace/path(d):build
+workspace/path(f):build --> workspace/path(e):build
+class workspace/path(f):build ignore
+workspace/path(g):build --> workspace/path(c):build
+class workspace/path(g):build ignore
 ```
 

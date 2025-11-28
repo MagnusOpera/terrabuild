@@ -1,12 +1,12 @@
 {
   "selectedProjects": [
-    "workspace/path|A",
-    "workspace/path|B",
-    "workspace/path|C",
-    "workspace/path|D",
-    "workspace/path|E",
-    "workspace/path|F",
-    "workspace/path|G"
+    "workspace/path(a)",
+    "workspace/path(b)",
+    "workspace/path(c)",
+    "workspace/path(d)",
+    "workspace/path(e)",
+    "workspace/path(f)",
+    "workspace/path(g)"
   ],
   "targets": {
     "build": [
@@ -14,11 +14,11 @@
     ]
   },
   "projects": {
-    "workspace/path|A": {
-      "id": "workspace/path|A",
+    "workspace/path(a)": {
+      "id": "workspace/path(a)",
       "name": "a",
       "directory": "A",
-      "hash": "D91F41D11787B444F7BC156F84C6663D05F47C59EDFFB0A3E828819D1D22C96C",
+      "hash": "42F47B255FFE2A43D2E20A9EE18D65C1CE7354FF24965E9C292C145863FF3360",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -95,11 +95,11 @@
         "@dotnet"
       ]
     },
-    "workspace/path|B": {
-      "id": "workspace/path|B",
+    "workspace/path(b)": {
+      "id": "workspace/path(b)",
       "name": "b",
       "directory": "B",
-      "hash": "CF6B223F50D5C82F7504A0746F2132440288E2C1E7632755E8F95BED84D943CC",
+      "hash": "4E10C0569915F5E3992A6368C8A830DE4C64F71714A0BB700920A415CB2AA3D1",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -176,14 +176,14 @@
         "@dotnet"
       ]
     },
-    "workspace/path|C": {
-      "id": "workspace/path|C",
+    "workspace/path(c)": {
+      "id": "workspace/path(c)",
       "name": "c",
       "directory": "C",
-      "hash": "7846B55CBF5777AAF8CF3DEAD157F816E8F7EFFFD8657FCC154845F4DC57E950",
+      "hash": "5BEBE8E41AB4E61E126184962CA8F766C15ABF2010D97A36AA0B842BBC8C0AC7",
       "dependencies": [
-        "workspace/path|A",
-        "workspace/path|B"
+        "workspace/path(a)",
+        "workspace/path(b)"
       ],
       "files": [
         "PROJECT",
@@ -249,13 +249,13 @@
         "@npm"
       ]
     },
-    "workspace/path|D": {
-      "id": "workspace/path|D",
+    "workspace/path(d)": {
+      "id": "workspace/path(d)",
       "name": "d",
       "directory": "D",
-      "hash": "CF75D3CC2E9F596FA280C5E6273EA95AFFDB2CA0AB79FA169CD90752916BB846",
+      "hash": "E27EE8CFF9BD151E97E09A8A953929B6DC5E4E242F0EB1BD94FD92562DFC1EB6",
       "dependencies": [
-        "workspace/path|C"
+        "workspace/path(c)"
       ],
       "files": [
         "D.csproj",
@@ -316,13 +316,13 @@
         "@dotnet"
       ]
     },
-    "workspace/path|E": {
-      "id": "workspace/path|E",
+    "workspace/path(e)": {
+      "id": "workspace/path(e)",
       "name": "e",
       "directory": "E",
-      "hash": "11D230EFB53742DC4F5049400C8F561F737B1D0E3552EA66658DDFC7077C3452",
+      "hash": "0913D77CAAD0C42E3E5521DA44216CEEB02C56ADB452C6F1999EA983DC9C9BFB",
       "dependencies": [
-        "workspace/path|C"
+        "workspace/path(c)"
       ],
       "files": [
         "E.csproj",
@@ -383,14 +383,14 @@
         "@dotnet"
       ]
     },
-    "workspace/path|F": {
-      "id": "workspace/path|F",
+    "workspace/path(f)": {
+      "id": "workspace/path(f)",
       "name": "f",
       "directory": "F",
-      "hash": "208948C1D49515D8932A4F06CDF84DF5A3049C999A950748A38A577C11B9AB2A",
+      "hash": "CD05186CADE4A87CF1647E74CE009335E22214012F0571ED0DD24F076D3F1214",
       "dependencies": [
-        "workspace/path|D",
-        "workspace/path|E"
+        "workspace/path(d)",
+        "workspace/path(e)"
       ],
       "files": [
         "PROJECT",
@@ -440,13 +440,13 @@
         "@npm"
       ]
     },
-    "workspace/path|G": {
-      "id": "workspace/path|G",
+    "workspace/path(g)": {
+      "id": "workspace/path(g)",
       "name": "g",
       "directory": "G",
-      "hash": "829E855973BAC79B49478951BFA3F9AB2CD071B100F5C4EF680EB2F5DE676809",
+      "hash": "800B438E49607C325C3CDE362EE1EED20836A81242C507EAB0189AE0DCB7D225",
       "dependencies": [
-        "workspace/path|C"
+        "workspace/path(c)"
       ],
       "files": [
         "PROJECT",

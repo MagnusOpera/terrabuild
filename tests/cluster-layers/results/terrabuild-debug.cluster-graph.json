@@ -1,8 +1,8 @@
 {
   "nodes": {
-    "workspace/path|A:build": {
-      "id": "workspace/path|A:build",
-      "projectId": "workspace/path|A",
+    "workspace/path(a):build": {
+      "id": "workspace/path(a):build",
+      "projectId": "workspace/path(a)",
       "projectName": "a",
       "projectDir": "A",
       "target": "build",
@@ -12,9 +12,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "D91F41D11787B444F7BC156F84C6663D05F47C59EDFFB0A3E828819D1D22C96C",
-      "targetHash": "DD95656D8FA23FBA5E380103916FB21C9B9DD9227F8BD28A0661648811A9D418",
-      "clusterHash": "DD95656D8FA23FBA5E380103916FB21C9B9DD9227F8BD28A0661648811A9D418",
+      "projectHash": "42F47B255FFE2A43D2E20A9EE18D65C1CE7354FF24965E9C292C145863FF3360",
+      "targetHash": "E09A406CDE4B3553FADAC7B7812B7403CBAD77DC5AB95CE18B4CB5BFCA75D8FE",
+      "clusterHash": "E09A406CDE4B3553FADAC7B7812B7403CBAD77DC5AB95CE18B4CB5BFCA75D8FE",
       "operations": [
         {
           "variables": [],
@@ -44,9 +44,9 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|B:build": {
-      "id": "workspace/path|B:build",
-      "projectId": "workspace/path|B",
+    "workspace/path(b):build": {
+      "id": "workspace/path(b):build",
+      "projectId": "workspace/path(b)",
       "projectName": "b",
       "projectDir": "B",
       "target": "build",
@@ -56,9 +56,9 @@
         "bin/",
         "obj/"
       ],
-      "projectHash": "CF6B223F50D5C82F7504A0746F2132440288E2C1E7632755E8F95BED84D943CC",
-      "targetHash": "8A30A977B2CA3FF30E8D3D6F5AD40360302EB35C9200FD0CC14496647567EBD0",
-      "clusterHash": "8A30A977B2CA3FF30E8D3D6F5AD40360302EB35C9200FD0CC14496647567EBD0",
+      "projectHash": "4E10C0569915F5E3992A6368C8A830DE4C64F71714A0BB700920A415CB2AA3D1",
+      "targetHash": "AC9D709858664403B17A439CCD881FB34CB980BC10918A4FEDE32C4784232E0F",
+      "clusterHash": "AC9D709858664403B17A439CCD881FB34CB980BC10918A4FEDE32C4784232E0F",
       "operations": [
         {
           "variables": [],
@@ -88,22 +88,22 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|C:build": {
-      "id": "workspace/path|C:build",
-      "projectId": "workspace/path|C",
+    "workspace/path(c):build": {
+      "id": "workspace/path(c):build",
+      "projectId": "workspace/path(c)",
       "projectName": "c",
       "projectDir": "C",
       "target": "build",
       "dependencies": [
-        "workspace/path|A:build",
-        "workspace/path|B:build"
+        "workspace/path(a):build",
+        "workspace/path(b):build"
       ],
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "7846B55CBF5777AAF8CF3DEAD157F816E8F7EFFFD8657FCC154845F4DC57E950",
-      "targetHash": "99EA1AD2BCE228CB77CC4E4D24EEBEE961F7E23CCE3EBE1CA2C1EAF4646234EA",
-      "clusterHash": "99EA1AD2BCE228CB77CC4E4D24EEBEE961F7E23CCE3EBE1CA2C1EAF4646234EA",
+      "projectHash": "5BEBE8E41AB4E61E126184962CA8F766C15ABF2010D97A36AA0B842BBC8C0AC7",
+      "targetHash": "18A6817111D44893758A076A2322C06848A2709637D8B7153804E9D282BD62BB",
+      "clusterHash": "18A6817111D44893758A076A2322C06848A2709637D8B7153804E9D282BD62BB",
       "operations": [
         {
           "variables": [],
@@ -133,23 +133,23 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|D:build": {
-      "id": "workspace/path|D:build",
-      "projectId": "workspace/path|D",
+    "workspace/path(d):build": {
+      "id": "workspace/path(d):build",
+      "projectId": "workspace/path(d)",
       "projectName": "d",
       "projectDir": "D",
       "target": "build",
       "dependencies": [
-        "workspace/path|C:build"
+        "workspace/path(c):build"
       ],
       "outputs": [
         "**/*.binlog",
         "bin/",
         "obj/"
       ],
-      "projectHash": "CF75D3CC2E9F596FA280C5E6273EA95AFFDB2CA0AB79FA169CD90752916BB846",
-      "targetHash": "1538EDE8B5B1F0142C7C6F59E58303389C2F20587BA054850E47D234553F9EF7",
-      "clusterHash": "1538EDE8B5B1F0142C7C6F59E58303389C2F20587BA054850E47D234553F9EF7",
+      "projectHash": "E27EE8CFF9BD151E97E09A8A953929B6DC5E4E242F0EB1BD94FD92562DFC1EB6",
+      "targetHash": "1E1A04AAE5D1DAA068AD565ECF8BAA6FB6A631D7E0D6A1ABE5B0B620D7D0C93F",
+      "clusterHash": "1E1A04AAE5D1DAA068AD565ECF8BAA6FB6A631D7E0D6A1ABE5B0B620D7D0C93F",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -172,23 +172,23 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|E:build": {
-      "id": "workspace/path|E:build",
-      "projectId": "workspace/path|E",
+    "workspace/path(e):build": {
+      "id": "workspace/path(e):build",
+      "projectId": "workspace/path(e)",
       "projectName": "e",
       "projectDir": "E",
       "target": "build",
       "dependencies": [
-        "workspace/path|C:build"
+        "workspace/path(c):build"
       ],
       "outputs": [
         "**/*.binlog",
         "bin/",
         "obj/"
       ],
-      "projectHash": "11D230EFB53742DC4F5049400C8F561F737B1D0E3552EA66658DDFC7077C3452",
-      "targetHash": "92512630FA1D5B12681A4B5E3BED8CC5CD28919247F5F26CCEFF9B9AAA4BA8CA",
-      "clusterHash": "92512630FA1D5B12681A4B5E3BED8CC5CD28919247F5F26CCEFF9B9AAA4BA8CA",
+      "projectHash": "0913D77CAAD0C42E3E5521DA44216CEEB02C56ADB452C6F1999EA983DC9C9BFB",
+      "targetHash": "5D17BE0F2799B04F2B88FF02A57EB4653B44440D8425D2A34E8B5D15E2265E5C",
+      "clusterHash": "5D17BE0F2799B04F2B88FF02A57EB4653B44440D8425D2A34E8B5D15E2265E5C",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -211,22 +211,22 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|F:build": {
-      "id": "workspace/path|F:build",
-      "projectId": "workspace/path|F",
+    "workspace/path(f):build": {
+      "id": "workspace/path(f):build",
+      "projectId": "workspace/path(f)",
       "projectName": "f",
       "projectDir": "F",
       "target": "build",
       "dependencies": [
-        "workspace/path|D:build",
-        "workspace/path|E:build"
+        "workspace/path(d):build",
+        "workspace/path(e):build"
       ],
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "208948C1D49515D8932A4F06CDF84DF5A3049C999A950748A38A577C11B9AB2A",
-      "targetHash": "1235411B0F26FF1D93DABEE2670951792B7B3968E0DE8853B5399CD4E81A33A4",
-      "clusterHash": "1235411B0F26FF1D93DABEE2670951792B7B3968E0DE8853B5399CD4E81A33A4",
+      "projectHash": "CD05186CADE4A87CF1647E74CE009335E22214012F0571ED0DD24F076D3F1214",
+      "targetHash": "BFF6FAF4055AD65D24AD5A4776F9005DC626E192F61739385ED82257230C2A75",
+      "clusterHash": "BFF6FAF4055AD65D24AD5A4776F9005DC626E192F61739385ED82257230C2A75",
       "operations": [
         {
           "image": "node:20",
@@ -249,21 +249,21 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|G:build": {
-      "id": "workspace/path|G:build",
-      "projectId": "workspace/path|G",
+    "workspace/path(g):build": {
+      "id": "workspace/path(g):build",
+      "projectId": "workspace/path(g)",
       "projectName": "g",
       "projectDir": "G",
       "target": "build",
       "dependencies": [
-        "workspace/path|C:build"
+        "workspace/path(c):build"
       ],
       "outputs": [
         "dist/**"
       ],
-      "projectHash": "829E855973BAC79B49478951BFA3F9AB2CD071B100F5C4EF680EB2F5DE676809",
-      "targetHash": "DA06CB8AA97BBF1C421823BA8884D30285141B127CD0D02522E0201240117BFF",
-      "clusterHash": "DA06CB8AA97BBF1C421823BA8884D30285141B127CD0D02522E0201240117BFF",
+      "projectHash": "800B438E49607C325C3CDE362EE1EED20836A81242C507EAB0189AE0DCB7D225",
+      "targetHash": "48BEB84F6C70F8ED92C7D11BB378B8CDD4B666E0BEEA7CAD4D0D27D7AD80FC8B",
+      "clusterHash": "48BEB84F6C70F8ED92C7D11BB378B8CDD4B666E0BEEA7CAD4D0D27D7AD80FC8B",
       "operations": [
         {
           "image": "node:20",
@@ -288,8 +288,8 @@
     }
   },
   "rootNodes": [
-    "workspace/path|F:build",
-    "workspace/path|G:build"
+    "workspace/path(f):build",
+    "workspace/path(g):build"
   ],
   "clusters": {}
 }

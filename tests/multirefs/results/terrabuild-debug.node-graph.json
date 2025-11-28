@@ -1,19 +1,19 @@
 {
   "nodes": {
-    "workspace/path|A:build": {
-      "id": "workspace/path|A:build",
-      "projectId": "workspace/path|A",
+    "workspace/path(a):build": {
+      "id": "workspace/path(a):build",
+      "projectId": "workspace/path(a)",
       "projectName": "a",
       "projectDir": "A",
       "target": "build",
       "dependencies": [
-        "workspace/path|B:build",
-        "workspace/path|C:build"
+        "workspace/path(b):build",
+        "workspace/path(c):build"
       ],
       "outputs": [],
-      "projectHash": "329E22F3F5EF12649247B3B2E7B896B178BF89700C456AC311AD0490CE69054E",
-      "targetHash": "31C701FC81A1FA1FA24801058D28A582E247D886D658F4EAF2554FE59623D056",
-      "clusterHash": "31C701FC81A1FA1FA24801058D28A582E247D886D658F4EAF2554FE59623D056",
+      "projectHash": "63A3349F003FE9060E0122A5FBE7CB065096FA28F0C2C21733381BFF38C4E678",
+      "targetHash": "4D6415EE641A56905236080805EC40B3E591E955A5ACED7998476A1637F431D3",
+      "clusterHash": "4D6415EE641A56905236080805EC40B3E591E955A5ACED7998476A1637F431D3",
       "operations": [
         {
           "variables": [],
@@ -27,19 +27,19 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|B:build": {
-      "id": "workspace/path|B:build",
-      "projectId": "workspace/path|B",
+    "workspace/path(b):build": {
+      "id": "workspace/path(b):build",
+      "projectId": "workspace/path(b)",
       "projectName": "b",
       "projectDir": "B",
       "target": "build",
       "dependencies": [
-        "workspace/path|C:build"
+        "workspace/path(c):build"
       ],
       "outputs": [],
-      "projectHash": "46A12D23C4839507533286C4849B0472FC1F777E9B6853BBD62A6B85611B7A3D",
-      "targetHash": "BF4B21BB5B83706CE89BB214CD9E779E6CE09DB5DC1915DA82B79ABEA1A30608",
-      "clusterHash": "BF4B21BB5B83706CE89BB214CD9E779E6CE09DB5DC1915DA82B79ABEA1A30608",
+      "projectHash": "E173A4DB883DDBD85BA5D2A3C5FD49A3814F02889E984F0C09C14C72B5DE7F7A",
+      "targetHash": "261E371AE025AA65B9DC797130295C16CDA872959D807E6C79422098723D7DFC",
+      "clusterHash": "261E371AE025AA65B9DC797130295C16CDA872959D807E6C79422098723D7DFC",
       "operations": [
         {
           "variables": [],
@@ -53,17 +53,17 @@
       "build": "always",
       "action": "build"
     },
-    "workspace/path|C:build": {
-      "id": "workspace/path|C:build",
-      "projectId": "workspace/path|C",
+    "workspace/path(c):build": {
+      "id": "workspace/path(c):build",
+      "projectId": "workspace/path(c)",
       "projectName": "c",
       "projectDir": "C",
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "B532FC2B9B3519C3B880DA8C3E919C717A0012BDCBFC7FED59391FA84CBAA6E0",
-      "targetHash": "FA7B33D5089454167D76F7BBB54AEF687E15DD5452BBE85030B8FAFEF2AF3F49",
-      "clusterHash": "FA7B33D5089454167D76F7BBB54AEF687E15DD5452BBE85030B8FAFEF2AF3F49",
+      "projectHash": "977CE3A46143B80A10A86D433F5AA29A81FAFDAF9D9BF29915329530CEAB6610",
+      "targetHash": "C237FE328BDD6D9AC7CF6962BF7357B29CB1B8C48C713FCD39D869F59614D1B1",
+      "clusterHash": "C237FE328BDD6D9AC7CF6962BF7357B29CB1B8C48C713FCD39D869F59614D1B1",
       "operations": [
         {
           "variables": [],
@@ -79,7 +79,7 @@
     }
   },
   "rootNodes": [
-    "workspace/path|A:build"
+    "workspace/path(a):build"
   ],
   "clusters": {}
 }
