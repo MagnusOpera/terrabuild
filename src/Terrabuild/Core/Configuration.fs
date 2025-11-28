@@ -723,8 +723,7 @@ let read (options: ConfigOptions.Options) =
         let hub = Hub.Create(options.MaxConcurrency)
 
         let rec loadProject projectDir =
-            let projectPathId = projectDir |> String.toLower
-            if projectLoading.TryAdd(projectPathId, true) then
+            if projectLoading.TryAdd(projectDir, true) then
 
                 // parallel load of projects
                 hub.Subscribe projectDir [] (fun () ->
