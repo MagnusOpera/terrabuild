@@ -1,17 +1,18 @@
 {
   "nodes": {
-    "a:build": {
-      "id": "a:build",
+    "[path]:A:build": {
+      "id": "[path]:A:build",
+      "projectName": "a",
       "projectDir": "A",
       "target": "build",
       "dependencies": [
-        "b:build",
-        "c:build"
+        "[path]:B:build",
+        "[path]:C:build"
       ],
       "outputs": [],
-      "projectHash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
-      "targetHash": "26541C6E7FA974ABC551CC0E38FEC48A1905E9D34793EE3BBE727D1D3B61F185",
-      "clusterHash": "26541C6E7FA974ABC551CC0E38FEC48A1905E9D34793EE3BBE727D1D3B61F185",
+      "projectHash": "329E22F3F5EF12649247B3B2E7B896B178BF89700C456AC311AD0490CE69054E",
+      "targetHash": "31C701FC81A1FA1FA24801058D28A582E247D886D658F4EAF2554FE59623D056",
+      "clusterHash": "31C701FC81A1FA1FA24801058D28A582E247D886D658F4EAF2554FE59623D056",
       "operations": [
         {
           "variables": [],
@@ -25,17 +26,18 @@
       "build": "always",
       "action": "build"
     },
-    "b:build": {
-      "id": "b:build",
+    "[path]:B:build": {
+      "id": "[path]:B:build",
+      "projectName": "b",
       "projectDir": "B",
       "target": "build",
       "dependencies": [
-        "c:build"
+        "[path]:C:build"
       ],
       "outputs": [],
-      "projectHash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
-      "targetHash": "1820EC5CE34E1A5AFE895A8E868E6F80BBCA2ED30C72C7296DACB268BAD3A5F5",
-      "clusterHash": "1820EC5CE34E1A5AFE895A8E868E6F80BBCA2ED30C72C7296DACB268BAD3A5F5",
+      "projectHash": "46A12D23C4839507533286C4849B0472FC1F777E9B6853BBD62A6B85611B7A3D",
+      "targetHash": "BF4B21BB5B83706CE89BB214CD9E779E6CE09DB5DC1915DA82B79ABEA1A30608",
+      "clusterHash": "BF4B21BB5B83706CE89BB214CD9E779E6CE09DB5DC1915DA82B79ABEA1A30608",
       "operations": [
         {
           "variables": [],
@@ -49,15 +51,16 @@
       "build": "always",
       "action": "build"
     },
-    "c:build": {
-      "id": "c:build",
+    "[path]:C:build": {
+      "id": "[path]:C:build",
+      "projectName": "c",
       "projectDir": "C",
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
-      "targetHash": "88F91D02B22AE31A305FE4A917F106D6B6823425DAFEB5C0605F5A1A6CFE0EC8",
-      "clusterHash": "88F91D02B22AE31A305FE4A917F106D6B6823425DAFEB5C0605F5A1A6CFE0EC8",
+      "projectHash": "B532FC2B9B3519C3B880DA8C3E919C717A0012BDCBFC7FED59391FA84CBAA6E0",
+      "targetHash": "FA7B33D5089454167D76F7BBB54AEF687E15DD5452BBE85030B8FAFEF2AF3F49",
+      "clusterHash": "FA7B33D5089454167D76F7BBB54AEF687E15DD5452BBE85030B8FAFEF2AF3F49",
       "operations": [
         {
           "variables": [],
@@ -73,7 +76,7 @@
     }
   },
   "rootNodes": [
-    "a:build"
+    "[path]:A:build"
   ],
   "clusters": {}
 }

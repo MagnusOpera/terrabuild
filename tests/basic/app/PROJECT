@@ -1,5 +1,5 @@
 
-project app {
+project appprj {
     outputs = [ "dist" ]
     labels = [ "app" ]
     environments = [ "dev*" ]
@@ -8,5 +8,5 @@ project app {
 }
 
 target build {
-    @shell echo { args = "building app with lib version: ${project.lib.version}" }
+    @shell echo { args = "building app with lib version: ${project.libprj.version}" }
 }

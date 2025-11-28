@@ -1,8 +1,8 @@
 {
   "selectedProjects": [
-    "a",
-    "b",
-    "c"
+    "[path]:A",
+    "[path]:B",
+    "[path]:C"
   ],
   "targets": {
     "build": [
@@ -20,12 +20,14 @@
     ]
   },
   "projects": {
-    "a": {
+    "[path]:A": {
+      "id": "[path]:A",
+      "name": "a",
       "directory": "A",
-      "hash": "1236DC4F348466DDB26738AF50F36DED709950582938FF2541558ADCBD64302B",
+      "hash": "329E22F3F5EF12649247B3B2E7B896B178BF89700C456AC311AD0490CE69054E",
       "dependencies": [
-        "b",
-        "c"
+        "[path]:B",
+        "[path]:C"
       ],
       "files": [
         "PROJECT"
@@ -61,11 +63,13 @@
       "labels": [],
       "types": []
     },
-    "b": {
+    "[path]:B": {
+      "id": "[path]:B",
+      "name": "b",
       "directory": "B",
-      "hash": "64037B6465120A716196E492417BD1F7775763D46B7B223D928B2789F7A25399",
+      "hash": "46A12D23C4839507533286C4849B0472FC1F777E9B6853BBD62A6B85611B7A3D",
       "dependencies": [
-        "c"
+        "[path]:C"
       ],
       "files": [
         "PROJECT"
@@ -101,9 +105,11 @@
       "labels": [],
       "types": []
     },
-    "c": {
+    "[path]:C": {
+      "id": "[path]:C",
+      "name": "c",
       "directory": "C",
-      "hash": "82CDD69CAEC1F210C8889F6D9D6B06215D18A3A24D030E146D32A0A7EE6C07F4",
+      "hash": "B532FC2B9B3519C3B880DA8C3E919C717A0012BDCBFC7FED59391FA84CBAA6E0",
       "dependencies": [],
       "files": [
         "PROJECT"

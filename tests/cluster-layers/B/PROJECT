@@ -1,6 +1,4 @@
-project {
-    dependencies = []
-
+project b {
     @dotnet { }
 }
 

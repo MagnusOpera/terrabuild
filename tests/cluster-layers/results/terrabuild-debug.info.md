@@ -16,33 +16,33 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-a:build("<b>build</b> 
+[path]:A:build("<b>build a</b> 
 A")
-b:build("<b>build</b> 
+[path]:B:build("<b>build b</b> 
 B")
-c:build("<b>build</b> 
+[path]:C:build("<b>build c</b> 
 C")
-d:build("<b>build</b> 
+[path]:D:build("<b>build d</b> 
 D")
-e:build("<b>build</b> 
+[path]:E:build("<b>build e</b> 
 E")
-f:build("<b>build</b> 
+[path]:F:build("<b>build f</b> 
 F")
-g:build("<b>build</b> 
+[path]:G:build("<b>build g</b> 
 G")
-class a:build ignore
-class b:build ignore
-c:build --> a:build
-c:build --> b:build
-class c:build ignore
-d:build --> c:build
-class d:build ignore
-e:build --> c:build
-class e:build ignore
-f:build --> d:build
-f:build --> e:build
-class f:build ignore
-g:build --> c:build
-class g:build ignore
+class [path]:A:build ignore
+class [path]:B:build ignore
+[path]:C:build --> [path]:A:build
+[path]:C:build --> [path]:B:build
+class [path]:C:build ignore
+[path]:D:build --> [path]:C:build
+class [path]:D:build ignore
+[path]:E:build --> [path]:C:build
+class [path]:E:build ignore
+[path]:F:build --> [path]:D:build
+[path]:F:build --> [path]:E:build
+class [path]:F:build ignore
+[path]:G:build --> [path]:C:build
+class [path]:G:build ignore
 ```
 

@@ -1,21 +1,21 @@
 {
   "nodes": {
-    "app:build": {
-      "id": "app:build",
-      "projectId": "app",
+    "[path]:app:build": {
+      "id": "[path]:app:build",
+      "projectName": "appprj",
       "projectDir": "app",
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "B793770F4B97033578C958110E6ED19D2EEF3B1065CFD04BE9533B57CBFAF8A7",
-      "targetHash": "226E04B6CA86EB3638D42F6AA311C8E0F8112E5EE0FC3728CE3E92C39F369E2A",
-      "clusterHash": "226E04B6CA86EB3638D42F6AA311C8E0F8112E5EE0FC3728CE3E92C39F369E2A",
+      "projectHash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
+      "targetHash": "4B01442B2C9B9E30715FE578CB72821EA55E0C15B3FAAB9C327A3117C1582505",
+      "clusterHash": "4B01442B2C9B9E30715FE578CB72821EA55E0C15B3FAAB9C327A3117C1582505",
       "operations": [
         {
           "variables": [],
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building app with lib version: 7FD817155866617209934E42ADA9F1D73CBB4E3E05654C150D935FDC19525991",
+          "arguments": "building app with lib version: CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C",
           "errorLevel": 0
         }
       ],
@@ -25,7 +25,7 @@
     }
   },
   "rootNodes": [
-    "app:build"
+    "[path]:app:build"
   ],
   "clusters": {}
 }

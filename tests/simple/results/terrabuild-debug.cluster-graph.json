@@ -2,6 +2,7 @@
   "nodes": {
     "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6": {
       "id": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "projectId": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "projectDir": ".",
       "target": "build",
       "dependencies": [],
@@ -35,6 +36,7 @@
     },
     "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A": {
       "id": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "projectId": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "projectDir": ".",
       "target": "build",
       "dependencies": [],
@@ -66,13 +68,14 @@
       "build": "always",
       "action": "batchBuild"
     },
-    "deployments/terraform-deploy:build": {
-      "id": "deployments/terraform-deploy:build",
+    "[path]:deployments/terraform-deploy:build": {
+      "id": "[path]:deployments/terraform-deploy:build",
+      "projectId": "[path]:deployments/terraform-deploy",
       "projectDir": "deployments/terraform-deploy",
       "target": "build",
       "dependencies": [
-        "projects/dotnet-app:build",
-        "projects/npm-app:build"
+        "[path]:projects/dotnet-app:build",
+        "[path]:projects/npm-app:build"
       ],
       "outputs": [
         "*.planfile"
@@ -104,8 +107,9 @@
       "build": "always",
       "action": "build"
     },
-    "libraries/dotnet-lib:build": {
-      "id": "libraries/dotnet-lib:build",
+    "[path]:libraries/dotnet-lib:build": {
+      "id": "[path]:libraries/dotnet-lib:build",
+      "projectId": "[path]:libraries/dotnet-lib",
       "projectDir": "libraries/dotnet-lib",
       "target": "build",
       "dependencies": [],
@@ -141,8 +145,9 @@
       "build": "always",
       "action": "build"
     },
-    "libraries/npm-lib:build": {
-      "id": "libraries/npm-lib:build",
+    "[path]:libraries/npm-lib:build": {
+      "id": "[path]:libraries/npm-lib:build",
+      "projectId": "[path]:libraries/npm-lib",
       "projectDir": "libraries/npm-lib",
       "target": "build",
       "dependencies": [],
@@ -176,15 +181,17 @@
       "build": "always",
       "action": "build"
     },
-    "libraries/shell-lib:build": {
-      "id": "libraries/shell-lib:build",
+    "[path]:libraries/shell-lib:build": {
+      "id": "[path]:libraries/shell-lib:build",
+      "projectId": "[path]:libraries/shell-lib",
+      "projectName": "shell_lib",
       "projectDir": "libraries/shell-lib",
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
-      "targetHash": "8C64C1C380EEBD3B5769A34459A1D36F0B6B38648E487C2EDCE0995752C4B0D4",
-      "clusterHash": "8C64C1C380EEBD3B5769A34459A1D36F0B6B38648E487C2EDCE0995752C4B0D4",
+      "projectHash": "F5BF463EE65DE11178E5493A4A2524D840424991FD309D92A4EA1E6F04ECBB19",
+      "targetHash": "7F73A11EBA1B446581EC02E6A629033AB17771ABA21F06285518C78B066BDBDF",
+      "clusterHash": "7F73A11EBA1B446581EC02E6A629033AB17771ABA21F06285518C78B066BDBDF",
       "operations": [
         {
           "variables": [],
@@ -198,13 +205,14 @@
       "build": "always",
       "action": "build"
     },
-    "projects/dotnet-app:build": {
-      "id": "projects/dotnet-app:build",
-      "projectId": "dotnet_app",
+    "[path]:projects/dotnet-app:build": {
+      "id": "[path]:projects/dotnet-app:build",
+      "projectId": "[path]:projects/dotnet-app",
+      "projectName": "dotnet_app",
       "projectDir": "projects/dotnet-app",
       "target": "build",
       "dependencies": [
-        "libraries/dotnet-lib:build"
+        "[path]:libraries/dotnet-lib:build"
       ],
       "outputs": [
         "**/*.binlog",
@@ -238,17 +246,18 @@
       "build": "always",
       "action": "build"
     },
-    "projects/make-app:build": {
-      "id": "projects/make-app:build",
+    "[path]:projects/make-app:build": {
+      "id": "[path]:projects/make-app:build",
+      "projectId": "[path]:projects/make-app",
       "projectDir": "projects/make-app",
       "target": "build",
       "dependencies": [
-        "libraries/shell-lib:build"
+        "[path]:libraries/shell-lib:build"
       ],
       "outputs": [],
-      "projectHash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
-      "targetHash": "6D642BC6327271CDE1CF1B1ACE6A650DDAC5D6070431CB55D71284782E649091",
-      "clusterHash": "6D642BC6327271CDE1CF1B1ACE6A650DDAC5D6070431CB55D71284782E649091",
+      "projectHash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
+      "targetHash": "A229DAB8DDBA9B53BA6220F8888E9944DF3EBD5A105CC1D0D72481602BF61599",
+      "clusterHash": "A229DAB8DDBA9B53BA6220F8888E9944DF3EBD5A105CC1D0D72481602BF61599",
       "operations": [
         {
           "variables": [],
@@ -269,13 +278,14 @@
       "build": "always",
       "action": "build"
     },
-    "projects/npm-app:build": {
-      "id": "projects/npm-app:build",
-      "projectId": "npm_app",
+    "[path]:projects/npm-app:build": {
+      "id": "[path]:projects/npm-app:build",
+      "projectId": "[path]:projects/npm-app",
+      "projectName": "npm_app",
       "projectDir": "projects/npm-app",
       "target": "build",
       "dependencies": [
-        "libraries/npm-lib:build"
+        "[path]:libraries/npm-lib:build"
       ],
       "outputs": [
         "dist/**"
@@ -307,8 +317,9 @@
       "build": "always",
       "action": "build"
     },
-    "projects/open-api:build": {
-      "id": "projects/open-api:build",
+    "[path]:projects/open-api:build": {
+      "id": "[path]:projects/open-api:build",
+      "projectId": "[path]:projects/open-api",
       "projectDir": "projects/open-api",
       "target": "build",
       "dependencies": [],
@@ -331,8 +342,9 @@
       "build": "always",
       "action": "build"
     },
-    "projects/rust-app:build": {
-      "id": "projects/rust-app:build",
+    "[path]:projects/rust-app:build": {
+      "id": "[path]:projects/rust-app:build",
+      "projectId": "[path]:projects/rust-app",
       "projectDir": "projects/rust-app",
       "target": "build",
       "dependencies": [],
@@ -358,9 +370,10 @@
       "build": "always",
       "action": "build"
     },
-    "tests/playwright:test": {
-      "id": "tests/playwright:test",
-      "projectId": "playwright_test",
+    "[path]:tests/playwright:test": {
+      "id": "[path]:tests/playwright:test",
+      "projectId": "[path]:tests/playwright",
+      "projectName": "playwright_test",
       "projectDir": "tests/playwright",
       "target": "test",
       "dependencies": [],
@@ -393,20 +406,20 @@
     }
   },
   "rootNodes": [
-    "deployments/terraform-deploy:build",
-    "projects/make-app:build",
-    "projects/open-api:build",
-    "projects/rust-app:build",
-    "tests/playwright:test"
+    "[path]:deployments/terraform-deploy:build",
+    "[path]:projects/make-app:build",
+    "[path]:projects/open-api:build",
+    "[path]:projects/rust-app:build",
+    "[path]:tests/playwright:test"
   ],
   "clusters": {
     "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6": [
-      "libraries/dotnet-lib:build",
-      "projects/dotnet-app:build"
+      "[path]:libraries/dotnet-lib:build",
+      "[path]:projects/dotnet-app:build"
     ],
     "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A": [
-      "libraries/npm-lib:build",
-      "projects/npm-app:build"
+      "[path]:libraries/npm-lib:build",
+      "[path]:projects/npm-app:build"
     ]
   }
 }

@@ -1,6 +1,6 @@
 
 project {
-    dependencies = [ "../../libraries/shell-lib" ]
+    depends_on = [ project.shell_lib ]
     outputs = [ "dist" ]
     labels = [ "app" ]
 }

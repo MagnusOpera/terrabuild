@@ -1,5 +1,5 @@
-project {
-    dependencies = [ "/C" ]
+project g {
+    depends_on = [ project.c ]
 
     @npm { }
 }

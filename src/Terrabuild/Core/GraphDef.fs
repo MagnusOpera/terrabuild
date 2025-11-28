@@ -37,7 +37,8 @@ type NodeAction =
 type Node = {
     Id: string
 
-    ProjectId: string option
+    ProjectId: string
+    ProjectName: string option
     ProjectDir: string
     Target: string
 

@@ -8,7 +8,8 @@ open GraphPipeline.Cluster
 let ``check cluster computation``() =
     let buildNode id hash action deps =
         { Node.Id = id
-          Node.ProjectId = None
+          Node.ProjectId = id
+          Node.ProjectName = None
           Node.ProjectDir = $"/src/project{id}"
           Node.Target = "build"
           Node.Dependencies = deps

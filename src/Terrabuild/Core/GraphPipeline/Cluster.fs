@@ -80,7 +80,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                     Terrabuild.Extensibility.BatchContext.TempDir = options.SharedDir
                     Terrabuild.Extensibility.BatchContext.ProjectPaths = projectDirs
                 }
-            let projectId = headNode.ProjectDir |> String.toLower
+            let projectId = headNode.ProjectId
             let projectConfig = configuration.Projects[projectId]
             let targetConfig = projectConfig.Targets[headNode.Target]
             let ops =
@@ -118,7 +118,8 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
 
             let clusterNode =
                 { GraphDef.Node.Id = clusterHash
-                  GraphDef.Node.ProjectId = None
+                  GraphDef.Node.ProjectId = clusterHash
+                  GraphDef.Node.ProjectName = None
                   GraphDef.Node.ProjectDir = "."
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Operations = ops

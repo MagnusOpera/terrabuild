@@ -1,6 +1,6 @@
 
-project {
-  dependencies = [ "../B" "../C" ]
+project a {
+  depends_on = [ project.b, project.c ]
 }
 
 target build {

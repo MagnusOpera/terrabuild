@@ -39,7 +39,8 @@ type Target = {
 
 [<RequireQualifiedAccess>]
 type Project = {
-    Id: string option
+    Id: string
+    Name: string option
     Directory: string
     Hash: string
     Dependencies: string set
@@ -68,8 +69,9 @@ type private LazyScript = Lazy<Terrabuild.Scripting.Script>
 
 [<RequireQualifiedAccess>]
 type private LoadedProject = {
-    Type: string option
-    Id: string option
+    Id: string
+    Type: string
+    Name: string option
     DependsOn: string set
     Dependencies: string set
     Includes: string set
@@ -272,14 +274,31 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
         |> Option.defaultValue Set.empty
 
+    let parseContext = 
+        let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
+                        Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
+                        Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
+        Value.Map (Map [ "context", Value.Object context ])
+
+    let projectId, projectType, realProjectType =
+        match projectConfig.Project.Type with
+        | None -> projectId, "[path]", None
+        | Some projectType ->
+            let result =
+                Extensions.getScript projectType scripts
+                |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
+            let canonicalId =
+                match result with
+                | Extensions.Success result -> result.Id
+                | Extensions.ScriptNotFound -> raiseSymbolError $"Script {projectType} was not found"
+                | Extensions.TargetNotFound -> None
+                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
+            match canonicalId with
+            | Some canonicalId -> canonicalId, $"[{projectType}]", Some projectType
+            | _ -> projectId, "[path]", None
+
     let initProjectInfo =
         projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
-            let parseContext = 
-                let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
-                                Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
-                                Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
-                Value.Map (Map [ "context", Value.Object context ])
-
             let result =
                 Extensions.getScript init scripts
                 |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
@@ -300,7 +319,11 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         // NOTE we are keeping only project dependencies as we want to construct project graph
         projectConfig.Project.DependsOn |> Option.defaultValue Set.empty
         |> Set.union (Dependencies.reflectionFind projectConfig)
-        |> Set.choose (fun dep -> if dep.StartsWith("project.") then Some dep else None)
+        |> Set.choose (fun dep ->
+            match dep with
+            | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId
+            | _ -> None)
+        |> Set.map (fun depId -> $"[project]:{depId}")
 
     let labels = projectConfig.Project.Labels
     let initializers = projectConfig.Project.Initializers
@@ -337,9 +360,14 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
-        projectConfig.Project.Dependencies |> evalAsStringSet
-        |> Set.union initProjectInfo.Dependencies
-        |> Set.map (fun dep -> FS.workspaceRelative options.Workspace projectDir dep)
+        initProjectInfo.Dependencies
+        |> Set.map (fun dep ->
+            match realProjectType with
+            | Some projectType ->
+                $"{projectType}:{dep}"
+            | None ->
+                let relativeWks = FS.workspaceRelative options.Workspace projectDir dep
+                $"[path]:{relativeWks}")
 
     let projectIncludes =
         projectScripts
@@ -357,8 +385,9 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             if projectConfig.Locals |> Map.containsKey name then raiseParseError $"duplicated local '{name}'")
         workspaceConfig.Locals |> Map.addMap projectConfig.Locals
 
-    { LoadedProject.Type = projectConfig.Project.Type
-      LoadedProject.Id = projectConfig.Project.Id
+    { LoadedProject.Id = projectId
+      LoadedProject.Type = projectType
+      LoadedProject.Name = projectConfig.Project.Name
       LoadedProject.DependsOn = dependsOn
       LoadedProject.Dependencies = projectDependencies
       LoadedProject.Includes = projectIncludes
@@ -376,7 +405,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 // this is the final stage: create targets and create the project
 let private finalizeProject workspaceDir projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
     let startFinalize = DateTime.UtcNow
-    let projectId = projectDir |> String.toLower
+    let projectId = projectDef.Id
 
     // get dependencies on files
     let committedFiles = Git.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
@@ -411,13 +440,13 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
     let evaluationContext = 
         let terrabuildProjectVars =
-            Map [ if projectDef.Id.IsSome then "terrabuild.project", Value.String projectDef.Id.Value
+            Map [ if projectDef.Name.IsSome then "terrabuild.project", Value.String projectDef.Name.Value
                   "terrabuild.project_slug", projectDir |> String.slugify |> Value.String 
                   "terrabuild.version", Value.String projectHash ]
   
         let projectVars =
             projectDependencies |> Seq.choose (fun (KeyValue(_, project)) ->
-                project.Id |> Option.map (fun id ->
+                project.Name |> Option.map (fun id ->
                     $"project.{id}", Value.Map (Map ["version", Value.String project.Hash])))
             |> Map.ofSeq
 
@@ -600,12 +629,13 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
     let relativeFiles = files |> Set.map (FS.relativePath projectDir)
 
-    let projectDependencies = projectDependencies.Keys |> Seq.map String.toLower |> Set.ofSeq
+    let projectDependencies = projectDependencies.Keys |> Set.ofSeq
 
     let endFinalize = DateTime.UtcNow
     Log.Debug("Finalized project '{ProjectId}' for {Duration}", projectDir, endFinalize - startFinalize)
 
-    { Project.Id = projectDef.Id
+    { Project.Id = $"{projectDef.Type}:{projectDef.Id}"
+      Project.Name = projectDef.Name
       Project.Directory = projectDir
       Project.Hash = projectHash
       Project.Dependencies = projectDependencies
@@ -613,7 +643,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
       Project.Targets = projectSteps
       Project.Labels = projectDef.Labels
       Project.Types = projectDef.Initializers }
-
 
 
 
@@ -691,12 +720,12 @@ let read (options: ConfigOptions.Options) =
             if projectLoading.TryAdd(projectPathId, true) then
 
                 // parallel load of projects
-                hub.SubscribeBackground projectDir [] (fun () ->
+                hub.Subscribe projectDir [] (fun () ->
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
                             let loadedProject = loadProjectDef options workspaceConfig evaluationContext extensions scripts projectDir
-                            match loadedProject.Id with
+                            match loadedProject.Name with
                             | Some projectId ->
                                 if projectIds.TryAdd(projectId, projectDir) |> not then
                                     raiseSymbolError $"Project id '{projectId}' is already defined in project '{projectIds[projectId]}'"
@@ -706,23 +735,15 @@ let read (options: ConfigOptions.Options) =
                         with exn ->
                             raiseParserError($"Failed to read PROJECT configuration '{projectDir}'", exn)
 
-                    let dependencies =
-                        let prjType =
-                            match loadedProject.Type with
-                            | Some prjType -> prjType
-                            | _ -> "@terrabuild"
-                        loadedProject.Dependencies |> Set.map (fun dependency -> $"{prjType}:{dependency}")
-
                     // await dependencies to be loaded
                     let projectPathSignals =
-                        dependencies
-                        |> Set.map String.toLower
-                        |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
+                        loadedProject.Dependencies
+                        |> Seq.map (fun depId -> hub.GetSignal<Project> depId)
                         |> List.ofSeq
 
                     let dependsOnSignals =
                         loadedProject.DependsOn
-                        |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
+                        |> Seq.map (fun depId -> hub.GetSignal<Project> depId)
                         |> List.ofSeq
 
                     let awaitedSignals = projectPathSignals @ dependsOnSignals
@@ -731,18 +752,21 @@ let read (options: ConfigOptions.Options) =
                             // build task & code & notify
                             let dependsOnProjects = 
                                 awaitedSignals
-                                |> Seq.map (fun projectDependency -> projectDependency.Get<Project>().Directory, projectDependency.Get<Project>())
+                                |> Seq.map (fun projectDependency ->
+                                    let project = projectDependency.Get<Project>()
+                                    project.Id, project)
                                 |> Map.ofSeq
 
                             let project = finalizeProject options.Workspace projectDir evaluationContext loadedProject dependsOnProjects
-                            if projects.TryAdd(projectPathId, project) |> not then raiseBugError "Unexpected error"
+                            if projects.TryAdd(project.Id, project) |> not then raiseBugError "Unexpected error"
 
-                            let loadedProjectPathIdSignal = hub.GetSignal<Project> projectPathId
+                            // signal canonical id
+                            let loadedProjectPathIdSignal = hub.GetSignal<Project> project.Id
                             loadedProjectPathIdSignal.Set(project)
 
-                            match loadedProject.Id with
+                            match loadedProject.Name with
                             | Some projectId ->
-                                let loadedProjectIdSignal = hub.GetSignal<Project> $"project.{projectId}"
+                                let loadedProjectIdSignal = hub.GetSignal<Project> $"[project]:{projectId}"
                                 loadedProjectIdSignal.Set(project)
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))
@@ -794,7 +818,7 @@ let read (options: ConfigOptions.Options) =
     let projectSelection =
         match options.Projects with
         | Some filter -> projectSelection |> Map.filter (fun _ config ->
-            config.Id
+            config.Name
             |> Option.map(fun id -> filter |> Set.contains id)
             |> Option.defaultValue false)
         | _ -> projectSelection

@@ -1,15 +1,15 @@
 {
   "selectedProjects": [
-    "deployments/terraform-deploy",
-    "libraries/dotnet-lib",
-    "libraries/npm-lib",
-    "libraries/shell-lib",
-    "projects/dotnet-app",
-    "projects/make-app",
-    "projects/npm-app",
-    "projects/open-api",
-    "projects/rust-app",
-    "tests/playwright"
+    "[path]:deployments/terraform-deploy",
+    "[path]:libraries/dotnet-lib",
+    "[path]:libraries/npm-lib",
+    "[path]:libraries/shell-lib",
+    "[path]:projects/dotnet-app",
+    "[path]:projects/make-app",
+    "[path]:projects/npm-app",
+    "[path]:projects/open-api",
+    "[path]:projects/rust-app",
+    "[path]:tests/playwright"
   ],
   "targets": {
     "build": [
@@ -32,12 +32,13 @@
     ]
   },
   "projects": {
-    "deployments/terraform-deploy": {
+    "[path]:deployments/terraform-deploy": {
+      "id": "[path]:deployments/terraform-deploy",
       "directory": "deployments/terraform-deploy",
       "hash": "4391D0F802D1B03FCB5F13DDCF72C7D3742413F9F95DE401391A76C03E2A1FF5",
       "dependencies": [
-        "projects/dotnet-app",
-        "projects/npm-app"
+        "[path]:projects/dotnet-app",
+        "[path]:projects/npm-app"
       ],
       "files": [
         ".gitignore",
@@ -165,7 +166,8 @@
         "@terraform"
       ]
     },
-    "libraries/dotnet-lib": {
+    "[path]:libraries/dotnet-lib": {
+      "id": "[path]:libraries/dotnet-lib",
       "directory": "libraries/dotnet-lib",
       "hash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "dependencies": [],
@@ -235,7 +237,8 @@
         "@dotnet"
       ]
     },
-    "libraries/npm-lib": {
+    "[path]:libraries/npm-lib": {
+      "id": "[path]:libraries/npm-lib",
       "directory": "libraries/npm-lib",
       "hash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
       "dependencies": [],
@@ -297,9 +300,11 @@
         "@pnpm"
       ]
     },
-    "libraries/shell-lib": {
+    "[path]:libraries/shell-lib": {
+      "id": "[path]:libraries/shell-lib",
+      "name": "shell_lib",
       "directory": "libraries/shell-lib",
-      "hash": "9D3C53A24A653065572C01069F663CF6CE4563A68851ED983D208F70CF538DD5",
+      "hash": "F5BF463EE65DE11178E5493A4A2524D840424991FD309D92A4EA1E6F04ECBB19",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -335,12 +340,13 @@
       "labels": [],
       "types": []
     },
-    "projects/dotnet-app": {
-      "id": "dotnet_app",
+    "[path]:projects/dotnet-app": {
+      "id": "[path]:projects/dotnet-app",
+      "name": "dotnet_app",
       "directory": "projects/dotnet-app",
       "hash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "dependencies": [
-        "libraries/dotnet-lib"
+        "[path]:libraries/dotnet-lib"
       ],
       "files": [
         "../shared-folder/Terminal.cs",
@@ -510,11 +516,12 @@
         "@dotnet"
       ]
     },
-    "projects/make-app": {
+    "[path]:projects/make-app": {
+      "id": "[path]:projects/make-app",
       "directory": "projects/make-app",
-      "hash": "56977927C772AA476CEED302386AE6BE9087EB1FAF3D405963ECC63BF421B94C",
+      "hash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
       "dependencies": [
-        "libraries/shell-lib"
+        "[path]:libraries/shell-lib"
       ],
       "files": [
         "Makefile",
@@ -576,12 +583,13 @@
       ],
       "types": []
     },
-    "projects/npm-app": {
-      "id": "npm_app",
+    "[path]:projects/npm-app": {
+      "id": "[path]:projects/npm-app",
+      "name": "npm_app",
       "directory": "projects/npm-app",
       "hash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
       "dependencies": [
-        "libraries/npm-lib"
+        "[path]:libraries/npm-lib"
       ],
       "files": [
         ".gitignore",
@@ -647,7 +655,8 @@
         "@pnpm"
       ]
     },
-    "projects/open-api": {
+    "[path]:projects/open-api": {
+      "id": "[path]:projects/open-api",
       "directory": "projects/open-api",
       "hash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
       "dependencies": [],
@@ -699,7 +708,8 @@
         "@openapi"
       ]
     },
-    "projects/rust-app": {
+    "[path]:projects/rust-app": {
+      "id": "[path]:projects/rust-app",
       "directory": "projects/rust-app",
       "hash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
       "dependencies": [],
@@ -745,8 +755,9 @@
         "@cargo"
       ]
     },
-    "tests/playwright": {
-      "id": "playwright_test",
+    "[path]:tests/playwright": {
+      "id": "[path]:tests/playwright",
+      "name": "playwright_test",
       "directory": "tests/playwright",
       "hash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
       "dependencies": [],
