@@ -54,6 +54,8 @@ let toProject (block: Block) =
         |> Set.ofList
     if initializers.Count <> block.Blocks.Length then raiseInvalidArg $"Duplicated initializers detected"
 
+    let ``type`` = block.Blocks |> List.tryHead |> Option.map (fun block -> block.Resource)
+
     let labels =
         block |> tryFindAttribute "labels"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
@@ -61,7 +63,8 @@ let toProject (block: Block) =
 
     let environments = block |> tryFindAttribute "environments"
 
-    { ProjectBlock.Initializers = initializers
+    { ProjectBlock.Type = ``type``
+      ProjectBlock.Initializers = initializers
       ProjectBlock.Id = block.Id
       ProjectBlock.DependsOn = dependsOn
       ProjectBlock.Dependencies = dependencies
@@ -123,7 +126,8 @@ let transpile (blocks: Block list) =
         | [] ->
             let project =
                 match builder.Project with
-                | None -> { ProjectBlock.Id = None
+                | None -> { ProjectBlock.Type = None
+                            ProjectBlock.Id = None
                             ProjectBlock.Initializers = Set.empty
                             ProjectBlock.DependsOn = None
                             ProjectBlock.Dependencies = None
