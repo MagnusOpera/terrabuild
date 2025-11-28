@@ -372,7 +372,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             | Some projectType ->
                 $"{projectType}({dep})"
             | None ->
-                let relativeWks = FS.workspaceRelative options.Workspace projectDir dep
+                let relativeWks = FS.workspaceRelative options.Workspace projectDir dep |> String.toLower
                 $"{SCOPE_PATH}({relativeWks})")
 
     let projectIncludes =
