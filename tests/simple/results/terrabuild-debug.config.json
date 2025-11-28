@@ -1,15 +1,15 @@
 {
   "selectedProjects": [
-    "@pnpm(npm-app)",
-    "@pnpm(npm-lib)",
-    "workspace/path(deployments/terraform-deploy)",
-    "workspace/path(libraries/dotnet-lib)",
-    "workspace/path(libraries/shell-lib)",
-    "workspace/path(projects/dotnet-app)",
-    "workspace/path(projects/make-app)",
-    "workspace/path(projects/open-api)",
-    "workspace/path(projects/rust-app)",
-    "workspace/path(tests/playwright)"
+    "@pnpm#npm-app",
+    "@pnpm#npm-lib",
+    "workspace/path#deployments/terraform-deploy",
+    "workspace/path#libraries/dotnet-lib",
+    "workspace/path#libraries/shell-lib",
+    "workspace/path#projects/dotnet-app",
+    "workspace/path#projects/make-app",
+    "workspace/path#projects/open-api",
+    "workspace/path#projects/rust-app",
+    "workspace/path#tests/playwright"
   ],
   "targets": {
     "build": [
@@ -32,13 +32,13 @@
     ]
   },
   "projects": {
-    "@pnpm(npm-app)": {
-      "id": "@pnpm(npm-app)",
+    "@pnpm#npm-app": {
+      "id": "@pnpm#npm-app",
       "name": "npm_app",
       "directory": "projects/npm-app",
       "hash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
       "dependencies": [
-        "@pnpm(npm-lib)"
+        "@pnpm#npm-lib"
       ],
       "files": [
         ".gitignore",
@@ -103,8 +103,8 @@
         "@pnpm"
       ]
     },
-    "@pnpm(npm-lib)": {
-      "id": "@pnpm(npm-lib)",
+    "@pnpm#npm-lib": {
+      "id": "@pnpm#npm-lib",
       "name": "npm_lib",
       "directory": "libraries/npm-lib",
       "hash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
@@ -166,13 +166,13 @@
         "@pnpm"
       ]
     },
-    "workspace/path(deployments/terraform-deploy)": {
-      "id": "workspace/path(deployments/terraform-deploy)",
+    "workspace/path#deployments/terraform-deploy": {
+      "id": "workspace/path#deployments/terraform-deploy",
       "directory": "deployments/terraform-deploy",
       "hash": "3CBDEDC0FBF6FC914B350938367420CBB48C4245A2F5E27010092EDF137A1D64",
       "dependencies": [
-        "@pnpm(npm-app)",
-        "workspace/path(projects/dotnet-app)"
+        "@pnpm#npm-app",
+        "workspace/path#projects/dotnet-app"
       ],
       "files": [
         ".gitignore",
@@ -300,8 +300,8 @@
         "@terraform"
       ]
     },
-    "workspace/path(libraries/dotnet-lib)": {
-      "id": "workspace/path(libraries/dotnet-lib)",
+    "workspace/path#libraries/dotnet-lib": {
+      "id": "workspace/path#libraries/dotnet-lib",
       "directory": "libraries/dotnet-lib",
       "hash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "dependencies": [],
@@ -371,8 +371,8 @@
         "@dotnet"
       ]
     },
-    "workspace/path(libraries/shell-lib)": {
-      "id": "workspace/path(libraries/shell-lib)",
+    "workspace/path#libraries/shell-lib": {
+      "id": "workspace/path#libraries/shell-lib",
       "name": "shell_lib",
       "directory": "libraries/shell-lib",
       "hash": "F5BF463EE65DE11178E5493A4A2524D840424991FD309D92A4EA1E6F04ECBB19",
@@ -411,13 +411,13 @@
       "labels": [],
       "types": []
     },
-    "workspace/path(projects/dotnet-app)": {
-      "id": "workspace/path(projects/dotnet-app)",
+    "workspace/path#projects/dotnet-app": {
+      "id": "workspace/path#projects/dotnet-app",
       "name": "dotnet_app",
       "directory": "projects/dotnet-app",
       "hash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "dependencies": [
-        "workspace/path(libraries/dotnet-lib)"
+        "workspace/path#libraries/dotnet-lib"
       ],
       "files": [
         "../shared-folder/Terminal.cs",
@@ -587,12 +587,12 @@
         "@dotnet"
       ]
     },
-    "workspace/path(projects/make-app)": {
-      "id": "workspace/path(projects/make-app)",
+    "workspace/path#projects/make-app": {
+      "id": "workspace/path#projects/make-app",
       "directory": "projects/make-app",
       "hash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
       "dependencies": [
-        "workspace/path(libraries/shell-lib)"
+        "workspace/path#libraries/shell-lib"
       ],
       "files": [
         "Makefile",
@@ -654,8 +654,8 @@
       ],
       "types": []
     },
-    "workspace/path(projects/open-api)": {
-      "id": "workspace/path(projects/open-api)",
+    "workspace/path#projects/open-api": {
+      "id": "workspace/path#projects/open-api",
       "directory": "projects/open-api",
       "hash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
       "dependencies": [],
@@ -707,8 +707,8 @@
         "@openapi"
       ]
     },
-    "workspace/path(projects/rust-app)": {
-      "id": "workspace/path(projects/rust-app)",
+    "workspace/path#projects/rust-app": {
+      "id": "workspace/path#projects/rust-app",
       "directory": "projects/rust-app",
       "hash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
       "dependencies": [],
@@ -754,8 +754,8 @@
         "@cargo"
       ]
     },
-    "workspace/path(tests/playwright)": {
-      "id": "workspace/path(tests/playwright)",
+    "workspace/path#tests/playwright": {
+      "id": "workspace/path#tests/playwright",
       "name": "playwright_test",
       "directory": "tests/playwright",
       "hash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",

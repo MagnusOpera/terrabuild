@@ -1,7 +1,7 @@
 {
   "selectedProjects": [
-    "workspace/path(app)",
-    "workspace/path(lib)"
+    "workspace/path#app",
+    "workspace/path#lib"
   ],
   "targets": {
     "build": [
@@ -21,13 +21,13 @@
     ]
   },
   "projects": {
-    "workspace/path(app)": {
-      "id": "workspace/path(app)",
+    "workspace/path#app": {
+      "id": "workspace/path#app",
       "name": "appprj",
       "directory": "app",
       "hash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
       "dependencies": [
-        "workspace/path(lib)"
+        "workspace/path#lib"
       ],
       "files": [
         "PROJECT"
@@ -69,8 +69,8 @@
         "@shell"
       ]
     },
-    "workspace/path(lib)": {
-      "id": "workspace/path(lib)",
+    "workspace/path#lib": {
+      "id": "workspace/path#lib",
       "name": "libprj",
       "directory": "lib",
       "hash": "CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C",

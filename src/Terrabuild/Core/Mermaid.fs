@@ -10,6 +10,9 @@ type GetOrigin = Node -> Build.TaskRequest option
 
 
 let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: Graph) =
+    let sanitize (s: string) =
+        s.Replace("@", "#")
+
     let mermaid = [
         "flowchart TD"
         $"classDef build stroke:red,stroke-width:3px"
@@ -26,12 +29,12 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
                 match node.ProjectName with
                 | None -> node.Target
                 | Some projectId -> $"{node.Target} {projectId}"
-            $"{node.Id}(\"<b>{nodeTitle}</b> {status}\n{node.ProjectDir}\")"
+            $"{node.Id |> sanitize}(\"<b>{nodeTitle}</b> {status}\n{node.ProjectDir}\")"
 
         for (KeyValue(_, node)) in graph.Nodes do
             for dependency in node.Dependencies do
                 match graph.Nodes |> Map.tryFind dependency with
-                | Some dstNode -> $"{node.Id} --> {dstNode.Id}"
+                | Some dstNode -> $"{node.Id |> sanitize} --> {dstNode.Id |> sanitize}"
                 | _ -> ()
 
             let origin =
@@ -39,9 +42,9 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
                 |> Option.bind (fun getOrigin -> getOrigin node)
 
             match origin with
-            | Some request when request.IsBuild -> $"class {node.Id} build"
-            | Some request when request.IsRestore -> $"class {node.Id} restore"
-            | _ -> $"class {node.Id} ignore"
+            | Some request when request.IsBuild -> $"class {node.Id |> sanitize} build"
+            | Some request when request.IsRestore -> $"class {node.Id |> sanitize} restore"
+            | _ -> $"class {node.Id |> sanitize} ignore"
     ]
 
     mermaid
