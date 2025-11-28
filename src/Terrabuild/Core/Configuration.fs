@@ -118,6 +118,12 @@ let default_ignores = Set [
     "dist"
 ]
 
+[<Literal>]
+let private SCOPE_PATH = "@workspace/path"
+
+[<Literal>]
+let private SCOPE_NAME = "@workspace/name"
+
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
@@ -282,7 +288,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let projectId, projectType, realProjectType =
         match projectConfig.Project.Type with
-        | None -> projectId, "[path]", None
+        | None -> projectId, SCOPE_PATH, None
         | Some projectType ->
             let result =
                 Extensions.getScript projectType scripts
@@ -294,8 +300,8 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 | Extensions.TargetNotFound -> None
                 | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
             match canonicalId with
-            | Some canonicalId -> canonicalId, $"[{projectType}]", Some projectType
-            | _ -> projectId, "[path]", None
+            | Some canonicalId -> canonicalId, $"{projectType}", Some projectType
+            | _ -> projectId, SCOPE_PATH, None
 
     let initProjectInfo =
         projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
@@ -323,7 +329,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             match dep with
             | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId
             | _ -> None)
-        |> Set.map (fun depId -> $"[project]:{depId}")
+        |> Set.map (fun depId -> $"{SCOPE_NAME}:{depId}")
 
     let labels = projectConfig.Project.Labels
     let initializers = projectConfig.Project.Initializers
@@ -352,10 +358,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 matcher.Match([environment |> String.toLower]).HasMatches
             | _ -> true
         if isProjectEnabledForEnvironment then
-            Log.Debug("Enabling project '{ProjectId}'", projectDir)
+            Log.Debug("Enabling project '{ProjectId}'", projectId)
             buildProjectTargets()
         else
-            Log.Debug("Disabling project '{ProjectId}'", projectDir)
+            Log.Debug("Disabling project '{ProjectId}'", projectId)
             Map.empty
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
@@ -367,7 +373,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 $"{projectType}:{dep}"
             | None ->
                 let relativeWks = FS.workspaceRelative options.Workspace projectDir dep
-                $"[path]:{relativeWks}")
+                $"{SCOPE_PATH}:{relativeWks}")
 
     let projectIncludes =
         projectScripts
@@ -632,9 +638,10 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
     let projectDependencies = projectDependencies.Keys |> Set.ofSeq
 
     let endFinalize = DateTime.UtcNow
-    Log.Debug("Finalized project '{ProjectId}' for {Duration}", projectDir, endFinalize - startFinalize)
+    let projectId = $"{projectDef.Type}:{projectDef.Id}"
+    Log.Debug("Finalized project '{ProjectId}' ({ProjectDir}) for {Duration}", projectId, projectDir, endFinalize - startFinalize)
 
-    { Project.Id = $"{projectDef.Type}:{projectDef.Id}"
+    { Project.Id = projectId
       Project.Name = projectDef.Name
       Project.Directory = projectDir
       Project.Hash = projectHash
@@ -766,7 +773,7 @@ let read (options: ConfigOptions.Options) =
 
                             match loadedProject.Name with
                             | Some projectId ->
-                                let loadedProjectIdSignal = hub.GetSignal<Project> $"[project]:{projectId}"
+                                let loadedProjectIdSignal = hub.GetSignal<Project> $"{SCOPE_NAME}:{projectId}"
                                 loadedProjectIdSignal.Set(project)
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))
