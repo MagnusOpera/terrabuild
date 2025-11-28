@@ -1,8 +1,8 @@
 {
   "selectedProjects": [
-    "a",
-    "b",
-    "c"
+    "workspace/path|A",
+    "workspace/path|B",
+    "workspace/path|C"
   ],
   "targets": {
     "apply": [
@@ -25,8 +25,8 @@
     ]
   },
   "projects": {
-    "a": {
-      "id": "A",
+    "workspace/path|A": {
+      "id": "workspace/path|A",
       "name": "a",
       "directory": "A",
       "hash": "BA524080C35DEAFC21CC7EB275C318FB408DD7DEEC55BBBDE013762A163F3B9B",
@@ -92,13 +92,13 @@
       "labels": [],
       "types": []
     },
-    "b": {
-      "id": "B",
+    "workspace/path|B": {
+      "id": "workspace/path|B",
       "name": "b",
       "directory": "B",
       "hash": "1CCBA3455033A0E485FCA327C4D1133142918596DA9B34BCBE151FBC3204FFF1",
       "dependencies": [
-        "a"
+        "workspace/path|A"
       ],
       "files": [
         "PROJECT"
@@ -163,8 +163,8 @@
       "labels": [],
       "types": []
     },
-    "c": {
-      "id": "C",
+    "workspace/path|C": {
+      "id": "workspace/path|C",
       "name": "c",
       "directory": "C",
       "hash": "9396CD6AD2F14DF4D4922D2B3BE6C57CB7E2471E4830B436EADD130AFA864FC8",

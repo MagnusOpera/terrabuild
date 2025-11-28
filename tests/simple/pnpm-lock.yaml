@@ -34,7 +34,7 @@ importers:
   projects/npm-app:
     dependencies:
       npm-lib:
-        specifier: file:../../libraries/npm-lib
+        specifier: workspace:*
         version: link:../../libraries/npm-lib
       react:
         specifier: ^19.1.0

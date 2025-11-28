@@ -1,8 +1,8 @@
 {
   "selectedProjects": [
-    "[path]:A",
-    "[path]:B",
-    "[path]:C"
+    "workspace/path|A",
+    "workspace/path|B",
+    "workspace/path|C"
   ],
   "targets": {
     "build": [
@@ -20,14 +20,14 @@
     ]
   },
   "projects": {
-    "[path]:A": {
-      "id": "[path]:A",
+    "workspace/path|A": {
+      "id": "workspace/path|A",
       "name": "a",
       "directory": "A",
       "hash": "329E22F3F5EF12649247B3B2E7B896B178BF89700C456AC311AD0490CE69054E",
       "dependencies": [
-        "[path]:B",
-        "[path]:C"
+        "workspace/path|B",
+        "workspace/path|C"
       ],
       "files": [
         "PROJECT"
@@ -63,13 +63,13 @@
       "labels": [],
       "types": []
     },
-    "[path]:B": {
-      "id": "[path]:B",
+    "workspace/path|B": {
+      "id": "workspace/path|B",
       "name": "b",
       "directory": "B",
       "hash": "46A12D23C4839507533286C4849B0472FC1F777E9B6853BBD62A6B85611B7A3D",
       "dependencies": [
-        "[path]:C"
+        "workspace/path|C"
       ],
       "files": [
         "PROJECT"
@@ -105,8 +105,8 @@
       "labels": [],
       "types": []
     },
-    "[path]:C": {
-      "id": "[path]:C",
+    "workspace/path|C": {
+      "id": "workspace/path|C",
       "name": "c",
       "directory": "C",
       "hash": "B532FC2B9B3519C3B880DA8C3E919C717A0012BDCBFC7FED59391FA84CBAA6E0",

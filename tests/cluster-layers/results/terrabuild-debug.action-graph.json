@@ -1,7 +1,8 @@
 {
   "nodes": {
-    "[path]:A:build": {
-      "id": "[path]:A:build",
+    "workspace/path|A:build": {
+      "id": "workspace/path|A:build",
+      "projectId": "workspace/path|A",
       "projectName": "a",
       "projectDir": "A",
       "target": "build",
@@ -43,8 +44,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:B:build": {
-      "id": "[path]:B:build",
+    "workspace/path|B:build": {
+      "id": "workspace/path|B:build",
+      "projectId": "workspace/path|B",
       "projectName": "b",
       "projectDir": "B",
       "target": "build",
@@ -86,14 +88,15 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:C:build": {
-      "id": "[path]:C:build",
+    "workspace/path|C:build": {
+      "id": "workspace/path|C:build",
+      "projectId": "workspace/path|C",
       "projectName": "c",
       "projectDir": "C",
       "target": "build",
       "dependencies": [
-        "[path]:A:build",
-        "[path]:B:build"
+        "workspace/path|A:build",
+        "workspace/path|B:build"
       ],
       "outputs": [
         "dist/**"
@@ -130,13 +133,14 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:D:build": {
-      "id": "[path]:D:build",
+    "workspace/path|D:build": {
+      "id": "workspace/path|D:build",
+      "projectId": "workspace/path|D",
       "projectName": "d",
       "projectDir": "D",
       "target": "build",
       "dependencies": [
-        "[path]:C:build"
+        "workspace/path|C:build"
       ],
       "outputs": [
         "**/*.binlog",
@@ -168,13 +172,14 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:E:build": {
-      "id": "[path]:E:build",
+    "workspace/path|E:build": {
+      "id": "workspace/path|E:build",
+      "projectId": "workspace/path|E",
       "projectName": "e",
       "projectDir": "E",
       "target": "build",
       "dependencies": [
-        "[path]:C:build"
+        "workspace/path|C:build"
       ],
       "outputs": [
         "**/*.binlog",
@@ -206,14 +211,15 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:F:build": {
-      "id": "[path]:F:build",
+    "workspace/path|F:build": {
+      "id": "workspace/path|F:build",
+      "projectId": "workspace/path|F",
       "projectName": "f",
       "projectDir": "F",
       "target": "build",
       "dependencies": [
-        "[path]:D:build",
-        "[path]:E:build"
+        "workspace/path|D:build",
+        "workspace/path|E:build"
       ],
       "outputs": [
         "dist/**"
@@ -243,13 +249,14 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:G:build": {
-      "id": "[path]:G:build",
+    "workspace/path|G:build": {
+      "id": "workspace/path|G:build",
+      "projectId": "workspace/path|G",
       "projectName": "g",
       "projectDir": "G",
       "target": "build",
       "dependencies": [
-        "[path]:C:build"
+        "workspace/path|C:build"
       ],
       "outputs": [
         "dist/**"
@@ -281,8 +288,8 @@
     }
   },
   "rootNodes": [
-    "[path]:F:build",
-    "[path]:G:build"
+    "workspace/path|F:build",
+    "workspace/path|G:build"
   ],
   "clusters": {}
 }

@@ -1,20 +1,96 @@
 {
   "nodes": {
-    "[path]:deployments/terraform-deploy:build": {
-      "id": "[path]:deployments/terraform-deploy:build",
-      "projectId": "[path]:deployments/terraform-deploy",
+    "@pnpm|npm-app:build": {
+      "id": "@pnpm|npm-app:build",
+      "projectId": "@pnpm|npm-app",
+      "projectName": "npm_app",
+      "projectDir": "projects/npm-app",
+      "target": "build",
+      "dependencies": [
+        "@pnpm|npm-lib:build"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
+      "targetHash": "FD3AA096BF31943A360B20C12DB0C42F32028243FD869FE93B3A979FF9211207",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "operations": [
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "install --link-workspace-packages",
+          "errorLevel": 0
+        },
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "run build",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "action": "build"
+    },
+    "@pnpm|npm-lib:build": {
+      "id": "@pnpm|npm-lib:build",
+      "projectId": "@pnpm|npm-lib",
+      "projectName": "npm_lib",
+      "projectDir": "libraries/npm-lib",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
+      "targetHash": "AB9F7B6B43E650DDAD7510D541F75DEE93D54EB0405D958EAD6E7462DBBFA4E6",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "operations": [
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "install --link-workspace-packages",
+          "errorLevel": 0
+        },
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "run build",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "action": "build"
+    },
+    "workspace/path|deployments/terraform-deploy:build": {
+      "id": "workspace/path|deployments/terraform-deploy:build",
+      "projectId": "workspace/path|deployments/terraform-deploy",
       "projectDir": "deployments/terraform-deploy",
       "target": "build",
       "dependencies": [
-        "[path]:projects/dotnet-app:build",
-        "[path]:projects/npm-app:build"
+        "@pnpm|npm-app:build",
+        "workspace/path|projects/dotnet-app:build"
       ],
       "outputs": [
         "*.planfile"
       ],
-      "projectHash": "4391D0F802D1B03FCB5F13DDCF72C7D3742413F9F95DE401391A76C03E2A1FF5",
-      "targetHash": "1594045544E8915F6371625479D8AF71F91258690F9DE3DAE9D082D63185D17E",
-      "clusterHash": "1594045544E8915F6371625479D8AF71F91258690F9DE3DAE9D082D63185D17E",
+      "projectHash": "3CBDEDC0FBF6FC914B350938367420CBB48C4245A2F5E27010092EDF137A1D64",
+      "targetHash": "1C4FE5C9F97FD7A0591DD1E9BC61FAC2BD0D2C81033C1923CFE3928379FBBCAC",
+      "clusterHash": "1C4FE5C9F97FD7A0591DD1E9BC61FAC2BD0D2C81033C1923CFE3928379FBBCAC",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -31,7 +107,7 @@
           "variables": [],
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332\u0022 -var=\u0022npm_app_version=6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4\u0022",
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332\u0022 -var=\u0022npm_app_version=BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E\u0022",
           "errorLevel": 0
         }
       ],
@@ -39,9 +115,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:libraries/dotnet-lib:build": {
-      "id": "[path]:libraries/dotnet-lib:build",
-      "projectId": "[path]:libraries/dotnet-lib",
+    "workspace/path|libraries/dotnet-lib:build": {
+      "id": "workspace/path|libraries/dotnet-lib:build",
+      "projectId": "workspace/path|libraries/dotnet-lib",
       "projectDir": "libraries/dotnet-lib",
       "target": "build",
       "dependencies": [],
@@ -77,45 +153,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:libraries/npm-lib:build": {
-      "id": "[path]:libraries/npm-lib:build",
-      "projectId": "[path]:libraries/npm-lib",
-      "projectDir": "libraries/npm-lib",
-      "target": "build",
-      "dependencies": [],
-      "outputs": [
-        "dist/**"
-      ],
-      "projectHash": "236BC51FBB14F7E5B55AF94E197B7D92B31BF3BDA9CE00D7163FC4B45687B3BE",
-      "targetHash": "E633CCE4EAE393850477FF17C749A6C4D6DDD735305603BA147A6D262CC7875D",
-      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
-      "operations": [
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "metaCommand": "@pnpm install",
-          "command": "pnpm",
-          "arguments": "install --link-workspace-packages",
-          "errorLevel": 0
-        },
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "metaCommand": "@pnpm build",
-          "command": "pnpm",
-          "arguments": "run build",
-          "errorLevel": 0
-        }
-      ],
-      "artifacts": "managed",
-      "build": "always",
-      "action": "build"
-    },
-    "[path]:libraries/shell-lib:build": {
-      "id": "[path]:libraries/shell-lib:build",
-      "projectId": "[path]:libraries/shell-lib",
+    "workspace/path|libraries/shell-lib:build": {
+      "id": "workspace/path|libraries/shell-lib:build",
+      "projectId": "workspace/path|libraries/shell-lib",
       "projectName": "shell_lib",
       "projectDir": "libraries/shell-lib",
       "target": "build",
@@ -137,14 +177,14 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:projects/dotnet-app:build": {
-      "id": "[path]:projects/dotnet-app:build",
-      "projectId": "[path]:projects/dotnet-app",
+    "workspace/path|projects/dotnet-app:build": {
+      "id": "workspace/path|projects/dotnet-app:build",
+      "projectId": "workspace/path|projects/dotnet-app",
       "projectName": "dotnet_app",
       "projectDir": "projects/dotnet-app",
       "target": "build",
       "dependencies": [
-        "[path]:libraries/dotnet-lib:build"
+        "workspace/path|libraries/dotnet-lib:build"
       ],
       "outputs": [
         "**/*.binlog",
@@ -178,13 +218,13 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:projects/make-app:build": {
-      "id": "[path]:projects/make-app:build",
-      "projectId": "[path]:projects/make-app",
+    "workspace/path|projects/make-app:build": {
+      "id": "workspace/path|projects/make-app:build",
+      "projectId": "workspace/path|projects/make-app",
       "projectDir": "projects/make-app",
       "target": "build",
       "dependencies": [
-        "[path]:libraries/shell-lib:build"
+        "workspace/path|libraries/shell-lib:build"
       ],
       "outputs": [],
       "projectHash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
@@ -210,48 +250,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:projects/npm-app:build": {
-      "id": "[path]:projects/npm-app:build",
-      "projectId": "[path]:projects/npm-app",
-      "projectName": "npm_app",
-      "projectDir": "projects/npm-app",
-      "target": "build",
-      "dependencies": [
-        "[path]:libraries/npm-lib:build"
-      ],
-      "outputs": [
-        "dist/**"
-      ],
-      "projectHash": "6689DAD0861A63C647C345C691C9337AB01FC943066014729763DDAF164EB9B4",
-      "targetHash": "1B65587583E4485AACB45C282E44DE11B2E6BB2AE5674382195103B19A9488BB",
-      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
-      "operations": [
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "metaCommand": "@pnpm install",
-          "command": "pnpm",
-          "arguments": "install --link-workspace-packages",
-          "errorLevel": 0
-        },
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "metaCommand": "@pnpm build",
-          "command": "pnpm",
-          "arguments": "run build",
-          "errorLevel": 0
-        }
-      ],
-      "artifacts": "managed",
-      "build": "always",
-      "action": "build"
-    },
-    "[path]:projects/open-api:build": {
-      "id": "[path]:projects/open-api:build",
-      "projectId": "[path]:projects/open-api",
+    "workspace/path|projects/open-api:build": {
+      "id": "workspace/path|projects/open-api:build",
+      "projectId": "workspace/path|projects/open-api",
       "projectDir": "projects/open-api",
       "target": "build",
       "dependencies": [],
@@ -274,9 +275,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:projects/rust-app:build": {
-      "id": "[path]:projects/rust-app:build",
-      "projectId": "[path]:projects/rust-app",
+    "workspace/path|projects/rust-app:build": {
+      "id": "workspace/path|projects/rust-app:build",
+      "projectId": "workspace/path|projects/rust-app",
       "projectDir": "projects/rust-app",
       "target": "build",
       "dependencies": [],
@@ -302,9 +303,9 @@
       "build": "always",
       "action": "build"
     },
-    "[path]:tests/playwright:test": {
-      "id": "[path]:tests/playwright:test",
-      "projectId": "[path]:tests/playwright",
+    "workspace/path|tests/playwright:test": {
+      "id": "workspace/path|tests/playwright:test",
+      "projectId": "workspace/path|tests/playwright",
       "projectName": "playwright_test",
       "projectDir": "tests/playwright",
       "target": "test",
@@ -338,11 +339,11 @@
     }
   },
   "rootNodes": [
-    "[path]:deployments/terraform-deploy:build",
-    "[path]:projects/make-app:build",
-    "[path]:projects/open-api:build",
-    "[path]:projects/rust-app:build",
-    "[path]:tests/playwright:test"
+    "workspace/path|deployments/terraform-deploy:build",
+    "workspace/path|projects/make-app:build",
+    "workspace/path|projects/open-api:build",
+    "workspace/path|projects/rust-app:build",
+    "workspace/path|tests/playwright:test"
   ],
   "clusters": {}
 }

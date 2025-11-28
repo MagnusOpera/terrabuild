@@ -119,10 +119,10 @@ let default_ignores = Set [
 ]
 
 [<Literal>]
-let private SCOPE_PATH = "@workspace/path"
+let private SCOPE_PATH = "workspace/path"
 
 [<Literal>]
-let private SCOPE_NAME = "@workspace/name"
+let private SCOPE_NAME = "workspace/name"
 
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
@@ -329,7 +329,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             match dep with
             | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId
             | _ -> None)
-        |> Set.map (fun depId -> $"{SCOPE_NAME}:{depId}")
+        |> Set.map (fun depId -> $"{SCOPE_NAME}|{depId}")
 
     let labels = projectConfig.Project.Labels
     let initializers = projectConfig.Project.Initializers
@@ -370,10 +370,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Set.map (fun dep ->
             match realProjectType with
             | Some projectType ->
-                $"{projectType}:{dep}"
+                $"{projectType}|{dep}"
             | None ->
                 let relativeWks = FS.workspaceRelative options.Workspace projectDir dep
-                $"{SCOPE_PATH}:{relativeWks}")
+                $"{SCOPE_PATH}|{relativeWks}")
 
     let projectIncludes =
         projectScripts
@@ -638,7 +638,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
     let projectDependencies = projectDependencies.Keys |> Set.ofSeq
 
     let endFinalize = DateTime.UtcNow
-    let projectId = $"{projectDef.Type}:{projectDef.Id}"
+    let projectId = $"{projectDef.Type}|{projectDef.Id}"
     Log.Debug("Finalized project '{ProjectId}' ({ProjectDir}) for {Duration}", projectId, projectDir, endFinalize - startFinalize)
 
     { Project.Id = projectId
@@ -773,7 +773,7 @@ let read (options: ConfigOptions.Options) =
 
                             match loadedProject.Name with
                             | Some projectId ->
-                                let loadedProjectIdSignal = hub.GetSignal<Project> $"{SCOPE_NAME}:{projectId}"
+                                let loadedProjectIdSignal = hub.GetSignal<Project> $"{SCOPE_NAME}|{projectId}"
                                 loadedProjectIdSignal.Set(project)
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))

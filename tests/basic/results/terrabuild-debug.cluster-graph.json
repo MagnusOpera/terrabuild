@@ -1,7 +1,8 @@
 {
   "nodes": {
-    "[path]:app:build": {
-      "id": "[path]:app:build",
+    "workspace/path|app:build": {
+      "id": "workspace/path|app:build",
+      "projectId": "workspace/path|app",
       "projectName": "appprj",
       "projectDir": "app",
       "target": "build",
@@ -25,7 +26,7 @@
     }
   },
   "rootNodes": [
-    "[path]:app:build"
+    "workspace/path|app:build"
   ],
   "clusters": {}
 }

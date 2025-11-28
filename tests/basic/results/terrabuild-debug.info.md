@@ -17,8 +17,8 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-[path]:app:build("<b>build appprj</b> 
+workspace/path|app:build("<b>build appprj</b> 
 app")
-class [path]:app:build ignore
+class workspace/path|app:build ignore
 ```
 

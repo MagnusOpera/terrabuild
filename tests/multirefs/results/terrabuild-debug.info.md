@@ -16,17 +16,17 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-[path]:A:build("<b>build a</b> 
+workspace/path|A:build("<b>build a</b> 
 A")
-[path]:B:build("<b>build b</b> 
+workspace/path|B:build("<b>build b</b> 
 B")
-[path]:C:build("<b>build c</b> 
+workspace/path|C:build("<b>build c</b> 
 C")
-[path]:A:build --> [path]:B:build
-[path]:A:build --> [path]:C:build
-class [path]:A:build ignore
-[path]:B:build --> [path]:C:build
-class [path]:B:build ignore
-class [path]:C:build ignore
+workspace/path|A:build --> workspace/path|B:build
+workspace/path|A:build --> workspace/path|C:build
+class workspace/path|A:build ignore
+workspace/path|B:build --> workspace/path|C:build
+class workspace/path|B:build ignore
+class workspace/path|C:build ignore
 ```
 

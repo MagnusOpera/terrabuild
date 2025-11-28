@@ -1,7 +1,8 @@
 {
   "nodes": {
-    "a:build": {
-      "id": "a:build",
+    "workspace/path|A:build": {
+      "id": "workspace/path|A:build",
+      "projectId": "workspace/path|A",
       "projectName": "a",
       "projectDir": "A",
       "target": "build",
@@ -23,13 +24,14 @@
       "build": "always",
       "action": "build"
     },
-    "b:apply": {
-      "id": "b:apply",
+    "workspace/path|B:apply": {
+      "id": "workspace/path|B:apply",
+      "projectId": "workspace/path|B",
       "projectName": "b",
       "projectDir": "B",
       "target": "apply",
       "dependencies": [
-        "b:plan"
+        "workspace/path|B:plan"
       ],
       "outputs": [],
       "projectHash": "1CCBA3455033A0E485FCA327C4D1133142918596DA9B34BCBE151FBC3204FFF1",
@@ -48,8 +50,9 @@
       "build": "always",
       "action": "build"
     },
-    "b:plan": {
-      "id": "b:plan",
+    "workspace/path|B:plan": {
+      "id": "workspace/path|B:plan",
+      "projectId": "workspace/path|B",
       "projectName": "b",
       "projectDir": "B",
       "target": "plan",
@@ -71,8 +74,9 @@
       "build": "auto",
       "action": "ignore"
     },
-    "c:build": {
-      "id": "c:build",
+    "workspace/path|C:build": {
+      "id": "workspace/path|C:build",
+      "projectId": "workspace/path|C",
       "projectName": "c",
       "projectDir": "C",
       "target": "build",
@@ -96,9 +100,9 @@
     }
   },
   "rootNodes": [
-    "a:build",
-    "b:apply",
-    "c:build"
+    "workspace/path|A:build",
+    "workspace/path|B:apply",
+    "workspace/path|C:build"
   ],
   "clusters": {}
 }
