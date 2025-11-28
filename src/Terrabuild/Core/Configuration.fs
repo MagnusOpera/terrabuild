@@ -68,6 +68,7 @@ type private LazyScript = Lazy<Terrabuild.Scripting.Script>
 
 [<RequireQualifiedAccess>]
 type private LoadedProject = {
+    Type: string option
     Id: string option
     DependsOn: string set
     Dependencies: string set
@@ -76,7 +77,7 @@ type private LoadedProject = {
     Outputs: string set
     Targets: Map<string, AST.Project.TargetBlock>
     Labels: string set
-    Types: string set
+    Initializers: string set
     Extensions: Map<string, AST.ExtensionBlock>
     Scripts: Map<string, LazyScript>
     Locals: Map<string, Expr>
@@ -302,7 +303,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Set.choose (fun dep -> if dep.StartsWith("project.") then Some dep else None)
 
     let labels = projectConfig.Project.Labels
-    let types = projectConfig.Project.Initializers
+    let initializers = projectConfig.Project.Initializers
 
     let projectTargets =
         // apply target override
@@ -356,7 +357,8 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
             if projectConfig.Locals |> Map.containsKey name then raiseParseError $"duplicated local '{name}'")
         workspaceConfig.Locals |> Map.addMap projectConfig.Locals
 
-    { LoadedProject.Id = projectConfig.Project.Id
+    { LoadedProject.Type = projectConfig.Project.Type
+      LoadedProject.Id = projectConfig.Project.Id
       LoadedProject.DependsOn = dependsOn
       LoadedProject.Dependencies = projectDependencies
       LoadedProject.Includes = projectIncludes
@@ -364,7 +366,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
       LoadedProject.Outputs = projectOutputs
       LoadedProject.Targets = projectTargets
       LoadedProject.Labels = labels
-      LoadedProject.Types = types
+      LoadedProject.Initializers = initializers
       LoadedProject.Extensions = extensions
       LoadedProject.Scripts = scripts
       LoadedProject.Locals = locals }
@@ -610,7 +612,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
       Project.Files = relativeFiles
       Project.Targets = projectSteps
       Project.Labels = projectDef.Labels
-      Project.Types = projectDef.Types }
+      Project.Types = projectDef.Initializers }
 
 
 
@@ -704,13 +706,16 @@ let read (options: ConfigOptions.Options) =
                         with exn ->
                             raiseParserError($"Failed to read PROJECT configuration '{projectDir}'", exn)
 
-                    // immediately load all dependencies
-                    for dependency in loadedProject.Dependencies do
-                        loadProject dependency
+                    let dependencies =
+                        let prjType =
+                            match loadedProject.Type with
+                            | Some prjType -> prjType
+                            | _ -> "@terrabuild"
+                        loadedProject.Dependencies |> Set.map (fun dependency -> $"{prjType}:{dependency}")
 
                     // await dependencies to be loaded
                     let projectPathSignals =
-                        loadedProject.Dependencies
+                        dependencies
                         |> Set.map String.toLower
                         |> Seq.map (fun awaitedProjectId -> hub.GetSignal<Project> awaitedProjectId)
                         |> List.ofSeq
