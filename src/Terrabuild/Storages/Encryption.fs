@@ -2,6 +2,7 @@ module Encryption
 open System.Security.Cryptography
 open System.Text
 open System.IO
+open System
 
 let masterKeyFromString (masterKeyString: string) : byte[] =
     let salt = Encoding.UTF8.GetBytes "Terrabuild.MasterKey.Salt.v1"
@@ -39,6 +40,22 @@ let deriveKeys (masterKey: byte[]) (artifactId: string) =
 
 [<Literal>]
 let private MAGIC_TAG = "TBENC1"
+
+let isEncryptedArtifact (filePath: string) =
+    if not (File.Exists filePath) then
+        false
+    else
+        try
+            use fs = File.OpenRead filePath
+            let magic = Encoding.ASCII.GetBytes "TBENC1"
+            let buffer = Array.zeroCreate<byte> magic.Length
+
+            let read = fs.Read(buffer, 0, buffer.Length)
+            read = magic.Length && System.Linq.Enumerable.SequenceEqual(buffer, magic)
+        with
+        | :? IOException
+        | :? UnauthorizedAccessException ->
+            false
 
 let encryptFileStreaming (encKey: byte[]) (macKey: byte[]) (inputPath: string) (outputPath: string) =
     // 1. Encrypt (streaming) to output (without MAC)
