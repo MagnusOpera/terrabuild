@@ -1,4 +1,4 @@
-name: 🍿 On Push Tag
+name: 📦 Prepare Release
 run-name: Prepare release ${{github.ref_name}}
 
 on:

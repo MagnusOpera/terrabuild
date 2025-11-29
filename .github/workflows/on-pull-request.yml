@@ -1,17 +1,9 @@
-name: 🚀 Feature
+name: 🦄 Pull Request
 
 on:
-  push:
-    branches:
-      - main
-      - feature/**
-      - fix/**
-      - chore/**
-      - release/**
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
-
-env:
-  TERRABUILD_AZURE_BLOB_STORAGE: ${{ secrets.TERRABUILD_AZURE_BLOB_STORAGE }}
 
 jobs:
   build:
@@ -29,17 +21,10 @@ jobs:
         with:
           dotnet-version: 10.0.100
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Self Build
+      - name: Build, Test & Dist
         run: |
-          echo "# Self Build" >> $GITHUB_STEP_SUMMARY
-          make self-ci engine=podman
+          echo "# Build, Test & Dist" >> $GITHUB_STEP_SUMMARY
+          make self
 
       - name: Check Docs
         run: |

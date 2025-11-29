@@ -24,7 +24,7 @@ build:
 	dotnet build -c $(config) terrabuild.slnx
 
 test:
-	dotnet test terrabuild.slnx
+	dotnet test -c $(config) terrabuild.slnx
 
 parser:
 	dotnet build -c $(config) /p:DefineConstants="GENERATE_PARSER"
@@ -76,7 +76,7 @@ try-docs:
 	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.tagada
 
 self: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build --configuration $(config) --engine $(engine) --retry --debug --log --local-only
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only
 
 self-ci: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --engine $(engine) --retry --debug --log --local-only

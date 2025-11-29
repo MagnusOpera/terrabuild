@@ -1,4 +1,4 @@
-name: 🦄 Self Build
+name: 🐙 Self Build
 
 on:
   workflow_dispatch:

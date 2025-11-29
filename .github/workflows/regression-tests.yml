@@ -1,4 +1,4 @@
-name: 🦄 Regression Tests
+name: ✅ Regression Tests
 
 on:
   workflow_dispatch:
