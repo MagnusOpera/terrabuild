@@ -5,7 +5,6 @@
 
   <ItemGroup>
     <Compile Include="Helpers/Npm.fs" />
-    <Compile Include="Helpers/Pnpm.fs" />
     <Compile Include="Helpers/Dotnet.fs" />
     <Compile Include="Helpers/Cargo.fs" />
     <Compile Include="Cargo.fs" />

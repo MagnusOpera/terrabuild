@@ -16,8 +16,9 @@ type Npm() =
     /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default output globs produced by npm builds.</param>
     static member __defaults__(context: ExtensionContext) =
         try
-            let projectFile = NpmHelpers.findProjectFile context.Directory
-            let dependencies = projectFile |> NpmHelpers.findDependencies 
+            let packageFile = NpmHelpers.findProjectFile context.Directory
+            let package = NpmHelpers.loadPackage packageFile
+            let dependencies = package |> NpmHelpers.findLocalPackages 
             let projectInfo = 
                 { ProjectInfo.Default
                   with Outputs = Set [ "dist/**" ]

@@ -6,6 +6,9 @@ open Errors
 
 [<CLIMutable>]
 type Package = {
+    [<JsonPropertyName("name")>]
+    Name: string
+
     [<JsonPropertyName("dependencies")>]
     Dependencies: Dictionary<string, string> option
 
@@ -22,10 +25,12 @@ let findProjectFile (directory: string) =
     | [] -> raiseInvalidArg "No project found"
     | _ -> raiseInvalidArg "Multiple projects found"
 
-let findDependencies (projectFile: string) =
+let loadPackage (projectFile: string) =
     let json = IO.readTextFile projectFile
     let package = Json.Deserialize<Package> json
+    package
 
+let findLocalPackages (package: Package) =
     let dependencies = seq {
         match package.Dependencies with
         | Some dependencies ->
@@ -40,6 +45,27 @@ let findDependencies (projectFile: string) =
             for (KeyValue(_, value)) in dependencies do
                 match value with
                 | String.Regex "^file:(.*)$" [project] -> yield project
+                | _ -> ()
+        | _ -> ()
+    }
+    Set dependencies
+
+
+let findWorkspacePackages (package: Package) =
+    let dependencies = seq {
+        match package.Dependencies with
+        | Some dependencies ->
+            for (KeyValue(key, value)) in dependencies do
+                match value with
+                | String.Regex "^workspace:\*$" [] -> yield key
+                | _ -> ()
+        | _ -> ()
+
+        match package.DevDependencies with
+        | Some dependencies ->
+            for (KeyValue(key, value)) in dependencies do
+                match value with
+                | String.Regex "^workspace:\*$" [] -> yield key
                 | _ -> ()
         | _ -> ()
     }
