@@ -15,7 +15,6 @@ type Cargo() =
     /// </summary>
     /// <param name="ignores" example="[ ]">Default ignore patterns (none by default).</param>
     /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]">Default output directories produced by Cargo.</param>
-    /// <param name="dependencies" example="[ &lt;&quot;path from project&gt; ]">Local path dependencies extracted from `Cargo.toml`.</param>
     static member __defaults__ (context: ExtensionContext) =
         let projectFile = CargoHelpers.findProjectFile context.Directory
         let dependencies = projectFile |> CargoHelpers.findDependencies 

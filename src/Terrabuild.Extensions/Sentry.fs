@@ -10,6 +10,7 @@ type Sentry() =
 
     /// <summary>
     /// Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.
+    /// Note sourcemaps upload is strict for CI mode.
     /// </summary>
     /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
     /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 

@@ -14,7 +14,6 @@ type Dotnet() =
     /// </summary>
     /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]">Default ignore patterns (binlogs).</param>
     /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]">Default outputs produced by dotnet build/publish.</param>
-    /// <param name="dependencies" example="[ &lt;ProjectReference /&gt; from project ]">Project references discovered in the SDK project file.</param>
     static member __defaults__ (context: ExtensionContext) =
         let projectFile = DotnetHelpers.findProjectFile context.Directory
         let dependencies = projectFile |> DotnetHelpers.findDependencies 
