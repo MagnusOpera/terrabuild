@@ -110,8 +110,8 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel  })
                     | Extensions.InvocationResult.ErrorTarget ex ->
-                        forwardExternalError($"{clusterHash}: Failed to get shell operation (extension error)", ex)
-                    | _ -> raiseExternalError $"{clusterHash}: Failed to get shell operation (extension error)"
+                        forwardInvalidArg($"{clusterHash}: Failed to get shell operation (extension error)", ex)
+                    | _ -> raiseInvalidArg $"{clusterHash}: Failed to get shell operation (extension error)"
                 )
 
             let clusterDependencies = (nodeIds |> Set.collect (fun nodeId -> graph.Nodes[nodeId].Dependencies)) - cluster

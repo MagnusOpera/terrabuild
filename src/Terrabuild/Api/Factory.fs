@@ -16,8 +16,8 @@ let checkAuthError msg f  =
             | _ -> exn.Message
 
         match errorCode with
-        | "401" -> raiseAuthError($"Unauthorized access.", exn)
-        | "403" -> raiseAuthError($"Forbidden access.", exn)
+        | "401" -> forwardAuthError($"Unauthorized access.", exn)
+        | "403" -> forwardAuthError($"Forbidden access.", exn)
         | "500" -> forwardExternalError($"Internal server error.", exn)
         | _ -> forwardExternalError($"Api failed with error {errorCode}.", exn)
 

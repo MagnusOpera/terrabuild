@@ -403,14 +403,15 @@ let main _ =
 
             | :? TerrabuildException as ex ->
                 let area = getErrorArea ex
-                ex.AddSentryTag("area", $"{area}")
 #if RELEASE
                 let captureException =
                     match area with
                     | ErrorArea.External
                     | ErrorArea.Bug -> true
                     | _ -> false
-                if captureException then Sentry.SentrySdk.CaptureException(ex) |> ignore
+                if captureException then
+                    ex.AddSentryTag("area", $"{area}")
+                    Sentry.SentrySdk.CaptureException(ex) |> ignore
 #endif
                 Log.Fatal("Failed in area {Area} with {Exception}", area, ex.ToString())
                 let reason =

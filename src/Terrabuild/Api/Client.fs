@@ -52,8 +52,8 @@ module private Http =
                 | _ -> exn.Message
 
             match errorCode with
-            | "401" -> raiseAuthError($"Unauthorized access", exn)
-            | "403" -> raiseAuthError($"Forbidden access", exn)
+            | "401" -> forwardAuthError($"Unauthorized access", exn)
+            | "403" -> forwardAuthError($"Forbidden access", exn)
             | _ -> forwardExternalError($"Api failed with error {errorCode}.", exn)
 
 

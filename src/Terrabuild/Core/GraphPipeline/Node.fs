@@ -102,13 +102,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             | Terrabuild.Extensibility.Cacheability.Local -> Artifacts.Workspace
                             | Terrabuild.Extensibility.Cacheability.Remote -> Artifacts.Managed
                             | Terrabuild.Extensibility.Cacheability.External -> Artifacts.External
-                        | _ -> raiseBugError $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
+                        | _ -> raiseInvalidArg $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
                         match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
                         | Extensions.InvocationResult.Success executionRequest -> executionRequest
                         | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
-                        | _ -> raiseExternalError $"{hash}: Failed to get shell operation (extension error)"
+                        | _ -> raiseInvalidArg $"{hash}: Failed to get shell operation (extension error)"
 
                     let newops =
                         shellOperations |> List.map (fun shellOperation -> {

@@ -20,10 +20,13 @@ type TerrabuildException(msg, area, ?innerException: Exception) =
 let raiseInvalidArg(msg) =
     TerrabuildException(msg, ErrorArea.InvalidArg) |> raise
 
+let forwardInvalidArg(msg, innerException) =
+    TerrabuildException(msg, ErrorArea.InvalidArg, innerException) |> raise
+
 let raiseParseError(msg) =
     TerrabuildException(msg, ErrorArea.Parse) |> raise
 
-let raiseParserError(msg, innerException) =
+let forwardParseError(msg, innerException) =
     TerrabuildException(msg, ErrorArea.Parse, innerException) |> raise
 
 let raiseTypeError(msg) =
@@ -41,7 +44,7 @@ let raiseExternalError(msg) =
 let forwardExternalError(msg, innerException) =
     TerrabuildException(msg, ErrorArea.External, innerException) |> raise
 
-let raiseAuthError(msg, innerException) =
+let forwardAuthError(msg, innerException) =
     TerrabuildException(msg, ErrorArea.Auth, innerException) |> raise
 
 
