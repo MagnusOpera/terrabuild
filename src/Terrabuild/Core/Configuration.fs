@@ -662,7 +662,7 @@ let read (options: ConfigOptions.Options) =
         try
             FrontEnd.Workspace.parse workspaceContent
         with exn ->
-            forwardParserError("Failed to read WORKSPACE configuration file", exn)
+            forwardParseError("Failed to read WORKSPACE configuration file", exn)
 
     let engine =
         match options.Engine |> Option.orElse workspaceConfig.Workspace.Engine with
@@ -740,7 +740,7 @@ let read (options: ConfigOptions.Options) =
 
                             loadedProject
                         with exn ->
-                            forwardParserError($"Failed to read PROJECT configuration '{projectDir}'", exn)
+                            forwardParseError($"Failed to read PROJECT configuration '{projectDir}'", exn)
 
                     // await dependencies to be loaded
                     let projectPathSignals =

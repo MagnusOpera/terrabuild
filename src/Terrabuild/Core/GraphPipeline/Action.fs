@@ -100,7 +100,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
         let unraisedSignals = signals |> String.join ","
         Log.Fatal($"NodeStateEvaluator '{subscription}' has pending operations on '{unraisedSignals}'")
     | Status.SubscriptionError edi ->
-        forwardExternalError("BuiNodeStateEvaluatorld failed", edi.SourceException)
+        forwardInvalidArg("Failed to compute actions", edi.SourceException)
 
     let nodes =
         graph.Nodes

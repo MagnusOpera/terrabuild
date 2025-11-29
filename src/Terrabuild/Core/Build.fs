@@ -450,7 +450,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         Log.Fatal($"Task '{subscription}' has pending operations on '{unraisedSignals}'")
     | Status.SubscriptionError edi ->
         Log.Fatal(edi.SourceException, "Build failed")
-        forwardParserError("Failed to load configuration", edi.SourceException)
+        forwardInvalidArg("Failed to build", edi.SourceException)
 
     let headCommit = options.HeadCommit
     let branchOrTag = options.BranchOrTag
