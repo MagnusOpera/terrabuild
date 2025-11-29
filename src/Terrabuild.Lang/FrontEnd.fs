@@ -28,10 +28,10 @@ let parse txt =
         let err = sprintf "Parse error at (%d,%d): %s"
                         (lexbuf.StartPos.Line + 1) (lexbuf.StartPos.Column + 1)
                         exn.Message
-        raiseParserError(err, exn)
+        forwardParserError(err, exn)
     | exn ->
         let err = sprintf "Unexpected token '%s' at (%d,%d): %s"
                         (LexBuffer<_>.LexemeString lexbuf |> string) 
                         (lexbuf.StartPos.Line + 1) (lexbuf.StartPos.Column + 1)
                         exn.Message
-        raiseParserError(err, exn)
+        forwardParserError(err, exn)
