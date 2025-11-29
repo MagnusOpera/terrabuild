@@ -41,17 +41,30 @@ type AzureBlobStorage(api: Contracts.IApiClient, masterKeyString: string option)
 
                 match masterKey with
                 | Some masterKey ->
-                    // check if file is encrypted
                     if isEncryptedArtifact tmpFile then
-                        let decryptedFile = IO.getTempFilename()
-                        let encKey, macKey = deriveKeys masterKey id
-                        decryptFileStreaming encKey macKey tmpFile decryptedFile
-                        IO.deleteAny tmpFile
-                        IO.moveFile decryptedFile tmpFile
-                | _ -> ()
-
-                Log.Debug("AzureBlobStorage: download of '{Id}' successful", id)
-                Some tmpFile
+                        // we have to be careful here: file could have been encrypted with another key
+                        // if we failed to decrypt file just ignore it
+                        try
+                            let decryptedFile = IO.getTempFilename()
+                            let encKey, macKey = deriveKeys masterKey id
+                            decryptFileStreaming encKey macKey tmpFile decryptedFile
+                            IO.deleteAny tmpFile
+                            IO.moveFile decryptedFile tmpFile
+                            Log.Debug("AzureBlobStorage: download of crypted '{Id}' successful", id)
+                            Some tmpFile
+                        with _ ->
+                            Log.Debug("AzureBlobStorage: failed to decrypt '{Id}' - ignoring file", id)
+                            None
+                    else
+                        Log.Debug("AzureBlobStorage: ignoring non crypted '{Id}'", id)
+                        None
+                | _ ->
+                    if isEncryptedArtifact tmpFile then
+                        Log.Debug("AzureBlobStorage: ignoring crypted '{Id}'", id)
+                        None
+                    else
+                        Log.Debug("AzureBlobStorage: download of '{Id}' successful", id)
+                        Some tmpFile
             with
             | :? Azure.RequestFailedException as exn when exn.Status = 404 ->
                 Log.Fatal("AzureBlobStorage: '{Id}' does not exist", id)

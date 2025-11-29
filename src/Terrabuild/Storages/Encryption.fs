@@ -47,7 +47,7 @@ let isEncryptedArtifact (filePath: string) =
     else
         try
             use fs = File.OpenRead filePath
-            let magic = Encoding.ASCII.GetBytes "TBENC1"
+            let magic = Encoding.ASCII.GetBytes MAGIC_TAG
             let buffer = Array.zeroCreate<byte> magic.Length
 
             let read = fs.Read(buffer, 0, buffer.Length)
