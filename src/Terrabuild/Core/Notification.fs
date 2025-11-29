@@ -43,8 +43,10 @@ type BuildNotification() =
         // timer to update display
         let cts = new CancellationTokenSource()
         task {
-            use timer = new PeriodicTimer(updateTimer)
-            while! timer.WaitForNextTickAsync(cts.Token) do PrinterProtocol.Render |> inbox.Post
+            try
+                use timer = new PeriodicTimer(updateTimer)
+                while! timer.WaitForNextTickAsync(cts.Token) do PrinterProtocol.Render |> inbox.Post
+            with _ -> ()
         } |> Async.AwaitTask |> Async.Start
 
         // the message processing function
