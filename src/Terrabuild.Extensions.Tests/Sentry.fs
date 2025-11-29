@@ -14,12 +14,25 @@ let ``sourcemaps cacheability``() =
     getCacheInfo<Sentry> "sourcemaps" |> should equal Cacheability.External
 
 [<Test>]
-let ``sourcemaps some``() =
+let ``sourcemaps some local``() =
+    let expected =
+        [ shellOp("sentry-cli", "sourcemaps inject path")
+          shellOpErrorLevel("sentry-cli", "sourcemaps upload --project project path", 1) ]
+
+    Sentry.sourcemaps localContext
+                      (Some "project") // project
+                      (Some "path") // path
+    |> normalize
+    |> should equal expected
+
+[<Test>]
+let ``sourcemaps some ci``() =
     let expected =
         [ shellOp("sentry-cli", "sourcemaps inject path")
           shellOp("sentry-cli", "sourcemaps upload --project project path") ]
 
-    Sentry.sourcemaps (Some "project") // project
+    Sentry.sourcemaps ciContext
+                      (Some "project") // project
                       (Some "path") // path
     |> normalize
     |> should equal expected
@@ -31,7 +44,8 @@ let ``sourcemaps none``() =
         [ shellOp("sentry-cli", "sourcemaps inject dist")
           shellOp("sentry-cli", "sourcemaps upload dist") ]
 
-    Sentry.sourcemaps None // project
+    Sentry.sourcemaps ciContext
+                      None // project
                       None // path
     |> normalize
     |> should equal expected
