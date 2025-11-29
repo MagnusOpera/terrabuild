@@ -1,6 +1,7 @@
 namespace Terrabuild.Extensions
 open Terrabuild.Extensibility
 open Converters
+open Errors
 
 
 /// <summary>
@@ -15,13 +16,17 @@ type Yarn() =
     /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]">Default ignore patterns used by Terrabuild.</param>
     /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default outputs produced by yarn builds.</param>
     static member __defaults__(context: ExtensionContext) =
-        let projectFile = NpmHelpers.findProjectFile context.Directory
-        let dependencies = projectFile |> NpmHelpers.findDependencies 
-        let projectInfo = 
-            { ProjectInfo.Default
-              with Outputs = Set [ "dist/**" ]
-                   Dependencies = dependencies }
-        projectInfo
+        try
+            let packageFile = NpmHelpers.findProjectFile context.Directory
+            let package = NpmHelpers.loadPackage packageFile
+            let dependencies = package |> NpmHelpers.findLocalPackages 
+            let projectInfo = 
+                { ProjectInfo.Default
+                  with Outputs = Set [ "dist/**" ]
+                       Dependencies = dependencies }
+            projectInfo
+        with
+            exn -> forwardExternalError($"Error while processing project {context.Directory}", exn)
 
 
     /// <summary>

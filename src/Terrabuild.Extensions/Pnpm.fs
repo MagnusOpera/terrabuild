@@ -16,9 +16,10 @@ type Pnpm() =
     /// <param name="outputs" example="[ &quot;dist/**&quot; ]">Default outputs produced by pnpm builds.</param>
     static member __defaults__(context: ExtensionContext) =
         try
-            let projectFile = NpmHelpers.findProjectFile context.Directory
-            let dependencies = projectFile |> PnpmHelpers.findDependencies 
-            let name = projectFile |> PnpmHelpers.findName 
+            let packageFile = NpmHelpers.findProjectFile context.Directory
+            let package = NpmHelpers.loadPackage packageFile
+            let dependencies = package |> NpmHelpers.findWorkspacePackages 
+            let name = package.Name
             let projectInfo = 
                 { ProjectInfo.Default
                   with Id = Some name
