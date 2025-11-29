@@ -5,6 +5,7 @@ open System
 type SpaceAuth = {
     Id: string
     Token: string
+    MasterKey: string option
 }
 
 [<RequireQualifiedAccess>]
@@ -26,34 +27,35 @@ let private removeAuthToken (workspaceId: string) =
     |> IO.writeTextFile configFile
 
 
-let private addAuthToken (workspaceId: string) (token: string) =
+let private addAuthToken (workspaceId: string) (token: string) (masterKey: string option) =
     let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
     let config =
         if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
         else { SpaceAuths = [] }
 
-    let config = { config with SpaceAuths = { Id = workspaceId; Token = token } :: config.SpaceAuths }
+    let config =
+        { config with SpaceAuths = { Id = workspaceId; Token = token; MasterKey = masterKey } :: config.SpaceAuths }
 
     config
     |> Json.Serialize
     |> IO.writeTextFile configFile
 
 
-let readAuthToken (workspaceId: string) =
+let readAuth (workspaceId: string) =
     let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
     let config =
         if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
         else { Configuration.SpaceAuths = List.empty }
 
     match config.SpaceAuths |> List.tryFind (fun sa -> sa.Id = workspaceId) with
-    | Some spaceAuth -> Some spaceAuth.Token
+    | Some spaceAuth -> Some spaceAuth
     | _ -> None
 
 
 
-let login workspaceId token =
+let login workspaceId token masterKey =
     Api.Factory.create (Some workspaceId) (Some token) |> ignore
-    addAuthToken workspaceId token
+    addAuthToken workspaceId token masterKey
 
 let logout space =
     removeAuthToken space

@@ -10,6 +10,7 @@
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/GraphPipeline/Cluster.fs" />
+    <Compile Include="Storages/Encryption.fs" />
   </ItemGroup>
 
   <ItemGroup>

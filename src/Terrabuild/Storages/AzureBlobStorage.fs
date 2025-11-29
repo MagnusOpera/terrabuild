@@ -1,18 +1,22 @@
 namespace Storages
 open Azure.Storage.Blobs
 open Serilog
+open Encryption
 
 
 type AzureArtifactLocationOutput = {
     Uri: string
 }
 
-type AzureBlobStorage(api: Contracts.IApiClient) =
+type AzureBlobStorage(api: Contracts.IApiClient, masterKeyString: string option) =
+    let masterKey = masterKeyString |> Option.map masterKeyFromString
+
     let getBlobClient path =
         let uri = api.GetArtifact path
         let container = BlobContainerClient(uri)
         let blobClient = container.GetBlobClient(path)
         blobClient
+
 
     interface Contracts.IStorage with
         override _.Name = "Azure Blob Storage"
@@ -31,9 +35,19 @@ type AzureBlobStorage(api: Contracts.IApiClient) =
 
         override _.TryDownload id =
             let blobClient = getBlobClient id
-            let tmpFile = System.IO.Path.GetTempFileName()
+            let tmpFile = IO.getTempFilename()
             try
                 blobClient.DownloadTo(tmpFile) |> ignore
+
+                match masterKey with
+                | Some masterKey ->
+                    let decryptedFile = IO.getTempFilename()
+                    let encKey, macKey = deriveKeys masterKey id
+                    decryptFileStreaming encKey macKey tmpFile decryptedFile
+                    IO.deleteAny tmpFile
+                    IO.moveFile decryptedFile tmpFile
+                | _ -> ()
+
                 Log.Debug("AzureBlobStorage: download of '{Id}' successful", id)
                 Some tmpFile
             with
@@ -48,6 +62,15 @@ type AzureBlobStorage(api: Contracts.IApiClient) =
 
         override _.Upload id summaryFile =
             try
+                match masterKey with
+                | Some masterKey ->
+                    let encryptedFile = IO.getTempFilename()
+                    let encKey, macKey = deriveKeys masterKey id
+                    encryptFileStreaming encKey macKey summaryFile encryptedFile
+                    IO.deleteAny summaryFile
+                    IO.moveFile encryptedFile summaryFile
+                | _ -> ()
+
                 let blobClient = getBlobClient id
                 blobClient.Upload(summaryFile, true) |> ignore
                 Log.Debug("AzureBlobStorage: upload of '{Id}' successful", id)
