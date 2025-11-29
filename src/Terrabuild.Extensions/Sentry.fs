@@ -14,13 +14,15 @@ type Sentry() =
     /// <param name="project" example="&quot;insights&quot;">Project slug.</param> 
     /// <param name="path" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param> 
     [<ExternalCacheAttribute>]
-    static member sourcemaps (project: string option)
+    static member sourcemaps (context: ActionContext)
+                             (project: string option)
                              (path: string option) =
         let project = project |> map_value (fun project -> $"--project {project}")
         let path = path |> or_default "dist"
 
+        let errLevel = if context.CI then 0 else 1
         let ops = [
             shellOp( "sentry-cli", $"sourcemaps inject {path}")
-            shellOp( "sentry-cli", $"sourcemaps upload {project} {path}")
+            shellOpErrorLevel( "sentry-cli", $"sourcemaps upload {project} {path}", errLevel)
         ]
         ops
