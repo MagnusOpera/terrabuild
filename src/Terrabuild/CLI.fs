@@ -121,12 +121,14 @@ with
 type LoginArgs =
     | [<ExactlyOnce>] Workspace of id:string
     | [<ExactlyOnce>] Token of token:string
+    | [<Unique>] MasterKey of masterKey:string option
 with
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Workspace _ -> "Workspace Id to connect to"
             | Token _ -> "Token to connect to space"
+            | MasterKey _ -> "Master key to encrypt artifacts"
 
 [<RequireQualifiedAccess>]
 type LogoutArgs =

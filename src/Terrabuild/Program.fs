@@ -118,9 +118,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             let jsonOptions = Json.Serialize options
             jsonOptions |> IO.writeTextFile (logFile "options.json")
 
-        let token =
+        let auth =
             if options.LocalOnly then None
-            else config.Id |> Option.bind Auth.readAuthToken
+            else config.Id |> Option.bind Auth.readAuth
+        let token = auth |> Option.map (fun auth -> auth.Token)
+        let masterKey = auth |> Option.bind (fun auth -> auth.MasterKey)
         let api = Api.Factory.create config.Id token options
         if api |> Option.isSome then
             Log.Debug("Connected to API")
@@ -130,7 +132,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             let jsonConfig = Json.Serialize config
             jsonConfig |> IO.writeTextFile (logFile "config.json")
 
-        let storage = Storages.Factory.create api
+        let storage = Storages.Factory.create api masterKey
         let cache = Cache.Cache(storage) :> Cache.ICache
 
         let graph = GraphPipeline.Node.build options config
@@ -334,8 +336,9 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     let login (loginArgs: ParseResults<LoginArgs>) =
         let workspaceId = loginArgs.GetResult(LoginArgs.Workspace)
         let token = loginArgs.GetResult(LoginArgs.Token)
+        let masterKey = loginArgs.GetResult(LoginArgs.MasterKey)
 
-        Auth.login workspaceId token
+        Auth.login workspaceId token masterKey
         0
 
     let logout (logoutArgs: ParseResults<LogoutArgs>) =
