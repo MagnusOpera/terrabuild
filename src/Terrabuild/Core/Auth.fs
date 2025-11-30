@@ -5,7 +5,7 @@ open System
 type SpaceAuth = {
     Id: string
     Token: string
-    MasterKey: string option
+    MasterKey: string
 }
 
 [<RequireQualifiedAccess>]
@@ -27,7 +27,7 @@ let private removeAuthToken (workspaceId: string) =
     |> IO.writeTextFile configFile
 
 
-let private addAuthToken (workspaceId: string) (token: string) (masterKey: string option) =
+let private addAuthToken (workspaceId: string) (token: string) (masterKey: string) =
     let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
     let config =
         if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>

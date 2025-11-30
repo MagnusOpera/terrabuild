@@ -121,7 +121,7 @@ with
 type LoginArgs =
     | [<ExactlyOnce>] Workspace of id:string
     | [<ExactlyOnce>] Token of token:string
-    | [<Unique>] MasterKey of masterKey:string option
+    | [<ExactlyOnce>] MasterKey of masterKey:string
 with
     interface IArgParserTemplate with
         member this.Usage =
