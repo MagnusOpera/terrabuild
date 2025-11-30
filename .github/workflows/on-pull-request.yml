@@ -21,10 +21,10 @@ jobs:
         with:
           dotnet-version: 10.0.100
 
-      - name: Build, Test & Dist
+      - name: Self Build
         run: |
-          echo "# Build, Test & Dist" >> $GITHUB_STEP_SUMMARY
-          make self
+          echo "# Self Build" >> $GITHUB_STEP_SUMMARY
+          make self-ci engine=podman
 
       - name: Check Docs
         run: |
