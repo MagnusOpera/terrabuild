@@ -24,7 +24,7 @@ module private SecureArchive =
     let deriveBaseKey (masterKey: byte[]) (artifactId: string) =
         use hmac = new HMACSHA256(masterKey)
         let material =
-            "terrabuild-artifact:v1:" + artifactId
+            "terrabuild-archive:v1:" + artifactId
             |> Encoding.UTF8.GetBytes
         hmac.ComputeHash(material) // 32 bytes
 
@@ -111,7 +111,7 @@ module private SecureArchive =
 
         // Basic length check: must at least fit magic + iv + tag
         if input.Length < 8L + 16L + 32L then
-            invalidOp "Invalid encrypted artifact (too short)"
+            invalidOp "Invalid encrypted archive (too short)"
 
         // 1. Verify HMAC
         let totalLen = input.Length
@@ -154,7 +154,7 @@ module private SecureArchive =
         let headerMagic = Array.zeroCreate<byte> magic.Length
         input2.Read(headerMagic, 0, headerMagic.Length) |> ignore
         if not (System.Linq.Enumerable.SequenceEqual(headerMagic, magic)) then
-            invalidOp "Not a Terrabuild encrypted artifact"
+            invalidOp "Not a Terrabuild encrypted archive"
 
         let iv = Array.zeroCreate<byte> 16
         input2.Read(iv, 0, iv.Length) |> ignore
