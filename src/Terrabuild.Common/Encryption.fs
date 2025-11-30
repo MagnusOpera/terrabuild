@@ -5,17 +5,6 @@ open System.IO
 open System
 
 
-type SecureArchiveDownloadError =
-    | MasterKeyProvidedButArchiveNotSecure   // masterKey = Some, but no magic header
-    | MasterKeyRequiredButMissing           // masterKey = None, but magic header present
-    | DecryptionFailed of string            // wrong key, corrupted, etc.
-    | InvalidFormat of string               // header / iv problems
-    | IoError of string                     // underlying IO (optional)
-
-type SecureArchiveDownloadResult<'a> = Result<'a, SecureArchiveDownloadError>
-
-
-
 module private SecureArchive =
 
     let masterKeyFromString (masterKeyString: string) : byte[] =
