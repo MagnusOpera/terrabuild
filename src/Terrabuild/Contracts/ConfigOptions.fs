@@ -14,7 +14,6 @@ type Options = {
     MaxConcurrency: int
     Force: bool
     Retry: bool
-    Log: bool
     LocalOnly: bool
     StartedAt: DateTime
     Targets: string set

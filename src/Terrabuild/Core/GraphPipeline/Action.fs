@@ -14,9 +14,6 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     let nodes = Concurrent.ConcurrentDictionary<string, GraphDef.Node>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
-    let downloadExternalLogs =
-        if options.Log then GraphDef.NodeAction.Summary
-        else GraphDef.NodeAction.Ignore
 
     let getNodeAction (node: GraphDef.Node) hasChildBuilding =
         // task is forced to build
@@ -48,7 +45,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                 // task is cached
                 elif node.Artifacts = GraphDef.Artifacts.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
-                    (downloadExternalLogs, summary.EndedAt)
+                    (GraphDef.NodeAction.Summary, summary.EndedAt)
                 else
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
                     (GraphDef.NodeAction.Restore, summary.EndedAt)
