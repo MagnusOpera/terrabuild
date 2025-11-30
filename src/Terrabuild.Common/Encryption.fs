@@ -36,13 +36,13 @@ module private SecureArchive =
         encKey, macKey
 
 
-    // [ magic "TBENC1" (6 bytes) ]
+    // [ magic "TBARC1" (6 bytes) ]
     // [ iv (16 bytes) ]
     // [ ciphertext (streamed) ]
     // [ tag (HMAC-SHA256, 32 bytes) ]
 
     [<Literal>]
-    let private MAGIC_TAG = "TBENC1"
+    let private MAGIC_TAG = "TBARC1"
 
     let isEncryptedArchive (filePath: string) =
         if not (File.Exists filePath) then
