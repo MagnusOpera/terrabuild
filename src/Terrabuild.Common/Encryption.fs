@@ -7,8 +7,8 @@ open System
 
 module private SecureArchive =
 
-    let masterKeyFromString (masterKeyString: string) : byte[] =
-        let salt = Encoding.UTF8.GetBytes "Terrabuild.MasterKey.Salt.v1"
+    let masterKeyFromString (salt: string) (masterKeyString: string) : byte[] =
+        let salt = Encoding.UTF8.GetBytes salt
         let iterations = 100_000
 
         let key =

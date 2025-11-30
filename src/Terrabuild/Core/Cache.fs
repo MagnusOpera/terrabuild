@@ -199,9 +199,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             files
 
 
-type Cache(storage: Contracts.IStorage, masterKeyString: string option) =
-    let masterKey = masterKeyString |> Option.map Encryption.masterKeyFromString
-
+type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
     // if there is a entry we already tried to download the summary (result is the value)
     // if not we have never tried to download the summary
     let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()

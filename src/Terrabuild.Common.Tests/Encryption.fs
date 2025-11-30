@@ -6,7 +6,8 @@ open Encryption
 [<Test>]
 let ``encrypt/decrypt with same master key shall success``() =
     let plainArchive = IO.getTempFilename()
-    let masterKey = "tagada" |> masterKeyFromString
+    let salt = "7211d6d5254fb4e742c650b0"
+    let masterKey = "tagada" |> masterKeyFromString salt
     let id = "12345/build/6789"
 
     let plainContent = "this is a secret content"
@@ -34,8 +35,9 @@ let ``encrypt/decrypt with same master key shall success``() =
 [<Test>]
 let ``encrypt/decrypt with different master key shall fail``() =
     let plainArchive = IO.getTempFilename()
-    let masterKey = "tagada" |> masterKeyFromString
-    let masterKey2 = "pouet pouet" |> masterKeyFromString
+    let salt = "7211d6d5254fb4e742c650b0"
+    let masterKey = "tagada" |> masterKeyFromString salt
+    let masterKey2 = "pouet pouet" |> masterKeyFromString salt
     let id = "12345/build/6789"
 
     let plainContent = "this is a secret content"
@@ -61,7 +63,8 @@ let ``encrypt/decrypt with different master key shall fail``() =
 [<Test>]
 let ``decrypting unencrypted file with master key shall fail``() =
     let plainArchive = IO.getTempFilename()
-    let masterKey = "tagada" |> masterKeyFromString
+    let salt = "7211d6d5254fb4e742c650b0"
+    let masterKey = "tagada" |> masterKeyFromString salt
     let id = "12345/build/6789"
 
     let plainContent = "this is a secret content"

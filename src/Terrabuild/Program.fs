@@ -122,7 +122,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             if options.LocalOnly then None
             else config.Id |> Option.bind Auth.readAuth
         let token = auth |> Option.map (fun auth -> auth.Token)
-        let masterKey = auth |> Option.map (fun auth -> auth.MasterKey)
+        let masterKey = auth |> Option.map (fun auth -> Encryption.masterKeyFromString auth.Token auth.MasterKey)
         let api = Api.Factory.create config.Id token options
         if api |> Option.isSome then
             Log.Debug("Connected to API")
