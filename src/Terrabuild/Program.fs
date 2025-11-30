@@ -93,6 +93,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.MaxConcurrency = options.MaxConcurrency
             ConfigOptions.Options.Force = options.Force
             ConfigOptions.Options.Retry = options.Retry
+            ConfigOptions.Options.Log = log
             ConfigOptions.Options.LocalOnly = options.LocalOnly
             ConfigOptions.Options.StartedAt = options.StartedAt
             ConfigOptions.Options.Targets = options.Targets
