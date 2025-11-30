@@ -37,7 +37,6 @@
     <Compile Include="SourceControls/Local.fs" />
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="SourceControls/Factory.fs" />
-    <Compile Include="Storages/Encryption.fs" />
     <Compile Include="Storages/Local.fs" />
     <Compile Include="Storages/AzureBlobStorage.fs" />
     <Compile Include="Storages/Factory.fs" />

@@ -132,8 +132,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             let jsonConfig = Json.Serialize config
             jsonConfig |> IO.writeTextFile (logFile "config.json")
 
-        let storage = Storages.Factory.create api masterKey
-        let cache = Cache.Cache(storage) :> Cache.ICache
+        let storage = Storages.Factory.create api
+        let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
         let graph = GraphPipeline.Node.build options config
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node-graph.json")

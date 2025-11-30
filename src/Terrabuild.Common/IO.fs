@@ -39,8 +39,9 @@ let exists path =
 let moveFile source destination =
     File.Move(source, destination, true)
 
-let deleteAny entry =
+let deleteAny (entry: string | null) =
     match entry with
+    | null -> ()
     | FS.File file -> File.Delete(file)
     | FS.Directory directory -> Directory.Delete(directory, true)
     | _ -> ()

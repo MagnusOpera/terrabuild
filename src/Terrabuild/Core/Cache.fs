@@ -101,7 +101,7 @@ let createDirectories() =
     createTmp() |> ignore
 
 
-type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.IStorage) =
+type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.IStorage, masterKey: byte[] option) =
     let logsDir = FS.combinePath entryDir "logs"
     let outputsDir = FS.combinePath entryDir "outputs"
     let mutable logNum = 1
@@ -150,15 +150,17 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
         member _.Complete summary =
             let files =
                 let uploadDir sourceDir name =
-                    let path = $"{id}/{name}"
-                    let tarFile = IO.getTempFilename()
-                    let compressFile = IO.getTempFilename()
+                    let mutable tarFile: string | null = null
+                    let mutable compressFile: string | null = null
+                    let mutable encryptedFile: string | null = null
                     try
-                        sourceDir |> Compression.tar tarFile
-                        tarFile |> Compression.compress compressFile
-                        storage.Upload path compressFile
-                        path
+                        let path = $"{id}/{name}"
+                        tarFile <- Compression.tar sourceDir
+                        compressFile <- Compression.compress (tarFile |> nonNull)
+                        encryptedFile <- Encryption.encrypt masterKey id (compressFile |> nonNull)
+                        storage.Upload path (encryptedFile |> nonNull)
                     finally
+                        IO.deleteAny encryptedFile
                         IO.deleteAny compressFile
                         IO.deleteAny tarFile
 
@@ -197,7 +199,9 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             files
 
 
-type Cache(storage: Contracts.IStorage) =
+type Cache(storage: Contracts.IStorage, masterKeyString: string option) =
+    let masterKey = masterKeyString |> Option.map Encryption.masterKeyFromString
+
     // if there is a entry we already tried to download the summary (result is the value)
     // if not we have never tried to download the summary
     let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()
@@ -205,13 +209,19 @@ type Cache(storage: Contracts.IStorage) =
     let tryDownload targetDir id name =
         match storage.TryDownload $"{id}/{name}" with
         | Some file ->
-            let uncompressFile = IO.getTempFilename()
+            let mutable decryptedFile: string option = None
+            let mutable decompressedFile: string | null = null
             try
-                file |> Compression.uncompress uncompressFile
-                uncompressFile |> Compression.untar targetDir
-                true
+                decryptedFile <- Encryption.tryDecrypt masterKey id file
+                match decryptedFile with
+                | Some decryptedFile ->
+                    decompressedFile <- Compression.uncompress decryptedFile
+                    Compression.untar targetDir (decompressedFile |> nonNull)
+                    true
+                | _ ->
+                    false
             finally
-                IO.deleteAny uncompressFile
+                IO.deleteAny decompressedFile
                 IO.deleteAny file
         | _ ->
             false
@@ -302,4 +312,4 @@ type Cache(storage: Contracts.IStorage) =
             // invalidate cache as we are creating a new entry
             cachedSummaries.TryRemove(id) |> ignore
             let entryDir = FS.combinePath (createCache()) id
-            NewEntry(entryDir, useRemote, id, storage)
+            NewEntry(entryDir, useRemote, id, storage, masterKey)
