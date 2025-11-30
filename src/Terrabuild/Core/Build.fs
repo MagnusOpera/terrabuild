@@ -414,7 +414,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     hub.GetSignal<DateTime> depId)
                 |> List.ofSeq
 
-            hub.Subscribe targetNode.Id schedDependencies (fun () ->
+            let subscribe =
+                match targetNode.Action with
+                | GraphDef.NodeAction.BatchBuild -> hub.Subscribe
+                | GraphDef.NodeAction.Build -> hub.Subscribe
+                | GraphDef.NodeAction.Restore -> hub.SubscribeBackground
+                | GraphDef.NodeAction.Summary -> hub.SubscribeBackground
+                | GraphDef.NodeAction.Ignore -> hub.SubscribeBackground
+
+            subscribe targetNode.Id schedDependencies (fun () ->
                 let batchSchedule =
                     [ match cluster with
                       | Some cluster ->
