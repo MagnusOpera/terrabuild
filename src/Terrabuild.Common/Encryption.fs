@@ -36,13 +36,13 @@ module private SecureArchive =
         encKey, macKey
 
 
-    // [ magic "TBARC1" (6 bytes) ]
+    // [ magic "TBARCH01" (8 bytes) ]
     // [ iv (16 bytes) ]
     // [ ciphertext (streamed) ]
     // [ tag (HMAC-SHA256, 32 bytes) ]
 
     [<Literal>]
-    let private MAGIC_TAG = "TBARC1"
+    let private MAGIC_TAG = "TBARCH01"
 
     let isEncryptedArchive (filePath: string) =
         if not (File.Exists filePath) then
@@ -110,7 +110,7 @@ module private SecureArchive =
         use input = File.OpenRead inputPath
 
         // Basic length check: must at least fit magic + iv + tag
-        if input.Length < 6L + 16L + 32L then
+        if input.Length < 8L + 16L + 32L then
             invalidOp "Invalid encrypted artifact (too short)"
 
         // 1. Verify HMAC
