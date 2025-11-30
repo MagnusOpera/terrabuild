@@ -1,0 +1,107 @@
+name: 🦄 Update Homebrew Tap
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        description: "GitHub ref to use"
+        type: string
+      version:
+        required: true
+        description: "Version to produce"
+        type: string
+      dry-run:
+        required: false
+        default: true
+        description: "Whether to run in dry-run mode and skip pushing the commit"
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: true
+        description: "GitHub ref to use"
+        type: string
+      version:
+        required: true
+        description: "Version to produce"
+        type: string
+      dry-run:
+        required: false
+        default: true
+        description: "Whether to run in dry-run mode and skip pushing the commit"
+        type: boolean
+
+env:
+  TERRABUILD_VERSION: ${{ inputs.version }}
+  GITHUB_TOKEN: ${{ secrets.PAT_HOMEBREW_TAP }}
+
+jobs:
+  update-homebrew-tap:
+    name: Update Homebrew Tap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: terrabuild
+
+      - name: Prepare formula name
+        run: |
+          refname=${{github.ref_name}}
+          pat="([^-]*)-?([^-]*)"
+          [[ $refname =~ $pat ]]
+
+          BUILD_VERSION=${BASH_REMATCH[1]}
+          BUILD_VERSION_SUFFIX=${BASH_REMATCH[2]}
+          echo "BUILD_VERSION: $BUILD_VERSION"
+          echo "BUILD_VERSION_SUFFIX: $BUILD_VERSION_SUFFIX"
+
+          if [[ -z $BUILD_VERSION_SUFFIX ]]; then
+            TERRABUILD_FORMULA_FILE="terrabuild"
+          else
+            TERRABUILD_FORMULA_FILE="terrabuild-${BUILD_VERSION_SUFFIX}"
+          fi
+
+          echo "TERRABUILD_FORMULA_FILE=$TERRABUILD_FORMULA_FILE" >> $GITHUB_ENV
+
+      - name: Checkout tap repo
+        uses: actions/checkout@v4
+        with:
+          repository: magnusopera/homebrew-tap
+          path: homebrew-tap
+          token: ${{ secrets.PAT_HOMEBREW_TAP }}
+      - name: Update Homebrew Tap
+        run: |
+          set -euo pipefail
+
+          # Can simulate this by cloning magnusopera/terrabuild & magnusopera/homebrew-tap to adacent directories
+          # and running from their parent:
+
+          ./terrabuild/.github/scripts/generate-homebrew-tap \
+            "${TERRABUILD_VERSION}" \
+            ./terrabuild/.github/scripts/terrabuild-formula-template.rb \
+            > ./homebrew-tap/Formula/${TERRABUILD_FORMULA_FILE}.rb
+      - name: Commit Updated Tap
+        working-directory: homebrew-tap
+        run: |
+          set -euo pipefail
+
+          git config user.name magnusopera-bot
+          git config user.email bot@magnusopera.io
+          git add Formula/${TERRABUILD_FORMULA_FILE}.rb
+          echo "::group::git diff"
+          git  --no-pager diff
+          echo "::endgroup::"
+          git commit -m "Brew Formula update for Terrabuild version ${TERRABUILD_VERSION}"
+      - name: Push Tap
+        working-directory: homebrew-tap
+        if: ${{ !inputs.dry-run }}
+        run: |
+          set -euo pipefail
+
+          git push origin HEAD:main
