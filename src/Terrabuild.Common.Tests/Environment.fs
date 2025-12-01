@@ -35,12 +35,12 @@ let ``matching case returns Some``() =
     System.Environment.SetEnvironmentVariable(tbvar, null)
 
 [<Test>]
-let ``not matching case returns Some``() =
+let ``not matching case returns None``() =
     let name, tbvar = getVarName "TB_VAR_"
     let name = name |> String.toUpper
 
     System.Environment.SetEnvironmentVariable(tbvar, "pouet pouet")
     name
     |> Environment.getTerrabuildEnvVar
-    |> should equal (Some "pouet pouet")
+    |> should equal None
     System.Environment.SetEnvironmentVariable(tbvar, null)
