@@ -40,6 +40,10 @@ extension docker { }
 extension npmext {
     image = "node:20"
     script = "scripts/npm.fsx"
+
+    env {
+        CI = "true"
+    }
 }
 
 # multiple comments at the end

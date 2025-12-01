@@ -19,7 +19,8 @@ let systemExtensions =
                    Variables = None
                    Script = None
                    Defaults = None
-                   Batch = None })
+                   Batch = None
+                   Env = None })
     |> Map.ofSeq
 
 // NOTE: when app in package as a single file, Terrabuild.Assembly can't be found...
