@@ -9,12 +9,14 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
-      "targetHash": "0E2B91481DECF5AE0C3297FE6EFD156239C3EF0E885D8417D34D8587C307D841",
-      "clusterHash": "0E2B91481DECF5AE0C3297FE6EFD156239C3EF0E885D8417D34D8587C307D841",
+      "targetHash": "E6C443A72AD2016F328B2E666701B454A259797567A192F9350FD7A62254D9E5",
+      "clusterHash": "E6C443A72AD2016F328B2E666701B454A259797567A192F9350FD7A62254D9E5",
       "operations": [
         {
           "variables": [],
-          "envs": {},
+          "envs": {
+            "TAGADA": "pouet pouet"
+          },
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building app with lib version: CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C",

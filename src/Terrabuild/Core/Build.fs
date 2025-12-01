@@ -68,7 +68,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
                     let containerHome =
                         Log.Debug("Identifying USER for {container}", container)
-                        match Exec.execCaptureOutput options.Workspace cmd args with
+                        match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
                         | Exec.Success (containerHome, 0) -> containerHome.Trim()
                         | _ ->
                             Log.Debug("USER identification failed for {container}: using root", container)
@@ -78,7 +78,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     containerInfos.TryAdd(container, containerHome) |> ignore
                     containerHome
 
-            let pass_envs =
+            let envs =
                 let matcher = Matcher()
                 matcher.AddIncludePatterns(operation.Variables)
                 envVars()
@@ -90,16 +90,12 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                         if value = expandedValue then Some $"-e {key}"
                         else Some $"-e {key}={expandedValue}"
                     else None)
-                |> String.join " "
-            
-            let set_envs =
-                operation.Envs
-                |> Seq.map (fun (KeyValue(key, value)) -> $"-e {key}={value}")
+                |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
                 |> String.join " "
 
-            let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {pass_envs} {set_envs} {container} {operation.Arguments}"
-            metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel
-        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel)
+            let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+            metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel, operation.Envs
+        | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs)
 
 
 let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
@@ -115,7 +111,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         startedAt <-
             if cmdLineIndex > 0 then DateTime.UtcNow
             else cmdFirstStartedAt
-        let metaCommand, workDir, cmd, args, container, errorLevel = allCommands[cmdLineIndex]
+        let metaCommand, workDir, cmd, args, container, errorLevel, envs = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
         Log.Debug("{Hash}: Running '{Command}' with '{Arguments}'", node.TargetHash, cmd, args)
@@ -123,9 +119,9 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         try
             let exitCode =
                 if options.Targets |> Set.contains "serve" then
-                    Exec.execConsole workDir cmd args
+                    Exec.execConsole workDir cmd args envs
                 else
-                    Exec.execCaptureTimestampedOutput workDir cmd args logFile
+                    Exec.execCaptureTimestampedOutput workDir cmd args envs logFile
             cmdLastEndedAt <- DateTime.UtcNow
             let endedAt = cmdLastEndedAt
             let duration = endedAt - startedAt

@@ -62,3 +62,9 @@ extension @openapi {
   image = "openapitools/openapi-generator-cli:v7.10.0"
   platform = "linux/amd64"
 }
+
+extension @shell {
+    env {
+        TAGADA = "pouet pouet"
+    }
+}
