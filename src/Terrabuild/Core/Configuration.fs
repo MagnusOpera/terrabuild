@@ -19,6 +19,7 @@ type TargetOperation = {
     Image: string option
     Platform: string option
     ContainerVariables: string set
+    Envs: Map<string, string>
     Extension: string
     Command: string
     Script: Terrabuild.Scripting.Script
@@ -562,6 +563,11 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
                         |> Option.defaultValue Set.empty
 
+                    let envs =
+                        extension.Env
+                        |> Option.map (Map.map (fun _ -> Eval.asString << Eval.eval evaluationContext))
+                        |> Option.defaultValue Map.empty
+
                     let batch =
                         extension.Batch
                         |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
@@ -584,6 +590,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         TargetOperation.Image = image
                         TargetOperation.Platform = platform
                         TargetOperation.ContainerVariables = variables
+                        TargetOperation.Envs = envs
                         TargetOperation.Extension = step.Extension
                         TargetOperation.Command = step.Command
                         TargetOperation.Script = script

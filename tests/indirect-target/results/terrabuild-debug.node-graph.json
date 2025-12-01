@@ -9,11 +9,12 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "9C785D55C11F07C0562A258ED07F84A7D8F048C0642BB37FDD51CA79B1BA7477",
-      "targetHash": "123CA41BF6A75A615A5C09CFD425DC12224578DD8D59979F5377E8FCBD920EB1",
-      "clusterHash": "123CA41BF6A75A615A5C09CFD425DC12224578DD8D59979F5377E8FCBD920EB1",
+      "targetHash": "467FB7316BDB8DD707751944A9AA9D70E034CD412590CAAF678ACE6C115E4344",
+      "clusterHash": "467FB7316BDB8DD707751944A9AA9D70E034CD412590CAAF678ACE6C115E4344",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "build A",
@@ -35,11 +36,12 @@
       ],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "5134E31310A50F67ED6A1637C8E8714534DDCBDBB20F000F389B2BA775766BA0",
-      "clusterHash": "5134E31310A50F67ED6A1637C8E8714534DDCBDBB20F000F389B2BA775766BA0",
+      "targetHash": "44E624A282C539B52546D0F5A270EA656DA4682DA4F5AE17782780F26A07130D",
+      "clusterHash": "44E624A282C539B52546D0F5A270EA656DA4682DA4F5AE17782780F26A07130D",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "apply B",
@@ -59,11 +61,12 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "216C66023FFF22BF42082547C0CA6B8558703DE2E94147B86DDE8E0EB9140214",
-      "targetHash": "A273044D5A6403E1014DA15FB6E2157746B3542E641EE86CA9FB5F4ABB8051B7",
-      "clusterHash": "A273044D5A6403E1014DA15FB6E2157746B3542E641EE86CA9FB5F4ABB8051B7",
+      "targetHash": "AF46BC2C891F756C0FB70FC2A2E3F911E45D105651580EF23C7BE0036CB0F757",
+      "clusterHash": "AF46BC2C891F756C0FB70FC2A2E3F911E45D105651580EF23C7BE0036CB0F757",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "plan B",
@@ -83,11 +86,12 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "5140E561832E315D1BDE9C88BC59A0C76757647DFB07F409BA73535ABDB5EC16",
-      "targetHash": "F786EEA4965AF119166EABD6DB019B0F98DF4F56B1865C9E9CE7FF29BF51E9AC",
-      "clusterHash": "F786EEA4965AF119166EABD6DB019B0F98DF4F56B1865C9E9CE7FF29BF51E9AC",
+      "targetHash": "8EFE91593497B3D98E8619891E1B6961A33A2D4927A1325F3353B163DA965114",
+      "clusterHash": "8EFE91593497B3D98E8619891E1B6961A33A2D4927A1325F3353B163DA965114",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "build C",

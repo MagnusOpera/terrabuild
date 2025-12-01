@@ -105,6 +105,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                             ContaineredShellOperation.Image = operation.Image
                             ContaineredShellOperation.Platform = operation.Platform
                             ContaineredShellOperation.Variables = operation.ContainerVariables
+                            ContaineredShellOperation.Envs = operation.Envs
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs

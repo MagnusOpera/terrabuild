@@ -12,11 +12,12 @@
       ],
       "outputs": [],
       "projectHash": "63A3349F003FE9060E0122A5FBE7CB065096FA28F0C2C21733381BFF38C4E678",
-      "targetHash": "4D6415EE641A56905236080805EC40B3E591E955A5ACED7998476A1637F431D3",
-      "clusterHash": "4D6415EE641A56905236080805EC40B3E591E955A5ACED7998476A1637F431D3",
+      "targetHash": "3DF8E9D207D9CAD0A7DA14F53D53D359C037A11F8E2131F5F74947C7C1E6F1CA",
+      "clusterHash": "3DF8E9D207D9CAD0A7DA14F53D53D359C037A11F8E2131F5F74947C7C1E6F1CA",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building A",
@@ -38,11 +39,12 @@
       ],
       "outputs": [],
       "projectHash": "E173A4DB883DDBD85BA5D2A3C5FD49A3814F02889E984F0C09C14C72B5DE7F7A",
-      "targetHash": "261E371AE025AA65B9DC797130295C16CDA872959D807E6C79422098723D7DFC",
-      "clusterHash": "261E371AE025AA65B9DC797130295C16CDA872959D807E6C79422098723D7DFC",
+      "targetHash": "47BBE44F3DEE5657AE8C49454D90AE09CC176F40C3C1B00513BCB0CA2403F17F",
+      "clusterHash": "47BBE44F3DEE5657AE8C49454D90AE09CC176F40C3C1B00513BCB0CA2403F17F",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building B",
@@ -62,11 +64,12 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "977CE3A46143B80A10A86D433F5AA29A81FAFDAF9D9BF29915329530CEAB6610",
-      "targetHash": "C237FE328BDD6D9AC7CF6962BF7357B29CB1B8C48C713FCD39D869F59614D1B1",
-      "clusterHash": "C237FE328BDD6D9AC7CF6962BF7357B29CB1B8C48C713FCD39D869F59614D1B1",
+      "targetHash": "DF55472DB682B429A4FB8121D9E6CF66E030A5F47E44F7451FD97102EB2A8B77",
+      "clusterHash": "DF55472DB682B429A4FB8121D9E6CF66E030A5F47E44F7451FD97102EB2A8B77",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building C",

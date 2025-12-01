@@ -8,13 +8,14 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
-      "targetHash": "98CDBD120004F43A48B79AEC2B7A8A04D51C9589B9E482765A34166A1DFA0AE3",
+      "targetHash": "DFD0427643DE7B5BF737BB23B23619233E3AA8ABD7803E3F63498D864EB341BC",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
           "arguments": "restore .terrabuild/76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6.sln",
@@ -24,6 +25,7 @@
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
           "arguments": "build .terrabuild/76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6.sln --no-restore --no-dependencies --configuration Debug",
@@ -47,13 +49,16 @@
         "dist/**"
       ],
       "projectHash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
-      "targetHash": "FD3AA096BF31943A360B20C12DB0C42F32028243FD869FE93B3A979FF9211207",
+      "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
           "arguments": "install --link-workspace-packages",
@@ -63,6 +68,9 @@
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm build",
           "command": "pnpm",
           "arguments": "run build",
@@ -84,13 +92,16 @@
         "dist/**"
       ],
       "projectHash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
-      "targetHash": "AB9F7B6B43E650DDAD7510D541F75DEE93D54EB0405D958EAD6E7462DBBFA4E6",
+      "targetHash": "530C83EBA93EFB32A674A25A875C49C92A11ED6752CB7E45B56AF866DB92DA53",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
           "arguments": "install --link-workspace-packages",
@@ -100,6 +111,9 @@
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm build",
           "command": "pnpm",
           "arguments": "run build",
@@ -118,13 +132,16 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
-      "targetHash": "FD3AA096BF31943A360B20C12DB0C42F32028243FD869FE93B3A979FF9211207",
+      "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
       "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
           "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib install --link-workspace-packages",
@@ -134,6 +151,9 @@
           "image": "guergeiro/pnpm:20-10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {
+            "CI": "true"
+          },
           "metaCommand": "@pnpm build",
           "command": "pnpm",
           "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib run build",
@@ -157,13 +177,14 @@
         "*.planfile"
       ],
       "projectHash": "3CBDEDC0FBF6FC914B350938367420CBB48C4245A2F5E27010092EDF137A1D64",
-      "targetHash": "1C4FE5C9F97FD7A0591DD1E9BC61FAC2BD0D2C81033C1923CFE3928379FBBCAC",
-      "clusterHash": "1C4FE5C9F97FD7A0591DD1E9BC61FAC2BD0D2C81033C1923CFE3928379FBBCAC",
+      "targetHash": "D1D7F8034430EE870997131B84C52894C8491C430E5E1A7F5DD70D465B1A8443",
+      "clusterHash": "D1D7F8034430EE870997131B84C52894C8491C430E5E1A7F5DD70D465B1A8443",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@terraform init",
           "command": "terraform",
           "arguments": "init -reconfigure",
@@ -173,6 +194,7 @@
           "image": "hashicorp/terraform:1.10",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@terraform plan",
           "command": "terraform",
           "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332\u0022 -var=\u0022npm_app_version=BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E\u0022",
@@ -195,13 +217,14 @@
         "obj/"
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
-      "targetHash": "98CDBD120004F43A48B79AEC2B7A8A04D51C9589B9E482765A34166A1DFA0AE3",
+      "targetHash": "DFD0427643DE7B5BF737BB23B23619233E3AA8ABD7803E3F63498D864EB341BC",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
           "arguments": "restore",
@@ -211,6 +234,7 @@
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
           "arguments": "build --no-restore --no-dependencies --configuration Debug",
@@ -230,11 +254,12 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "F5BF463EE65DE11178E5493A4A2524D840424991FD309D92A4EA1E6F04ECBB19",
-      "targetHash": "7F73A11EBA1B446581EC02E6A629033AB17771ABA21F06285518C78B066BDBDF",
-      "clusterHash": "7F73A11EBA1B446581EC02E6A629033AB17771ABA21F06285518C78B066BDBDF",
+      "targetHash": "4921EF754AC311172D53D1C676B9EF24D12DF9129B2D14742669464951BC3E0B",
+      "clusterHash": "4921EF754AC311172D53D1C676B9EF24D12DF9129B2D14742669464951BC3E0B",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building library1",
@@ -260,13 +285,14 @@
         "obj/"
       ],
       "projectHash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
-      "targetHash": "B865534D7BDC6B64EC9B5FE8D1B62E906DF1E4F1F736145B29C0604DEEC8342E",
+      "targetHash": "B345FE736AF5A5BA9F3A9868C8B07005765A8683C55BBAF11D4CF305C5C1945A",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
           "arguments": "restore",
@@ -276,6 +302,7 @@
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
           "arguments": "build --no-restore --configuration Debug",
@@ -296,11 +323,12 @@
       ],
       "outputs": [],
       "projectHash": "C66DAE7127E2D8E3CCA369EAAF522E3A0870A4F7FF36A53D7276DACA64445A3D",
-      "targetHash": "A229DAB8DDBA9B53BA6220F8888E9944DF3EBD5A105CC1D0D72481602BF61599",
-      "clusterHash": "A229DAB8DDBA9B53BA6220F8888E9944DF3EBD5A105CC1D0D72481602BF61599",
+      "targetHash": "2542B024D24808D0999AA99B8C0B90D879929EF7859A0A5FC569D7351214FBAF",
+      "clusterHash": "2542B024D24808D0999AA99B8C0B90D879929EF7859A0A5FC569D7351214FBAF",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
           "arguments": "building project1",
@@ -308,6 +336,7 @@
         },
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@make build",
           "command": "make",
           "arguments": "build secret=\u0022tagada\u0022",
@@ -326,13 +355,14 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "40E90040BDDCC51E9F1C22C6FE649AED71E6B34C1425C8EF1CEF56924C10A468",
-      "targetHash": "12077ECAB6441C5BE8E3C4E98EE0C58267B3AA10D1887D594521434866C28548",
-      "clusterHash": "12077ECAB6441C5BE8E3C4E98EE0C58267B3AA10D1887D594521434866C28548",
+      "targetHash": "73A456675EE4373B5427BA6458104CD6E30C16D149B8C48426897060343601F4",
+      "clusterHash": "73A456675EE4373B5427BA6458104CD6E30C16D149B8C48426897060343601F4",
       "operations": [
         {
           "image": "openapitools/openapi-generator-cli:v7.10.0",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@openapi generate",
           "command": "docker-entrypoint.sh",
           "arguments": "generate -i api.json -g typescript-axios -o src",
@@ -354,13 +384,14 @@
         "target/release/"
       ],
       "projectHash": "128844436B36BD74060B018463FF82B5877E5ED64C6499FC7C651BED845938EA",
-      "targetHash": "402737B5C2201F23816D08B098D6062B20C10994CFED8A22E018EF142F16A69F",
-      "clusterHash": "402737B5C2201F23816D08B098D6062B20C10994CFED8A22E018EF142F16A69F",
+      "targetHash": "18211B86334AA474A8F0EDE8103FF0B78F3BC1D6937BE80363B47C5E2F278656",
+      "clusterHash": "18211B86334AA474A8F0EDE8103FF0B78F3BC1D6937BE80363B47C5E2F278656",
       "operations": [
         {
           "image": "rust:1.81.0-slim",
           "platform": "linux/amd64",
           "variables": [],
+          "envs": {},
           "metaCommand": "@cargo build",
           "command": "cargo",
           "arguments": "build",
@@ -382,11 +413,12 @@
         "dist/**"
       ],
       "projectHash": "B368EF1F51256F63E5C86D5240A2C502393196E55C0E27138F17A0A287DCA5B7",
-      "targetHash": "67F9C6211A964D6E840245EA96297848239E37344C1D5BE5EDCAD590AAA53027",
-      "clusterHash": "67F9C6211A964D6E840245EA96297848239E37344C1D5BE5EDCAD590AAA53027",
+      "targetHash": "30EDFF30CE69500C91F728DEDFC75B00133363B1673B84AD763F0A626CA02EFC",
+      "clusterHash": "30EDFF30CE69500C91F728DEDFC75B00133363B1673B84AD763F0A626CA02EFC",
       "operations": [
         {
           "variables": [],
+          "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
           "arguments": "install",
@@ -395,6 +427,7 @@
         {
           "image": "mcr.microsoft.com/playwright:v1.54.0-noble",
           "variables": [],
+          "envs": {},
           "metaCommand": "@playwright test",
           "command": "npx",
           "arguments": "playwright test --project ci",

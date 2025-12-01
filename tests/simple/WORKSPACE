@@ -62,6 +62,9 @@ extension @pnpm {
   image = "guergeiro/pnpm:20-10"
   platform = "linux/amd64"
   batch = true
+  env {
+    CI = "true"
+  }
 }
 
 extension @openapi {
