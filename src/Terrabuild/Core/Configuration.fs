@@ -565,7 +565,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
                     let envs =
                         extension.Env
-                        |> Option.map (Map.map (fun _ -> Eval.asString << Eval.eval evaluationContext))
+                        |> Option.map (Map.map (fun _ -> Eval.valueToString << Eval.eval evaluationContext))
                         |> Option.defaultValue Map.empty
 
                     let batch =
