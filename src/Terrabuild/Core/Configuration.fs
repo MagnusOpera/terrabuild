@@ -706,6 +706,7 @@ let read (options: ConfigOptions.Options) =
         ]
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
 
+#if RELEASE
     // check min version requirement
     match workspaceConfig.Workspace.Version with
     | Some minVersion ->
@@ -713,6 +714,7 @@ let read (options: ConfigOptions.Options) =
         if actualVersion |> Version.isAtLeast minVersion |> not then
             raiseInvalidArg $"Workspace requires version '{minVersion}' or newer (found '{actualVersion}')."
     | _ -> ()
+#endif
 
     $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
