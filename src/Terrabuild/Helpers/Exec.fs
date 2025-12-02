@@ -103,13 +103,16 @@ let private children = ConcurrentBag<Process>()
 
 
 
-let private createProcess workingDir command args redirect =
+let private createProcess workingDir command args envs redirect =
     let psi = ProcessStartInfo (FileName = command,
                                 Arguments = args,
                                 UseShellExecute = false,
                                 WorkingDirectory = workingDir,
                                 RedirectStandardOutput = redirect,
                                 RedirectStandardError = redirect)
+
+    envs |> Map.iter (fun key value -> psi.EnvironmentVariables[key] <- value)
+
     let proc = new Process(StartInfo = psi)
 
     if not (proc.Start()) then
@@ -145,24 +148,24 @@ type CaptureResult =
     | Success of string*int
     | Error of string*int
 
-let execCaptureOutput (workingDir: string) (command: string) (args: string) =
+let execCaptureOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
     Log.Debug($"Running and capturing output of '{command}' with arguments '{args}' in working dir '{workingDir}' (Current is '{currentDir()}')")
-    use proc = createProcess workingDir command args true
+    use proc = createProcess workingDir command args envs true
     proc.WaitForExit()
 
     match proc.ExitCode with
     | 0 -> Success (proc.StandardOutput.ReadToEnd(), proc.ExitCode)
     | _ -> Error (proc.StandardError.ReadToEnd(), proc.ExitCode)
 
-let execConsole (workingDir: string) (command: string) (args: string) =
+let execConsole (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
     try
-        use proc = createProcess workingDir command args false
+        use proc = createProcess workingDir command args envs false
         proc.WaitForExit()
         proc.ExitCode
     with
         | exn -> forwardExternalError($"Process '{command}' with arguments '{args}' in directory '{workingDir}' failed", exn)
 
-let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (logFile: string) =
+let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) =
     try
         use logWriter = new StreamWriter(logFile)
         let writeLock = obj()
@@ -174,7 +177,7 @@ let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: s
             | _ -> ()
 
         Log.Debug($"Running and capturing timestamped output of '{command}' with arguments '{args}' in working dir '{workingDir}' (Current is '{currentDir()}')")
-        use proc = createProcess workingDir command args true
+        use proc = createProcess workingDir command args envs true
         proc.OutputDataReceived.Add(fun e -> lockWrite "OUT" e.Data)
         proc.ErrorDataReceived.Add(fun e -> lockWrite "ERR" e.Data)
         proc.BeginOutputReadLine()

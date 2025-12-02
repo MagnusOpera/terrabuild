@@ -30,21 +30,24 @@ let parseWorkspace() =
               Variables = None
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "local.configuration" ] |> Some
-              Batch = Some Expr.False }
+              Batch = Some Expr.False
+              Env = None }
         let extDocker =
             { Image = None
               Platform = None
               Variables = None
               Script = None
               Defaults = None
-              Batch = None }
+              Batch = None
+              Env = None }
         let extNpm =
             { Image = Some (Expr.String "node:20")
               Platform = None
               Variables = None
               Script = "scripts/npm.fsx" |> Expr.String |> Some
               Defaults = None
-              Batch = None }
+              Batch = None
+              Env = Map [ "CI", Expr.String "true" ] |> Some }
 
         { WorkspaceFile.Workspace = { Id = "d7528db2-83e0-4164-8c8e-1e0d6d6357ca" |> Some
                                       Ignores = [ "**/node_modules" ] |> Set |> Some
@@ -92,14 +95,16 @@ let parseWorkspace2() =
               Defaults = Map [ "configuration1", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "toto"])
                                "configuration2", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "titi"])
                                "configuration3", Expr.Function (Function.Replace, [Expr.String "toto titi"; Expr.String "toto"; Expr.String "titi"]) ] |> Some
-              Batch = None }
+              Batch = None
+              Env = None }
         let extDocker =
             { Image = None
               Platform = None
               Variables = None
               Script = None
               Defaults = None
-              Batch = None }
+              Batch = None
+              Env =  None }
 
         { WorkspaceFile.Workspace =
             { Id = None

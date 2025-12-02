@@ -18,6 +18,10 @@ extension @docker {
 
 extension dummy {
     script = "dummy.fsx"
+
+    env {
+        DUMMY_VAR = "tagada"
+    }
 }
 
 # comment in the middle of the file

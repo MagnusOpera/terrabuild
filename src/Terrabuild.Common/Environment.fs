@@ -20,11 +20,6 @@ let expandTerrabuildHome (terrabuildHome: string) (input: string) : string =
     Regex.Replace(input, pattern, terrabuildHome)
 
 let getTerrabuildEnvVar name =
-    Environment.GetEnvironmentVariables()
-    |> Seq.cast<DictionaryEntry>
-    |> Seq.tryPick (fun entry ->
-        let key = entry.Key :?> string
-        if key.StartsWith("TB_VAR_") && String.Equals(key, $"TB_VAR_{name}", StringComparison.OrdinalIgnoreCase) then
-            Some (entry.Value |> nonNull :?> string)
-        else
-            None)
+    match Environment.GetEnvironmentVariable($"TB_VAR_{name}") with
+    | null -> None
+    | value -> Some value

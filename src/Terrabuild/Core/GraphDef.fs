@@ -6,6 +6,7 @@ type ContaineredShellOperation = {
     Image: string option
     Platform: string option
     Variables: string set
+    Envs: Map<string, string>
     MetaCommand: string
     Command: string
     Arguments: string

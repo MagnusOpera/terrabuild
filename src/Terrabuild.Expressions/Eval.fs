@@ -20,15 +20,15 @@ let isTruthy = function
     | _ -> true
 
 
-let rec eval (context: EvaluationContext) (expr: Expr) =
-    let valueToString v =
-        match v with
-        | Value.Nothing -> ""
-        | Value.Bool b -> if b then "true" else "false"
-        | Value.Number n -> $"{n}"
-        | Value.String s -> s
-        | _ -> raiseTypeError $"Unsupported type for format {v}" (v.ToString())
+let valueToString v =
+    match v with
+    | Value.Nothing -> ""
+    | Value.Bool b -> if b then "true" else "false"
+    | Value.Number n -> $"{n}"
+    | Value.String s -> s
+    | _ -> raiseTypeError $"Unsupported type for format {v}" (v.ToString())
 
+let rec eval (context: EvaluationContext) (expr: Expr) =
     let rec eval (expr: Expr) =
         match expr with
         | Expr.Nothing -> Value.Nothing
@@ -37,7 +37,6 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
         | Expr.Number num -> Value.Number num
         | Expr.Enum enum -> Value.Enum enum
         | Expr.Variable var ->
-            // if varUsed |> Set.contains var then TerrabuildException.Raise($"Variable {var} has circular definition")
             match context.Data |> Map.tryFind var with
             | Some value -> value
             | None -> raiseSymbolError $"Variable '{var}' is not defined"
@@ -152,6 +151,10 @@ let asStringOption = function
     | Value.String s -> s |> Some
     | Value.Nothing -> None
     | x -> raiseTypeError $"Failed to convert '{x}' to optional string"
+
+let asString = function
+    | Value.String s -> s
+    | x -> raiseTypeError $"Failed to convert '{x}' to string"
 
 let asEnum = function
     | Value.Enum s -> Ok s

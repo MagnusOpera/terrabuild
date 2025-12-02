@@ -46,6 +46,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},
@@ -73,6 +74,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},
@@ -116,6 +118,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},
@@ -144,6 +147,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},
@@ -184,6 +188,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},
@@ -211,6 +216,7 @@
             {
               "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
+              "envs": {},
               "extension": "@shell",
               "command": "echo",
               "script": {},

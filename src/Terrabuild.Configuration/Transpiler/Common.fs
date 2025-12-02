@@ -6,7 +6,7 @@ open Helpers
 let toExtension (block: Block) =
     block
     |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "batch"]
-    |> checkAllowedNestedBlocks ["defaults"]
+    |> checkAllowedNestedBlocks ["defaults"; "env"]
     |> ignore
 
     let image = block |> tryFindAttribute "image"
@@ -26,12 +26,25 @@ let toExtension (block: Block) =
             |> List.map (fun a -> (a.Name, a.Value))
             |> Map.ofList)
 
+    let env =
+        block
+        |> tryFindBlock "env"
+        |> Option.map (fun envs ->
+            envs
+            |> checkNoNestedBlocks
+            |> ignore
+
+            envs.Attributes
+            |> List.map (fun a -> (a.Name, a.Value))
+            |> Map.ofList)
+
     { ExtensionBlock.Image = image
       ExtensionBlock.Platform = platform
       ExtensionBlock.Variables = variables
       ExtensionBlock.Script = script
       ExtensionBlock.Defaults = defaults
-      ExtensionBlock.Batch = batch } 
+      ExtensionBlock.Batch = batch
+      ExtensionBlock.Env = env } 
 
 let toLocals (block: Block) =
     block
