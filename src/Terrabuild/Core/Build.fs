@@ -55,17 +55,24 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
             // add platform
             let container =
                 match operation.Platform with
-                | Some platform -> $"--platform={platform} {image}"
-                | _ -> image
+                | Some platform -> [$"--platform={platform}"; image]
+                | _ -> [image]
 
             let containerHome =
-                match containerInfos.TryGetValue(container) with
+                match containerInfos.TryGetValue(image) with
                 | true, containerHome ->
                     Log.Debug("Reusing USER {containerHome} for {container}", containerHome, container)
                     containerHome
                 | _ ->
                     // discover USER
-                    let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
+                    let args = [
+                        "run"
+                        "--rm"
+                        "--name"; node.TargetHash
+                        "--entrypoint"; "sh"
+                        yield! container
+                        "echo -n \\$HOME"
+                    ]
                     let containerHome =
                         Log.Debug("Identifying USER for {container}", container)
                         match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
@@ -75,7 +82,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                             "/root"
 
                     Log.Debug("Using USER {containerHome} for {container}", containerHome, container)
-                    containerInfos.TryAdd(container, containerHome) |> ignore
+                    containerInfos.TryAdd(image, containerHome) |> ignore
                     containerHome
 
             let envs =
@@ -87,13 +94,29 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                     let value = entry.Value
                     if matcher.Match([key]).HasMatches then
                         let expandedValue = value |> expandTerrabuildHome containerHome
-                        if value = expandedValue then Some $"-e {key}"
-                        else Some $"-e {key}={expandedValue}"
+                        if value = expandedValue then Some ["-e"; key]
+                        else Some ["-e"; $"{key}={expandedValue}"]
                     else None)
-                |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
-                |> String.join " "
+                |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> ["-e"; key]))
+                |> Seq.collect id
 
-            let args = $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+            let args = [
+                "run"
+                "--rm"
+                "--name"; node.TargetHash
+                "--net=host"
+                "--pid=host"
+                "--ipc=host"
+                "-v"; "/var/run/docker.sock:/var/run/docker.sock"
+                "-v"; $"{homeDir}:{containerHome}"
+                "-v"; $"{tmpDir}:/tmp"
+                "-v"; $"{wsDir}:/terrabuild"
+                "-w"; $"/terrabuild/{projectDirectory}"
+                "--entrypoint"; operation.Command
+                yield! envs
+                yield! container
+                yield! operation.Arguments
+            ]
             metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel, operation.Envs
         | _ -> metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs)
 

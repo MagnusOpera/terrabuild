@@ -9,7 +9,7 @@ type ContaineredShellOperation = {
     Envs: Map<string, string>
     MetaCommand: string
     Command: string
-    Arguments: string
+    Arguments: string list
     ErrorLevel: int
 }
 

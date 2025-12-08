@@ -13,7 +13,7 @@ type Origin =
 type OperationSummary = {
     MetaCommand: string
     Command: string
-    Arguments: string
+    Arguments: string list
     Container: string option
     StartedAt: DateTime
     EndedAt: DateTime

@@ -13,15 +13,18 @@
         "obj/"
       ],
       "projectHash": "42F47B255FFE2A43D2E20A9EE18D65C1CE7354FF24965E9C292C145863FF3360",
-      "targetHash": "2960A51BD4CB3458CC8A349BB5CB95745A0D472BC5036F745C1B5C79E9A63ED7",
-      "clusterHash": "2960A51BD4CB3458CC8A349BB5CB95745A0D472BC5036F745C1B5C79E9A63ED7",
+      "targetHash": "0CFD7F0FDAC4DF4C9C3F5F434978A1CD6283DD27F5BC612443548D698DB02461",
+      "clusterHash": "0CFD7F0FDAC4DF4C9C3F5F434978A1CD6283DD27F5BC612443548D698DB02461",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project",
+          "arguments": [
+            "building",
+            "project"
+          ],
           "errorLevel": 0
         },
         {
@@ -30,7 +33,9 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": [
+            "restore"
+          ],
           "errorLevel": 0
         },
         {
@@ -39,7 +44,12 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": [
+            "build",
+            "--no-restore",
+            "--configuration",
+            "Debug"
+          ],
           "errorLevel": 0
         }
       ],
@@ -60,15 +70,18 @@
         "obj/"
       ],
       "projectHash": "4E10C0569915F5E3992A6368C8A830DE4C64F71714A0BB700920A415CB2AA3D1",
-      "targetHash": "62DC80A99D2CAB3FAA18EDEDC382C29C264C6500E49E93E10BBDFEB1D1FE997F",
-      "clusterHash": "62DC80A99D2CAB3FAA18EDEDC382C29C264C6500E49E93E10BBDFEB1D1FE997F",
+      "targetHash": "580F24638E5729C79EC48B60DBBF2448E52E2D511B2AC3D3AE0DDBAE59186BD3",
+      "clusterHash": "580F24638E5729C79EC48B60DBBF2448E52E2D511B2AC3D3AE0DDBAE59186BD3",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project",
+          "arguments": [
+            "building",
+            "project"
+          ],
           "errorLevel": 0
         },
         {
@@ -77,7 +90,9 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": [
+            "restore"
+          ],
           "errorLevel": 0
         },
         {
@@ -86,7 +101,12 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": [
+            "build",
+            "--no-restore",
+            "--configuration",
+            "Debug"
+          ],
           "errorLevel": 0
         }
       ],
@@ -108,15 +128,18 @@
         "dist/**"
       ],
       "projectHash": "5BEBE8E41AB4E61E126184962CA8F766C15ABF2010D97A36AA0B842BBC8C0AC7",
-      "targetHash": "3F05455AE8B6A957D4C0805B952C78E2488F8ABA37303B43B4659CCBA6D5BEA3",
-      "clusterHash": "3F05455AE8B6A957D4C0805B952C78E2488F8ABA37303B43B4659CCBA6D5BEA3",
+      "targetHash": "CB3C7AC344F69213D8360198C6B87E80E4F4F8500193BE7BE795B6DB60907ECC",
+      "clusterHash": "CB3C7AC344F69213D8360198C6B87E80E4F4F8500193BE7BE795B6DB60907ECC",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building project",
+          "arguments": [
+            "building",
+            "project"
+          ],
           "errorLevel": 0
         },
         {
@@ -125,7 +148,9 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": [
+            "install"
+          ],
           "errorLevel": 0
         },
         {
@@ -134,7 +159,11 @@
           "envs": {},
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --",
+          "arguments": [
+            "run",
+            "build",
+            "--"
+          ],
           "errorLevel": 0
         }
       ],
@@ -157,8 +186,8 @@
         "obj/"
       ],
       "projectHash": "E27EE8CFF9BD151E97E09A8A953929B6DC5E4E242F0EB1BD94FD92562DFC1EB6",
-      "targetHash": "F59792CEAF216E5D8146633727BF9C85E5B5D86F6806D1424676E0100DA55430",
-      "clusterHash": "F59792CEAF216E5D8146633727BF9C85E5B5D86F6806D1424676E0100DA55430",
+      "targetHash": "EBF04CF5B63ECC079DEC7488878A88AFEBA3DAD5B20E199B81F56F37452FFDAA",
+      "clusterHash": "EBF04CF5B63ECC079DEC7488878A88AFEBA3DAD5B20E199B81F56F37452FFDAA",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -166,7 +195,9 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": [
+            "restore"
+          ],
           "errorLevel": 0
         },
         {
@@ -175,7 +206,12 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": [
+            "build",
+            "--no-restore",
+            "--configuration",
+            "Debug"
+          ],
           "errorLevel": 0
         }
       ],
@@ -198,8 +234,8 @@
         "obj/"
       ],
       "projectHash": "0913D77CAAD0C42E3E5521DA44216CEEB02C56ADB452C6F1999EA983DC9C9BFB",
-      "targetHash": "DF61287AD8999932BA40DAB1C891C748A8210C4D6648EE24113F45428CE8A63C",
-      "clusterHash": "DF61287AD8999932BA40DAB1C891C748A8210C4D6648EE24113F45428CE8A63C",
+      "targetHash": "0749BE20CD6E7DB8BE36506CA09BF539DB114EBD5EA1359548A7BDFA39525C56",
+      "clusterHash": "0749BE20CD6E7DB8BE36506CA09BF539DB114EBD5EA1359548A7BDFA39525C56",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -207,7 +243,9 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": [
+            "restore"
+          ],
           "errorLevel": 0
         },
         {
@@ -216,7 +254,12 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": [
+            "build",
+            "--no-restore",
+            "--configuration",
+            "Debug"
+          ],
           "errorLevel": 0
         }
       ],
@@ -238,8 +281,8 @@
         "dist/**"
       ],
       "projectHash": "CD05186CADE4A87CF1647E74CE009335E22214012F0571ED0DD24F076D3F1214",
-      "targetHash": "254B88E67CB26EAD0A34CE60CDCFD3D96CFDA35CB32128E6BFC5ED0A46025BED",
-      "clusterHash": "254B88E67CB26EAD0A34CE60CDCFD3D96CFDA35CB32128E6BFC5ED0A46025BED",
+      "targetHash": "0CCEF3A1E8CCFD9EC82D586E876CD2DFABB9F1D7504394490A9173D3838D1A72",
+      "clusterHash": "0CCEF3A1E8CCFD9EC82D586E876CD2DFABB9F1D7504394490A9173D3838D1A72",
       "operations": [
         {
           "image": "node:20",
@@ -247,7 +290,9 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": [
+            "install"
+          ],
           "errorLevel": 0
         },
         {
@@ -256,7 +301,11 @@
           "envs": {},
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --",
+          "arguments": [
+            "run",
+            "build",
+            "--"
+          ],
           "errorLevel": 0
         }
       ],
@@ -277,8 +326,8 @@
         "dist/**"
       ],
       "projectHash": "800B438E49607C325C3CDE362EE1EED20836A81242C507EAB0189AE0DCB7D225",
-      "targetHash": "DB0611446DFA68AAB4031D8C9AFE3E275D4EDBA4BF59E93936CB8D5063B1C4EE",
-      "clusterHash": "DB0611446DFA68AAB4031D8C9AFE3E275D4EDBA4BF59E93936CB8D5063B1C4EE",
+      "targetHash": "02864B90A488650DE16188F1EC4D77033DD5F226FFD50DB73B73877C4C2D9AA7",
+      "clusterHash": "02864B90A488650DE16188F1EC4D77033DD5F226FFD50DB73B73877C4C2D9AA7",
       "operations": [
         {
           "image": "node:20",
@@ -286,7 +335,9 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": [
+            "install"
+          ],
           "errorLevel": 0
         },
         {
@@ -295,7 +346,11 @@
           "envs": {},
           "metaCommand": "@npm build",
           "command": "npm",
-          "arguments": "run build --",
+          "arguments": [
+            "run",
+            "build",
+            "--"
+          ],
           "errorLevel": 0
         }
       ],

@@ -54,7 +54,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                             group |> List.iter (fun step ->
                                 $"### {step.MetaCommand}" |> append
                                 if options.Debug then
-                                    let cmd = $"{step.Command} {step.Arguments}" |> String.trim
+                                    let arguments = step.Arguments |> String.join " "
+                                    let cmd = $"{step.Command} {arguments}" |> String.trim
                                     $"*{cmd}*" |> append
 
                                 append "```"
@@ -165,7 +166,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                             group |> Seq.iter (fun step ->
                                 $"{Ansi.Styles.yellow}{step.MetaCommand} {Ansi.Styles.dimwhite}(exit code {step.ExitCode}){Ansi.Styles.reset}" |> Terminal.writeLine
                                 if options.Debug then
-                                    $"{Ansi.Styles.cyan}{step.Command} {step.Arguments}{Ansi.Styles.reset}" |> Terminal.writeLine
+                                    let arguments = step.Arguments |> String.join " "
+                                    $"{Ansi.Styles.cyan}{step.Command} {arguments}{Ansi.Styles.reset}" |> Terminal.writeLine
                                 step.Log |> IO.readTextFile |> Terminal.write
                             )
                         )

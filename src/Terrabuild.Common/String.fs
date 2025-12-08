@@ -65,3 +65,42 @@ let slugify (s: string) =
         s|> replace @"([a-z0-9])([A-Z])" "$1-$2"
         |> replace @"[^a-zA-Z0-9-]" "-"
     s.Trim('-').ToLowerInvariant()
+
+let splitShellArgs (input: string) : string list =
+    if String.IsNullOrWhiteSpace input then
+        []
+    else
+        let args = ResizeArray<string>()
+        let sb = StringBuilder()
+        let mutable inQuotes = false
+        let mutable quoteChar = '\u0000'
+
+        let flushToken () =
+            if sb.Length > 0 then
+                args.Add(sb.ToString())
+                sb.Clear() |> ignore
+
+        for ch in input do
+            match ch with
+            // whitespace outside quotes = separator
+            | ' ' | '\t' | '\r' | '\n' when not inQuotes ->
+                flushToken()
+            // quote handling
+            | '"' | '\'' as q ->
+                if not inQuotes then
+                    // starting a quoted segment, don't include the quote
+                    inQuotes <- true
+                    quoteChar <- q
+                elif quoteChar = q then
+                    // closing the current quoted segment, don't include the quote
+                    inQuotes <- false
+                    quoteChar <- '\u0000'
+                else
+                    // quote inside a different-quoted segment, keep it
+                    sb.Append(ch) |> ignore
+            // normal char
+            | _ ->
+                sb.Append(ch) |> ignore
+
+        flushToken()
+        args |> List.ofSeq

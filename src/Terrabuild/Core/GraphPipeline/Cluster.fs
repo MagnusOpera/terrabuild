@@ -108,7 +108,7 @@ let createClusterNodes (options: ConfigOptions.Options) (configuration: Configur
                             ContaineredShellOperation.Envs = operation.Envs
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
-                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
+                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.splitShellArgs
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel  })
                     | Extensions.InvocationResult.ErrorTarget ex ->
                         forwardInvalidArg($"{clusterHash}: Failed to get shell operation (extension error)", ex)

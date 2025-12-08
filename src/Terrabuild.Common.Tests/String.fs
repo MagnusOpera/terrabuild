@@ -27,3 +27,33 @@ let ``slugify path``() =
     "./libs/project.dir/path123/"
     |> String.slugify
     |> should equal "libs-project-dir-path123"
+
+[<Test>]
+let ``convert shell args empty``() =
+    "  "
+    |> String.splitShellArgs
+    |> should be Empty
+
+[<Test>]
+let ``convert shell args``() =
+    "--arg1   --arg2   tagada"
+    |> String.splitShellArgs
+    |> should equal [ "--arg1"; "--arg2"; "tagada" ]
+
+[<Test>]
+let ``convert shell args spaces``() =
+    "--arg1  \"some value with spaces\"  tagada"
+    |> String.splitShellArgs
+    |> should equal [ "--arg1"; "some value with spaces"; "tagada" ]
+
+[<Test>]
+let ``convert shell args single quotes preserves spaces``() =
+    "sh  -c   'echo   \"hello\"'"
+    |> String.splitShellArgs
+    |> should equal [ "sh"; "-c"; "echo   \"hello\"" ]
+
+[<Test>]
+let ``convert shell args nested single quotes preserves spaces``() =
+    "sh  -c   'echo   \"hello\"'"
+    |> String.splitShellArgs
+    |> should equal [ "sh"; "-c"; "echo   \"hello\"" ]

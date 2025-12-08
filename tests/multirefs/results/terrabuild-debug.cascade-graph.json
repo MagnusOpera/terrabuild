@@ -12,15 +12,18 @@
       ],
       "outputs": [],
       "projectHash": "63A3349F003FE9060E0122A5FBE7CB065096FA28F0C2C21733381BFF38C4E678",
-      "targetHash": "3DF8E9D207D9CAD0A7DA14F53D53D359C037A11F8E2131F5F74947C7C1E6F1CA",
-      "clusterHash": "3DF8E9D207D9CAD0A7DA14F53D53D359C037A11F8E2131F5F74947C7C1E6F1CA",
+      "targetHash": "9AEEDB56A0477C6CED0B148824045F638160D294D28EBCBBB3BC604EE3EBD938",
+      "clusterHash": "9AEEDB56A0477C6CED0B148824045F638160D294D28EBCBBB3BC604EE3EBD938",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building A",
+          "arguments": [
+            "building",
+            "A"
+          ],
           "errorLevel": 0
         }
       ],
@@ -39,15 +42,18 @@
       ],
       "outputs": [],
       "projectHash": "E173A4DB883DDBD85BA5D2A3C5FD49A3814F02889E984F0C09C14C72B5DE7F7A",
-      "targetHash": "47BBE44F3DEE5657AE8C49454D90AE09CC176F40C3C1B00513BCB0CA2403F17F",
-      "clusterHash": "47BBE44F3DEE5657AE8C49454D90AE09CC176F40C3C1B00513BCB0CA2403F17F",
+      "targetHash": "9C18A1BD74D06DE6E7A18CDD69897E9B0300D6F7A5D40D4F549CC9F7E3AF1B25",
+      "clusterHash": "9C18A1BD74D06DE6E7A18CDD69897E9B0300D6F7A5D40D4F549CC9F7E3AF1B25",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building B",
+          "arguments": [
+            "building",
+            "B"
+          ],
           "errorLevel": 0
         }
       ],
@@ -64,15 +70,18 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "977CE3A46143B80A10A86D433F5AA29A81FAFDAF9D9BF29915329530CEAB6610",
-      "targetHash": "DF55472DB682B429A4FB8121D9E6CF66E030A5F47E44F7451FD97102EB2A8B77",
-      "clusterHash": "DF55472DB682B429A4FB8121D9E6CF66E030A5F47E44F7451FD97102EB2A8B77",
+      "targetHash": "A5464335828C05099851511E9DB14A9F3C281426583DFE418BB5A783C7394857",
+      "clusterHash": "A5464335828C05099851511E9DB14A9F3C281426583DFE418BB5A783C7394857",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building C",
+          "arguments": [
+            "building",
+            "C"
+          ],
           "errorLevel": 0
         }
       ],

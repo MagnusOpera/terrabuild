@@ -6,25 +6,25 @@ open System.IO
 
 let getBranchOrTag (dir: string) =
     // https://stackoverflow.com/questions/18659425/get-git-current-branch-tag-name
-    match Exec.execCaptureOutput dir "git" "symbolic-ref -q --short HEAD" Map.empty with
+    match Exec.execCaptureOutput dir "git" ["symbolic-ref"; "-q"; "--short"; "HEAD"] Map.empty with
     | Exec.Success (output, _) -> output |> String.firstLine
     | _ -> 
-        match Exec.execCaptureOutput dir "git" "describe --tags --exact-match" Map.empty with
+        match Exec.execCaptureOutput dir "git" ["describe"; "--tags"; "--exact-match"] Map.empty with
         | Exec.Success (output, _) -> output |> String.firstLine
         | _ -> raiseExternalError "Failed to get branch or tag"
 
 let getHeadCommitMessage (dir: string) =
-    match Exec.execCaptureOutput dir "git" "log -1 --pretty=%B" Map.empty with
+    match Exec.execCaptureOutput dir "git" ["log"; "-1"; "--pretty=%B"] Map.empty with
     | Exec.Success (output, _) -> output
     | _ -> raiseExternalError "Failed to get head commit message"
 
 let getCurrentUser (dir: string) =
-    match Exec.execCaptureOutput dir "git" "config user.name" Map.empty with
+    match Exec.execCaptureOutput dir "git" ["config"; "user.name"] Map.empty with
     | Exec.Success (output, _) -> output |> String.firstLine
     | _ -> raiseExternalError "Failed to get head commit"
 
 let getCommitLog (dir: string) =
-    match Exec.execCaptureOutput dir "git" "log -n 10 --pretty=%H%n%s%n%an%n%ae%n%aI" Map.empty with
+    match Exec.execCaptureOutput dir "git" ["log"; "-n"; "10"; "--pretty=%H%n%s%n%an%n%ae%n%aI"] Map.empty with
     | Exec.Success (output, _) ->
         output |> String.getLines
         |> Seq.chunkBySize 5

@@ -118,7 +118,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.Envs = operation.Envs
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
                             ContaineredShellOperation.Command = shellOperation.Command
-                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
+                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.splitShellArgs
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
 
                     let batchable = 
