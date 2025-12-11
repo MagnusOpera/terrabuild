@@ -15,10 +15,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
-    let getNodeAction (node: GraphDef.Node) hasChildBuilding maxCompletionChildren =
+    let getNodeAction (node: GraphDef.Node) hasChildBuilding =
         // task is forced to build
         if node.Action = GraphDef.NodeAction.Build then
-            Log.Debug("{NodeId} is marked for build", node.Id)
+            Log.Debug("{NodeId} is mark for build", node.Id)
             (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         // child task is building (upward cascading)
@@ -34,12 +34,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             | Some (_, summary) ->
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
-                // rebuild if child has changed meanwhile
-                if summary.EndedAt < maxCompletionChildren then
-                    Log.Debug("{NodeId} must rebuild because child has changed", node.Id)
-                    (GraphDef.NodeAction.Build, DateTime.MaxValue)
                 // retry requested and task is failed
-                elif options.Retry && (not summary.IsSuccessful) then
+                if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must build because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed
@@ -75,12 +71,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
-                let maxCompletionChildren =
-                    match dependencyStatus with
-                    | [ ] -> DateTime.MinValue
-                    | _ -> dependencyStatus |> Seq.map (fun dep -> dep.Get<DateTime>()) |> Seq.max
                 let hasChildBuilding = node.Dependencies |> Seq.exists (fun projectId -> nodeResults[projectId].IsBuild)
-                let (buildRequest, buildDate) = getNodeAction node hasChildBuilding maxCompletionChildren
+                let (buildRequest, buildDate) = getNodeAction node hasChildBuilding
 
                 // skip ignore nodes on dependencies
                 let actionableDependencies =
