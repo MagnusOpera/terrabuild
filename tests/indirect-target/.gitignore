@@ -421,4 +421,4 @@ terrabuild-debug.md
 *.zip
 *.fsyacc.output
 
-!results/*
+!results/terrabuild-debug.*

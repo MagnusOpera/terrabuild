@@ -435,5 +435,5 @@ target/
 
 **/packages.lock.json
 
-!results/*
+!results/terrabuild-debug.*
 .pnpm-store

@@ -422,4 +422,4 @@ terrabuild-debug.md
 *.fsyacc.output
 
 
-!results/*
+!results/terrabuild-debug.*
