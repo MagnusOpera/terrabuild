@@ -118,8 +118,9 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
         graph.RootNodes
         |> Set.filter (fun nodeId ->
             match nodes[nodeId].Action with
-            | GraphDef.NodeAction.Build | GraphDef.NodeAction.Summary -> true
-            | _ -> false)
+            | GraphDef.NodeAction.Ignore
+            | GraphDef.NodeAction.Restore -> false
+            | _ -> true)
 
     let graph =
         { graph with
