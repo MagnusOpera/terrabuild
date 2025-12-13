@@ -375,10 +375,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             if successful then TaskStatus.Success endedAt
             else TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
-        // IMPORTANT: unblock dependents of the batch node
-        nodeResults[batchId] <- (TaskRequest.Build, status)
-        hub.GetSignal<DateTime>(batchId).Set endedAt
-
         // async upload summaries for each member node
         beforeFiles
         |> Map.iter (fun nodeId cacheEntry ->
@@ -447,9 +443,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let schedDependencies =
                 targetNode.Dependencies
                 |> Seq.map (fun depId ->
-                    let depExecId = execId depId
-                    scheduleNode graph.Nodes[depExecId]
-                    hub.GetSignal<DateTime>(depExecId))
+                    scheduleNode graph.Nodes[depId]
+                    hub.GetSignal<DateTime>(depId))
                 |> List.ofSeq
 
             let subscribe =

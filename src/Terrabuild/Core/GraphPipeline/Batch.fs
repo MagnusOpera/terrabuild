@@ -165,11 +165,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             // union of member deps, minus members themselves.
             // NOTE: keep raw ids; runner will map member->batch at schedule time.
             let memberSet = nodeIds |> Set.ofList
-            let batchDependencies =
-                batch.Nodes
-                |> Seq.collect (fun n -> n.Dependencies)
-                |> Set.ofSeq
-                |> Set.difference memberSet
+            let dependencySet = batch.Nodes |> Seq.collect (fun n -> n.Dependencies) |> Set.ofSeq
+            let batchDependencies = dependencySet - memberSet
 
             let batchNode =
                 { GraphDef.Node.Id = batch.BatchId
