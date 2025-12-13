@@ -10,7 +10,6 @@
       "outputs": [],
       "projectHash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
       "targetHash": "E6C443A72AD2016F328B2E666701B454A259797567A192F9350FD7A62254D9E5",
-      "clusterHash": "E6C443A72AD2016F328B2E666701B454A259797567A192F9350FD7A62254D9E5",
       "operations": [
         {
           "variables": [],
@@ -31,5 +30,5 @@
   "rootNodes": [
     "workspace/path#app:build"
   ],
-  "clusters": {}
+  "batches": {}
 }

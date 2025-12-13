@@ -159,7 +159,7 @@ define diff_results
 	$(call diff_file,$(1),terrabuild-debug.node-graph.json)
 	$(call diff_file,$(1),terrabuild-debug.action-graph.json)
 	$(call diff_file,$(1),terrabuild-debug.cascade-graph.json)
-	$(call diff_file,$(1),terrabuild-debug.cluster-graph.json)
+	$(call diff_file,$(1),terrabuild-debug.batch-graph.json)
 	$(call diff_file,$(1),terrabuild-debug.info.md)
 endef
 
