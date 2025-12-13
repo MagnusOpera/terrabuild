@@ -143,11 +143,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let graph = GraphPipeline.Action.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action-graph.json")
 
+        let graph = GraphPipeline.Batch.build options config graph
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"batch-graph.json")
+
         let graph = GraphPipeline.Cascade.build graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cascade-graph.json")
-
-        let graph = GraphPipeline.Cluster.build options config graph
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cluster-graph.json")
 
         if options.Debug then
             let markdown =
@@ -183,7 +183,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let errCode =
             if options.WhatIf then 0
             else
-                let summary = Build.run options cache api graph
+                let summary = Runner.run options cache api graph
 
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary

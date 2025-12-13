@@ -24,12 +24,12 @@ type Artifacts =
 type Build =
     | Auto
     | Always
-    | Cascade
 
 [<RequireQualifiedAccess>]
 type NodeAction =
     | BatchBuild
     | Build
+    | Refresh
     | Restore
     | Summary
     | Ignore
@@ -48,7 +48,7 @@ type Node = {
 
     ProjectHash: string
     TargetHash: string
-    ClusterHash: string
+    ClusterHash: string option
 
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
@@ -62,7 +62,7 @@ type Node = {
 type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
-    Clusters: Map<string, string set>
+    Batches: Map<string, string set>
 }
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"

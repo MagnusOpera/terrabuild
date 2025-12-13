@@ -3,28 +3,19 @@ open System.Collections
 open GraphDef
 
 let build (graph: Graph) =
-    let processedNodes = Generic.Dictionary<string, bool>()
     let mutable nodes = graph.Nodes
-
-    let rec propagate nodeId =
-        if processedNodes.TryAdd(nodeId, true) then
+    let exploredNodes = Generic.Dictionary<string, bool>()
+    let rec propagateDownward nodeId =
+        if exploredNodes.TryAdd(nodeId, true) then
             let mutable node = graph.Nodes[nodeId]
-            let build =
-                match node.Action, node.Build with
-                | NodeAction.Build, _ -> true
-                | NodeAction.Restore, Build.Cascade ->
-                    node <- { node with Action = NodeAction.Build; Artifacts = Artifacts.Workspace }
-                    true
-                | _ ->
-                    false
-
-            if build then
-                nodes <- nodes |> Map.add nodeId node
-                for dependency in node.Dependencies do
-                    propagate dependency
+            if node.Action <> NodeAction.Ignore then
+                nodes <- nodes |> Map.add node.Id node
+                node.Dependencies |> Set.iter propagateDownward
 
     for rootNode in graph.RootNodes do
-        propagate rootNode
+        propagateDownward rootNode
 
-    let graph = { graph with GraphDef.Graph.Nodes = nodes }
+    let graph =
+        { graph with
+            GraphDef.Graph.Nodes = nodes }
     graph

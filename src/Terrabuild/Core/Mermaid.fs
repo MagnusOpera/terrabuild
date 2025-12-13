@@ -6,7 +6,7 @@ open System
 
 type GetStatus = Node -> string
 
-type GetOrigin = Node -> Build.TaskRequest option
+type GetOrigin = Node -> Runner.TaskRequest option
 
 
 let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: Graph) =

@@ -162,8 +162,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let batchHash = batchContent |> Hash.sha256strings
 
             let targetClusterHash =
-                if targetConfig.Batch && batchable then batchHash
-                else targetHash // this is expected to be unique to disable node clustering
+                if targetConfig.Batch && batchable then Some batchHash
+                else None
 
             let node =
                 { Node.Id = nodeId
@@ -208,4 +208,4 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
     { Graph.Nodes = allNodes |> Map.ofDict
       Graph.RootNodes = rootNodes
-      Graph.Clusters = Map.empty }
+      Graph.Batches = Map.empty }

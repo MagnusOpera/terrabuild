@@ -517,7 +517,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     let targetBuild = targetBuild |> Eval.eval evaluationContext |> Eval.asEnum
                     match targetBuild with
                     | Ok "auto" -> Some Build.Auto
-                    | Ok "cascade" -> Some Build.Cascade
                     | Ok "always" -> Some Build.Always
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
