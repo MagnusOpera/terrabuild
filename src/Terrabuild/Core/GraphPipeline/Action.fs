@@ -24,7 +24,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
         // child task is building (upward cascading)
         elif hasChildBuilding then
             Log.Debug("{NodeId} must refresh because child is building", node.Id)
-            (GraphDef.NodeAction.Refresh, DateTime.MaxValue)
+            (GraphDef.NodeAction.Build, DateTime.MaxValue)
 
         // cache related rules
         elif node.Artifacts <> GraphDef.Artifacts.None then
@@ -34,12 +34,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDe
             | Some (_, summary) ->
                 Log.Debug("{NodeId} has existing build summary", node.Id)
 
-                // rebuild if child has changed meanwhile
-                if summary.EndedAt < maxCompletionChildren then
-                    Log.Debug("{NodeId} must refresh because child has changed", node.Id)
-                    (GraphDef.NodeAction.Refresh, maxCompletionChildren)
                 // retry requested and task is failed
-                elif options.Retry && (not summary.IsSuccessful) then
+                if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must build because retry requested and node is failed", node.Id)
                     (GraphDef.NodeAction.Build, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed

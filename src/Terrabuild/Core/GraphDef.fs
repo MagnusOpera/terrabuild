@@ -29,7 +29,6 @@ type Build =
 type NodeAction =
     | BatchBuild
     | Build
-    | Refresh
     | Restore
     | Summary
     | Ignore

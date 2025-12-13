@@ -190,7 +190,23 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // actions
     // ----------------------------
 
-    let rec summaryNode (node: GraphDef.Node) =
+
+    let refreshNode (node: GraphDef.Node) =
+        let useRemote = GraphDef.isRemoteCacheable options node
+        let cacheEntryId = GraphDef.buildCacheKey node
+
+        let status =
+            match cache.TryGetSummaryOnly useRemote cacheEntryId with
+            | Some (_, summary) ->
+                api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
+                else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
+            | _ ->
+                raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
+
+        nodeResults[node.Id] <- (TaskRequest.Restore, status)
+
+    let summaryNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 
         let useRemote = GraphDef.isRemoteCacheable options node
@@ -199,10 +215,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let status =
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
+                api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
                 if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                 else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
             | _ ->
-                TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
+                raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
         nodeResults[node.Id] <- (TaskRequest.Restore, status)
 
@@ -213,7 +230,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         | _ ->
             buildProgress.TaskCompleted node.Id true false
 
-    let rec restoreNode (node: GraphDef.Node) =
+    let restoreNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 
         let projectDirectory =
@@ -254,7 +271,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         | _ ->
             buildProgress.TaskCompleted node.Id true false
 
-    let rec buildNode (node: GraphDef.Node) =
+    let buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
         buildProgress.TaskBuilding node.Id
 
@@ -313,32 +330,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.TaskCompleted node.Id false false
         )
 
-    let rec refreshNode (node: GraphDef.Node) =
-        let useRemote = GraphDef.isRemoteCacheable options node
-        let cacheEntryId = GraphDef.buildCacheKey node
-
-        match cache.TryGetSummary useRemote cacheEntryId with
-        | Some prev ->
-            let cacheEntry = cache.GetEntry useRemote cacheEntryId
-            let now = DateTime.UtcNow
-
-            let refreshed =
-                { prev with
-                    Cache.TargetSummary.StartedAt = now
-                    Cache.TargetSummary.EndedAt = now
-                    Cache.TargetSummary.Duration = TimeSpan.Zero
-                    Cache.TargetSummary.Operations = prev.Operations }
-
-            let _files = cacheEntry.Complete refreshed
-
-            nodeResults[node.Id] <- (TaskRequest.Restore, TaskStatus.Success refreshed.EndedAt)
-            hub.GetSignal<DateTime>(node.Id).Set refreshed.EndedAt
-            buildProgress.TaskCompleted node.Id true true
-        | None ->
-            // no previous summary: Refresh makes no sense -> fall back to Build
-            buildNode node
-
-    let rec batchBuildNode (batchNode: GraphDef.Node) =
+    let batchBuildNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
         buildProgress.TaskBuilding batchNode.Id
 
@@ -451,7 +443,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match targetNode.Action with
                 | GraphDef.NodeAction.BatchBuild -> hub.Subscribe
                 | GraphDef.NodeAction.Build -> hub.Subscribe
-                | GraphDef.NodeAction.Refresh -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Restore -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Summary -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Ignore -> hub.SubscribeBackground
@@ -472,7 +463,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match targetNode.Action with
                 | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
                 | GraphDef.NodeAction.Build -> buildNode targetNode
-                | GraphDef.NodeAction.Refresh -> refreshNode targetNode
                 | GraphDef.NodeAction.Restore -> restoreNode targetNode
                 | GraphDef.NodeAction.Summary -> summaryNode targetNode
                 | GraphDef.NodeAction.Ignore -> ()
