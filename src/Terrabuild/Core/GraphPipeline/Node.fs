@@ -127,7 +127,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> false
 
                     cacheability, batchable, ops @ newops
-                ) (Artifacts.Managed, targetConfig.Batch, [])
+                ) (Artifacts.Managed, true, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -155,15 +155,17 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if cache = Artifacts.None then Set.empty
                 else targetConfig.Outputs
 
-            let batchContent = [
-                targetConfig.Hash
-                $"{buildAction}"
-            ]
-            let batchHash = batchContent |> Hash.sha256strings
-
             let targetClusterHash =
-                if targetConfig.Batch && batchable then Some batchHash
-                else None
+                match targetConfig.Batch, batchable with
+                | Batch.None, _
+                | _, false -> None
+                | _, true ->
+                    let batchContent = [
+                        targetConfig.Hash
+                        $"{buildAction}"
+                    ]
+                    let batchHash = batchContent |> Hash.sha256strings
+                    Some batchHash
 
             let node =
                 { Node.Id = nodeId
@@ -175,6 +177,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Operations = ops
                   Node.Artifacts = cache
                   Node.Build = build
+                  Node.Batch = targetConfig.Batch
 
                   Node.Dependencies = children
                   Node.Outputs = targetOutput

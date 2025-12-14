@@ -20,7 +20,8 @@ let ``check batch computation``() =
           Node.Operations = []
           Node.Artifacts = Artifacts.Workspace
           Node.Action = action
-          Node.Build = Build.Auto }
+          Node.Build = Build.Auto
+          Node.Batch = Batch.Partition }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 

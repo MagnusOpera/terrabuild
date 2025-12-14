@@ -30,7 +30,7 @@ type TargetOperation = {
 type Target = {
     Hash: string
     Build: Build option
-    Batch: bool
+    Batch: Batch
     DependsOn: string set
     Outputs: string set
     Cache: Artifacts option
@@ -521,7 +521,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
-            let targetBatch, targetOperations =
+            let canBatch, targetOperations =
                 target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind step.Extension with
@@ -627,6 +627,20 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 targetOperations
                 |> List.map (fun ope -> ope.Hash)
                 |> Hash.sha256strings
+
+            let targetBatch = 
+                let targetBatch =
+                    target.Batch
+                    |> Option.map (fun batch -> batch |> Eval.eval evaluationContext |> Eval.asEnum)
+                match targetBatch with
+                | Some batch ->
+                    match batch with
+                    | Ok "none" -> Batch.None
+                    | Ok "partition" -> Batch.Partition
+                    | Ok "global" -> Batch.Global
+                    | Ok x -> raiseParseError $"Invalid batch value '{x}'"
+                    | Error error -> raiseParseError error
+                | _ -> Batch.None
 
             let target =
                 { Target.Hash = targetHash

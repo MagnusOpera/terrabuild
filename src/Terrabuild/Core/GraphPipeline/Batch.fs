@@ -179,7 +179,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.ProjectHash = batch.BatchId
                   GraphDef.Node.TargetHash = headNode.TargetHash
                   GraphDef.Node.Action = NodeAction.Build
-                  GraphDef.Node.Build = headNode.Build }
+                  GraphDef.Node.Build = headNode.Build
+                  GraphDef.Node.Batch = headNode.Batch }
 
             Some (batch.BatchId, batchNode)
     )
