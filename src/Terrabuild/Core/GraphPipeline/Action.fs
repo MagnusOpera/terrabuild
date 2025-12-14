@@ -91,10 +91,8 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                         | NodeAction.Build, _ -> currAction, currDate
                         | _, [] -> currAction, currDate
                         | _, memberId :: tail ->
-                            let (newAction, newDate) = getNodeAction graph.Nodes[memberId] hasChildBuilding
-                            let (newAction, newDate) =
-                                if currAction < newAction then (newAction, max currDate newDate)
-                                else (currAction, currDate)
+                            let newAction, newDate = getNodeAction graph.Nodes[memberId] hasChildBuilding
+                            let newAction, newDate = max currAction newAction, max currDate newDate
                             computeMemberBuildRequest newAction newDate tail
                     let memberBuildRequest, memberBuildDate =
                         computeMemberBuildRequest NodeAction.Ignore DateTime.MinValue (members |> List.ofSeq)
