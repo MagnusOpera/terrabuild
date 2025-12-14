@@ -24,6 +24,7 @@
       ],
       "artifacts": "none",
       "build": "always",
+      "batch": "none",
       "action": "build"
     }
   },
