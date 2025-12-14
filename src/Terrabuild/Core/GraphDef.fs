@@ -14,6 +14,11 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
+type Group =
+    | None
+    | Partition
+
+[<RequireQualifiedAccess>]
 type Artifacts =
     | None
     | Workspace
@@ -53,6 +58,7 @@ type Node = {
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
     Build: Build
+    Batch: Group
 
     Action: NodeAction
 }

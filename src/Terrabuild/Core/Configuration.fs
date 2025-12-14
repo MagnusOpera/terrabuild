@@ -30,7 +30,7 @@ type TargetOperation = {
 type Target = {
     Hash: string
     Build: Build option
-    Batch: bool
+    Batch: Group
     DependsOn: string set
     Outputs: string set
     Cache: Artifacts option
@@ -346,10 +346,12 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
                 let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+                let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
                 { targetBlock with 
                     Build = build
                     DependsOn = dependsOn
-                    Cache = cache })
+                    Cache = cache
+                    Batch = group })
         let environments =
             projectConfig.Project.Environments
             |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
@@ -521,7 +523,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
-            let targetBatch, targetOperations =
+            let canBatch, targetOperations =
                 target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind step.Extension with
@@ -627,6 +629,19 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 targetOperations
                 |> List.map (fun ope -> ope.Hash)
                 |> Hash.sha256strings
+
+            let targetBatch = 
+                let targetGroup =
+                    target.Batch
+                    |> Option.map (fun batch -> batch |> Eval.eval evaluationContext |> Eval.asEnum)
+                match targetGroup with
+                | Some group ->
+                    match group with
+                    | Ok "none" -> Group.None
+                    | Ok "partition" -> Group.Partition
+                    | Ok x -> raiseParseError $"Invalid group value '{x}'"
+                    | Error error -> raiseParseError error
+                | _ -> Group.None
 
             let target =
                 { Target.Hash = targetHash

@@ -84,8 +84,17 @@ let computeBatches (graph: Graph) =
         // if fewer than 2, no possible batch
         if bucketNodes.Length <= 1 then Seq.empty
         else
-            bucketNodes
+            let batchModes = 
+                bucketNodes
+                |> List.groupBy (fun node -> node.Batch)
+                |> Map.ofSeq
+
+            let noneGroup = batchModes |> Map.tryFind Group.None |> Option.defaultValue []  
+            let partitionGroups = batchModes |> Map.tryFind Group.Partition |> Option.defaultValue []  
+        
+            partitionGroups
             |> partitionByDependencies
+            |> (fun partitionGroups -> noneGroup :: partitionGroups)
             |> Seq.choose (fun comp ->
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None
@@ -179,7 +188,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.ProjectHash = batch.BatchId
                   GraphDef.Node.TargetHash = headNode.TargetHash
                   GraphDef.Node.Action = NodeAction.Build
-                  GraphDef.Node.Build = headNode.Build }
+                  GraphDef.Node.Build = headNode.Build
+                  GraphDef.Node.Batch = headNode.Batch }
 
             Some (batch.BatchId, batchNode)
     )

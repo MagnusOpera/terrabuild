@@ -25,6 +25,7 @@
       ],
       "artifacts": "none",
       "build": "always",
+      "batch": "none",
       "action": "build"
     },
     "workspace/path#b:build": {
@@ -51,6 +52,7 @@
       ],
       "artifacts": "none",
       "build": "always",
+      "batch": "none",
       "action": "build"
     },
     "workspace/path#c:build": {
@@ -75,6 +77,7 @@
       ],
       "artifacts": "none",
       "build": "always",
+      "batch": "none",
       "action": "build"
     }
   },

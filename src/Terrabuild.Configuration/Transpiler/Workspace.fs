@@ -65,7 +65,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "build"; "artifacts"]
+    |> checkAllowedAttributes ["depends_on"; "build"; "artifacts"; "batch"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -79,9 +79,11 @@ let toTarget (block: Block) =
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
+    let batch = block |> tryFindAttribute "batch"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Build = build
-      TargetBlock.Cache = cache }
+      TargetBlock.Cache = cache
+      TargetBlock.Batch = batch }
 
     
 let toVariable (block: Block) =

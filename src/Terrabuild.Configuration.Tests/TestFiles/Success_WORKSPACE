@@ -18,6 +18,7 @@ target dist {
   depends_on = [ target.build ]
   build = ~auto
   artifacts = ~none
+  batch = ~none
 }
 
 target dummy { }

@@ -17,7 +17,8 @@ type WorkspaceBlock =
 type TargetBlock =
     { DependsOn: Set<string> option
       Build: Expr option
-      Cache: Expr option }
+      Cache: Expr option
+      Batch: Expr option }
 
 [<RequireQualifiedAccess>]
 type WorkspaceFile =

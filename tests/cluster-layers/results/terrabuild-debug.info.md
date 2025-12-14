@@ -16,6 +16,8 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
+4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047("<b>build</b> 
+.")
 workspace/path#a:build("<b>build a</b> 
 A")
 workspace/path#b:build("<b>build b</b> 
@@ -30,6 +32,8 @@ workspace/path#f:build("<b>build f</b>
 F")
 workspace/path#g:build("<b>build g</b> 
 G")
+4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047 --> workspace/path#c:build
+class 4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047 ignore
 class workspace/path#a:build ignore
 class workspace/path#b:build ignore
 workspace/path#c:build --> workspace/path#a:build

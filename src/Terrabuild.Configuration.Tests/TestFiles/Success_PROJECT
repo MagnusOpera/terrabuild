@@ -36,6 +36,7 @@ project id {
 
 target build {
   depends_on = [ target.dist ]
+  batch = ~partition
   @dotnet build { }
 }
 
