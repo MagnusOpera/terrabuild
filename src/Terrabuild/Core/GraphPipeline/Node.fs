@@ -156,16 +156,15 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 else targetConfig.Outputs
 
             let targetClusterHash =
-                match targetConfig.Batch, batchable with
-                | Group.None, _
-                | _, false -> None
-                | _, true ->
+                if batchable then
                     let batchContent = [
                         targetConfig.Hash
                         $"{buildAction}"
                     ]
                     let batchHash = batchContent |> Hash.sha256strings
                     Some batchHash
+                else
+                    None
 
             let node =
                 { Node.Id = nodeId
@@ -177,7 +176,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Operations = ops
                   Node.Artifacts = cache
                   Node.Build = build
-                  Node.Group = targetConfig.Batch
+                  Node.Batch = targetConfig.Batch
 
                   Node.Dependencies = children
                   Node.Outputs = targetOutput

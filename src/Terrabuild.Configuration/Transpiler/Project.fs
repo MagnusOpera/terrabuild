@@ -75,7 +75,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "group"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -89,7 +89,7 @@ let toTarget (block: Block) =
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
-    let group = block |> tryFindAttribute "group"
+    let batch = block |> tryFindAttribute "batch"
     let steps =
         block.Blocks
         |> List.map (fun step ->
@@ -115,7 +115,7 @@ let toTarget (block: Block) =
       TargetBlock.DependsOn = dependsOn
       TargetBlock.Build = build
       TargetBlock.Cache = cache
-      TargetBlock.Group = group
+      TargetBlock.Batch = batch
       TargetBlock.Steps = steps }
 
 

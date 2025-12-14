@@ -346,10 +346,12 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
                 let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
+                let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
                 { targetBlock with 
                     Build = build
                     DependsOn = dependsOn
-                    Cache = cache })
+                    Cache = cache
+                    Batch = group })
         let environments =
             projectConfig.Project.Environments
             |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
@@ -630,7 +632,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
             let targetBatch = 
                 let targetGroup =
-                    target.Group
+                    target.Batch
                     |> Option.map (fun batch -> batch |> Eval.eval evaluationContext |> Eval.asEnum)
                 match targetGroup with
                 | Some group ->

@@ -58,7 +58,7 @@ type Node = {
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
     Build: Build
-    Group: Group
+    Batch: Group
 
     Action: NodeAction
 }

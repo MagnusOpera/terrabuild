@@ -21,7 +21,7 @@ let ``check partition computation``() =
           Node.Artifacts = Artifacts.Workspace
           Node.Action = action
           Node.Build = Build.Auto
-          Node.Group = Group.Partition }
+          Node.Batch = Group.Partition }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 
@@ -96,7 +96,7 @@ let ``check none/partition computation``() =
           Node.Artifacts = Artifacts.Workspace
           Node.Action = action
           Node.Build = Build.Auto
-          Node.Group = group }
+          Node.Batch = group }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 

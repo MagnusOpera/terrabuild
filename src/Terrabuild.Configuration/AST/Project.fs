@@ -27,7 +27,7 @@ type TargetBlock =
       DependsOn: Set<string> option
       Build: Expr option
       Cache: Expr option
-      Group: Expr option
+      Batch: Expr option
       Steps: Step list }
 
 [<RequireQualifiedAccess>]

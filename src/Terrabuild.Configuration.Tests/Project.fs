@@ -54,14 +54,14 @@ let parseProject() =
               TargetBlock.Build = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Group = Expr.Enum "partition" |> Some
+              TargetBlock.Batch = Expr.Enum "partition" |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
             { TargetBlock.DependsOn = None
               TargetBlock.Build = None
               TargetBlock.Outputs = None
               TargetBlock.Cache = None
-              TargetBlock.Group = None
+              TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
@@ -69,7 +69,7 @@ let parseProject() =
               TargetBlock.Build = "auto" |> Expr.Enum |> Some
               TargetBlock.Outputs = None
               TargetBlock.Cache = "remote" |> Expr.Enum |> Some
-              TargetBlock.Group = None
+              TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
                                                                                      [ Expr.Function (Function.Plus,
@@ -128,7 +128,7 @@ let parseProject2() =
                                                                  Expr.String ".dll" ])] |> Some
               TargetBlock.DependsOn = None
               TargetBlock.Cache = None
-              TargetBlock.Group = None
+              TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
 
         let locals = 
