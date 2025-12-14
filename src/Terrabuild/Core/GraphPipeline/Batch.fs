@@ -16,6 +16,13 @@ let private computeBatchId (clusterHash: string) (nodes: Node list) =
     Hash.sha256strings content
 
 let private partitionByDependencies (bucketNodes: Node list) =
+    let bucketModes = 
+        bucketNodes
+        |> List.groupBy (fun node -> node.Batch)
+        |> Map.ofSeq
+
+
+
     // Undirected connectivity inside the bucket:
     // edge A—B if A depends on B or B depends on A (restricted to bucket)
     let ids = bucketNodes |> List.map (fun n -> n.Id) |> Set.ofList

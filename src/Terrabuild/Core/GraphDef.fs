@@ -17,7 +17,6 @@ type ContaineredShellOperation = {
 type Batch =
     | None
     | Partition
-    | Global
 
 [<RequireQualifiedAccess>]
 type Artifacts =

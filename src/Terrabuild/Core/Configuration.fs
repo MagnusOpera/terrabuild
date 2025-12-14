@@ -630,17 +630,16 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
             let targetBatch = 
                 let targetBatch =
-                    target.Batch
+                    target.Group
                     |> Option.map (fun batch -> batch |> Eval.eval evaluationContext |> Eval.asEnum)
                 match targetBatch with
                 | Some batch ->
                     match batch with
                     | Ok "none" -> Batch.None
                     | Ok "partition" -> Batch.Partition
-                    | Ok "global" -> Batch.Global
                     | Ok x -> raiseParseError $"Invalid batch value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Batch.None
+                | _ -> Batch.Partition
 
             let target =
                 { Target.Hash = targetHash
