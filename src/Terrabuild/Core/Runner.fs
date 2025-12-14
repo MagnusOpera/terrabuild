@@ -190,22 +190,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // actions
     // ----------------------------
 
-
-    let refreshNode (node: GraphDef.Node) =
-        let useRemote = GraphDef.isRemoteCacheable options node
-        let cacheEntryId = GraphDef.buildCacheKey node
-
-        let status =
-            match cache.TryGetSummaryOnly useRemote cacheEntryId with
-            | Some (_, summary) ->
-                api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
-                else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
-            | _ ->
-                raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
-
-        nodeResults[node.Id] <- (TaskRequest.Restore, status)
-
     let summaryNode (node: GraphDef.Node) =
         buildProgress.TaskDownloading node.Id
 
@@ -441,7 +425,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let subscribe =
                 match targetNode.Action with
-                | GraphDef.NodeAction.BatchBuild -> hub.Subscribe
                 | GraphDef.NodeAction.Build -> hub.Subscribe
                 | GraphDef.NodeAction.Restore -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Summary -> hub.SubscribeBackground
@@ -461,8 +444,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.BatchScheduled batchSchedule
 
                 match targetNode.Action with
-                | GraphDef.NodeAction.BatchBuild -> batchBuildNode targetNode
-                | GraphDef.NodeAction.Build -> buildNode targetNode
+                | GraphDef.NodeAction.Build ->
+                    let action = if membersOpt.IsSome then batchBuildNode else buildNode
+                    action targetNode
                 | GraphDef.NodeAction.Restore -> restoreNode targetNode
                 | GraphDef.NodeAction.Summary -> summaryNode targetNode
                 | GraphDef.NodeAction.Ignore -> ()

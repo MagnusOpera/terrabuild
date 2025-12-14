@@ -38,7 +38,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "action": "batchBuild"
+      "action": "build"
     },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",
@@ -162,7 +162,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "action": "batchBuild"
+      "action": "build"
     },
     "workspace/path#deployments/terraform-deploy:build": {
       "id": "workspace/path#deployments/terraform-deploy:build",

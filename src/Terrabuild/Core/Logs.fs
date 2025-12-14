@@ -13,6 +13,7 @@ module Iconography =
 
 
 let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (graph: GraphDef.Graph) (summary: Runner.Summary) =
+
     let stableRandomId (id: string) =
         $"{logId} {id}" |> Hash.md5 |> String.toLower
 
@@ -180,7 +181,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             logEnd |> Terminal.writeLine
 
         nodes
-        |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
         |> Seq.iter dumpTerminal
 
 
@@ -206,9 +206,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             | None -> ()
 
         nodes
-        |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
         |> Seq.iter dumpTerminal
-
 
 
     let logger =
@@ -221,6 +219,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
     let sortedNodes =
         summary.Nodes
+        |> Seq.filter (fun (KeyValue(nodeId, _)) -> 
+            if graph.Batches |> Map.containsKey nodeId then false
+            else summary.Nodes |> Map.containsKey nodeId)
         |> Seq.map (fun (KeyValue(nodeId, _)) -> graph.Nodes[nodeId])
         |> Seq.sortBy (fun node ->
             match summary.Nodes |> Map.tryFind node.Id with

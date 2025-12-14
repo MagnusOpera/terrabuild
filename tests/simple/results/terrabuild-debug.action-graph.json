@@ -1,5 +1,45 @@
 {
   "nodes": {
+    "78A18FB3F4E2672AD49C3112DE95C6DC5EC62CDF4141DF7A9161F1A2B20203B3": {
+      "id": "78A18FB3F4E2672AD49C3112DE95C6DC5EC62CDF4141DF7A9161F1A2B20203B3",
+      "projectId": "78A18FB3F4E2672AD49C3112DE95C6DC5EC62CDF4141DF7A9161F1A2B20203B3",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "78A18FB3F4E2672AD49C3112DE95C6DC5EC62CDF4141DF7A9161F1A2B20203B3",
+      "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
+      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "operations": [
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {
+            "CI": "true"
+          },
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib install --link-workspace-packages",
+          "errorLevel": 0
+        },
+        {
+          "image": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {
+            "CI": "true"
+          },
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib run build",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "action": "build"
+    },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",
       "projectId": "@pnpm#npm-app",
@@ -81,6 +121,42 @@
           "metaCommand": "@pnpm build",
           "command": "pnpm",
           "arguments": "run build",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "action": "build"
+    },
+    "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C": {
+      "id": "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C",
+      "projectId": "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C",
+      "targetHash": "DFD0427643DE7B5BF737BB23B23619233E3AA8ABD7803E3F63498D864EB341BC",
+      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "operations": [
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore .terrabuild/AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C.sln",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build .terrabuild/AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C.sln --no-restore --no-dependencies --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -364,5 +440,14 @@
     "workspace/path#projects/rust-app:build",
     "workspace/path#tests/playwright:test"
   ],
-  "batches": {}
+  "batches": {
+    "78A18FB3F4E2672AD49C3112DE95C6DC5EC62CDF4141DF7A9161F1A2B20203B3": [
+      "@pnpm#npm-app:build",
+      "@pnpm#npm-lib:build"
+    ],
+    "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C": [
+      "workspace/path#libraries/dotnet-lib:build",
+      "workspace/path#projects/dotnet-app:build"
+    ]
+  }
 }

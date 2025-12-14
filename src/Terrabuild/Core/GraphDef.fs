@@ -22,16 +22,17 @@ type Artifacts =
 
 [<RequireQualifiedAccess>]
 type Build =
-    | Auto
     | Always
+    | Auto
 
+// NOTE: order is important here, must be ordered by priority (last one wins)
+//       Ignore has lower priority than Build for example
 [<RequireQualifiedAccess>]
 type NodeAction =
-    | BatchBuild
-    | Build
-    | Restore
-    | Summary
     | Ignore
+    | Summary
+    | Restore
+    | Build
 
 [<RequireQualifiedAccess>]
 type Node = {

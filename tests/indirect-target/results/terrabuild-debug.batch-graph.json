@@ -72,7 +72,7 @@
       ],
       "artifacts": "none",
       "build": "auto",
-      "action": "build"
+      "action": "ignore"
     },
     "workspace/path#c:build": {
       "id": "workspace/path#c:build",

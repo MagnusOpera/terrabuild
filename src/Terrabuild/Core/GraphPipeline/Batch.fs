@@ -90,13 +90,10 @@ let computeBatches (graph: Graph) =
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None
                 else
-                    let isActive = comp |> List.exists (fun n -> n.Action = NodeAction.Build)
-                    if not isActive then None
-                    else
-                        let batchId = computeBatchId clusterHash comp
-                        Some { Batch.BatchId = batchId
-                               Batch.ClusterHash = clusterHash
-                               Batch.Nodes = comp }))
+                    let batchId = computeBatchId clusterHash comp
+                    Some { Batch.BatchId = batchId
+                           Batch.ClusterHash = clusterHash
+                           Batch.Nodes = comp }))
     |> List.ofSeq
 
 let private createBatchNodes (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) (components: Batch list) =
@@ -181,8 +178,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.ClusterHash = Some batch.ClusterHash
                   GraphDef.Node.ProjectHash = batch.BatchId
                   GraphDef.Node.TargetHash = headNode.TargetHash
-                  GraphDef.Node.Action = NodeAction.BatchBuild
-                  GraphDef.Node.Build = Build.Always }
+                  GraphDef.Node.Action = NodeAction.Build
+                  GraphDef.Node.Build = headNode.Build }
 
             Some (batch.BatchId, batchNode)
     )
