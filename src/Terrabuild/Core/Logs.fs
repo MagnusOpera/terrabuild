@@ -12,7 +12,8 @@ module Iconography =
     let task_pending = Ansi.Emojis.construction
 
 
-let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (graph: GraphDef.Graph) (summary: Build.Summary) =
+let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (graph: GraphDef.Graph) (summary: Runner.Summary) =
+
     let stableRandomId (id: string) =
         $"{logId} {id}" |> Hash.md5 |> String.toLower
 
@@ -33,10 +34,10 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             match summary.Nodes |> Map.tryFind node.Id with
             | Some nodeInfo ->
                 match nodeInfo.Request, nodeInfo.Status with
-                | Build.TaskRequest.Restore, Build.TaskStatus.Success _ -> Iconography.restore_ok
-                | Build.TaskRequest.Restore, Build.TaskStatus.Failure _ -> Iconography.restore_ko
-                | Build.TaskRequest.Build, Build.TaskStatus.Success _ -> Iconography.build_ok
-                | Build.TaskRequest.Build, Build.TaskStatus.Failure _ -> Iconography.build_ko
+                | Runner.TaskRequest.Restore, Runner.TaskStatus.Success _ -> Iconography.restore_ok
+                | Runner.TaskRequest.Restore, Runner.TaskStatus.Failure _ -> Iconography.restore_ko
+                | Runner.TaskRequest.Build, Runner.TaskStatus.Success _ -> Iconography.build_ok
+                | Runner.TaskRequest.Build, Runner.TaskStatus.Failure _ -> Iconography.build_ko
             | _ -> Iconography.task_status
 
         let dumpMarkdown (node: GraphDef.Node) =
@@ -180,7 +181,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             logEnd |> Terminal.writeLine
 
         nodes
-        |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
         |> Seq.iter dumpTerminal
 
 
@@ -206,9 +206,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             | None -> ()
 
         nodes
-        |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
         |> Seq.iter dumpTerminal
-
 
 
     let logger =
@@ -221,13 +219,16 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
     let sortedNodes =
         summary.Nodes
+        |> Seq.filter (fun (KeyValue(nodeId, _)) -> 
+            if graph.Batches |> Map.containsKey nodeId then false
+            else summary.Nodes |> Map.containsKey nodeId)
         |> Seq.map (fun (KeyValue(nodeId, _)) -> graph.Nodes[nodeId])
         |> Seq.sortBy (fun node ->
             match summary.Nodes |> Map.tryFind node.Id with
             | Some nodeInfo ->
                 match nodeInfo.Status with
-                | Build.TaskStatus.Success completionDate -> completionDate
-                | Build.TaskStatus.Failure (completionDate, _) -> completionDate
+                | Runner.TaskStatus.Success completionDate -> completionDate
+                | Runner.TaskStatus.Failure (completionDate, _) -> completionDate
             | _ -> DateTime.MaxValue)
         |> List.ofSeq
 

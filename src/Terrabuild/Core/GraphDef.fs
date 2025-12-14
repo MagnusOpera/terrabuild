@@ -22,17 +22,17 @@ type Artifacts =
 
 [<RequireQualifiedAccess>]
 type Build =
-    | Auto
     | Always
-    | Cascade
+    | Auto
 
+// NOTE: order is important here, must be ordered by priority (last one wins)
+//       Ignore has lower priority than Build for example
 [<RequireQualifiedAccess>]
 type NodeAction =
-    | BatchBuild
-    | Build
-    | Restore
-    | Summary
     | Ignore
+    | Summary
+    | Restore
+    | Build
 
 [<RequireQualifiedAccess>]
 type Node = {
@@ -48,7 +48,7 @@ type Node = {
 
     ProjectHash: string
     TargetHash: string
-    ClusterHash: string
+    ClusterHash: string option
 
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
@@ -62,7 +62,7 @@ type Node = {
 type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
-    Clusters: Map<string, string set>
+    Batches: Map<string, string set>
 }
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
