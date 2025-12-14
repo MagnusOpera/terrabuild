@@ -16,13 +16,6 @@ let private computeBatchId (clusterHash: string) (nodes: Node list) =
     Hash.sha256strings content
 
 let private partitionByDependencies (bucketNodes: Node list) =
-    let bucketModes = 
-        bucketNodes
-        |> List.groupBy (fun node -> node.Group)
-        |> Map.ofSeq
-
-
-
     // Undirected connectivity inside the bucket:
     // edge A—B if A depends on B or B depends on A (restricted to bucket)
     let ids = bucketNodes |> List.map (fun n -> n.Id) |> Set.ofList
@@ -91,8 +84,17 @@ let computeBatches (graph: Graph) =
         // if fewer than 2, no possible batch
         if bucketNodes.Length <= 1 then Seq.empty
         else
-            bucketNodes
+            let bucketModes = 
+                bucketNodes
+                |> List.groupBy (fun node -> node.Group)
+                |> Map.ofSeq
+
+            let noneGroup = bucketModes |> Map.tryFind Group.None |> Option.defaultValue []  
+            let partitionGroups = bucketModes |> Map.tryFind Group.Partition |> Option.defaultValue []  
+        
+            partitionGroups
             |> partitionByDependencies
+            |> (fun partitionGroups -> noneGroup :: partitionGroups)
             |> Seq.choose (fun comp ->
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None
