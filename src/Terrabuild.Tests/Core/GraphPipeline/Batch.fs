@@ -55,6 +55,7 @@ let ``check batch computation``() =
 
     let expectedBatchIdA = Hash.sha256strings ("hash-A" :: [ "A1"; "A2" ])
     let expectedBatchIdB = Hash.sha256strings ("hash-B" :: [ "B1"; "B2" ])
+    let expectedBatchIdC = Hash.sha256strings ("hash-C" :: [ "C1"; "C2" ])
 
     let expected =
         [ { BatchId = expectedBatchIdA
@@ -62,7 +63,10 @@ let ``check batch computation``() =
             Nodes = [ nodeA1; nodeA2 ] }
           { BatchId = expectedBatchIdB
             ClusterHash = "hash-B"
-            Nodes = [ nodeB1; nodeB2 ] } ]
+            Nodes = [ nodeB1; nodeB2 ] }
+          { BatchId = expectedBatchIdC
+            ClusterHash = "hash-C"
+            Nodes = [ nodeC1; nodeC2 ] }]
 
     // Order is not guaranteed; compare as sets
     batches |> List.map (fun b -> b.BatchId, b.ClusterHash, (b.Nodes |> List.map (fun n -> n.Id) |> Set.ofList))
