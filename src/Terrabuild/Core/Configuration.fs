@@ -641,7 +641,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     | Ok "partition" -> Group.Partition
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Group.Partition
+                | _ -> Group.None
 
             let target =
                 { Target.Hash = targetHash
