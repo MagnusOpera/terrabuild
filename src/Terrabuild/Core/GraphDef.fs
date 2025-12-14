@@ -14,7 +14,7 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
-type Batch =
+type Group =
     | None
     | Partition
 
@@ -58,7 +58,7 @@ type Node = {
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
     Build: Build
-    Batch: Batch
+    Group: Group
 
     Action: NodeAction
 }

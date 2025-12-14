@@ -18,7 +18,7 @@ let private computeBatchId (clusterHash: string) (nodes: Node list) =
 let private partitionByDependencies (bucketNodes: Node list) =
     let bucketModes = 
         bucketNodes
-        |> List.groupBy (fun node -> node.Batch)
+        |> List.groupBy (fun node -> node.Group)
         |> Map.ofSeq
 
 
@@ -187,7 +187,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.TargetHash = headNode.TargetHash
                   GraphDef.Node.Action = NodeAction.Build
                   GraphDef.Node.Build = headNode.Build
-                  GraphDef.Node.Batch = headNode.Batch }
+                  GraphDef.Node.Group = headNode.Group }
 
             Some (batch.BatchId, batchNode)
     )

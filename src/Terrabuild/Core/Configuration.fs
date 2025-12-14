@@ -30,7 +30,7 @@ type TargetOperation = {
 type Target = {
     Hash: string
     Build: Build option
-    Batch: Batch
+    Batch: Group
     DependsOn: string set
     Outputs: string set
     Cache: Artifacts option
@@ -629,17 +629,17 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 |> Hash.sha256strings
 
             let targetBatch = 
-                let targetBatch =
+                let targetGroup =
                     target.Group
                     |> Option.map (fun batch -> batch |> Eval.eval evaluationContext |> Eval.asEnum)
-                match targetBatch with
-                | Some batch ->
-                    match batch with
-                    | Ok "none" -> Batch.None
-                    | Ok "partition" -> Batch.Partition
-                    | Ok x -> raiseParseError $"Invalid batch value '{x}'"
+                match targetGroup with
+                | Some group ->
+                    match group with
+                    | Ok "none" -> Group.None
+                    | Ok "partition" -> Group.Partition
+                    | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Batch.Partition
+                | _ -> Group.Partition
 
             let target =
                 { Target.Hash = targetHash

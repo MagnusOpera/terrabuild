@@ -157,7 +157,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let targetClusterHash =
                 match targetConfig.Batch, batchable with
-                | Batch.None, _
+                | Group.None, _
                 | _, false -> None
                 | _, true ->
                     let batchContent = [
@@ -177,7 +177,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Operations = ops
                   Node.Artifacts = cache
                   Node.Build = build
-                  Node.Batch = targetConfig.Batch
+                  Node.Group = targetConfig.Batch
 
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
