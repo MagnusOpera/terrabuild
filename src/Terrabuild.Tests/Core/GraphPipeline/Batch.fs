@@ -80,7 +80,7 @@ let ``check partition computation``() =
 
 
 [<Test>]
-let ``check none/partition computation``() =
+let ``check partition/all computation``() =
     let buildNode id clusterHash action deps group =
         { Node.Id = id
           Node.ProjectId = id
@@ -105,10 +105,10 @@ let ``check none/partition computation``() =
     let nodeA2 = buildNode "A2" (Some "hash-A") NodeAction.Restore Set.empty Group.Partition
 
     // Bucket hash-B: connected via B1 -> B2 (in-bucket edge)
-    let nodeB1 = buildNode "B1" (Some "hash-B") NodeAction.Build (Set ["B2"]) Group.None
-    let nodeB2 = buildNode "B2" (Some "hash-B") NodeAction.Build Set.empty Group.None
-    let nodeC1 = buildNode "C1" (Some "hash-B") NodeAction.Build (Set ["C2"]) Group.None
-    let nodeC2 = buildNode "C2" (Some "hash-B") NodeAction.Build Set.empty Group.None
+    let nodeB1 = buildNode "B1" (Some "hash-B") NodeAction.Build (Set ["B2"]) Group.All
+    let nodeB2 = buildNode "B2" (Some "hash-B") NodeAction.Build Set.empty Group.All
+    let nodeC1 = buildNode "C1" (Some "hash-B") NodeAction.Build (Set ["C2"]) Group.All
+    let nodeC2 = buildNode "C2" (Some "hash-B") NodeAction.Build Set.empty Group.All
 
     // Not batchable
     let nodeD1 = buildNode "D1" None NodeAction.Build Set.empty Group.Partition

@@ -34,7 +34,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#a:build": {
@@ -81,7 +81,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#b:build": {
@@ -128,7 +128,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#c:build": {
@@ -176,7 +176,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#d:build": {
@@ -218,7 +218,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#e:build": {
@@ -260,7 +260,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#f:build": {
@@ -300,7 +300,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#g:build": {
@@ -339,7 +339,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     }
   },

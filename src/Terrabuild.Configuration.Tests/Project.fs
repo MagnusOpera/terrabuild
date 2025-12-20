@@ -29,7 +29,6 @@ let parseProject() =
               Variables = None
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "var.configuration" ] |> Some
-              Batch = Some Expr.True
               Env = None }        
         let extDocker =
             { Image = None
@@ -38,7 +37,6 @@ let parseProject() =
               Script = None
               Defaults = Map [ "configuration", Expr.Variable "local.configuration"
                                "image", Expr.String "ghcr.io/magnusopera/dotnet-app" ] |> Some
-              Batch = None
               Env = None }
         let extDummy =
             { Image = None
@@ -46,7 +44,6 @@ let parseProject() =
               Variables = None
               Script = "dummy.fsx" |> Expr.String |> Some
               Defaults = None
-              Batch = None
               Env = Map [ "DUMMY_VAR", Expr.String "tagada" ] |> Some }
 
         let targetBuild = 
@@ -117,7 +114,6 @@ let parseProject2() =
               Variables = None
               Script = None
               Defaults = None
-              Batch = None
               Env = None }        
 
         let buildTarget = 

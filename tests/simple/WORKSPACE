@@ -39,7 +39,6 @@ target deploy {
 extension @dotnet {
   image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
   platform = "linux/amd64"
-  batch = true
   defaults {
     configuration = local.configuration
   }
@@ -61,7 +60,6 @@ extension @cargo {
 extension @pnpm {
   image = "guergeiro/pnpm:20-10"
   platform = "linux/amd64"
-  batch = true
   env {
     CI = "true"
   }

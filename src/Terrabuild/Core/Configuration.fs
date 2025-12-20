@@ -523,8 +523,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
-            let canBatch, targetOperations =
-                target.Steps |> List.fold (fun (targetBatch, targetOperations) step ->
+            let targetOperations =
+                target.Steps |> List.fold (fun (targetOperations) step ->
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind step.Extension with
                         | Some extension -> extension
@@ -569,11 +569,6 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         |> Option.map (Map.map (fun _ -> Eval.valueToString << Eval.eval evaluationContext))
                         |> Option.defaultValue Map.empty
 
-                    let batch =
-                        extension.Batch
-                        |> Option.bind (Eval.asBoolOption << Eval.eval evaluationContext)
-                        |> Option.defaultValue false
-
                     let hash =
                         let containerDeps =
                             match image with
@@ -599,8 +594,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     }
 
                     let operations = targetOperations @ [ targetContext ]
-                    (targetBatch && batch, operations)
-                ) (true, [])
+                    operations
+                ) []
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
@@ -637,11 +632,12 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 match targetGroup with
                 | Some group ->
                     match group with
-                    | Ok "none" -> Group.None
+                    | Ok "never" -> Group.Never
                     | Ok "partition" -> Group.Partition
+                    | Ok "all" -> Group.All
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Group.None
+                | _ -> Group.All
 
             let target =
                 { Target.Hash = targetHash

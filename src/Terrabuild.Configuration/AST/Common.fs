@@ -7,5 +7,4 @@ type ExtensionBlock =
       Variables: Expr option
       Script: Expr option
       Defaults: Map<string, Expr> option
-      Batch: Expr option
       Env: Map<string, Expr> option }
