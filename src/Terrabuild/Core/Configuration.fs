@@ -637,7 +637,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     | Ok "all" -> Group.All
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Group.Never
+                | _ -> Group.All
 
             let target =
                 { Target.Hash = targetHash
