@@ -1,7 +1,6 @@
 # comment at top of file
 
 extension @dotnet {
-  batch = true
   defaults { # comment at end of line
     configuration = var.configuration
   }

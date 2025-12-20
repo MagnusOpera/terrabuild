@@ -15,8 +15,9 @@ type ContaineredShellOperation = {
 
 [<RequireQualifiedAccess>]
 type Group =
-    | None
+    | Never
     | Partition
+    | All
 
 [<RequireQualifiedAccess>]
 type Artifacts =

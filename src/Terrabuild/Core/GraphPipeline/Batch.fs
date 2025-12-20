@@ -89,12 +89,12 @@ let computeBatches (graph: Graph) =
                 |> List.groupBy (fun node -> node.Batch)
                 |> Map.ofSeq
 
-            let noneGroup = batchModes |> Map.tryFind Group.None |> Option.defaultValue []  
             let partitionGroups = batchModes |> Map.tryFind Group.Partition |> Option.defaultValue []  
+            let allGroup = batchModes |> Map.tryFind Group.All |> Option.defaultValue []  
         
             partitionGroups
             |> partitionByDependencies
-            |> (fun partitionGroups -> noneGroup :: partitionGroups)
+            |> (fun partitionGroups -> allGroup :: partitionGroups)
             |> Seq.choose (fun comp ->
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None

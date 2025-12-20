@@ -19,7 +19,6 @@ let systemExtensions =
                    Variables = None
                    Script = None
                    Defaults = None
-                   Batch = None
                    Env = None })
     |> Map.ofSeq
 
