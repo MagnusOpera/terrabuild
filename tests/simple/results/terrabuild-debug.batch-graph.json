@@ -38,7 +38,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "@pnpm#npm-app:build": {
@@ -84,7 +84,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "@pnpm#npm-lib:build": {
@@ -128,7 +128,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "AE38E14C3291D31EC47622AD76BB934AF3E6000DB633CD196D1563779150CB2C": {
@@ -165,7 +165,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#deployments/terraform-deploy:build": {
@@ -206,7 +206,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#libraries/dotnet-lib:build": {
@@ -247,7 +247,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#libraries/shell-lib:build": {
@@ -272,7 +272,7 @@
       ],
       "artifacts": "none",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#projects/dotnet-app:build": {
@@ -316,7 +316,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#projects/make-app:build": {
@@ -350,7 +350,7 @@
       ],
       "artifacts": "none",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#projects/open-api:build": {
@@ -376,7 +376,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#projects/rust-app:build": {
@@ -405,7 +405,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     },
     "workspace/path#tests/playwright:test": {
@@ -441,7 +441,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "none",
+      "batch": "all",
       "action": "build"
     }
   },
