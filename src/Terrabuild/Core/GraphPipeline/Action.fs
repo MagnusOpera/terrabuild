@@ -12,6 +12,7 @@ open GraphDef
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) =
     let nodeResults = Concurrent.ConcurrentDictionary<string, NodeAction>()
     let nodes = Concurrent.ConcurrentDictionary<string, Node>()
+    let batches = Concurrent.ConcurrentDictionary<string, string set>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
@@ -101,9 +102,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                         nodes.TryAdd(memberNode.Id, memberNode) |> ignore
                         nodeResults.TryAdd(batchMember, memberBuildRequest) |> ignore
                         hub.GetSignal<DateTime>(batchMember).Set(memberBuildDate)
-                    // let targetNode = { targetNode with Action = memberBuildRequest }
-                    nodes.TryAdd(targetNode.Id, targetNode) |> ignore
-                    nodeResults.TryAdd(targetNode.Id, memberBuildRequest) |> ignore
+                    if memberBuildRequest = NodeAction.Build then
+                        nodes.TryAdd(targetNode.Id, targetNode) |> ignore
+                        nodeResults.TryAdd(targetNode.Id, memberBuildRequest) |> ignore
+                        batches.TryAdd(targetNode.Id, members) |> ignore
                 | _ ->
                     let nodeAction, buildDate = getNodeAction targetNode hasChildBuilding
                     let targetNode = { targetNode with Action = nodeAction }
@@ -131,12 +133,12 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         graph.RootNodes
         |> Set.filter (fun nodeId ->
             match nodes[nodeId].Action with
-            | NodeAction.Ignore
-            | NodeAction.Restore -> false
-            | _ -> true)
+            | NodeAction.Build -> true
+            | _ -> false)
 
     let graph =
         { graph with
             Graph.Nodes = nodes
-            Graph.RootNodes = rootNodes }
+            Graph.RootNodes = rootNodes
+            Graph.Batches = batches |> Map.ofDict }
     graph
