@@ -166,6 +166,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
+    Log.Debug("Running tasks")
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
 
     let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
@@ -191,6 +192,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // ----------------------------
 
     let summaryNode (node: GraphDef.Node) =
+        Log.Debug("Downloading Node Summary {Node}", node.Id)
         buildProgress.TaskDownloading node.Id
 
         let useRemote = GraphDef.isRemoteCacheable options node
@@ -215,6 +217,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true false
 
     let restoreNode (node: GraphDef.Node) =
+        Log.Debug("Restoring Node {Node}", node.Id)
         buildProgress.TaskDownloading node.Id
 
         let projectDirectory =
@@ -257,6 +260,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let buildNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
+        Log.Debug("Building Node {Node}", node.Id)
         buildProgress.TaskBuilding node.Id
 
         let projectDirectory = node.ProjectDir
@@ -316,6 +320,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let batchBuildNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
+        Log.Debug("Building BatchNode {BatchNode}", batchNode.Id)
         buildProgress.TaskBuilding batchNode.Id
 
         let batchId = batchNode.Id
@@ -384,22 +389,27 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 nodeResults[nodeId] <- (TaskRequest.Build, status)
 
-                Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
                 let files = cacheEntry.Complete summary
                 api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
                 match status with
                 | TaskStatus.Success completionDate ->
+                    Log.Debug("Node {Node} is successful", nodeId)
                     buildProgress.TaskCompleted nodeId false true
                     hub.GetSignal<DateTime>(nodeId).Set completionDate
                 | _ ->
+                    Log.Debug("Node {Node} has failed", nodeId)
                     buildProgress.TaskCompleted nodeId false false
             )
         )
 
         match status with
-        | TaskStatus.Success _ -> buildProgress.TaskCompleted batchNode.Id false true
-        | _ -> buildProgress.TaskCompleted batchNode.Id false false
+        | TaskStatus.Success _ ->
+            Log.Debug("BatchNode {BatchNode} is successful", batchNode.Id)
+            buildProgress.TaskCompleted batchNode.Id false true
+        | _ ->
+            Log.Debug("BatchNode {BatchNode} has failed", batchNode.Id)
+            buildProgress.TaskCompleted batchNode.Id false false
 
     // ----------------------------
     // scheduling

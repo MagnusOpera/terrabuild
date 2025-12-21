@@ -101,7 +101,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                         nodes.TryAdd(memberNode.Id, memberNode) |> ignore
                         nodeResults.TryAdd(batchMember, memberBuildRequest) |> ignore
                         hub.GetSignal<DateTime>(batchMember).Set(memberBuildDate)
-                    let targetNode = { targetNode with Action = memberBuildRequest }
+                    // let targetNode = { targetNode with Action = memberBuildRequest }
                     nodes.TryAdd(targetNode.Id, targetNode) |> ignore
                     nodeResults.TryAdd(targetNode.Id, memberBuildRequest) |> ignore
                 | _ ->
