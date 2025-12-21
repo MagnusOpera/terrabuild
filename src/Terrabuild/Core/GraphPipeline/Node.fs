@@ -138,7 +138,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             ]
             let targetHash = targetContent |> Hash.sha256strings
 
-            Log.Debug($"Node {nodeId} has ProjectHash {projectConfig.Hash} and TargetHash {targetHash}")
+            Log.Debug("Node {NodeId} has ProjectHash {ProjectHash} and TargetHash {TargetHash}", nodeId, projectConfig.Hash, targetHash)
 
             // cacheability can be overriden by the target
             let cache = targetConfig.Cache |> Option.defaultValue cachable
