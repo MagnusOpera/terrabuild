@@ -74,7 +74,6 @@ let ``restore some``() =
         [ shellOp("dotnet", "restore --locked-mode --force-evaluate --opt1 --opt2") ]
 
     Dotnet.restore localContext
-                   (Some true) // dependencies
                    (Some true) // locked
                    (Some true) // evaluate
                    someArgs
@@ -85,10 +84,9 @@ let ``restore some``() =
 [<Test>]
 let ``restore none``() =
     let expected =
-        [ shellOp("dotnet", "restore --no-dependencies") ]
+        [ shellOp("dotnet", "restore") ]
 
     Dotnet.restore localContext
-                   None // dependencies
                    None // locked
                    None // evaluate
                    noneArgs
@@ -100,10 +98,9 @@ let ``restore batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
     let expected =
-        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln --no-dependencies") ]
+        [ shellOp("dotnet", $"restore {tmpDir}/FEDCBA987654321.sln") ]
 
     Dotnet.restore (batchContext tmpDir projectDirs)
-                   None // dependencies
                    None // locked
                    None // evaluate
                    noneArgs
@@ -131,7 +128,6 @@ let ``build some``() =
                  (Some true) // log
                  (Some true) // restore
                  (Some "1.2.3") // version
-                 (Some true) // dependencies
                  someArgs
     |> normalize
     |> should equal expected
@@ -140,7 +136,7 @@ let ``build some``() =
 [<Test>]
 let ``build none``() =
     let expected =
-        [ shellOp("dotnet", "build --no-restore --no-dependencies --configuration Debug") ]
+        [ shellOp("dotnet", "build --no-restore --configuration Debug") ]
 
     Dotnet.build localContext
                  None // configuration
@@ -148,7 +144,6 @@ let ``build none``() =
                  None // log
                  None // restore
                  None // version
-                 None // dependencies
                  noneArgs
     |> normalize
     |> should equal expected
@@ -159,7 +154,7 @@ let ``build batch``() =
     let tmpDir = "TestFiles"
     let projectDirs = [ "TestFiles/dotnet-app"; "TestFiles/dotnet-lib" ]
     let expected =
-        [ shellOp("dotnet", $"build {tmpDir}/FEDCBA987654321.sln --no-restore --no-dependencies --configuration Debug") ]
+        [ shellOp("dotnet", $"build {tmpDir}/FEDCBA987654321.sln --no-restore --configuration Debug") ]
 
     Dotnet.build (batchContext tmpDir projectDirs)
                  None // configuration
@@ -167,7 +162,6 @@ let ``build batch``() =
                  None // log
                  None // restore
                  None // version
-                 None // dependencies
                  noneArgs
     |> normalize
     |> should equal expected

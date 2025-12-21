@@ -103,7 +103,7 @@
         "*.planfile"
       ],
       "projectHash": "3CBDEDC0FBF6FC914B350938367420CBB48C4245A2F5E27010092EDF137A1D64",
-      "targetHash": "D1D7F8034430EE870997131B84C52894C8491C430E5E1A7F5DD70D465B1A8443",
+      "targetHash": "80C9163420DBC81FF87FE76014DA214E59BE42CC0DA9F1AB17C112D76A56A476",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -143,7 +143,7 @@
         "obj/"
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
-      "targetHash": "DFD0427643DE7B5BF737BB23B23619233E3AA8ABD7803E3F63498D864EB341BC",
+      "targetHash": "E65F3FEA2CDD29BE950ACA21FAC549D64F754FA69F12FE6D662BD6A17BACF9C2",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {
@@ -163,7 +163,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --no-dependencies --configuration Debug",
+          "arguments": "build --no-restore --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -212,7 +212,7 @@
         "obj/"
       ],
       "projectHash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
-      "targetHash": "B345FE736AF5A5BA9F3A9868C8B07005765A8683C55BBAF11D4CF305C5C1945A",
+      "targetHash": "2E1F8B86FB9AAE5AC3BAAC88DCEAFBDBB8A083EEB38F5DBA551D2EFD31B27328",
       "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
       "operations": [
         {

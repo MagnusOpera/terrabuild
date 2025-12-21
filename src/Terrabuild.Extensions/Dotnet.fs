@@ -54,18 +54,15 @@ type Dotnet() =
     /// <summary>
     /// Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.
     /// </summary>
-    /// <param name="dependencies" example="&quot;true&quot;">Include project-to-project dependencies (omit to add `--no-dependencies`).</param>
     /// <param name="locked" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
     /// <param name="evaluate" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
     /// <param name="args" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
     [<LocalCacheAttribute>]
     [<BatchableAttribute>]
     static member restore (context: ActionContext)
-                          (dependencies: bool option)
                           (locked: bool option)
                           (evaluate: bool option)
                           (args: string option) =
-        let no_dependencies = dependencies |> map_false "--no-dependencies"
         let locked = locked |> map_true "--locked-mode"
         let force_evaluate = evaluate |> map_true "--force-evaluate"
         let args = args |> or_default ""
@@ -78,7 +75,7 @@ type Dotnet() =
             | _ -> ""
 
         let ops = [
-            shellOp( "dotnet", $"restore {sln} {no_dependencies} {locked} {force_evaluate} {args}")
+            shellOp( "dotnet", $"restore {sln} {locked} {force_evaluate} {args}")
         ]
         ops
 
@@ -91,7 +88,6 @@ type Dotnet() =
     /// <param name="log" example="true">Emit a binary log (`-bl`).</param>
     /// <param name="restore" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
     /// <param name="version" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
-    /// <param name="dependencies" example="true">Include project dependencies (omit to add `--no-dependencies`).</param>
     /// <param name="args" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
     [<RemoteCacheAttribute>]
     [<BatchableAttribute>]
@@ -101,14 +97,12 @@ type Dotnet() =
                         (log: bool option)
                         (restore: bool option)
                         (version: string option)
-                        (dependencies: bool option)
                         (args: string option) =
         let configuration = configuration |> or_default DotnetHelpers.defaultConfiguration
         let log = log |> map_true "-bl"
         let no_restore = restore |> map_false "--no-restore"
         let maxcpucount = ``parallel`` |> map_value (fun maxcpucount -> $"-maxcpucount:{maxcpucount}")
         let version = version |> map_value (fun version -> $"-p:Version={version}")
-        let no_dependencies = dependencies |> map_false "--no-dependencies"
         let args = args |> or_default ""
         let sln =
             match context.Batch with
@@ -119,7 +113,7 @@ type Dotnet() =
             | _ -> ""
 
         let ops = [
-            shellOp("dotnet", $"build {sln} {no_restore} {no_dependencies} --configuration {configuration} {log} {maxcpucount} {version} {args}")
+            shellOp("dotnet", $"build {sln} {no_restore} --configuration {configuration} {log} {maxcpucount} {version} {args}")
         ]
         ops
 
