@@ -97,6 +97,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                             computeMemberBuildRequest newAction newDate tail
                     let memberBuildRequest, memberBuildDate =
                         computeMemberBuildRequest NodeAction.Ignore DateTime.MinValue (members |> List.ofSeq)
+                    Log.Debug("NodeBatch {NodeId} is assigned build action {memberBuildRequest}")
                     for batchMember in members do
                         let memberNode = { graph.Nodes[batchMember] with Action = memberBuildRequest }
                         nodes.TryAdd(memberNode.Id, memberNode) |> ignore
