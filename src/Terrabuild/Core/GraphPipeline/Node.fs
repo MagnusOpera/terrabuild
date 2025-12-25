@@ -148,7 +148,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 let defaultForce = if options.Force then Build.Always else Build.Auto
                 targetConfig.Build |> Option.defaultValue defaultForce
             let buildAction =
-                if build = Build.Always then NodeAction.Build
+                if build = Build.Always then NodeAction.Exec
                 else NodeAction.Ignore
 
             let targetOutput =

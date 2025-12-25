@@ -1,17 +1,17 @@
 {
   "nodes": {
-    "4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047": {
-      "id": "4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047",
-      "projectId": "4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047",
+    "F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A": {
+      "id": "F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A",
+      "projectId": "F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A",
       "projectDir": ".",
       "target": "build",
       "dependencies": [
         "workspace/path#c:build"
       ],
       "outputs": [],
-      "projectHash": "4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047",
+      "projectHash": "F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A",
       "targetHash": "F59792CEAF216E5D8146633727BF9C85E5B5D86F6806D1424676E0100DA55430",
-      "clusterHash": "42A52C6423E3FBBA706DFA59745D17388DDA7201E18525EE728783E9EC7C75AB",
+      "clusterHash": "6EE8E1E7205ABAE10C58BC4B6DA4CA7129380A596049BBC2264C973C2C5331F1",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -19,7 +19,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore .terrabuild/4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047.sln",
+          "arguments": "restore .terrabuild/F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A.sln",
           "errorLevel": 0
         },
         {
@@ -28,14 +28,14 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build .terrabuild/4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047.sln --no-restore --configuration Debug",
+          "arguments": "build .terrabuild/F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A.sln --no-restore --configuration Debug",
           "errorLevel": 0
         }
       ],
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#a:build": {
       "id": "workspace/path#a:build",
@@ -82,7 +82,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#b:build": {
       "id": "workspace/path#b:build",
@@ -129,7 +129,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#c:build": {
       "id": "workspace/path#c:build",
@@ -177,7 +177,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#d:build": {
       "id": "workspace/path#d:build",
@@ -195,7 +195,7 @@
       ],
       "projectHash": "E27EE8CFF9BD151E97E09A8A953929B6DC5E4E242F0EB1BD94FD92562DFC1EB6",
       "targetHash": "F59792CEAF216E5D8146633727BF9C85E5B5D86F6806D1424676E0100DA55430",
-      "clusterHash": "42A52C6423E3FBBA706DFA59745D17388DDA7201E18525EE728783E9EC7C75AB",
+      "clusterHash": "6EE8E1E7205ABAE10C58BC4B6DA4CA7129380A596049BBC2264C973C2C5331F1",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -219,7 +219,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#e:build": {
       "id": "workspace/path#e:build",
@@ -237,7 +237,7 @@
       ],
       "projectHash": "0913D77CAAD0C42E3E5521DA44216CEEB02C56ADB452C6F1999EA983DC9C9BFB",
       "targetHash": "DF61287AD8999932BA40DAB1C891C748A8210C4D6648EE24113F45428CE8A63C",
-      "clusterHash": "42A52C6423E3FBBA706DFA59745D17388DDA7201E18525EE728783E9EC7C75AB",
+      "clusterHash": "6EE8E1E7205ABAE10C58BC4B6DA4CA7129380A596049BBC2264C973C2C5331F1",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -261,7 +261,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#f:build": {
       "id": "workspace/path#f:build",
@@ -301,7 +301,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#g:build": {
       "id": "workspace/path#g:build",
@@ -340,7 +340,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     }
   },
   "rootNodes": [
@@ -348,7 +348,7 @@
     "workspace/path#g:build"
   ],
   "batches": {
-    "4DCEF7C171D3D0820AE9FD0F8C05527BB1C2D7CA1C11F74EF560B4128AC8C047": [
+    "F70FB9771D3A25FF284341B3968EE16E89A06E4DC8A5812C084767C247D0D79A": [
       "workspace/path#d:build",
       "workspace/path#e:build"
     ]

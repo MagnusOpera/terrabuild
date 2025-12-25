@@ -30,7 +30,7 @@ type TargetOperation = {
 type Target = {
     Hash: string
     Build: Build option
-    Batch: Group
+    Batch: Batch
     DependsOn: string set
     Outputs: string set
     Cache: Artifacts option
@@ -632,12 +632,12 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 match targetGroup with
                 | Some group ->
                     match group with
-                    | Ok "never" -> Group.Never
-                    | Ok "partition" -> Group.Partition
-                    | Ok "all" -> Group.All
+                    | Ok "never" -> Batch.Never
+                    | Ok "partition" -> Batch.Partition
+                    | Ok "all" -> Batch.All
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Group.All
+                | _ -> Batch.All
 
             let target =
                 { Target.Hash = targetHash

@@ -14,7 +14,7 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
-type Group =
+type Batch =
     | Never
     | Partition
     | All
@@ -28,17 +28,17 @@ type Artifacts =
 
 [<RequireQualifiedAccess>]
 type Build =
-    | Always
     | Auto
+    | Always
 
 // NOTE: order is important here, must be ordered by priority (last one wins)
-//       Ignore has lower priority than Build for example
+//       Ignore has lower priority than Exec for example
 [<RequireQualifiedAccess>]
 type NodeAction =
     | Ignore
     | Summary
     | Restore
-    | Build
+    | Exec
 
 [<RequireQualifiedAccess>]
 type Node = {
@@ -59,7 +59,7 @@ type Node = {
     Operations: ContaineredShellOperation list
     Artifacts: Artifacts
     Build: Build
-    Batch: Group
+    Batch: Batch
 
     Action: NodeAction
 }

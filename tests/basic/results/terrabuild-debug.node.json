@@ -1,0 +1,35 @@
+{
+  "nodes": {
+    "workspace/path#app:build": {
+      "id": "workspace/path#app:build",
+      "projectId": "workspace/path#app",
+      "projectName": "appprj",
+      "projectDir": "app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "3987E6EA4668450DBFEFFD52EAE2A111F92B619B3705E1B20F83624FD67C65B8",
+      "targetHash": "E6C443A72AD2016F328B2E666701B454A259797567A192F9350FD7A62254D9E5",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {
+            "TAGADA": "pouet pouet"
+          },
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building app with lib version: CF80D3168C587B06A36EFC3D932C4B8ED1316D4EBA183F9E474C148D64F3504C",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
+      "build": "always",
+      "batch": "all",
+      "action": "exec"
+    }
+  },
+  "rootNodes": [
+    "workspace/path#app:build"
+  ],
+  "batches": {}
+}

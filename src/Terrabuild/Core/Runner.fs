@@ -10,7 +10,7 @@ open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
-    | Build
+    | Exec
     | Restore
 
 [<RequireQualifiedAccess>]
@@ -258,9 +258,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         | _ ->
             buildProgress.TaskCompleted node.Id true false
 
-    let buildNode (node: GraphDef.Node) =
+    let execNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
-        Log.Debug("Building Node {Node}", node.Id)
+        Log.Debug("Executing Node {Node}", node.Id)
         buildProgress.TaskBuilding node.Id
 
         let projectDirectory = node.ProjectDir
@@ -271,7 +271,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let successful, lastStatusCode, stepLogs =
             try execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
             with exn ->
-                nodeResults[node.Id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
+                nodeResults[node.Id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
                 Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
                 reraise()
 
@@ -308,7 +308,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 if successful then TaskStatus.Success endedAt
                 else TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
 
-            nodeResults[node.Id] <- (TaskRequest.Build, status)
+            nodeResults[node.Id] <- (TaskRequest.Exec, status)
 
             match status with
             | TaskStatus.Success completionDate ->
@@ -318,9 +318,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.TaskCompleted node.Id false false
         )
 
-    let batchBuildNode (batchNode: GraphDef.Node) =
+    let batchExecNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
-        Log.Debug("Building BatchNode {BatchNode}", batchNode.Id)
+        Log.Debug("Executing BatchNode {BatchNode}", batchNode.Id)
         buildProgress.TaskBuilding batchNode.Id
 
         let batchId = batchNode.Id
@@ -345,7 +345,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             try execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
             with exn ->
                 beforeFiles
-                |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
+                |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
                 Log.Error(exn, "{Hash}: Execution failed with exception", batchNode.TargetHash)
                 reraise()
 
@@ -387,7 +387,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                       Cache.TargetSummary.Duration = duration
                       Cache.TargetSummary.Cache = node.Artifacts }
 
-                nodeResults[nodeId] <- (TaskRequest.Build, status)
+                nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                 let files = cacheEntry.Complete summary
                 api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
@@ -422,7 +422,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let targetNode = graph.Nodes[id]
 
             // placeholder MUST be keyed by exec id
-            nodeResults[id] <- (TaskRequest.Build, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
+            nodeResults[id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
 
             let membersOpt = graph.Batches |> Map.tryFind id
 
@@ -435,7 +435,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let subscribe =
                 match targetNode.Action with
-                | GraphDef.NodeAction.Build -> hub.Subscribe
+                | GraphDef.NodeAction.Exec -> hub.Subscribe
                 | GraphDef.NodeAction.Restore -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Summary -> hub.SubscribeBackground
                 | GraphDef.NodeAction.Ignore -> hub.SubscribeBackground
@@ -454,8 +454,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.BatchScheduled batchSchedule
 
                 match targetNode.Action with
-                | GraphDef.NodeAction.Build ->
-                    let action = if membersOpt.IsSome then batchBuildNode else buildNode
+                | GraphDef.NodeAction.Exec ->
+                    let action = if membersOpt.IsSome then batchExecNode else execNode
                     action targetNode
                 | GraphDef.NodeAction.Restore -> restoreNode targetNode
                 | GraphDef.NodeAction.Summary -> summaryNode targetNode
