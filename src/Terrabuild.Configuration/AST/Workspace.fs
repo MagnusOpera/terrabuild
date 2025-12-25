@@ -15,7 +15,8 @@ type WorkspaceBlock =
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
-    { DependsOn: Set<string> option
+    { Outputs: Expr option
+      DependsOn: Set<string> option
       Build: Expr option
       Cache: Expr option
       Batch: Expr option }
