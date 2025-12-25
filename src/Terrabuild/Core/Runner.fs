@@ -277,8 +277,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         let outputs =
             match node.Artifacts with
-            | GraphDef.Artifacts.Workspace
-            | GraphDef.Artifacts.Managed ->
+            | GraphDef.ArtifactMode.Workspace
+            | GraphDef.ArtifactMode.Managed ->
                 let afterFiles = IO.createSnapshot node.Outputs projectDirectory
                 let newFiles = afterFiles - IO.Snapshot.Empty
                 IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
@@ -368,8 +368,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 let outputs =
                     match node.Artifacts with
-                    | GraphDef.Artifacts.Workspace
-                    | GraphDef.Artifacts.Managed ->
+                    | GraphDef.ArtifactMode.Workspace
+                    | GraphDef.ArtifactMode.Managed ->
                         let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
                         IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
                     | _ -> None
@@ -435,10 +435,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let subscribe =
                 match targetNode.Action with
-                | GraphDef.NodeAction.Exec -> hub.Subscribe
-                | GraphDef.NodeAction.Restore -> hub.SubscribeBackground
-                | GraphDef.NodeAction.Summary -> hub.SubscribeBackground
-                | GraphDef.NodeAction.Ignore -> hub.SubscribeBackground
+                | GraphDef.RunAction.Exec -> hub.Subscribe
+                | GraphDef.RunAction.Restore -> hub.SubscribeBackground
+                | GraphDef.RunAction.Summary -> hub.SubscribeBackground
+                | GraphDef.RunAction.Ignore -> hub.SubscribeBackground
 
             subscribe targetNode.Id schedDependencies (fun () ->
                 let batchSchedule =
@@ -454,12 +454,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.BatchScheduled batchSchedule
 
                 match targetNode.Action with
-                | GraphDef.NodeAction.Exec ->
+                | GraphDef.RunAction.Exec ->
                     let action = if membersOpt.IsSome then batchExecNode else execNode
                     action targetNode
-                | GraphDef.NodeAction.Restore -> restoreNode targetNode
-                | GraphDef.NodeAction.Summary -> summaryNode targetNode
-                | GraphDef.NodeAction.Ignore -> ()
+                | GraphDef.RunAction.Restore -> restoreNode targetNode
+                | GraphDef.RunAction.Summary -> summaryNode targetNode
+                | GraphDef.RunAction.Ignore -> ()
             )
 
     // schedule root nodes (exec id indirection handled in scheduleNode)

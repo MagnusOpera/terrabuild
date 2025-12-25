@@ -13,8 +13,8 @@ let build (graph: Graph) =
     let rec propagate parentIsRequired nodeId =
         let node = graph.Nodes[nodeId]
 
-        if node.Action <> NodeAction.Ignore then
-            let nodeRequired = parentIsRequired || node.Action = NodeAction.Exec
+        if node.Action <> RunAction.Ignore then
+            let nodeRequired = parentIsRequired || node.Action = RunAction.Exec
 
             match processedRequired.TryGetValue(nodeId) with
             | true, alreadyRequired when alreadyRequired || not nodeRequired ->

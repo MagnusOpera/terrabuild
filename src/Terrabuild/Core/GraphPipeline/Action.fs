@@ -10,24 +10,24 @@ open Errors
 open GraphDef
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) =
-    let nodeResults = Concurrent.ConcurrentDictionary<string, NodeAction>()
+    let nodeResults = Concurrent.ConcurrentDictionary<string, RunAction>()
     let nodes = Concurrent.ConcurrentDictionary<string, Node>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
     let getNodeAction (node: Node) hasChildBuilding =
         // task is forced to build
-        if node.Action = NodeAction.Exec then
+        if node.Action = RunAction.Exec then
             Log.Debug("{NodeId} is marked for build", node.Id)
-            (NodeAction.Exec, DateTime.MaxValue)
+            (RunAction.Exec, DateTime.MaxValue)
 
         // child task is building (upward cascading)
         elif hasChildBuilding then
             Log.Debug("{NodeId} must build because child is building", node.Id)
-            (NodeAction.Exec, DateTime.MaxValue)
+            (RunAction.Exec, DateTime.MaxValue)
 
         // cache related rules
-        elif node.Artifacts <> Artifacts.None then
+        elif node.Artifacts <> ArtifactMode.None then
             let useRemote = isRemoteCacheable options node
             let cacheEntryId = buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
@@ -37,26 +37,26 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                 // retry requested and task is failed
                 if options.Retry && (not summary.IsSuccessful) then
                     Log.Debug("{NodeId} must build because retry requested and node is failed", node.Id)
-                    (NodeAction.Exec, DateTime.MaxValue)
+                    (RunAction.Exec, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed
                 elif not summary.IsSuccessful then
                     Log.Debug("{NodeId} must restore as failed", node.Id)
-                    (NodeAction.Summary, summary.EndedAt)
+                    (RunAction.Summary, summary.EndedAt)
                 // task is cached
-                elif node.Artifacts = Artifacts.External then
+                elif node.Artifacts = ArtifactMode.External then
                     Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
-                    (NodeAction.Summary, summary.EndedAt)
+                    (RunAction.Summary, summary.EndedAt)
                 else
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
-                    (NodeAction.Restore, summary.EndedAt)
+                    (RunAction.Restore, summary.EndedAt)
             | _ ->
                 Log.Debug("{NodeId} must be built since no summary and required", node.Id)
-                (NodeAction.Exec, DateTime.MaxValue)
+                (RunAction.Exec, DateTime.MaxValue)
 
         // not cacheable
         else
             Log.Debug("{NodeId} is not cacheable", node.Id)
-            (NodeAction.Exec, DateTime.MaxValue)
+            (RunAction.Exec, DateTime.MaxValue)
 
 
     let rec scheduleNodeAction nodeId =
@@ -91,7 +91,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         forwardInvalidArg("Failed to compute actions", edi.SourceException)
 
     let nodes = graph.Nodes |> Map.addMap (nodes |> Seq.map (|KeyValue|) |> Map.ofSeq)
-    let rootNodes = graph.RootNodes |> Set.filter (fun nodeId -> nodes[nodeId].Action <> NodeAction.Ignore)
+    let rootNodes = graph.RootNodes |> Set.filter (fun nodeId -> nodes[nodeId].Action <> RunAction.Ignore)
 
     let graph =
         { graph with

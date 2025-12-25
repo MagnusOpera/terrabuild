@@ -98,10 +98,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
                         | Some attr ->
                             match attr.Cacheability with
-                            | Terrabuild.Extensibility.Cacheability.Never -> Artifacts.None
-                            | Terrabuild.Extensibility.Cacheability.Local -> Artifacts.Workspace
-                            | Terrabuild.Extensibility.Cacheability.Remote -> Artifacts.Managed
-                            | Terrabuild.Extensibility.Cacheability.External -> Artifacts.External
+                            | Terrabuild.Extensibility.Cacheability.Never -> ArtifactMode.None
+                            | Terrabuild.Extensibility.Cacheability.Local -> ArtifactMode.Workspace
+                            | Terrabuild.Extensibility.Cacheability.Remote -> ArtifactMode.Managed
+                            | Terrabuild.Extensibility.Cacheability.External -> ArtifactMode.External
                         | _ -> raiseInvalidArg $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
@@ -127,7 +127,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> false
 
                     cacheability, batchable, ops @ newops
-                ) (Artifacts.Managed, true, [])
+                ) (ArtifactMode.Managed, true, [])
 
             let opsCmds = ops |> List.map Json.Serialize
 
@@ -145,14 +145,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             // no build by default unless force
             let build =
-                let defaultForce = if options.Force then Build.Always else Build.Auto
+                let defaultForce = if options.Force then BuildMode.Always else BuildMode.Auto
                 targetConfig.Build |> Option.defaultValue defaultForce
             let buildAction =
-                if build = Build.Always then NodeAction.Exec
-                else NodeAction.Ignore
+                if build = BuildMode.Always then RunAction.Exec
+                else RunAction.Ignore
 
             let targetOutput =
-                if cache = Artifacts.None then Set.empty
+                if cache = ArtifactMode.None then Set.empty
                 else targetConfig.Outputs
 
             let targetClusterHash =

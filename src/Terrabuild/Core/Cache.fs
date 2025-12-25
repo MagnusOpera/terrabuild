@@ -32,7 +32,7 @@ type TargetSummary = {
     StartedAt: DateTime
     EndedAt: DateTime
     Duration: TimeSpan
-    Cache: GraphDef.Artifacts
+    Cache: GraphDef.ArtifactMode
 }
 
 
