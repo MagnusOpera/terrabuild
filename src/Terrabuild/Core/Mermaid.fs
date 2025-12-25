@@ -42,7 +42,7 @@ let render (getStatus: GetStatus option) (getOrigin: GetOrigin option) (graph: G
                 |> Option.bind (fun getOrigin -> getOrigin node)
 
             match origin with
-            | Some request when request.IsBuild -> $"class {node.Id |> sanitize} build"
+            | Some request when request.IsExec -> $"class {node.Id |> sanitize} build"
             | Some request when request.IsRestore -> $"class {node.Id |> sanitize} restore"
             | _ -> $"class {node.Id |> sanitize} ignore"
     ]

@@ -14,7 +14,7 @@
       ],
       "projectHash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
       "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
-      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "clusterHash": "3F3BBC731ABDD261E20BDC129EF24EFF8D5549CFF358E7BAA604F3D74D2DFA7D",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -44,7 +44,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "@pnpm#npm-lib:build": {
       "id": "@pnpm#npm-lib:build",
@@ -58,7 +58,7 @@
       ],
       "projectHash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
       "targetHash": "530C83EBA93EFB32A674A25A875C49C92A11ED6752CB7E45B56AF866DB92DA53",
-      "clusterHash": "E26E627E00DC63984574A9CFAD93DBAC058522CE652BB3DC444648A748AB900A",
+      "clusterHash": "3F3BBC731ABDD261E20BDC129EF24EFF8D5549CFF358E7BAA604F3D74D2DFA7D",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -88,7 +88,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#deployments/terraform-deploy:build": {
       "id": "workspace/path#deployments/terraform-deploy:build",
@@ -129,7 +129,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#libraries/dotnet-lib:build": {
       "id": "workspace/path#libraries/dotnet-lib:build",
@@ -144,7 +144,7 @@
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "targetHash": "E65F3FEA2CDD29BE950ACA21FAC549D64F754FA69F12FE6D662BD6A17BACF9C2",
-      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "clusterHash": "D0068D247E4F29F8A9970B09D7B99545F013110066B6E22B37D53F616F573994",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -170,7 +170,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#libraries/shell-lib:build": {
       "id": "workspace/path#libraries/shell-lib:build",
@@ -195,7 +195,7 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#projects/dotnet-app:build": {
       "id": "workspace/path#projects/dotnet-app:build",
@@ -213,7 +213,7 @@
       ],
       "projectHash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "targetHash": "2E1F8B86FB9AAE5AC3BAAC88DCEAFBDBB8A083EEB38F5DBA551D2EFD31B27328",
-      "clusterHash": "76E6F8566C567ED61454D9A9EC6ED7D096DBD92DDB5CAD796F9B7EB5EB3595C6",
+      "clusterHash": "D0068D247E4F29F8A9970B09D7B99545F013110066B6E22B37D53F616F573994",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -239,7 +239,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#projects/make-app:build": {
       "id": "workspace/path#projects/make-app:build",
@@ -273,7 +273,7 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#projects/open-api:build": {
       "id": "workspace/path#projects/open-api:build",
@@ -299,7 +299,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#projects/rust-app:build": {
       "id": "workspace/path#projects/rust-app:build",
@@ -328,7 +328,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     },
     "workspace/path#tests/playwright:test": {
       "id": "workspace/path#tests/playwright:test",
@@ -364,7 +364,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "build"
+      "action": "exec"
     }
   },
   "rootNodes": [

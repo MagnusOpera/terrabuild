@@ -36,8 +36,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 match nodeInfo.Request, nodeInfo.Status with
                 | Runner.TaskRequest.Restore, Runner.TaskStatus.Success _ -> Iconography.restore_ok
                 | Runner.TaskRequest.Restore, Runner.TaskStatus.Failure _ -> Iconography.restore_ko
-                | Runner.TaskRequest.Build, Runner.TaskStatus.Success _ -> Iconography.build_ok
-                | Runner.TaskRequest.Build, Runner.TaskStatus.Failure _ -> Iconography.build_ko
+                | Runner.TaskRequest.Exec, Runner.TaskStatus.Success _ -> Iconography.build_ok
+                | Runner.TaskRequest.Exec, Runner.TaskStatus.Failure _ -> Iconography.build_ko
             | _ -> Iconography.task_status
 
         let dumpMarkdown (node: GraphDef.Node) =

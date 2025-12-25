@@ -14,31 +14,31 @@ type ContaineredShellOperation = {
 }
 
 [<RequireQualifiedAccess>]
-type Group =
+type BatchMode =
     | Never
     | Partition
     | All
 
 [<RequireQualifiedAccess>]
-type Artifacts =
+type ArtifactMode =
     | None
     | Workspace
     | Managed
     | External
 
 [<RequireQualifiedAccess>]
-type Build =
-    | Always
+type BuildMode =
     | Auto
+    | Always
 
 // NOTE: order is important here, must be ordered by priority (last one wins)
-//       Ignore has lower priority than Build for example
+//       Ignore has lower priority than Exec for example
 [<RequireQualifiedAccess>]
-type NodeAction =
+type RunAction =
     | Ignore
     | Summary
     | Restore
-    | Build
+    | Exec
 
 [<RequireQualifiedAccess>]
 type Node = {
@@ -57,11 +57,10 @@ type Node = {
     ClusterHash: string option
 
     Operations: ContaineredShellOperation list
-    Artifacts: Artifacts
-    Build: Build
-    Batch: Group
-
-    Action: NodeAction
+    Artifacts: ArtifactMode
+    Build: BuildMode
+    Batch: BatchMode
+    Action: RunAction
 }
 
 
@@ -76,6 +75,6 @@ let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.Target
 
 let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
     match node.Artifacts with
-    | Artifacts.Managed
-    | Artifacts.External -> options.LocalOnly |> not
+    | ArtifactMode.Managed
+    | ArtifactMode.External -> options.LocalOnly |> not
     | _ -> false

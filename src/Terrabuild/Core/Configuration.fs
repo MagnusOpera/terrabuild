@@ -29,11 +29,11 @@ type TargetOperation = {
 [<RequireQualifiedAccess>]
 type Target = {
     Hash: string
-    Build: Build option
-    Batch: Group
+    Build: BuildMode option
+    Batch: BatchMode
     DependsOn: string set
     Outputs: string set
-    Cache: Artifacts option
+    Cache: ArtifactMode option
     Operations: TargetOperation list
 }
 
@@ -518,8 +518,8 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some targetBuild ->
                     let targetBuild = targetBuild |> Eval.eval evaluationContext |> Eval.asEnum
                     match targetBuild with
-                    | Ok "auto" -> Some Build.Auto
-                    | Ok "always" -> Some Build.Always
+                    | Ok "auto" -> Some BuildMode.Auto
+                    | Ok "always" -> Some BuildMode.Always
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
@@ -613,10 +613,10 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some targetCache ->
                     let targetCache = targetCache |> Eval.eval evaluationContext |> Eval.asEnum
                     match targetCache with
-                    | Ok "none" -> Some Artifacts.None
-                    | Ok "workspace" -> Some Artifacts.Workspace
-                    | Ok "managed" -> Some Artifacts.Managed
-                    | Ok "external" -> Some Artifacts.External
+                    | Ok "none" -> Some ArtifactMode.None
+                    | Ok "workspace" -> Some ArtifactMode.Workspace
+                    | Ok "managed" -> Some ArtifactMode.Managed
+                    | Ok "external" -> Some ArtifactMode.External
                     | Ok x -> raiseParseError $"Invalid artifacts value '{x}'"
                     | Error error -> raiseParseError error
 
@@ -632,12 +632,12 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 match targetGroup with
                 | Some group ->
                     match group with
-                    | Ok "never" -> Group.Never
-                    | Ok "partition" -> Group.Partition
-                    | Ok "all" -> Group.All
+                    | Ok "never" -> BatchMode.Never
+                    | Ok "partition" -> BatchMode.Partition
+                    | Ok "all" -> BatchMode.All
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> Group.All
+                | _ -> BatchMode.All
 
             let target =
                 { Target.Hash = targetHash

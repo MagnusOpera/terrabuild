@@ -71,8 +71,8 @@ let private partitionByDependencies (bucketNodes: Node list) =
 let computeBatches (graph: Graph) =
     graph.Nodes
     |> Seq.choose (fun (KeyValue(_, node)) ->
-        match node.ClusterHash with
-        | Some clusterHash -> Some (clusterHash, node)
+        match node with
+        | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some (clusterHash, node)
         | _ -> None)
     |> Seq.groupBy fst
     |> Seq.collect (fun (clusterHash, items) ->
@@ -90,8 +90,8 @@ let computeBatches (graph: Graph) =
                 |> List.groupBy (fun node -> node.Batch)
                 |> Map.ofSeq
 
-            let partitionGroups = batchModes |> Map.tryFind Group.Partition |> Option.defaultValue []  
-            let allGroup = batchModes |> Map.tryFind Group.All |> Option.defaultValue []  
+            let partitionGroups = batchModes |> Map.tryFind BatchMode.Partition |> Option.defaultValue []  
+            let allGroup = batchModes |> Map.tryFind BatchMode.All |> Option.defaultValue []  
         
             partitionGroups
             |> partitionByDependencies
@@ -190,7 +190,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.ClusterHash = Some batch.ClusterHash
                   GraphDef.Node.ProjectHash = batch.BatchId
                   GraphDef.Node.TargetHash = headNode.TargetHash
-                  GraphDef.Node.Action = NodeAction.Build
+                  GraphDef.Node.Action = RunAction.Exec
                   GraphDef.Node.Build = headNode.Build
                   GraphDef.Node.Batch = headNode.Batch }
 
