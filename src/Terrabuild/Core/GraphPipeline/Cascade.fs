@@ -3,6 +3,7 @@ module GraphPipeline.Cascade
 open System.Collections.Generic
 open Collections
 open GraphDef
+open Serilog
 
 let build (graph: Graph) =
     // For each node: have we already processed it as "required"?
@@ -23,7 +24,9 @@ let build (graph: Graph) =
             | _ ->
                 // Either first time, or upgrade from not-required -> required
                 processedRequired[nodeId] <- nodeRequired
-                if nodeRequired then requiredNodes <- requiredNodes |> Set.add node.Id
+                if nodeRequired then
+                    Log.Debug("Node {NodeId} is marked as required", nodeId)
+                    requiredNodes <- requiredNodes |> Set.add node.Id
                 node.Dependencies |> Seq.iter (propagate nodeRequired)
 
     graph.RootNodes |> Seq.iter (propagate false)
