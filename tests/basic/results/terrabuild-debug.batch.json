@@ -25,7 +25,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     }
   },
   "rootNodes": [

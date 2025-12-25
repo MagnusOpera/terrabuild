@@ -1,39 +1,40 @@
 module GraphPipeline.Cascade
 
-open System.Collections.Generic
 open Collections
 open GraphDef
-open Serilog
 
 let build (graph: Graph) =
-    // For each node: have we already processed it as "required"?
-    // false means "seen but only processed as not-required"
-    let processedRequired = Dictionary<string, bool>()
-    let mutable requiredNodes = Set.empty
 
-    let rec propagate parentIsRequired nodeId =
-        let node = graph.Nodes[nodeId]
+    let node2dependents = 
+        graph.Nodes
+        |> Seq.collect (fun (KeyValue(nodeId, node)) -> node.Dependencies |> Seq.map (fun depId -> depId, nodeId))
+        |> Seq.groupBy fst
+        |> Map.ofSeq
+        |> Map.map (fun _ depIds -> depIds |> Seq.map snd |> Set.ofSeq)
 
-        if node.Action <> RunAction.Ignore then
-            let nodeRequired = parentIsRequired || node.Action = RunAction.Exec
+    let leafNodes = graph.Nodes |> Map.filter (fun _ node -> node.Dependencies |> Set.isEmpty)
 
-            match processedRequired.TryGetValue(nodeId) with
-            | true, alreadyRequired when alreadyRequired || not nodeRequired ->
-                // Already processed with >= this requiredness
-                ()
-            | _ ->
-                // Either first time, or upgrade from not-required -> required
-                processedRequired[nodeId] <- nodeRequired
-                if nodeRequired then
-                    Log.Debug("Node {NodeId} is marked as required", nodeId)
-                    requiredNodes <- requiredNodes |> Set.add node.Id
-                node.Dependencies |> Seq.iter (propagate nodeRequired)
+    let mutable nodes = graph.Nodes
 
-    graph.RootNodes |> Seq.iter (propagate false)
+    let mutable nodeRequirements = Map.empty
+    let rec getNodeRequirements nodeId =
+        match nodeRequirements |> Map.tryFind nodeId with
+        | Some requirement -> requirement
+        | _ ->
+            let node = nodes[nodeId]
+            let isRequired =
+                if node.Required then node.Required
+                else
+                    node2dependents
+                    |> Map.tryFind nodeId
+                    |> Option.map (Seq.exists getNodeRequirements)
+                    |> Option.defaultValue false
 
-    // keep only runnable root nodes
-    let rootNodes =
-        graph.RootNodes
-        |> Set.filter (fun rootNodeId -> requiredNodes |> Set.contains rootNodeId)
+            nodeRequirements <- nodeRequirements |> Map.add nodeId isRequired
+            let node = { node with Required = isRequired }
+            nodes <- nodes |> Map.add node.Id node
+            isRequired
 
-    { graph with Graph.RootNodes = rootNodes }
+    leafNodes.Keys |> Seq.iter (fun leafNodeId -> getNodeRequirements leafNodeId |> ignore)
+
+    { graph with Graph.Nodes = nodes }

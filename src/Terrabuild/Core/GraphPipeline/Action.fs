@@ -1,7 +1,6 @@
 
 module GraphPipeline.Action
 
-
 open System
 open Collections
 open Serilog
@@ -17,7 +16,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
 
     let getNodeAction (node: Node) hasChildBuilding =
         // task is forced to build
-        if node.Action = RunAction.Exec then
+        if node.Build = BuildMode.Always then
             Log.Debug("{NodeId} is marked for build", node.Id)
             (RunAction.Exec, DateTime.MaxValue)
 
@@ -90,8 +89,16 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     | Status.SubscriptionError edi ->
         forwardInvalidArg("Failed to compute actions", edi.SourceException)
 
-    let nodes = graph.Nodes |> Map.addMap (nodes |> Seq.map (|KeyValue|) |> Map.ofSeq)
-    let rootNodes = graph.RootNodes |> Set.filter (fun nodeId -> nodes[nodeId].Action <> RunAction.Ignore)
+    let mutable nodes = graph.Nodes |> Map.addMap (nodes |> Seq.map (|KeyValue|) |> Map.ofSeq)
+    let rootNodes =
+        graph.RootNodes
+        |> Set.filter (fun nodeId -> nodes[nodeId].Action = RunAction.Exec)
+
+    // root node to execute are required
+    rootNodes
+    |> Set.iter (fun nodeId ->
+        let node = { nodes[nodeId] with Required = true }
+        nodes <- nodes |> Map.add node.Id node)
 
     let graph =
         { graph with

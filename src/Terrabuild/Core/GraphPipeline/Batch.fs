@@ -72,7 +72,7 @@ let computeBatches (graph: Graph) =
     graph.Nodes
     |> Seq.choose (fun (KeyValue(_, node)) ->
         match node with
-        | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some (clusterHash, node)
+        | { Action = RunAction.Exec; ClusterHash = Some clusterHash; Required = true } -> Some (clusterHash, node)
         | _ -> None)
     |> Seq.groupBy fst
     |> Seq.collect (fun (clusterHash, items) ->
@@ -192,7 +192,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.TargetHash = headNode.TargetHash
                   GraphDef.Node.Action = RunAction.Exec
                   GraphDef.Node.Build = headNode.Build
-                  GraphDef.Node.Batch = headNode.Batch }
+                  GraphDef.Node.Batch = headNode.Batch
+                  GraphDef.Node.Required = false }
 
             Some (batch.BatchId, batchNode)
     )

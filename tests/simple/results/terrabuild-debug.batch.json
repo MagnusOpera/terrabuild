@@ -1,52 +1,15 @@
 {
   "nodes": {
-    "14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9": {
-      "id": "14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9",
-      "projectId": "14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9",
+    "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8": {
+      "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "projectId": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
       "projectDir": ".",
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9",
-      "targetHash": "E65F3FEA2CDD29BE950ACA21FAC549D64F754FA69F12FE6D662BD6A17BACF9C2",
-      "clusterHash": "D0068D247E4F29F8A9970B09D7B99545F013110066B6E22B37D53F616F573994",
-      "operations": [
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore .terrabuild/14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9.sln",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build .terrabuild/14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9.sln --no-restore --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
-      "artifacts": "managed",
-      "build": "always",
-      "batch": "all",
-      "action": "exec"
-    },
-    "577FDA009FE819C8E72C3183372BF7070AA7BB84CB823855E17AF5C0EE960D4B": {
-      "id": "577FDA009FE819C8E72C3183372BF7070AA7BB84CB823855E17AF5C0EE960D4B",
-      "projectId": "577FDA009FE819C8E72C3183372BF7070AA7BB84CB823855E17AF5C0EE960D4B",
-      "projectDir": ".",
-      "target": "build",
-      "dependencies": [],
-      "outputs": [],
-      "projectHash": "577FDA009FE819C8E72C3183372BF7070AA7BB84CB823855E17AF5C0EE960D4B",
+      "projectHash": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
       "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
-      "clusterHash": "3F3BBC731ABDD261E20BDC129EF24EFF8D5549CFF358E7BAA604F3D74D2DFA7D",
+      "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -76,7 +39,46 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": false
+    },
+    "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B": {
+      "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "projectId": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "projectDir": ".",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "targetHash": "E65F3FEA2CDD29BE950ACA21FAC549D64F754FA69F12FE6D662BD6A17BACF9C2",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
+      "operations": [
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore .terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build .terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln --no-restore --configuration Debug",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "all",
+      "action": "exec",
+      "required": false
     },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",
@@ -92,7 +94,7 @@
       ],
       "projectHash": "BFA142C31E6CAB62B959D3F12487449D39254989D7E4B7E8B34952BEA70B037E",
       "targetHash": "5D9DCF588514A786A54955C1422F996E5B6D77D2878E88317E1B11BD4A723F68",
-      "clusterHash": "3F3BBC731ABDD261E20BDC129EF24EFF8D5549CFF358E7BAA604F3D74D2DFA7D",
+      "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -122,7 +124,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "@pnpm#npm-lib:build": {
       "id": "@pnpm#npm-lib:build",
@@ -136,7 +139,7 @@
       ],
       "projectHash": "C4BE5CC3B6E75E8F683FC2C89BA662764E82F51A6B6A168CFEE0EB289903F7E1",
       "targetHash": "530C83EBA93EFB32A674A25A875C49C92A11ED6752CB7E45B56AF866DB92DA53",
-      "clusterHash": "3F3BBC731ABDD261E20BDC129EF24EFF8D5549CFF358E7BAA604F3D74D2DFA7D",
+      "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
           "image": "guergeiro/pnpm:20-10",
@@ -166,7 +169,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#deployments/terraform-deploy:build": {
       "id": "workspace/path#deployments/terraform-deploy:build",
@@ -207,7 +211,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#libraries/dotnet-lib:build": {
       "id": "workspace/path#libraries/dotnet-lib:build",
@@ -222,7 +227,7 @@
       ],
       "projectHash": "B283ADA4D6EDB9C93E3A2740B0544DAA995CF1F933299919847FC7004A441C8B",
       "targetHash": "E65F3FEA2CDD29BE950ACA21FAC549D64F754FA69F12FE6D662BD6A17BACF9C2",
-      "clusterHash": "D0068D247E4F29F8A9970B09D7B99545F013110066B6E22B37D53F616F573994",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -248,7 +253,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#libraries/shell-lib:build": {
       "id": "workspace/path#libraries/shell-lib:build",
@@ -273,7 +279,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#projects/dotnet-app:build": {
       "id": "workspace/path#projects/dotnet-app:build",
@@ -291,7 +298,7 @@
       ],
       "projectHash": "D81A2A29701892A62EB4DBB40947B66822A2EB64F6C42684091F2399359A9332",
       "targetHash": "2E1F8B86FB9AAE5AC3BAAC88DCEAFBDBB8A083EEB38F5DBA551D2EFD31B27328",
-      "clusterHash": "D0068D247E4F29F8A9970B09D7B99545F013110066B6E22B37D53F616F573994",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
@@ -317,7 +324,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#projects/make-app:build": {
       "id": "workspace/path#projects/make-app:build",
@@ -351,7 +359,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#projects/open-api:build": {
       "id": "workspace/path#projects/open-api:build",
@@ -377,7 +386,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#projects/rust-app:build": {
       "id": "workspace/path#projects/rust-app:build",
@@ -406,7 +416,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#tests/playwright:test": {
       "id": "workspace/path#tests/playwright:test",
@@ -442,7 +453,8 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     }
   },
   "rootNodes": [
@@ -453,13 +465,13 @@
     "workspace/path#tests/playwright:test"
   ],
   "batches": {
-    "14A78A1501AFF6333D1FF5A6011BEACBBF52A6C04FB7B5882B117B7F486A46D9": [
-      "workspace/path#libraries/dotnet-lib:build",
-      "workspace/path#projects/dotnet-app:build"
-    ],
-    "577FDA009FE819C8E72C3183372BF7070AA7BB84CB823855E17AF5C0EE960D4B": [
+    "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8": [
       "@pnpm#npm-app:build",
       "@pnpm#npm-lib:build"
+    ],
+    "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B": [
+      "workspace/path#libraries/dotnet-lib:build",
+      "workspace/path#projects/dotnet-app:build"
     ]
   }
 }

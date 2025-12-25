@@ -26,7 +26,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#b:build": {
       "id": "workspace/path#b:build",
@@ -53,7 +54,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     },
     "workspace/path#c:build": {
       "id": "workspace/path#c:build",
@@ -78,7 +80,8 @@
       "artifacts": "none",
       "build": "always",
       "batch": "all",
-      "action": "exec"
+      "action": "exec",
+      "required": true
     }
   },
   "rootNodes": [

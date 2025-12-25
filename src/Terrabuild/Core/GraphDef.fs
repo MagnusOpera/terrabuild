@@ -61,6 +61,7 @@ type Node = {
     Build: BuildMode
     Batch: BatchMode
     Action: RunAction
+    Required: bool
 }
 
 
