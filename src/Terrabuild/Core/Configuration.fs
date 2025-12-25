@@ -347,11 +347,13 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
                 let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
+                let outputs = targetBlock.Outputs |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Outputs)
                 { targetBlock with 
                     Build = build
                     DependsOn = dependsOn
                     Cache = cache
-                    Batch = group })
+                    Batch = group
+                    Outputs = outputs })
         let environments =
             projectConfig.Project.Environments
             |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)

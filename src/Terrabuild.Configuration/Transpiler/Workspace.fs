@@ -65,7 +65,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "build"; "artifacts"; "batch"]
+    |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -77,10 +77,12 @@ let toTarget (block: Block) =
                 match dependency with
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
+    let outputs = block |> tryFindAttribute "outputs"
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
     { TargetBlock.DependsOn = dependsOn
+      TargetBlock.Outputs = outputs
       TargetBlock.Build = build
       TargetBlock.Cache = cache
       TargetBlock.Batch = batch }
