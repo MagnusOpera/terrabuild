@@ -2,6 +2,7 @@ module GraphPipeline.Cascade
 
 open Collections
 open GraphDef
+open Serilog
 
 let build (graph: Graph) =
 
@@ -12,8 +13,6 @@ let build (graph: Graph) =
         |> Map.ofSeq
         |> Map.map (fun _ depIds -> depIds |> Seq.map snd |> Set.ofSeq)
 
-    let leafNodes = graph.Nodes |> Map.filter (fun _ node -> node.Dependencies |> Set.isEmpty)
-
     let mutable nodes = graph.Nodes
 
     let mutable nodeRequirements = Map.empty
@@ -23,18 +22,21 @@ let build (graph: Graph) =
         | _ ->
             let node = nodes[nodeId]
             let isRequired =
-                if node.Required then node.Required
+                if node.Required then
+                    node.Required
                 else
                     node2dependents
                     |> Map.tryFind nodeId
-                    |> Option.map (Seq.exists getNodeRequirements)
-                    |> Option.defaultValue false
+                    |> Option.defaultValue Set.empty
+                    |> Seq.exists getNodeRequirements
 
+            Log.Debug("Node {NodeId} has requirement {Requirement}", node.Id, isRequired)
             nodeRequirements <- nodeRequirements |> Map.add nodeId isRequired
             let node = { node with Required = isRequired }
             nodes <- nodes |> Map.add node.Id node
             isRequired
 
-    leafNodes.Keys |> Seq.iter (fun leafNodeId -> getNodeRequirements leafNodeId |> ignore)
+    for nodeId in graph.Nodes.Keys do
+        getNodeRequirements nodeId |> ignore
 
     { graph with Graph.Nodes = nodes }
