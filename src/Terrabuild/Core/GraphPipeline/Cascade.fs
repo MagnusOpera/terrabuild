@@ -14,7 +14,6 @@ let build (graph: Graph) =
         |> Map.map (fun _ depIds -> depIds |> Seq.map snd |> Set.ofSeq)
 
     let mutable nodes = graph.Nodes
-
     let mutable nodeRequirements = Map.empty
     let rec getNodeRequirements nodeId =
         match nodeRequirements |> Map.tryFind nodeId with
@@ -22,8 +21,7 @@ let build (graph: Graph) =
         | _ ->
             let node = nodes[nodeId]
             let isRequired =
-                if node.Required then
-                    node.Required
+                if node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure then true
                 else
                     node2dependents
                     |> Map.tryFind nodeId
@@ -32,8 +30,9 @@ let build (graph: Graph) =
 
             Log.Debug("Node {NodeId} has requirement {Requirement}", node.Id, isRequired)
             nodeRequirements <- nodeRequirements |> Map.add nodeId isRequired
-            let node = { node with Required = isRequired }
-            nodes <- nodes |> Map.add node.Id node
+            if isRequired then
+                let node = { node with Action = RunAction.Exec; Required = isRequired }
+                nodes <- nodes |> Map.add node.Id node
             isRequired
 
     for nodeId in graph.Nodes.Keys do

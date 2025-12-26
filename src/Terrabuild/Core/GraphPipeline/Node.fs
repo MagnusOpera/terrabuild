@@ -143,10 +143,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             // cacheability can be overriden by the target
             let cache = targetConfig.Cache |> Option.defaultValue cachable
 
-            // no build by default unless force
+            // auto build by default unless force
             let build =
                 let defaultForce = if options.Force then BuildMode.Always else BuildMode.Auto
                 targetConfig.Build |> Option.defaultValue defaultForce
+
             let required = build = BuildMode.Always
 
             let targetOutput =
@@ -168,7 +169,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Artifacts = cache
                   Node.Build = build
                   Node.Batch = targetConfig.Batch
-
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 

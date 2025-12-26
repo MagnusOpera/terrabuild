@@ -9,7 +9,6 @@ open Errors
 open GraphDef
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) =
-    let nodeResults = Concurrent.ConcurrentDictionary<string, RunAction>()
     let nodes = Concurrent.ConcurrentDictionary<string, Node>()
     let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
@@ -70,11 +69,12 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.SubscribeBackground $"{id} status" dependencyStatus (fun () ->
-                let hasChildBuilding = targetNode.Dependencies |> Seq.exists (fun projectId -> nodeResults[projectId].IsExec)
+                let hasChildBuilding = targetNode.Dependencies |> Seq.exists (fun projectId -> 
+                    let node = nodes[projectId]
+                    node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure)
                 let nodeAction, buildDate = getNodeAction targetNode hasChildBuilding
                 let targetNode = { targetNode with Action = nodeAction }
                 nodes.TryAdd(targetNode.Id, targetNode) |> ignore
-                nodeResults.TryAdd(targetNode.Id, nodeAction) |> ignore
                 hub.GetSignal<DateTime>(targetNode.Id).Set(buildDate))
 
     graph.RootNodes |> Seq.iter scheduleNodeAction
@@ -92,13 +92,9 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     let mutable nodes = graph.Nodes |> Map.addMap (nodes |> Seq.map (|KeyValue|) |> Map.ofSeq)
     let rootNodes =
         graph.RootNodes
-        |> Set.filter (fun nodeId -> nodes[nodeId].Action = RunAction.Exec)
-
-    // root node to execute are required
-    rootNodes
-    |> Set.iter (fun nodeId ->
-        let node = { nodes[nodeId] with Required = true }
-        nodes <- nodes |> Map.add node.Id node)
+        |> Set.filter (fun nodeId ->
+            let node = nodes[nodeId]
+            node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure)
 
     let graph =
         { graph with
