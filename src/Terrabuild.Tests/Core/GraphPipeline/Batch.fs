@@ -21,7 +21,8 @@ let ``check partition computation``() =
           Node.Artifacts = ArtifactMode.Workspace
           Node.Action = action
           Node.Build = BuildMode.Auto
-          Node.Batch = BatchMode.Partition }
+          Node.Batch = BatchMode.Partition
+          Node.Required = true }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 
@@ -88,7 +89,8 @@ let ``check partition/all computation``() =
           Node.Artifacts = ArtifactMode.Workspace
           Node.Action = action
           Node.Build = BuildMode.Auto
-          Node.Batch = group }
+          Node.Batch = group
+          Node.Required = true }
 
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 

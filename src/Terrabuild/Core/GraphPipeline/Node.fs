@@ -147,24 +147,15 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let build =
                 let defaultForce = if options.Force then BuildMode.Always else BuildMode.Auto
                 targetConfig.Build |> Option.defaultValue defaultForce
-            let buildAction =
-                if build = BuildMode.Always then RunAction.Exec
-                else RunAction.Ignore
+            let required = build = BuildMode.Always
 
             let targetOutput =
                 if cache = ArtifactMode.None then Set.empty
                 else targetConfig.Outputs
 
             let targetClusterHash =
-                if batchable then
-                    let batchContent = [
-                        targetConfig.Hash
-                        $"{buildAction}"
-                    ]
-                    let batchHash = batchContent |> Hash.sha256strings
-                    Some batchHash
-                else
-                    None
+                if batchable then Some targetConfig.Hash
+                else None
 
             let node =
                 { Node.Id = nodeId
@@ -184,8 +175,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.ClusterHash = targetClusterHash
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
+                  Node.Action = RunAction.Ignore
+                  Node.Required = required }
 
-                  Node.Action = buildAction }
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
   
         if processedNodes.TryAdd(nodeId, true) then processNode()
