@@ -21,7 +21,7 @@ let build (graph: Graph) =
         | _ ->
             let node = nodes[nodeId]
             let isRequired =
-                if node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure then true
+                if node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy then true
                 else
                     node2dependents
                     |> Map.tryFind nodeId

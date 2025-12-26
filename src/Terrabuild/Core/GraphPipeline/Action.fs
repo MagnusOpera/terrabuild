@@ -71,7 +71,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
             hub.SubscribeBackground $"{id} status" dependencyStatus (fun () ->
                 let hasChildBuilding = targetNode.Dependencies |> Seq.exists (fun projectId -> 
                     let node = nodes[projectId]
-                    node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure)
+                    node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
                 let nodeAction, buildDate = getNodeAction targetNode hasChildBuilding
                 let targetNode = { targetNode with Action = nodeAction }
                 nodes.TryAdd(targetNode.Id, targetNode) |> ignore
@@ -94,7 +94,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         graph.RootNodes
         |> Set.filter (fun nodeId ->
             let node = nodes[nodeId]
-            node.Action = RunAction.Exec && node.Build <> BuildMode.Ensure)
+            node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
 
     let graph =
         { graph with

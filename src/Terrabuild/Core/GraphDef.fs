@@ -28,7 +28,7 @@ type ArtifactMode =
 
 [<RequireQualifiedAccess>]
 type BuildMode =
-    | Ensure
+    | Lazy
     | Auto
     | Always
 

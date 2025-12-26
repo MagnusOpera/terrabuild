@@ -520,7 +520,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                 | Some targetBuild ->
                     let targetBuild = targetBuild |> Eval.eval evaluationContext |> Eval.asEnum
                     match targetBuild with
-                    | Ok "ensure" -> Some BuildMode.Ensure
+                    | Ok "lazy" -> Some BuildMode.Lazy
                     | Ok "auto" -> Some BuildMode.Auto
                     | Ok "always" -> Some BuildMode.Always
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
