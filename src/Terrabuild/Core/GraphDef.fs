@@ -28,11 +28,10 @@ type ArtifactMode =
 
 [<RequireQualifiedAccess>]
 type BuildMode =
+    | Lazy
     | Auto
     | Always
 
-// NOTE: order is important here, must be ordered by priority (last one wins)
-//       Ignore has lower priority than Exec for example
 [<RequireQualifiedAccess>]
 type RunAction =
     | Ignore
