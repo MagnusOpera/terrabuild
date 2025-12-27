@@ -1,6 +1,6 @@
 module GraphPipeline.Node
 open Collections
-open System.Collections.Concurrent
+open System.Collections.Generic
 open Errors
 open Serilog
 open System
@@ -11,10 +11,8 @@ open GraphDef
 // build the high-level graph from configuration
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) =
     let startedAt = DateTime.UtcNow
-    Log.Debug("===== [Graph Build] =====")
-
-    let allNodes = ConcurrentDictionary<string, Node>()
-    let processedNodes = ConcurrentDictionary<string, bool>()
+    let allNodes = Dictionary<string, Node>()
+    let processedNodes = Dictionary<string, bool>()
 
     // first check all targets exist in WORKSPACE
     match options.Targets |> Seq.tryFind (fun targetName -> configuration.Targets |> Map.containsKey targetName |> not) with

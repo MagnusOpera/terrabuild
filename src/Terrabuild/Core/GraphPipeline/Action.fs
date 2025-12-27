@@ -3,14 +3,15 @@ module GraphPipeline.Action
 
 open System
 open Collections
+open System.Collections.Concurrent
 open Serilog
 open Terrabuild.PubSub
 open Errors
 open GraphDef
 
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) =
-    let nodes = Concurrent.ConcurrentDictionary<string, Node>()
-    let scheduledNodeStatus = Concurrent.ConcurrentDictionary<string, bool>()
+    let nodes = ConcurrentDictionary<string, Node>()
+    let scheduledNodeStatus = ConcurrentDictionary<string, bool>()
     let hub = Hub.Create(options.MaxConcurrency)
 
     let getNodeAction (node: Node) hasChildBuilding =

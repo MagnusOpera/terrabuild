@@ -3,6 +3,7 @@ module GraphPipeline.Cascade
 open Collections
 open GraphDef
 open Serilog
+open System.Collections.Generic
 
 let build (graph: Graph) =
 
@@ -13,11 +14,11 @@ let build (graph: Graph) =
         |> Map.ofSeq
         |> Map.map (fun _ depIds -> depIds |> Seq.map snd |> Set.ofSeq)
 
-    let mutable nodes = graph.Nodes
-    let mutable nodeRequirements = Map.empty
+    let nodes = graph.Nodes |> Dictionary<string, Node>
+    let nodeRequirements = Dictionary<string, bool>()
     let rec getNodeRequirements nodeId =
-        match nodeRequirements |> Map.tryFind nodeId with
-        | Some requirement -> requirement
+        match nodeRequirements.TryGetValue(nodeId) with
+        | true, requirement -> requirement
         | _ ->
             let node = nodes[nodeId]
             let isRequired =
@@ -29,13 +30,13 @@ let build (graph: Graph) =
                     |> Seq.exists getNodeRequirements
 
             Log.Debug("Node {NodeId} has requirement {Requirement}", node.Id, isRequired)
-            nodeRequirements <- nodeRequirements |> Map.add nodeId isRequired
+            nodeRequirements[nodeId] <- isRequired
             if isRequired then
                 let node = { node with Required = isRequired }
-                nodes <- nodes |> Map.add node.Id node
+                nodes[node.Id] <- node
             isRequired
 
     for nodeId in graph.Nodes.Keys do
         getNodeRequirements nodeId |> ignore
 
-    { graph with Graph.Nodes = nodes }
+    { graph with Graph.Nodes = nodes |> Map.ofDict }

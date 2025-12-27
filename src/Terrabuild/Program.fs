@@ -67,7 +67,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             if debug then loggerBuilder.MinimumLevel.Debug()
             else loggerBuilder
         Log.Logger <- loggerBuilder.CreateLogger()
-        Log.Debug("===== [Execution Start] =====")
+        Log.Debug("====[ Start ]========================================================")
         Log.Debug($"Terrabuild: {Version.informalVersion()}")
         Log.Debug($"Environment: {RuntimeInformation.OSDescription}, {RuntimeInformation.OSArchitecture}, {Environment.Version}")
 
@@ -112,6 +112,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Run = sourceControl.Run
         }
 
+        Log.Debug("====[ Configuration ]========================================================")
         let options, config = Configuration.read options
 
         if options.Debug then
@@ -137,15 +138,19 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
+        Log.Debug("====[ GraphPipeline Node ]========================================================")
         let graph = GraphPipeline.Node.build options config
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
 
+        Log.Debug("====[ GraphPipeline Action ]========================================================")
         let graph = GraphPipeline.Action.build options cache graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action.json")
 
+        Log.Debug("====[ GraphPipeline Cascade ]========================================================")
         let graph = GraphPipeline.Cascade.build graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cascade.json")
 
+        Log.Debug("====[ GraphPipeline Batch ]========================================================")
         let graph = GraphPipeline.Batch.build options config graph
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"batch.json")
 
@@ -183,8 +188,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let errCode =
             if options.WhatIf then 0
             else
+                Log.Debug("====[ Runner ]========================================================")
                 let summary = Runner.run options cache api graph
 
+                Log.Debug("====[ Report ]========================================================")
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")

@@ -25,16 +25,17 @@ Determines the build actions for each node and cluster, using build status if av
 - Evaluates which nodes need to be built, restored, or ignored.
 - Applies rules based on cache status, previous build results, and configuration.
 - Prepares the build request for execution.
+- Enforce "if children builds then parent builds" rule.
 
 # Cascade.fs
 
-Implements the cascading scheme for build requests and rebuilds.  
-- Applies cascade attributes to propagate rebuilds through dependencies.
-- Ensures that changes in one node or cluster trigger appropriate downstream builds.
+Implements the cascading scheme for required nodes:
+- Applies cascade attributes to propagate required attribute through dependencies.
+- Ensures that a required node has children nodes marked as required.
 
-# Cluster.fs
+# Batch.fs
 
-Groups related nodes into clusters for batch execution.  
+Groups related executable and required nodes into clusters for batch execution.  
 - Identifies batchable nodes based on configuration and script attributes.
 - Creates cluster nodes, ensuring operations are discovered via extension scripts.
 - Sets up batch contexts and cluster dependencies.
