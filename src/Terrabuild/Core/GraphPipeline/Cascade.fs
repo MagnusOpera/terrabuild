@@ -31,7 +31,7 @@ let build (graph: Graph) =
             Log.Debug("Node {NodeId} has requirement {Requirement}", node.Id, isRequired)
             nodeRequirements <- nodeRequirements |> Map.add nodeId isRequired
             if isRequired then
-                let node = { node with Action = RunAction.Exec; Required = isRequired }
+                let node = { node with Required = isRequired }
                 nodes <- nodes |> Map.add node.Id node
             isRequired
 

@@ -55,10 +55,14 @@ let ``check partition computation``() =
 
     let batches = computeBatches graph
 
+    let expectedBatchIdA = Hash.sha256strings ("hash-A" :: [ "A1"; "A2" ])
     let expectedBatchIdB = Hash.sha256strings ("hash-B" :: [ "B1"; "B2" ])
 
     let expected =
-        [ { BatchId = expectedBatchIdB
+        [ { BatchId = expectedBatchIdA
+            ClusterHash = "hash-A"
+            Nodes = [ nodeA1; nodeA2 ] }
+          { BatchId = expectedBatchIdB
             ClusterHash = "hash-B"
             Nodes = [ nodeB1; nodeB2 ] }]
 
@@ -95,7 +99,7 @@ let ``check partition/all computation``() =
     let addNode (node: Node) nodes = nodes |> Map.add node.Id node
 
     // Bucket hash-A: connected via A1 -> A2 (in-bucket edge)
-    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Exec (Set ["A2"; "B1"]) BatchMode.Partition
+    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Restore (Set ["A2"; "B1"]) BatchMode.Partition
     let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Restore Set.empty BatchMode.Partition
 
     // Bucket hash-B: connected via B1 -> B2 (in-bucket edge)
