@@ -69,10 +69,19 @@ let private partitionByDependencies (bucketNodes: Node list) =
     components |> List.ofSeq
 
 let computeBatches (graph: Graph) =
+    // find clusters with at least one exec node
+    let elligibleClusterHash =
+        graph.Nodes
+        |> Seq.choose (fun (KeyValue(_, node)) -> 
+            match node with
+            | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some clusterHash
+            | _ -> None)
+        |> Set.ofSeq
+
     graph.Nodes
     |> Seq.choose (fun (KeyValue(_, node)) ->
         match node with
-        | { Action = RunAction.Exec; ClusterHash = Some clusterHash; Required = true } -> Some (clusterHash, node)
+        | { ClusterHash = Some clusterHash; Required = true } when elligibleClusterHash |> Set.contains clusterHash -> Some (clusterHash, node)
         | _ -> None)
     |> Seq.groupBy fst
     |> Seq.collect (fun (clusterHash, items) ->
