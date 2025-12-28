@@ -49,28 +49,25 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
             let wsDir = currentDir()
 
             // add platform
-            let container =
-                match operation.Platform with
-                | Some platform -> $"--platform={platform} {image}"
-                | _ -> image
+            let platform = operation.Platform |> Option.map (fun platform -> $"--platform={platform}") |> Option.defaultValue ""
 
             let containerHome =
-                match containerInfos.TryGetValue(container) with
+                match containerInfos.TryGetValue(image) with
                 | true, containerHome ->
                     Log.Debug("Reusing USER '{ContainerHome}' for '{Container}'", containerHome, image)
                     containerHome
                 | _ ->
                     // discover USER
-                    let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
+                    let args = $"run --rm --name {node.TargetHash} {platform} --entrypoint sh {image} -c \"echo -n $HOME\""
                     let containerHome =
                         match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
-                        | Exec.Success (containerHome, 0) -> containerHome.Trim()
-                        | _ ->
-                            Log.Debug("USER identification failed for '{Container}', using root instead", image)
+                        | Exec.Success (containerHome, _) -> containerHome.Trim()
+                        | Exec.Error (errMsg, code) ->
+                            Log.Debug("USER identification failed for '{Container}' with error '{ErrorMsg}' and code {Code}, using root instead", image, errMsg, code)
                             "/root"
 
                     Log.Debug("Using USER '{ContainerHome}' for '{Container}'", containerHome, image)
-                    containerInfos.TryAdd(container, containerHome) |> ignore
+                    containerInfos.TryAdd(image, containerHome) |> ignore
                     containerHome
 
             let envs =
@@ -89,7 +86,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                 |> String.join " "
 
             let args =
-                $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} --entrypoint {operation.Command} {envs} {container} {operation.Arguments}"
+                $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
             metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel, operation.Envs
         | _ ->
             metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
