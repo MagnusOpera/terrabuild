@@ -420,21 +420,15 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
     let projectId = projectDef.Id
 
     // get dependencies on files
-    let committedFiles = Git.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
+    let visibleFiles = Git.enumeratedCommittedFiles workspaceDir projectDir |> Set.ofList
     let additionalFiles =
         projectDir
         |> IO.enumerateFilesBut projectDef.Includes (projectDef.Outputs + projectDef.Ignores)
         |> Set
-    let files = committedFiles + additionalFiles |> Set
+    let files = visibleFiles + additionalFiles
 
-    let sortedFiles =
-        files
-        |> Seq.sort
-        |> List.ofSeq
-
-    let filesHash =
-        sortedFiles
-        |> Hash.sha256files
+    let filesHash = files |> Hash.sha256files
+    let fileNameHash = files |> Set.map (fun file -> FS.relativePath projectDir file) |> Hash.sha256strings
 
     let dependenciesHash =
         let versionDependencies = projectDependencies |> Map.map (fun _ depProj -> depProj.Hash)
@@ -443,12 +437,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
         |> Hash.sha256strings
 
     // NOTE: this is the hash (modulo target name) used for reconcialiation across executions
-    let projectHash =
-        let relativeSortedFiles = 
-            sortedFiles
-            |> List.map (fun file -> FS.relativePath projectDir file)
-        [ projectId; filesHash; dependenciesHash ] @ relativeSortedFiles
-        |> Hash.sha256strings
+    let projectHash = [ projectId; filesHash; fileNameHash; dependenciesHash ] |> Hash.sha256strings
 
     let evaluationContext = 
         let terrabuildProjectVars =
