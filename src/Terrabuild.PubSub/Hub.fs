@@ -3,6 +3,8 @@ open System
 open System.Collections.Generic
 open System.Collections.Concurrent
 open System.Runtime.ExceptionServices
+open System.Threading
+open Lock
 
 
 type SignalCompleted = unit -> unit
@@ -21,12 +23,13 @@ and ISignal<'T> =
 type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
     let subscribers = Queue<SignalCompleted>()
     let mutable raised = None
+    let signalLock = Lock()
 
     interface ISignal with
         member _.Name = name
-        member _.IsRaised() = lock this (fun () -> raised.IsSome )
+        member _.IsRaised() = lock signalLock (fun () -> raised.IsSome )
         member _.Subscribe(onCompleted: SignalCompleted) =
-            lock this (fun () ->
+            lock signalLock (fun () ->
                 match raised with
                 | Some _ -> eventQueue.Enqueue kind onCompleted
                 | _ -> subscribers.Enqueue(onCompleted)
@@ -43,11 +46,11 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
 
     interface ISignal<'T> with
         member _.Value
-            with get () = lock this (fun () -> 
+            with get () = lock signalLock (fun () -> 
                 match raised with
                 | Some raised -> raised
                 | _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is not raised")
-            and set value = lock this (fun () ->
+            and set value = lock signalLock (fun () ->
                 match raised with
                 | Some _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is already raised"
                 | _ -> 
@@ -63,6 +66,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
 
 type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list) as this =
     let mutable count = signals.Length
+    let subscriptionLock = Lock()
     do
         if count = 0 then signal.Value <- ()
         else signals |> Seq.iter (fun signal -> signal.Subscribe(this.Callback))
@@ -70,7 +74,7 @@ type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal 
     member _.Signal = signal
     member _.AwaitedSignals = signals
     member private _.Callback() =
-        let count = lock this (fun () -> count <- count - 1; count)
+        let count = lock subscriptionLock (fun () -> count <- count - 1; count)
         match count with
         | 0 -> signal.Value <- ()
         | _ -> ()

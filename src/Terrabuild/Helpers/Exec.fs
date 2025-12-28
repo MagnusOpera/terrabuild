@@ -7,9 +7,8 @@ open Serilog
 open Environment
 open System.Runtime.InteropServices
 open System.Collections.Concurrent
-
-
-
+open System.Threading
+open Lock
 
 
 
@@ -168,12 +167,11 @@ let execConsole (workingDir: string) (command: string) (args: string) (envs: Map
 let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) =
     try
         use logWriter = new StreamWriter(logFile)
-        let writeLock = obj()
+        let writeLock = Lock()
 
         let inline lockWrite (from: string) (msg: string | null) =
             match msg with
-            | NonNull msg -> 
-                lock writeLock (fun () -> logWriter.WriteLine($"{DateTime.UtcNow} {from} {msg}"))
+            | NonNull msg -> lock writeLock (fun () -> logWriter.WriteLine($"{DateTime.UtcNow} {from} {msg}"))
             | _ -> ()
 
         Log.Debug($"Running and capturing timestamped output of '{command}' with arguments '{args}' in working dir '{workingDir}' (Current is '{currentDir()}')")
