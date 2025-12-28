@@ -2,75 +2,9 @@ namespace Terrabuild.PubSub
 open System
 open System.Collections.Generic
 open System.Collections.Concurrent
-open System.Threading
 open System.Runtime.ExceptionServices
+open Terrabuild.EventQueue
 
-
-type private Priority =
-    | Normal
-    | Background
-
-type private IEventQueue =
-    abstract Enqueue: kind:Priority -> action:(unit -> unit) -> unit
-
-type private EventQueue(maxConcurrency: int) as this =
-    let backgroundMaxConcurrency = 4 * maxConcurrency
-    let completed = new ManualResetEvent(false)
-    let normalQueue = Queue<(unit -> unit)>()
-    let backgroundQueue = Queue<(unit -> unit)>()
-    let mutable isStarted = false
-    let mutable totalTasks = 0
-    let mutable lastError = None
-    let inFlightNormalTasks = ref 0
-    let inFlightBackgroundTasks = ref 0
-
-    // NOTE: always take the lock before calling trySchedule
-    let rec trySchedule () =
-
-        let schedule (count: ref<int>) action =
-            count.Value <- count.Value + 1
-            async {
-                let error = Errors.tryInvoke action
-                lock this (fun () ->
-                    error |> Option.iter (fun error ->
-                        lastError <- Some error
-                        normalQueue.Clear())
-                    count.Value <- count.Value - 1
-                    trySchedule()
-                )
-            } |> Async.Start
-            trySchedule() // try to schedule more tasks if possible
-
-        let totalInFlight = inFlightNormalTasks.Value + inFlightBackgroundTasks.Value
-        let canAcceptTask = totalInFlight < backgroundMaxConcurrency
-        let canScheduleNormalTask = lastError = None && 0 < normalQueue.Count && inFlightNormalTasks.Value < maxConcurrency
-        let canScheduleBackgroundTask = 0 < backgroundQueue.Count && inFlightBackgroundTasks.Value < backgroundMaxConcurrency
-
-        if canAcceptTask && canScheduleBackgroundTask then schedule inFlightBackgroundTasks (backgroundQueue.Dequeue())
-        elif canAcceptTask && canScheduleNormalTask then schedule inFlightNormalTasks (normalQueue.Dequeue())
-        elif totalInFlight = 0 then completed.Set() |> ignore
-
-    interface IEventQueue with
-        member _.Enqueue kind action =
-            lock this (fun () ->
-                totalTasks <- totalTasks + 1
-                match kind with
-                | Normal -> normalQueue.Enqueue(action)
-                | Background -> backgroundQueue.Enqueue(action)
-                if isStarted then trySchedule()
-            )
-
-    member _.WaitCompletion() =
-        let totalTasks = lock this (fun () ->
-            isStarted <- true
-            if totalTasks > 0 then
-                async {
-                    lock this trySchedule
-                } |> Async.Start
-            totalTasks
-        )
-        if totalTasks > 0 then completed.WaitOne() |> ignore
-        lastError
 
 type SignalCompleted = unit -> unit
 
@@ -95,7 +29,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
         member _.Subscribe(onCompleted: SignalCompleted) =
             lock this (fun () ->
                 match raised with
-                | Some _ -> eventQueue.Enqueue kind onCompleted
+                | Some _ -> eventQueue.Enqueue(kind, onCompleted)
                 | _ -> subscribers.Enqueue(onCompleted)
             )
         member _.Get<'Q>() =
@@ -121,7 +55,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
                     let rec notify() =
                         match subscribers.TryDequeue() with
                         | true, subscriber ->
-                            eventQueue.Enqueue kind subscriber
+                            eventQueue.Enqueue(kind, subscriber)
                             notify()
                         | _ -> ()
                     raised <- Some value
@@ -150,19 +84,22 @@ type Status =
     | SubscriptionError of edi:ExceptionDispatchInfo
 
 type IHub =
+    inherit IDisposable
     abstract GetSignal<'T>: name:string -> ISignal
     abstract Subscribe: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract SubscribeBackground: label:string -> signals:ISignal list -> handler:SignalCompleted -> unit
     abstract WaitCompletion: unit -> Status
 
 
+
+
 type Hub(maxConcurrency) =
-    let eventQueue = EventQueue(maxConcurrency)
+    let eventQueue = new EventQueue(maxConcurrency)
     let signals = ConcurrentDictionary<string, ISignal>()
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
     member private _.GetSignal<'T> name =
-        let getOrAdd _ = Signal<'T>(name, eventQueue, Normal) :> ISignal
+        let getOrAdd _ = Signal<'T>(name, eventQueue, Priority.Normal) :> ISignal
         let signal = signals.GetOrAdd(name, getOrAdd)
         match signal with
         | :? Signal<'T> as signal -> signal
@@ -175,13 +112,17 @@ type Hub(maxConcurrency) =
         subscriptions.TryAdd(name, subscription) |> ignore
         (signal :> ISignal).Subscribe(handler)
 
+    interface IDisposable with
+        member _.Dispose () =
+            eventQueue.Dispose()
+
     interface IHub with
         member this.GetSignal<'T>(name) = this.GetSignal<'T> name
-        member this.Subscribe label signals handler = this.Subscribe label signals Normal handler
-        member this.SubscribeBackground label signals handler = this.Subscribe label signals Background handler
+        member this.Subscribe label signals handler = this.Subscribe label signals Priority.Normal handler
+        member this.SubscribeBackground label signals handler = this.Subscribe label signals Priority.Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
-            | Some exn -> Status.SubscriptionError exn
+            | NonNull exn -> Status.SubscriptionError exn
             | _ ->
                 match subscriptions.Values |> Seq.tryFind (fun subscription -> subscription.Signal.IsRaised() |> not) with
                 | Some subscription ->
@@ -193,4 +134,4 @@ type Hub(maxConcurrency) =
                 | _ -> Status.Ok
 
 with
-    static member Create maxConcurrency = Hub(maxConcurrency) :> IHub
+    static member Create maxConcurrency = new Hub(maxConcurrency) :> IHub

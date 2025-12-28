@@ -11,4 +11,9 @@
     <Compile Include="Hub.fs" />
   </ItemGroup>
 
+
+  <ItemGroup>
+   <ProjectReference Include="../Terrabuild.EventQueue/Terrabuild.EventQueue.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -6,7 +6,7 @@ open FsUnit
 
 [<Test>]
 let successful() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "computed1"
     let computed2 = hub.GetSignal<string> "computed2"
@@ -61,7 +61,7 @@ let successful() =
 
 [<Test>]
 let exception_in_callback_is_error() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "computed1"
     let computed2 = hub.GetSignal<string> "computed2"
@@ -103,7 +103,7 @@ let exception_in_callback_is_error() =
 
 [<Test>]
 let unsignaled_subscription1_is_error() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "computed1"
     let computed2 = hub.GetSignal<string> "computed2"
@@ -147,7 +147,7 @@ let unsignaled_subscription1_is_error() =
 
 [<Test>]
 let unsignaled_subscription2_is_error() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "computed1"
     let computed2 = hub.GetSignal<string> "computed2"
@@ -189,7 +189,7 @@ let unsignaled_subscription2_is_error() =
 
 [<Test>]
 let computed_must_match_type() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "computed1"
     (fun () -> hub.GetSignal<string> "computed1" |> ignore) |> should throw typeof<Errors.TerrabuildException>
@@ -201,7 +201,7 @@ let computed_must_match_type() =
 
 [<Test>]
 let download_subscription_priority() =
-    let hub = Hub.Create(2)
+    use hub = Hub.Create(2)
     let value1 = hub.GetSignal<int> "download1"
     let value2 = hub.GetSignal<int> "download2"
     let mutable triggered = false
@@ -220,7 +220,7 @@ let download_subscription_priority() =
 
 [<Test>]
 let error_should_prevent_scheduling_new_tasks() =
-    let hub = Hub.Create(1)
+    use hub = Hub.Create(1)
 
     let value1 = hub.GetSignal<int> "v1"
     let value2 = hub.GetSignal<int> "v2"
@@ -244,7 +244,6 @@ let error_should_prevent_scheduling_new_tasks() =
     value2.Set(456)
 
     let status = hub.WaitCompletion()
-
     match status with
     | Status.SubscriptionError edi -> edi.SourceException.Message |> should equal "boom"
     | _ -> Assert.Fail()

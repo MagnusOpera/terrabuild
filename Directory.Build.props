@@ -12,5 +12,6 @@
         <Version Condition=" '$(Version)' == '' ">0.0.0</Version>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 </Project>

@@ -1,7 +1,4 @@
 <Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-  </Configurations>
   <Folder Name="/Terrabuild/">
     <Project Path="src/Terrabuild.Common.Tests/Terrabuild.Common.Tests.fsproj" />
     <Project Path="src/Terrabuild.Common/Terrabuild.Common.fsproj" />
@@ -15,6 +12,7 @@
     <Project Path="src/Terrabuild.Lang.Tests/Terrabuild.Lang.Tests.fsproj" />
     <Project Path="src/Terrabuild.Lang/Terrabuild.Lang.fsproj" />
     <Project Path="src/Terrabuild.PubSub.Tests/Terrabuild.PubSub.Tests.fsproj" />
+    <Project Path="src/Terrabuild.EventQueue/Terrabuild.EventQueue.csproj" />
     <Project Path="src/Terrabuild.PubSub/Terrabuild.PubSub.fsproj" />
     <Project Path="src/Terrabuild.Scripting.Tests/Terrabuild.Scripting.Tests.fsproj" />
     <Project Path="src/Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />

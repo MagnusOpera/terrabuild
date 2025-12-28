@@ -175,7 +175,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
     let scheduledExec = Concurrent.ConcurrentDictionary<string, bool>()
-    let hub = Hub.Create(options.MaxConcurrency)
+    use hub = Hub.Create(options.MaxConcurrency)
 
     // member node id -> batch id
     let memberToBatch =
