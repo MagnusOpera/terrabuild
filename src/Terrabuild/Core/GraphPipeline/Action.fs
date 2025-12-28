@@ -49,7 +49,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
                     (RunAction.Restore, summary.EndedAt)
             | _ ->
-                Log.Debug("{NodeId} must be built since no summary and required", node.Id)
+                Log.Debug("{NodeId} has no summary and must build", node.Id)
                 (RunAction.Exec, DateTime.MaxValue)
 
         // not cacheable

@@ -136,8 +136,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             ]
             let targetHash = targetContent |> Hash.sha256strings
 
-            Log.Debug("Node {NodeId} has ProjectHash {ProjectHash} and TargetHash {TargetHash}", nodeId, projectConfig.Hash, targetHash)
-
             // cacheability can be overriden by the target
             let cache = targetConfig.Cache |> Option.defaultValue cachable
 
@@ -176,6 +174,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Action = RunAction.Ignore
                   Node.Required = required }
 
+            Log.Debug("Node '{NodeId}' has key '{Key}'", nodeId, buildCacheKey node)
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
   
         if processedNodes.TryAdd(nodeId, true) then processNode()

@@ -184,8 +184,6 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let dependencySet = batch.Nodes |> Seq.collect (fun n -> n.Dependencies) |> Set.ofSeq
             let batchDependencies = dependencySet - memberSet
 
-            Log.Debug("BatchNode {BatchNodeId} has ProjectHash {ProjectHash} and TargetHash {TargetHash}", batch.BatchId, batch.BatchId, headNode.TargetHash)
-
             let batchNode =
                 { GraphDef.Node.Id = batch.BatchId
                   GraphDef.Node.ProjectId = batch.BatchId
@@ -203,7 +201,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.Build = headNode.Build
                   GraphDef.Node.Batch = headNode.Batch
                   GraphDef.Node.Required = false }
-
+            Log.Debug("BatchNode '{NodeId}' has key '{Key}'", batchNode.Id, buildCacheKey batchNode)
             Some (batch.BatchId, batchNode)
     )
     |> Map.ofList
