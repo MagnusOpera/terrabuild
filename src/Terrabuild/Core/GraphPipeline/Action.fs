@@ -69,7 +69,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     scheduleNodeAction projectId
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
-            hub.SubscribeBackground $"{id} status" dependencyStatus (fun () ->
+            hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
                 let hasChildBuilding = targetNode.Dependencies |> Seq.exists (fun projectId -> 
                     let node = nodes[projectId]
                     node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
