@@ -3,7 +3,6 @@ open System
 open System.Collections.Generic
 open System.Collections.Concurrent
 open System.Runtime.ExceptionServices
-open Terrabuild.EventQueue
 
 
 type SignalCompleted = unit -> unit
@@ -29,7 +28,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
         member _.Subscribe(onCompleted: SignalCompleted) =
             lock this (fun () ->
                 match raised with
-                | Some _ -> eventQueue.Enqueue(kind, onCompleted)
+                | Some _ -> eventQueue.Enqueue kind onCompleted
                 | _ -> subscribers.Enqueue(onCompleted)
             )
         member _.Get<'Q>() =
@@ -55,7 +54,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
                     let rec notify() =
                         match subscribers.TryDequeue() with
                         | true, subscriber ->
-                            eventQueue.Enqueue(kind, subscriber)
+                            eventQueue.Enqueue kind subscriber
                             notify()
                         | _ -> ()
                     raised <- Some value
@@ -94,7 +93,7 @@ type IHub =
 
 
 type Hub(maxConcurrency) =
-    let eventQueue = new EventQueue(maxConcurrency)
+    let eventQueue = new EventQueue(maxConcurrency) :> IEventQueue
     let signals = ConcurrentDictionary<string, ISignal>()
     let subscriptions = ConcurrentDictionary<string, Subscription>()
 
@@ -122,7 +121,7 @@ type Hub(maxConcurrency) =
         member this.SubscribeBackground label signals handler = this.Subscribe label signals Priority.Background handler
         member _.WaitCompletion() =
             match eventQueue.WaitCompletion() with
-            | NonNull exn -> Status.SubscriptionError exn
+            | Some exn -> Status.SubscriptionError exn
             | _ ->
                 match subscriptions.Values |> Seq.tryFind (fun subscription -> subscription.Signal.IsRaised() |> not) with
                 | Some subscription ->

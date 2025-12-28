@@ -8,12 +8,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="EventQueue.fs" />
     <Compile Include="Hub.fs" />
   </ItemGroup>
 
 
-  <ItemGroup>
+  <!-- <ItemGroup>
    <ProjectReference Include="../Terrabuild.EventQueue/Terrabuild.EventQueue.csproj" />
-  </ItemGroup>
+  </ItemGroup> -->
 
 </Project>

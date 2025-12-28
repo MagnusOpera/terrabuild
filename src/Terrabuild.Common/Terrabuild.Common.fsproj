@@ -18,6 +18,7 @@
     <Compile Include="Humanizer.fs" />
     <Compile Include="Version.fs" />
     <Compile Include="Encryption.fs" />
+    <Compile Include="Lock.fs" />
   </ItemGroup>
 
   <ItemGroup>

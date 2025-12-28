@@ -1,9 +1,0 @@
-
-project {
-    @dotnet { }
-}
-
-target build {
-    @dotnet restore { dependencies = true }
-    @dotnet build { dependencies = true }
-}
