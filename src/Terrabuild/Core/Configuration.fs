@@ -471,7 +471,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                             |> Map.addMap terrabuildTargetVars }
 
                 // build the values
-                let localsHub = Hub.Create(1)
+                use localsHub = Hub.Create(1)
 
                 // bootstrap
                 for (KeyValue(name, value)) in evaluationContext.Data do
@@ -732,7 +732,7 @@ let read (options: ConfigOptions.Options) =
         let projectLoading = ConcurrentDictionary<string, bool>()
         let projectIds = ConcurrentDictionary<string, string>()
         let projects = ConcurrentDictionary<string, Project>()
-        let hub = Hub.Create(options.MaxConcurrency)
+        use hub = Hub.Create(options.MaxConcurrency)
 
         let rec loadProject projectDir =
             if projectLoading.TryAdd(projectDir, true) then

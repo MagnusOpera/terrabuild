@@ -12,7 +12,7 @@ open GraphDef
 let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) =
     let nodes = ConcurrentDictionary<string, Node>()
     let scheduledNodeStatus = ConcurrentDictionary<string, bool>()
-    let hub = Hub.Create(options.MaxConcurrency)
+    use hub = Hub.Create(options.MaxConcurrency)
 
     let getNodeAction (node: Node) hasChildBuilding =
         // task is forced to build

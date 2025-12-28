@@ -1,7 +1,4 @@
 <Solution>
-  <Configurations>
-    <Platform Name="Any CPU" />
-  </Configurations>
   <Folder Name="/Terrabuild/">
     <Project Path="src/Terrabuild.Common.Tests/Terrabuild.Common.Tests.fsproj" />
     <Project Path="src/Terrabuild.Common/Terrabuild.Common.fsproj" />
