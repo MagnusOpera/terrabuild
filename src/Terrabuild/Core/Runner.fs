@@ -111,7 +111,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         let metaCommand, workDir, cmd, args, container, errorLevel, envs = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
-        Log.Debug("{Hash}: Running '{Command}' with '{Arguments}'", node.TargetHash, cmd, args)
+        Log.Debug("{NodeId}: Running '{Command}' with '{Arguments}'", node.Id, cmd, args)
         let logFile = cacheEntry.NextLogFile()
 
         try
