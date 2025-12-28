@@ -68,8 +68,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             else loggerBuilder
         Log.Logger <- loggerBuilder.CreateLogger()
         Log.Debug("====[ Start ]========================================================")
-        Log.Debug($"Terrabuild: {Version.informalVersion()}")
-        Log.Debug($"Environment: {RuntimeInformation.OSDescription}, {RuntimeInformation.OSArchitecture}, {Environment.Version}")
+        Log.Debug("Terrabuild: {Version}", Version.informalVersion())
+        Log.Debug("Environment: {OSDescription}, {OSArchitecture}, {Version}", RuntimeInformation.OSDescription, RuntimeInformation.OSArchitecture, Environment.Version)
 
     let runTarget (options: RunTargetOptions) =
         System.Environment.CurrentDirectory <- options.Workspace

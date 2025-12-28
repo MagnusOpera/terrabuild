@@ -811,7 +811,7 @@ let read (options: ConfigOptions.Options) =
             projects |> Map.ofDict
         | Status.UnfulfilledSubscription (subscription, signals) ->
             let unraisedSignals = signals |> String.join ","
-            Log.Fatal($"Configuration '{subscription}' has pending operations on '{unraisedSignals}'")
+            Log.Fatal("Configuration '{Subscription}' has pending operations on '{UnraisedSignals}'", subscription, unraisedSignals)
             raiseInvalidArg $"Project '{subscription}' has pending operations on '{unraisedSignals}'. Check for circular dependencies."
         | Status.SubscriptionError edi ->
             Log.Fatal(edi.SourceException, "Configuration failed with exception")

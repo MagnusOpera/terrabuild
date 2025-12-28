@@ -111,7 +111,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         let metaCommand, workDir, cmd, args, container, errorLevel, envs = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
-        Log.Debug("{Hash}: Running '{Command}' with '{Arguments}'", node.TargetHash, cmd, args)
+        Log.Debug("{NodeId}: Running '{Command}' with '{Arguments}'", node.Id, cmd, args)
         let logFile = cacheEntry.NextLogFile()
 
         try
@@ -137,7 +137,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
             lastStatusCode <- exitCode
             cmdLastSuccess <- exitCode <= errorLevel
-            Log.Debug("{Hash}: Execution completed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
+            Log.Debug("{NodeId}: Execution completed with exit code '{Code}' ({Status})", node.Id, exitCode, lastStatusCode)
         with exn ->
             let exitCode = 5
             cmdLastEndedAt <- DateTime.UtcNow
@@ -160,7 +160,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
             stepLogs.Add stepLog
 
             lastStatusCode <- exitCode
-            Log.Error(exn, "{Hash}: Execution failed with exit code '{Code}' ({Status})", node.TargetHash, exitCode, lastStatusCode)
+            Log.Error(exn, "{NodeId}: Execution failed with exit code '{Code}' ({Status})", node.Id, exitCode, lastStatusCode)
 
     cmdLastSuccess, lastStatusCode, (stepLogs |> List.ofSeq)
 
@@ -272,7 +272,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             try execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
             with exn ->
                 nodeResults[node.Id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
-                Log.Error(exn, "{Hash}: Execution failed with exception", node.TargetHash)
+                Log.Error(exn, "{NodeId}: Execution failed with exception", node.Id)
                 reraise()
 
         let outputs =
@@ -346,7 +346,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             with exn ->
                 beforeFiles
                 |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
-                Log.Error(exn, "{Hash}: Execution failed with exception", batchNode.TargetHash)
+                Log.Error(exn, "{NodeId}: Execution failed with exception", batchNode.Id)
                 reraise()
 
         let endedAt = DateTime.UtcNow
@@ -473,7 +473,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     | Status.Ok -> Log.Debug("Build successful")
     | Status.UnfulfilledSubscription (subscription, signals) ->
         let unraisedSignals = signals |> String.join ","
-        Log.Fatal($"Task '{subscription}' has pending operations on '{unraisedSignals}'")
+        Log.Fatal("Task '{Subscription}' has pending operations on '{UnraisedSignals}'", subscription, unraisedSignals)
     | Status.SubscriptionError edi ->
         Log.Fatal(edi.SourceException, "Build failed")
         forwardInvalidArg("Failed to build", edi.SourceException)

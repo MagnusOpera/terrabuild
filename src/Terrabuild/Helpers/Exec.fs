@@ -148,7 +148,7 @@ type CaptureResult =
     | Error of string*int
 
 let execCaptureOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
-    Log.Debug($"Running and capturing output of '{command}' with arguments '{args}' in working dir '{workingDir}' (Current is '{currentDir()}')")
+    Log.Debug("Running and capturing output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
     use proc = createProcess workingDir command args envs true
     proc.WaitForExit()
 
@@ -174,7 +174,7 @@ let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: s
             | NonNull msg -> lock writeLock (fun () -> logWriter.WriteLine($"{DateTime.UtcNow} {from} {msg}"))
             | _ -> ()
 
-        Log.Debug($"Running and capturing timestamped output of '{command}' with arguments '{args}' in working dir '{workingDir}' (Current is '{currentDir()}')")
+        Log.Debug("Running and capturing timestamped output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
         use proc = createProcess workingDir command args envs true
         proc.OutputDataReceived.Add(fun e -> lockWrite "OUT" e.Data)
         proc.ErrorDataReceived.Add(fun e -> lockWrite "ERR" e.Data)
