@@ -17,12 +17,12 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     let getNodeAction (node: Node) hasChildBuilding =
         // task is forced to build
         if node.Build = BuildMode.Always then
-            Log.Debug("{NodeId} is marked for build", node.Id)
+            Log.Debug("Node '{NodeId}' is marked for build", node.Id)
             (RunAction.Exec, DateTime.MaxValue)
 
         // child task is building (upward cascading)
         elif hasChildBuilding then
-            Log.Debug("{NodeId} must build because child is building", node.Id)
+            Log.Debug("Node '{NodeId}' must build because child is building", node.Id)
             (RunAction.Exec, DateTime.MaxValue)
 
         // cache related rules
@@ -31,30 +31,30 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
             let cacheEntryId = buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
-                Log.Debug("{NodeId} has existing build summary", node.Id)
+                Log.Debug("Node '{NodeId}' has existing build summary", node.Id)
 
                 // retry requested and task is failed
                 if options.Retry && (not summary.IsSuccessful) then
-                    Log.Debug("{NodeId} must build because retry requested and node is failed", node.Id)
+                    Log.Debug("Node '{NodeId}' must build because retry requested and node is failed", node.Id)
                     (RunAction.Exec, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed
                 elif not summary.IsSuccessful then
-                    Log.Debug("{NodeId} must restore as failed", node.Id)
+                    Log.Debug("Node '{NodeId}' must restore as failed", node.Id)
                     (RunAction.Summary, summary.EndedAt)
                 // task is cached
                 elif node.Artifacts = ArtifactMode.External then
-                    Log.Debug("{NodeId} is external {Date}", node.Id, summary.EndedAt)
+                    Log.Debug("Node '{NodeId}' is external {Date}", node.Id, summary.EndedAt)
                     (RunAction.Summary, summary.EndedAt)
                 else
-                    Log.Debug("{NodeId} is restorable {Date}", node.Id, summary.EndedAt)
+                    Log.Debug("Node '{NodeId}' is restorable {Date}", node.Id, summary.EndedAt)
                     (RunAction.Restore, summary.EndedAt)
             | _ ->
-                Log.Debug("{NodeId} has no summary and must build", node.Id)
+                Log.Debug("Node '{NodeId}' has no summary and must build", node.Id)
                 (RunAction.Exec, DateTime.MaxValue)
 
         // not cacheable
         else
-            Log.Debug("{NodeId} is not cacheable", node.Id)
+            Log.Debug("Node '{NodeId}' is not cacheable", node.Id)
             (RunAction.Exec, DateTime.MaxValue)
 
 

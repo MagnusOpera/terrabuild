@@ -256,7 +256,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     let projectDir = FS.combinePath options.Workspace projectId
     let projectFile = FS.combinePath projectDir "PROJECT"
 
-    Log.Debug("Loading project definition {ProjectId}", projectId)
+    Log.Debug("Loading project definition '{ProjectId}'", projectId)
 
     let projectConfig =
         match projectFile with

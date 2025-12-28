@@ -57,7 +57,7 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
             let containerHome =
                 match containerInfos.TryGetValue(container) with
                 | true, containerHome ->
-                    Log.Debug("Reusing USER '{ContainerHome}' for '{Container}'", containerHome, container)
+                    Log.Debug("Reusing USER '{ContainerHome}' for '{Container}'", containerHome, image)
                     containerHome
                 | _ ->
                     // discover USER
@@ -66,10 +66,10 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                         match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
                         | Exec.Success (containerHome, 0) -> containerHome.Trim()
                         | _ ->
-                            Log.Debug("USER identification failed for '{Container}', using root instead", container)
+                            Log.Debug("USER identification failed for '{Container}', using root instead", image)
                             "/root"
 
-                    Log.Debug("Using USER '{ContainerHome}' for '{Container}'", containerHome, container)
+                    Log.Debug("Using USER '{ContainerHome}' for '{Container}'", containerHome, image)
                     containerInfos.TryAdd(container, containerHome) |> ignore
                     containerHome
 
@@ -392,21 +392,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 match status with
                 | TaskStatus.Success completionDate ->
-                    Log.Debug("Node {NodeId} is successful", nodeId)
+                    Log.Debug("{NodeId} is successful", nodeId)
                     buildProgress.TaskCompleted nodeId false true
                     hub.GetSignal<DateTime>(nodeId).Set completionDate
                 | _ ->
-                    Log.Debug("Node {NodeId} has failed", nodeId)
+                    Log.Debug("{NodeId} has failed", nodeId)
                     buildProgress.TaskCompleted nodeId false false
             )
         )
 
         match status with
         | TaskStatus.Success _ ->
-            Log.Debug("BatchNode {NodeId} is successful", batchNode.Id)
+            Log.Debug("{NodeId} is successful", batchNode.Id)
             buildProgress.TaskCompleted batchNode.Id false true
         | _ ->
-            Log.Debug("BatchNode {NodeId} has failed", batchNode.Id)
+            Log.Debug("{NodeId} has failed", batchNode.Id)
             buildProgress.TaskCompleted batchNode.Id false false
 
     // ----------------------------
