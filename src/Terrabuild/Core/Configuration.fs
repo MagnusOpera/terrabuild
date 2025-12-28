@@ -256,7 +256,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     let projectDir = FS.combinePath options.Workspace projectId
     let projectFile = FS.combinePath projectDir "PROJECT"
 
-    Log.Debug("Loading project definition {ProjectId}", projectId)
+    Log.Debug("Loading project definition '{ProjectId}'", projectId)
 
     let projectConfig =
         match projectFile with
@@ -649,7 +649,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
     let endFinalize = DateTime.UtcNow
     let projectId = format_project_id projectDef.Type projectDef.Id
-    Log.Debug("Finalized project '{ProjectId}' ({ProjectDir}) for {Duration}", projectId, projectDir, endFinalize - startFinalize)
+    Log.Debug("Project '{ProjectId}' finalization duration: {Duration}", projectId, endFinalize - startFinalize)
 
     { Project.Id = projectId
       Project.Name = projectDef.Name

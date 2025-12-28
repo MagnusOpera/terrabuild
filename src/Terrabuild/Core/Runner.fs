@@ -57,20 +57,19 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
             let containerHome =
                 match containerInfos.TryGetValue(container) with
                 | true, containerHome ->
-                    Log.Debug("Reusing USER {containerHome} for {container}", containerHome, container)
+                    Log.Debug("Reusing USER '{ContainerHome}' for '{Container}'", containerHome, image)
                     containerHome
                 | _ ->
                     // discover USER
                     let args = $"run --rm --name {node.TargetHash} --entrypoint sh {container} \"echo -n \\$HOME\""
                     let containerHome =
-                        Log.Debug("Identifying USER for {container}", container)
                         match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
                         | Exec.Success (containerHome, 0) -> containerHome.Trim()
                         | _ ->
-                            Log.Debug("USER identification failed for {container}: using root", container)
+                            Log.Debug("USER identification failed for '{Container}', using root instead", image)
                             "/root"
 
-                    Log.Debug("Using USER {containerHome} for {container}", containerHome, container)
+                    Log.Debug("Using USER '{ContainerHome}' for '{Container}'", containerHome, image)
                     containerInfos.TryAdd(container, containerHome) |> ignore
                     containerHome
 
@@ -111,7 +110,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         let metaCommand, workDir, cmd, args, container, errorLevel, envs = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
-        Log.Debug("{NodeId}: Running '{Command}' with '{Arguments}'", node.Id, cmd, args)
+        Log.Debug("{NodeId}: running '{Command}' with '{Arguments}'", node.Id, cmd, args)
         let logFile = cacheEntry.NextLogFile()
 
         try
@@ -137,7 +136,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
             lastStatusCode <- exitCode
             cmdLastSuccess <- exitCode <= errorLevel
-            Log.Debug("{NodeId}: Execution completed with exit code '{Code}' ({Status})", node.Id, exitCode, lastStatusCode)
+            Log.Debug("{NodeId}: execution completed with exit code '{Code}' ({Status})", node.Id, exitCode, lastStatusCode)
         with exn ->
             let exitCode = 5
             cmdLastEndedAt <- DateTime.UtcNow
@@ -166,7 +165,6 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
-    Log.Debug("Running tasks")
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
 
     let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
@@ -192,7 +190,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // ----------------------------
 
     let summaryNode (node: GraphDef.Node) =
-        Log.Debug("Downloading Node Summary {Node}", node.Id)
+        Log.Debug("{NodeId}: downloading Node Summary", node.Id)
         buildProgress.TaskDownloading node.Id
 
         let useRemote = GraphDef.isRemoteCacheable options node
@@ -217,7 +215,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true false
 
     let restoreNode (node: GraphDef.Node) =
-        Log.Debug("Restoring Node {Node}", node.Id)
+        Log.Debug("{NodeId}: restoring Node", node.Id)
         buildProgress.TaskDownloading node.Id
 
         let projectDirectory =
@@ -234,7 +232,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | Some (_, summary) ->
                 match cache.TryGetSummary useRemote cacheEntryId with
                 | Some summary ->
-                    Log.Debug("{NodeId} restoring '{Project}/{Target}' from {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+                    Log.Debug("{NodeId}: restoring from key '{Key}'", node.Id, GraphDef.buildCacheKey node)
                     match summary.Outputs with
                     | Some outputs ->
                         let files = IO.enumerateFiles outputs
@@ -260,7 +258,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let execNode (node: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
-        Log.Debug("Executing Node {Node}", node.Id)
+        Log.Debug("{NodeId}: executing Node", node.Id)
         buildProgress.TaskBuilding node.Id
 
         let projectDirectory = node.ProjectDir
@@ -300,7 +298,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.Duration = endedAt - startedAt
                   Cache.TargetSummary.Cache = node.Artifacts }
 
-            Log.Debug("{NodeId}: Building '{Project}/{Target}' with {Hash}", node.Id, node.ProjectDir, node.Target, node.TargetHash)
+            Log.Debug("{NodeId}: building '{Key}'", node.Id, GraphDef.buildCacheKey node)
             let files = cacheEntry.Complete summary
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
@@ -320,7 +318,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let batchExecNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
-        Log.Debug("Executing BatchNode {BatchNode}", batchNode.Id)
+        Log.Debug("{NodeId}: executing batch", batchNode.Id)
         buildProgress.TaskBuilding batchNode.Id
 
         let batchId = batchNode.Id
@@ -394,21 +392,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 match status with
                 | TaskStatus.Success completionDate ->
-                    Log.Debug("Node {Node} is successful", nodeId)
+                    Log.Debug("{NodeId} is successful", nodeId)
                     buildProgress.TaskCompleted nodeId false true
                     hub.GetSignal<DateTime>(nodeId).Set completionDate
                 | _ ->
-                    Log.Debug("Node {Node} has failed", nodeId)
+                    Log.Debug("{NodeId} has failed", nodeId)
                     buildProgress.TaskCompleted nodeId false false
             )
         )
 
         match status with
         | TaskStatus.Success _ ->
-            Log.Debug("BatchNode {BatchNode} is successful", batchNode.Id)
+            Log.Debug("{NodeId} is successful", batchNode.Id)
             buildProgress.TaskCompleted batchNode.Id false true
         | _ ->
-            Log.Debug("BatchNode {BatchNode} has failed", batchNode.Id)
+            Log.Debug("{NodeId} has failed", batchNode.Id)
             buildProgress.TaskCompleted batchNode.Id false false
 
     // ----------------------------

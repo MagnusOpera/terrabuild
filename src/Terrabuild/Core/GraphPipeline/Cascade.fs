@@ -29,7 +29,7 @@ let build (graph: Graph) =
                     |> Option.defaultValue Set.empty
                     |> Seq.exists getNodeRequirements
 
-            Log.Debug("Node {NodeId} has requirement {Requirement}", node.Id, isRequired)
+            Log.Debug("Node '{NodeId}' has requirement '{Requirement}'", node.Id, isRequired)
             nodeRequirements[nodeId] <- isRequired
             if isRequired then
                 let node = { node with Required = isRequired }
