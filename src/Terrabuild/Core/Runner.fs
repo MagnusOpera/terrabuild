@@ -423,9 +423,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let schedDependencies =
                 targetNode.Dependencies
-                |> Seq.map (fun depId ->
-                    scheduleNode graph.Nodes[depId]
-                    hub.GetSignal<DateTime>(depId))
+                |> Seq.choose (fun depId ->
+                    // happily non-required nodes
+                    let node = graph.Nodes[depId]
+                    if node.Required then
+                        scheduleNode graph.Nodes[depId]
+                        hub.GetSignal<DateTime>(depId) |> Some
+                    else
+                        None)
                 |> List.ofSeq
 
             let subscribe =
