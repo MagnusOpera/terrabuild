@@ -40,7 +40,7 @@
       "build": "always",
       "batch": "all",
       "action": "exec",
-      "required": false
+      "required": true
     },
     "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B": {
       "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
@@ -78,7 +78,7 @@
       "build": "always",
       "batch": "all",
       "action": "exec",
-      "required": false
+      "required": true
     },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",

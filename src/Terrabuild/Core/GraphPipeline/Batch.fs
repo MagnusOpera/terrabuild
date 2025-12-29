@@ -200,7 +200,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.Action = RunAction.Exec
                   GraphDef.Node.Build = headNode.Build
                   GraphDef.Node.Batch = headNode.Batch
-                  GraphDef.Node.Required = false }
+                  GraphDef.Node.Required = true }
             Log.Debug("BatchNode '{NodeId}' has key '{Key}'", batchNode.Id, buildCacheKey batchNode)
             Some (batch.BatchId, batchNode)
     )

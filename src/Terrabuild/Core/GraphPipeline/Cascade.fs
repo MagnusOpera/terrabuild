@@ -23,6 +23,7 @@ let build (graph: Graph) =
             let node = nodes[nodeId]
             let isRequired =
                 match node with
+                | { Required = true } -> true
                 | { Action = RunAction.Ignore } -> false
                 | { Action = RunAction.Restore; Artifacts = ArtifactMode.External } -> false
                 | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
@@ -34,7 +35,7 @@ let build (graph: Graph) =
 
             Log.Debug("Node '{NodeId}' has requirement '{Requirement}'", node.Id, isRequired)
             nodeRequirements[nodeId] <- isRequired
-            if isRequired then
+            if node.Required <> isRequired then
                 let node = { node with Required = isRequired }
                 nodes[node.Id] <- node
             isRequired
