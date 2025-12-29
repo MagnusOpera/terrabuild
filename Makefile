@@ -53,7 +53,6 @@ usage:
 
 publish:
 	dotnet publish -c $(config) -p:Version=$(version) -o $(PWD)/.out/dotnet src/Terrabuild
-	dotnet pack -c $(config) -p:Version=$(version) -o .out
 
 publish-darwin:
 	dotnet publish -c $(config) -r osx-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/x64 src/Terrabuild
