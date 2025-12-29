@@ -25,7 +25,7 @@ let build (graph: Graph) =
                 match node with
                 | { Action = RunAction.Ignore } -> false
                 | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
-                | { Action = RunAction.Restore; Artifacts = ArtifactMode.Managed } -> false
+                | { Action = RunAction.Restore; Artifacts = ArtifactMode.External } -> false
                 | _ ->
                     node2dependents
                     |> Map.tryFind nodeId
