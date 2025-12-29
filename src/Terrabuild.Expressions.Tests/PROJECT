@@ -3,12 +3,14 @@ project {
     @dotnet { }
 }
 
+target install {
+    @dotnet restore { }
+}
+
 target build {
-    @dotnet restore { dependencies = true }
-    @dotnet build { dependencies = true }
+    @dotnet build { }
 }
 
 target test {
-    @dotnet restore { dependencies = true }
-    @dotnet test { dependencies = true }
+    @dotnet test { filter = "TestCategory!=integration" }
 }

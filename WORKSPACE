@@ -23,21 +23,26 @@ locals {
     }
 }
 
+target install {
+    outputs = []
+    artifacts = ~workspace
+    build = ~lazy
+}
+
 target build {
+    artifacts = ~managed
     depends_on = [ target.install
                    target.^build ]
 }
 
 target test {
+    artifacts = ~managed
     depends_on = [ target.build ]
 }
 
 target dist {
+    artifacts = ~external
     depends_on = [ target.build ]
-}
-
-target publish {
-    depends_on = [ target.dist ]
 }
 
 extension @dotnet {

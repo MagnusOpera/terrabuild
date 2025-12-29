@@ -6,14 +6,18 @@ project terrabuild {
     @dotnet { }
 }
 
+target install {
+    @dotnet restore { }
+}
+
 target build {
-    @dotnet restore { dependencies = true }
-    @dotnet build { version = terrabuild.tag }
+    @dotnet build { }
 }
 
 target dist {
     outputs = []
 
-    @dotnet restore { dependencies = true }
-    @dotnet pack { }
+    @dotnet publish { single = true
+                      build = true
+                      restore = true }
 }
