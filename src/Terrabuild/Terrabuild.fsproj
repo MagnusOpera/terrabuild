@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <PackAsTool>true</PackAsTool>
-    <ToolCommandName>terrabuild</ToolCommandName>
     <AssemblyName>terrabuild</AssemblyName>
-    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Contracts/Api.fs" />
@@ -70,23 +67,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
-    <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="Terrabuild.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <!-- https://docs.microsoft.com/en-us/nuget/reference/msbuild-targets#packing-using-a-nuspec -->
-    <PackageId>Terrabuild</PackageId>
-    <Authors>Pierre Chalamet</Authors>
-    <Title>Terrabuild</Title>
-    <Description>Terrabuild</Description>
-    <Copyright>Copyright 2023-present Magnus Opera</Copyright>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/magnusopera/terrabuild</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/magnusopera/terrabuild.git</RepositoryUrl>
-    <PackageTags>terrabuild;build;monorepo</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>Terrabuild.png</PackageIcon>
-  </PropertyGroup>
 
 </Project>
