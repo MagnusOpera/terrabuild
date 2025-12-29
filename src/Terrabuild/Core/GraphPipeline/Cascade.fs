@@ -22,8 +22,11 @@ let build (graph: Graph) =
         | _ ->
             let node = nodes[nodeId]
             let isRequired =
-                if node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy then true
-                else
+                match node with
+                | { Action = RunAction.Ignore } -> false
+                | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
+                | { Action = RunAction.Restore; Artifacts = ArtifactMode.Managed } -> false
+                | _ ->
                     node2dependents
                     |> Map.tryFind nodeId
                     |> Option.defaultValue Set.empty
