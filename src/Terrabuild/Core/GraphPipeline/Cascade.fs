@@ -24,8 +24,8 @@ let build (graph: Graph) =
             let isRequired =
                 match node with
                 | { Action = RunAction.Ignore } -> false
-                | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
                 | { Action = RunAction.Restore; Artifacts = ArtifactMode.External } -> false
+                | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
                 | _ ->
                     node2dependents
                     |> Map.tryFind nodeId

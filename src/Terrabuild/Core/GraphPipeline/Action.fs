@@ -42,9 +42,6 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     Log.Debug("Node '{NodeId}' must restore as failed", node.Id)
                     (RunAction.Summary, summary.EndedAt)
                 // task is cached
-                elif node.Artifacts = ArtifactMode.External then
-                    Log.Debug("Node '{NodeId}' is external {Date}", node.Id, summary.EndedAt)
-                    (RunAction.Summary, summary.EndedAt)
                 else
                     Log.Debug("Node '{NodeId}' is restorable {Date}", node.Id, summary.EndedAt)
                     (RunAction.Restore, summary.EndedAt)
