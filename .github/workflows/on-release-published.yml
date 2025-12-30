@@ -11,6 +11,23 @@ permissions:
   pull-requests: write
 
 jobs:
+  release-nuget:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.100
+
+      - name: Download Github Release artifacts
+        uses: robinraju/release-downloader@v1.11
+        with:
+          tag: ${{github.ref_name}}
+          fileName: '*.nupkg'
+
+      - name: NuGet Release
+        run: dotnet nuget push Terrabuild.${{github.ref_name}}.nupkg --skip-duplicate --api-key ${{secrets.NUGET_KEY}} --source https://api.nuget.org/v3/index.json
+
   sign-and-notarize:
     runs-on: macos-latest
     steps:
@@ -37,13 +54,26 @@ jobs:
       - name: Sign Binaries
         run: |
           codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/arm64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
+          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/x64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
           (cd .out/darwin/arm64; zip ../terrabuild-${{ github.ref_name }}-darwin-arm64.zip ./*)
+          (cd .out/darwin/x64; zip ../terrabuild-${{ github.ref_name }}-darwin-x64.zip ./*)
 
       - name: Notarize arm64
         uses: GuillaumeFalourd/notary-tools@v1
         timeout-minutes: 5
         with:
           product_path: ".out/darwin/terrabuild-${{github.ref_name}}-darwin-arm64.zip"
+          apple_id: ${{ secrets.MAC_DEV_LOGIN }}
+          password: ${{ secrets.MAC_DEV_PASSWORD }}
+          team_id: ${{ secrets.MAC_DEV_TEAM_ID }}
+          xcode_path: '/Applications/Xcode_16.4.app'
+          staple: false
+
+      - name: Notarize x64
+        uses: GuillaumeFalourd/notary-tools@v1
+        timeout-minutes: 5
+        with:
+          product_path: ".out/darwin/terrabuild-${{github.ref_name}}-darwin-x64.zip"
           apple_id: ${{ secrets.MAC_DEV_LOGIN }}
           password: ${{ secrets.MAC_DEV_PASSWORD }}
           team_id: ${{ secrets.MAC_DEV_TEAM_ID }}
@@ -57,6 +87,29 @@ jobs:
           files: |
             .out/darwin/terrabuild-${{github.ref_name}}-darwin-arm64.zip
             .out/darwin/terrabuild-${{github.ref_name}}-darwin-x64.zip
+
+      - name: Remove unsigned macOS artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const unsignedName = `terrabuild-${tag}-darwin-unsigned.zip`;
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag,
+            });
+            const asset = release.assets.find(a => a.name === unsignedName);
+            if (!asset) {
+              core.info(`Unsigned artifact not found: ${unsignedName}`);
+              return;
+            }
+            await github.rest.repos.deleteReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              asset_id: asset.id,
+            });
+            core.info(`Deleted unsigned artifact: ${unsignedName}`);
 
   update-homebrew-tap:
     uses: ./.github/workflows/release-homebrew-tap.yml
