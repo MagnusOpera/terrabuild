@@ -11,6 +11,23 @@ permissions:
   pull-requests: write
 
 jobs:
+  release-nuget:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.100
+
+      - name: Download Github Release artifacts
+        uses: robinraju/release-downloader@v1.11
+        with:
+          tag: ${{github.ref_name}}
+          fileName: '*.nupkg'
+
+      - name: NuGet Release
+        run: dotnet nuget push Terrabuild.${{github.ref_name}}.nupkg --skip-duplicate --api-key ${{secrets.NUGET_KEY}} --source https://api.nuget.org/v3/index.json
+
   sign-and-notarize:
     runs-on: macos-latest
     steps:

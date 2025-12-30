@@ -58,3 +58,4 @@ jobs:
           generate_release_notes: true
           files: |
             .out/*.zip
+            .out/*.nupkg
