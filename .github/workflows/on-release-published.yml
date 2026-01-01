@@ -113,6 +113,7 @@ jobs:
 
   update-homebrew-tap:
     uses: ./.github/workflows/release-homebrew-tap.yml
+    needs: sign-and-notarize
     permissions:
       contents: read
     with:
