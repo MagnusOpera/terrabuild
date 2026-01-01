@@ -34,41 +34,38 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         dependsOns
 
 
-    let buildOuterTargets (projectConfig: Configuration.Project) target = [
+    let buildDependencies (projectConfig: Configuration.Project) (project: string) (target: string) =
         let dependsOns = buildDependsOn projectConfig target
-        for dependsOn in dependsOns do
-            match dependsOn with
-            | String.Regex "^\^(.+)$" [ depTarget ] ->
-                for depProject in projectConfig.Dependencies do
-                    let depConfig = configuration.Projects[depProject]
-                    if depConfig.Targets |> Map.containsKey depTarget then (depProject, depTarget)
-            | _ -> ()
-    ]
 
+        dependsOns
+        |> Seq.collect (fun dependsOn ->
+            match dependsOn with
+            // Cross-project dependency: ^<target>
+            | String.Regex "^\^(.+)$" [ depTarget ] ->
+                projectConfig.Dependencies
+                |> Seq.choose (fun depProject ->
+                    let depConfig = configuration.Projects[depProject]
+                    if depConfig.Targets |> Map.containsKey depTarget then
+                        Some (depProject, depTarget)
+                    else
+                        None)
+
+            // Intra-project dependency: <target>
+            | depTarget ->
+                if projectConfig.Targets |> Map.containsKey depTarget then
+                    Seq.singleton (project, depTarget)
+                else
+                    Seq.empty
+        )
+        |> Set.ofSeq
 
     let rec buildNode project target =
         let projectConfig = configuration.Projects[project]
         let targetConfig = projectConfig.Targets[target]
         let nodeId = $"{project}:{target}"
 
-
-        let rec buildInnerTargets target = [
-            let dependsOns = buildDependsOn projectConfig target
-            yield! dependsOns |> Seq.collect (fun dependsOn ->
-                match dependsOn with
-                | String.Regex "^\^(.+)$" _ -> []
-                | target ->
-                    if projectConfig.Targets |> Map.containsKey target then [ (project, target) ]
-                    else buildInnerTargets target)
-        ]
-
-
-
         let processNode() =
-            let outerDeps = buildOuterTargets projectConfig target |> Set.ofSeq
-            let innerDeps = buildInnerTargets target |> Set.ofSeq
-
-            let allDeps = innerDeps + outerDeps
+            let allDeps = buildDependencies projectConfig project target
             let children = allDeps |> Set.map (fun (project, target) -> $"{project}:{target}")
 
             // ensure children exist
