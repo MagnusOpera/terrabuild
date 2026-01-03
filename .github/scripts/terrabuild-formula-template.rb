@@ -24,14 +24,11 @@ class Terrabuild${TERRABUILD_SUFFIX} < Formula
     sha256 "${TERRABUILD_LINUX_ARM64_SHA256}"
   end
 
-  conflicts_with "terrabuild"
-  conflicts_with "terrabuild-next"
-
   def install
-    bin.install "terrabuild"
+    bin.install "terrabuild" => name
   end
 
   test do
-    system "#{bin}/terrabuild version"
+    system bin/name, "version"
   end
 end
