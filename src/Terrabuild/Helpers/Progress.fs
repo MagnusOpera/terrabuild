@@ -5,9 +5,9 @@ open Ansi.Emojis
 
 [<RequireQualifiedAccess>]
 type ProgressStatus =
-    | Success of restored: bool
-    | Fail of restored: bool
-    | Running of startedAt: DateTime * spinner: string * frequency: double
+    | Success of restored:bool
+    | Fail of restored:bool
+    | Running of startedAt:DateTime * spinner:string * frequency:double
 
 type ProgressItem = {
     Id: string
@@ -80,7 +80,7 @@ type ProgressRenderer() =
                 Ansi.saveCursor |> Terminal.write
                 Terminal.flush()
             else
-                // Update: just refresh the whole block (dumb + reliable)
+                // Update: just refresh the whole block
                 refresh ()
 
     member _.Refresh () =
