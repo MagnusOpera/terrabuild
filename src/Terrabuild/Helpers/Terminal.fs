@@ -22,6 +22,8 @@ let private terms = [
 ]
 
 let supportAnsi =
+    not Console.IsOutputRedirected
+    &&
     match System.Environment.GetEnvironmentVariable("TERM") |> Option.ofObj with
     | Some currTerm ->
         terms |> List.exists (fun term -> 

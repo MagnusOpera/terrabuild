@@ -13,6 +13,17 @@ let cursorHome = "\r"
 let csi (x: int) = $"{CSI}{x}m"
 let csiext (x: int) (ext: string) = $"{CSI}{x}{ext}m"
 
+let eraseLine = $"{CSI}2K"           // EL2: erase entire line
+let eraseToEnd = $"{CSI}0K"          // EL0: erase from cursor to end
+let saveCursor = $"{ESC}7"           // DECSC (widely supported)
+let restoreCursor = $"{ESC}8"        // DECRC
+
+let setScrollRegion (top: int) (bottom: int) = $"{CSI}{top};{bottom}r" // DECSTBM
+let resetScrollRegion = $"{CSI}r" // reset to full screen
+
+let cursorPos (row: int) (col: int) = $"{CSI}{row};{col}H" // CUP
+let eraseDown = $"{CSI}J" // ED0: erase from cursor to end of screen
+
 module Emojis =
     let info = "ℹ️"
     let crossmark = "✘"
