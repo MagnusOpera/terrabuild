@@ -5,9 +5,9 @@ open Ansi.Emojis
 
 [<RequireQualifiedAccess>]
 type ProgressStatus =
-    | Success of restored:bool
-    | Fail of restored:bool
-    | Running of startedAt:DateTime * spinner:string * frequency:double
+    | Success of restored: bool
+    | Fail of restored: bool
+    | Running of startedAt: DateTime * spinner: string * frequency: double
 
 type ProgressItem = {
     Id: string
@@ -18,20 +18,10 @@ type ProgressItem = {
 type ProgressRenderer() =
     let mutable items = []
 
-    // // https://antofthy.gitlab.io/info/ascii/HeartBeats_howto.txt
-    // let spinnerWaiting = [ "⠁"; "⠂"; "⠄"; "⠂" ]
-    // let frequencyWaiting = 200.0
-
-    // let spinnerUpload = [ "⣤"; "⠶"; "⠛"; "⠛"; "⠶" ]
-    // let frequencyUpload = 200.0
-
-    // let spinnerProgress = [ "⠋"; "⠙"; "⠹"; "⠸"; "⠼"; "⠴";  "⠦"; "⠧"; "⠇"; "⠏" ]
-    // let frequencyProgress = 100.0
-
     let printableStatus item =
         match item.Status with
         | ProgressStatus.Success restored ->
-            let icon = if restored then clockwise else checkmark    
+            let icon = if restored then clockwise else checkmark
             $"{green} {icon} {reset}"
         | ProgressStatus.Fail restored ->
             let icon = if restored then clockwise else crossmark
@@ -39,27 +29,36 @@ type ProgressRenderer() =
         | ProgressStatus.Running (startedAt, spinner, frequency) ->
             let diff = ((DateTime.UtcNow - startedAt).TotalMilliseconds / frequency) |> int
             let offset = diff % spinner.Length
-            $"{yellow} {spinner[offset]}{reset}"
+            // keep a trailing space so width stays stable
+            $"{yellow} {spinner[offset]} {reset}"
 
     let printableItem item =
-        let status = printableStatus item
-        $"{status} {item.Label}"
+        $"{printableStatus item} {item.Label}"
 
     let refresh () =
         if Terminal.supportAnsi && items.Length > 0 then
-            // update status: move home, move top, write status
             try
+                Ansi.restoreCursor |> Terminal.write
+
                 Ansi.beginSyncUpdate |> Terminal.write
 
+                // Rewrite each line: go up 1, clear line, write full line
                 for item in items do
-                    $"{Ansi.cursorHome}{Ansi.cursorUp 1}{item |> printableStatus}" |> Terminal.write
+                    $"{Ansi.cursorHome}{Ansi.cursorUp 1}{Ansi.eraseLine}{printableItem item}"
+                    |> Terminal.write
 
-                $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}" |> Terminal.write
+                // Go back below the block
+                $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}"
+                |> Terminal.write
+
+                // Save anchor again (cursor is now below the block)
+                Ansi.saveCursor |> Terminal.write
             finally
                 Ansi.endSyncUpdate |> Terminal.write
+                Terminal.flush()
 
     let update id label status =
-        let item, update =
+        let item, isUpdate =
             match items |> List.tryFindIndex (fun item -> item.Id = id) with
             | Some index ->
                 if label <> "" then failwith "Updating label for existing item is not supported"
@@ -69,10 +68,23 @@ type ProgressRenderer() =
                 let item = { Id = id; Label = label; Status = status }
                 items <- item :: items
                 item, false
-        if not Terminal.supportAnsi || not update then printableItem item |> Terminal.writeLine
+
+        if not Terminal.supportAnsi then
+            printableItem item |> Terminal.writeLine
+        else
+            if not isUpdate then
+                // New item prints a line (extends the progress block)
+                printableItem item |> Terminal.writeLine
+
+                // Cursor is now below the block: save anchor
+                Ansi.saveCursor |> Terminal.write
+                Terminal.flush()
+            else
+                // Update: just refresh the whole block (dumb + reliable)
+                refresh ()
 
     member _.Refresh () =
-        refresh()
+        refresh ()
 
     member _.Create (id: string) (label: string) (spinner: string) (frequency: double) =
         let status = ProgressStatus.Running (DateTime.UtcNow, spinner, frequency)
