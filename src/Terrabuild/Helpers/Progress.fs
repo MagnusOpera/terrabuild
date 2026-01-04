@@ -39,7 +39,6 @@ type ProgressRenderer() =
         if Terminal.supportAnsi && items.Length > 0 then
             try
                 Ansi.restoreCursor |> Terminal.write
-
                 Ansi.beginSyncUpdate |> Terminal.write
 
                 // Rewrite each line: go up 1, clear line, write full line
@@ -51,10 +50,10 @@ type ProgressRenderer() =
                 $"{Ansi.cursorHome}{Ansi.cursorDown items.Length}"
                 |> Terminal.write
 
-                // Save anchor again (cursor is now below the block)
-                Ansi.saveCursor |> Terminal.write
             finally
                 Ansi.endSyncUpdate |> Terminal.write
+                // Save anchor again (cursor is now below the block)
+                Ansi.saveCursor |> Terminal.write
                 Terminal.flush()
 
     let update id label status =
