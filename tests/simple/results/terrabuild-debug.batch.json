@@ -50,12 +50,13 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
-      "targetHash": "E119EFFB7AAEBA4E0FECB59F8A2B4C2CCF53BD06C7ECDC0F5E88E83C1F73FAA3",
+      "targetHash": "D6E0E3BBDD5E4DC0F25D710D2A83B7D21E0DBD61DDBEB46090FC8CBD1C91BE24",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -66,6 +67,7 @@
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -185,7 +187,7 @@
         "*.planfile"
       ],
       "projectHash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
-      "targetHash": "525112305B89AF842B2726A09369CAD8B71358615E20A259D306880D2FC135C7",
+      "targetHash": "20F7736171F21BD88DB91D033BBE64B85F412FC40144CEE90C59FA0BA1B34019",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -226,12 +228,13 @@
         "obj/"
       ],
       "projectHash": "D02C02379E7CC347375CBBB5F8390EDDE12A6CEE726182486C0CD099AEDA6603",
-      "targetHash": "E119EFFB7AAEBA4E0FECB59F8A2B4C2CCF53BD06C7ECDC0F5E88E83C1F73FAA3",
+      "targetHash": "D6E0E3BBDD5E4DC0F25D710D2A83B7D21E0DBD61DDBEB46090FC8CBD1C91BE24",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -242,6 +245,7 @@
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -297,12 +301,13 @@
         "obj/"
       ],
       "projectHash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
-      "targetHash": "B1EEA86DCE15500298E7CE88E20335DA5AA8FEF5BAA10E38BD050DF66282E73D",
+      "targetHash": "1B6A51CF299C17E493F670BE32A86FE8413DA03BB11FBBAE884A6D5D3CDBC27F",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -313,6 +318,7 @@
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "platform": "linux/amd64",
+          "cpus": 2,
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",

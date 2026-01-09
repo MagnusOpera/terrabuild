@@ -109,6 +109,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         shellOperations |> List.map (fun shellOperation -> {
                             ContaineredShellOperation.Image = operation.Image
                             ContaineredShellOperation.Platform = operation.Platform
+                            ContaineredShellOperation.Cpus = operation.Cpus
                             ContaineredShellOperation.Variables = operation.ContainerVariables
                             ContaineredShellOperation.Envs = operation.Envs
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"

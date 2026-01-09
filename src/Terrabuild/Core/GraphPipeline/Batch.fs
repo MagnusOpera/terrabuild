@@ -165,6 +165,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                         executionRequest |> List.map (fun shellOperation -> {
                             ContaineredShellOperation.Image = operation.Image
                             ContaineredShellOperation.Platform = operation.Platform
+                            ContaineredShellOperation.Cpus = operation.Cpus
                             ContaineredShellOperation.Variables = operation.ContainerVariables
                             ContaineredShellOperation.Envs = operation.Envs
                             ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
