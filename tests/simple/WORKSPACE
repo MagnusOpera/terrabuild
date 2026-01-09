@@ -39,6 +39,7 @@ target deploy {
 extension @dotnet {
   image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
   platform = "linux/amd64"
+  cpus = 2
   defaults {
     configuration = local.configuration
   }

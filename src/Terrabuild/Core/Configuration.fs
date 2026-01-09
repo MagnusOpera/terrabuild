@@ -18,6 +18,7 @@ type TargetOperation = {
     Hash: string
     Image: string option
     Platform: string option
+    Cpus: int option
     ContainerVariables: string set
     Envs: Map<string, string>
     Extension: string
@@ -546,6 +547,17 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                             | _ -> raiseTypeError "container must evaluate to a string"
                         | _ -> None
 
+                    let cpus =
+                        match extension.Cpus with
+                        | Some cpus ->
+                            match Eval.eval evaluationContext cpus with
+                            | Value.Number cpus ->
+                                if cpus < 1 then raiseTypeError "cpus must evaluate to a strictly positive number"
+                                Some cpus
+                            | Value.Nothing -> None
+                            | _ -> raiseTypeError "cpus must evaluate to a number"
+                        | _ -> None
+
                     let script =
                         match Extensions.getScript step.Extension projectDef.Scripts with
                         | Some script -> script
@@ -577,6 +589,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         TargetOperation.Hash = hash
                         TargetOperation.Image = image
                         TargetOperation.Platform = platform
+                        TargetOperation.Cpus = cpus
                         TargetOperation.ContainerVariables = variables
                         TargetOperation.Envs = envs
                         TargetOperation.Extension = step.Extension

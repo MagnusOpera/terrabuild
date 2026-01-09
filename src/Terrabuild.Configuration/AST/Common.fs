@@ -6,5 +6,6 @@ type ExtensionBlock =
       Platform: Expr option
       Variables: Expr option
       Script: Expr option
+      Cpus: Expr option
       Defaults: Map<string, Expr> option
       Env: Map<string, Expr> option }

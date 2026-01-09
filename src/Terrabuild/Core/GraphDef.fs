@@ -5,6 +5,7 @@ open Collections
 type ContaineredShellOperation = {
     Image: string option
     Platform: string option
+    Cpus: int option
     Variables: string set
     Envs: Map<string, string>
     MetaCommand: string

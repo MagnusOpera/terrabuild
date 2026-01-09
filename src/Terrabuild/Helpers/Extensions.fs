@@ -18,6 +18,7 @@ let systemExtensions =
                    Platform = None
                    Variables = None
                    Script = None
+                   Cpus = None
                    Defaults = None
                    Env = None })
     |> Map.ofSeq

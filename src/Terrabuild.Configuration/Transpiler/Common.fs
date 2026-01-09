@@ -5,7 +5,7 @@ open Helpers
 
 let toExtension (block: Block) =
     block
-    |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"]
+    |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "cpus"]
     |> checkAllowedNestedBlocks ["defaults"; "env"]
     |> ignore
 
@@ -13,6 +13,7 @@ let toExtension (block: Block) =
     let platform = block |> tryFindAttribute "platform"
     let variables = block |> tryFindAttribute "variables"
     let script = block |> tryFindAttribute "script"
+    let cpus = block |> tryFindAttribute "cpus"
     let defaults =
         block
         |> tryFindBlock "defaults"
@@ -41,6 +42,7 @@ let toExtension (block: Block) =
       ExtensionBlock.Platform = platform
       ExtensionBlock.Variables = variables
       ExtensionBlock.Script = script
+      ExtensionBlock.Cpus = cpus
       ExtensionBlock.Defaults = defaults
       ExtensionBlock.Env = env } 
 

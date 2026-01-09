@@ -85,8 +85,13 @@ let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) project
                 |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
                 |> String.join " "
 
+            let cpus =
+                match operation.Cpus with
+                | Some cpus -> $"--cpus={cpus}"
+                | _ -> ""
+
             let args =
-                $"run --rm --name {node.TargetHash} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
+                $"run --rm --name {node.TargetHash} {cpus} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
             metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel, operation.Envs
         | _ ->
             metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
