@@ -33,6 +33,10 @@ let private addAuthToken (workspaceId: string) (token: string) (masterKey: strin
         if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
         else { SpaceAuths = [] }
 
+    // remove previous config
+    let config =
+        { config with SpaceAuths = config.SpaceAuths |> List.filter (fun x -> x.Id <> workspaceId ) }
+
     let config =
         { config with SpaceAuths = { Id = workspaceId; Token = token; MasterKey = masterKey } :: config.SpaceAuths }
 
