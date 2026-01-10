@@ -4,42 +4,42 @@ open NUnit.Framework
 open GraphDef
 open GraphPipeline.Batch
 
+let buildNode id clusterHash action deps group req =
+    { Node.Id = id
+      Node.ProjectId = id
+      Node.ProjectName = None
+      Node.ProjectDir = $"/src/project{id}"
+      Node.Target = "build"
+      Node.Dependencies = deps
+      Node.Outputs = Set.empty
+      Node.ProjectHash = ""
+      Node.TargetHash = ""
+      Node.ClusterHash = clusterHash
+      Node.Operations = []
+      Node.Artifacts = ArtifactMode.Workspace
+      Node.Action = action
+      Node.Build = BuildMode.Auto
+      Node.Batch = group
+      Node.Required = req }
+
+let addNode (node: Node) nodes = nodes |> Map.add node.Id node
+
 [<Test>]
 let ``check partition computation``() =
-    let buildNode id clusterHash action deps =
-        { Node.Id = id
-          Node.ProjectId = id
-          Node.ProjectName = None
-          Node.ProjectDir = $"/src/project{id}"
-          Node.Target = "build"
-          Node.Dependencies = deps
-          Node.Outputs = Set.empty
-          Node.ProjectHash = ""
-          Node.TargetHash = ""
-          Node.ClusterHash = clusterHash
-          Node.Operations = []
-          Node.Artifacts = ArtifactMode.Workspace
-          Node.Action = action
-          Node.Build = BuildMode.Auto
-          Node.Batch = BatchMode.Partition
-          Node.Required = true }
-
-    let addNode (node: Node) nodes = nodes |> Map.add node.Id node
-
     // Bucket hash-A: connected via A1 -> A2 (in-bucket edge)
-    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Exec (Set ["A2"; "B1"])
-    let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Restore Set.empty
+    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Exec (Set ["A2"; "B1"]) BatchMode.Partition true
+    let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Restore Set.empty BatchMode.Partition true
 
     // Bucket hash-B: connected via B1 -> B2 (in-bucket edge)
-    let nodeB1 = buildNode "B1" (Some "hash-B") RunAction.Exec (Set ["B2"])
-    let nodeB2 = buildNode "B2" (Some "hash-B") RunAction.Exec Set.empty
+    let nodeB1 = buildNode "B1" (Some "hash-B") RunAction.Exec (Set ["B2"]) BatchMode.Partition true
+    let nodeB2 = buildNode "B2" (Some "hash-B") RunAction.Exec Set.empty BatchMode.Partition true
 
     // Bucket hash-C: connected but inactive (no Build) => no batch
-    let nodeC1 = buildNode "C1" (Some "hash-C") RunAction.Restore (Set ["C2"])
-    let nodeC2 = buildNode "C2" (Some "hash-C") RunAction.Restore Set.empty
+    let nodeC1 = buildNode "C1" (Some "hash-C") RunAction.Restore (Set ["C2"]) BatchMode.Partition true
+    let nodeC2 = buildNode "C2" (Some "hash-C") RunAction.Restore Set.empty BatchMode.Partition true
 
     // Not batchable
-    let nodeD1 = buildNode "D1" None RunAction.Exec Set.empty
+    let nodeD1 = buildNode "D1" None RunAction.Exec Set.empty BatchMode.Partition true
 
     let nodes =
         Map.empty
@@ -78,38 +78,18 @@ let ``check partition computation``() =
 
 [<Test>]
 let ``check partition/all computation``() =
-    let buildNode id clusterHash action deps group =
-        { Node.Id = id
-          Node.ProjectId = id
-          Node.ProjectName = None
-          Node.ProjectDir = $"/src/project{id}"
-          Node.Target = "build"
-          Node.Dependencies = deps
-          Node.Outputs = Set.empty
-          Node.ProjectHash = ""
-          Node.TargetHash = ""
-          Node.ClusterHash = clusterHash
-          Node.Operations = []
-          Node.Artifacts = ArtifactMode.Workspace
-          Node.Action = action
-          Node.Build = BuildMode.Auto
-          Node.Batch = group
-          Node.Required = true }
-
-    let addNode (node: Node) nodes = nodes |> Map.add node.Id node
-
     // Bucket hash-A: connected via A1 -> A2 (in-bucket edge)
-    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Restore (Set ["A2"; "B1"]) BatchMode.Partition
-    let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Restore Set.empty BatchMode.Partition
+    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Restore (Set ["A2"; "B1"]) BatchMode.Partition true
+    let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Restore Set.empty BatchMode.Partition true
 
     // Bucket hash-B: connected via B1 -> B2 (in-bucket edge)
-    let nodeB1 = buildNode "B1" (Some "hash-B") RunAction.Exec (Set ["B2"]) BatchMode.All
-    let nodeB2 = buildNode "B2" (Some "hash-B") RunAction.Exec Set.empty BatchMode.All
-    let nodeC1 = buildNode "C1" (Some "hash-B") RunAction.Exec (Set ["C2"]) BatchMode.All
-    let nodeC2 = buildNode "C2" (Some "hash-B") RunAction.Exec Set.empty BatchMode.All
+    let nodeB1 = buildNode "B1" (Some "hash-B") RunAction.Exec (Set ["B2"]) BatchMode.Single true
+    let nodeB2 = buildNode "B2" (Some "hash-B") RunAction.Exec Set.empty BatchMode.Single true
+    let nodeC1 = buildNode "C1" (Some "hash-B") RunAction.Exec (Set ["C2"]) BatchMode.Single true
+    let nodeC2 = buildNode "C2" (Some "hash-B") RunAction.Exec Set.empty BatchMode.Single true
 
     // Not batchable
-    let nodeD1 = buildNode "D1" None RunAction.Exec Set.empty BatchMode.Partition
+    let nodeD1 = buildNode "D1" None RunAction.Exec Set.empty BatchMode.Partition true
 
     let nodes =
         Map.empty

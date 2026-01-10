@@ -22,7 +22,7 @@
       ],
       "artifacts": "none",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "exec",
       "required": true
     },
@@ -50,7 +50,7 @@
       ],
       "artifacts": "none",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "exec",
       "required": true
     },
@@ -76,7 +76,7 @@
       ],
       "artifacts": "none",
       "build": "auto",
-      "batch": "all",
+      "batch": "single",
       "action": "exec",
       "required": false
     },
@@ -102,7 +102,7 @@
       ],
       "artifacts": "none",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "exec",
       "required": true
     }
