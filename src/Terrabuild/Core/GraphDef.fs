@@ -18,7 +18,7 @@ type ContaineredShellOperation = {
 type BatchMode =
     | Never
     | Partition
-    | All
+    | Single
 
 [<RequireQualifiedAccess>]
 type ArtifactMode =

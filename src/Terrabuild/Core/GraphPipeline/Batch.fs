@@ -100,7 +100,7 @@ let computeBatches (graph: Graph) =
                 |> Map.ofSeq
 
             let partitionGroups = batchModes |> Map.tryFind BatchMode.Partition |> Option.defaultValue []  
-            let allGroup = batchModes |> Map.tryFind BatchMode.All |> Option.defaultValue []  
+            let allGroup = batchModes |> Map.tryFind BatchMode.Single |> Option.defaultValue []  
         
             partitionGroups
             |> partitionByDependencies

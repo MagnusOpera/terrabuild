@@ -639,10 +639,10 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     match group with
                     | Ok "never" -> BatchMode.Never
                     | Ok "partition" -> BatchMode.Partition
-                    | Ok "all" -> BatchMode.All
+                    | Ok "single" -> BatchMode.Single
                     | Ok x -> raiseParseError $"Invalid group value '{x}'"
                     | Error error -> raiseParseError error
-                | _ -> BatchMode.All
+                | _ -> BatchMode.Single
 
             let target =
                 { Target.Hash = targetHash

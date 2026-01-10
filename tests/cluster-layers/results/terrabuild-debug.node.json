@@ -44,7 +44,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -92,7 +92,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -141,7 +141,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -184,7 +184,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -227,7 +227,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -268,7 +268,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     },
@@ -308,7 +308,7 @@
       ],
       "artifacts": "managed",
       "build": "always",
-      "batch": "all",
+      "batch": "single",
       "action": "ignore",
       "required": true
     }
