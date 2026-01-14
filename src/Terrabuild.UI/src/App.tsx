@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Accordion,
   AppShell,
   Badge,
   Box,
@@ -14,9 +15,19 @@ import {
   Stack,
   Text,
   Title,
+  useMantineTheme,
   useMantineColorScheme,
 } from "@mantine/core";
-import ReactFlow, { Background, Controls, Node, Edge } from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  Node,
+  Edge,
+  Position,
+  applyNodeChanges,
+  useEdgesState,
+  useNodesState,
+} from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
 import { Terminal } from "xterm";
@@ -46,9 +57,26 @@ type GraphResponse = {
   nodes: Record<string, GraphNode>;
 };
 
+type ProjectNode = {
+  id: string;
+  name?: string | null;
+  directory: string;
+  hash: string;
+  targets: GraphNode[];
+};
+
+type OperationSummary = {
+  metaCommand: string;
+  command: string;
+  arguments: string;
+  log: string;
+  exitCode: number;
+};
+
 type TargetSummary = {
   project: string;
   target: string;
+  operations: OperationSummary[][];
   isSuccessful: boolean;
   startedAt: string;
   endedAt: string;
@@ -98,11 +126,21 @@ const App = () => {
   const [forceBuild, setForceBuild] = useState(false);
   const [retryBuild, setRetryBuild] = useState(false);
   const [parallelism, setParallelism] = useState("");
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ProjectNode | null>(
+    null
+  );
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
   );
+  const [layoutVersion, setLayoutVersion] = useState(0);
+  const [manualPositions, setManualPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+  const [nodes, setNodes] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const theme = useMantineTheme();
 
   const terminalRef = useRef<HTMLDivElement | null>(null);
   const terminal = useRef<Terminal | null>(null);
@@ -176,6 +214,7 @@ const App = () => {
         return;
       }
       const data = (await response.json()) as GraphResponse;
+      setManualPositions({});
       setGraph(data);
     };
     fetchGraph().catch(() => {
@@ -184,35 +223,108 @@ const App = () => {
     });
   }, [selectedTargets, selectedProjects]);
 
-  const { nodes, edges } = useMemo(() => {
+  const baseGraph = useMemo(() => {
     if (!graph) {
       return { nodes: [], edges: [] };
     }
-    const rawNodes = Object.values(graph.nodes);
-    const flowNodes: Node[] = rawNodes.map((node) => ({
-      id: node.id,
+    const projectMap = new Map<string, ProjectNode>();
+    const nodeMap = new Map<string, GraphNode>();
+    Object.values(graph.nodes).forEach((node) => {
+      nodeMap.set(node.id, node);
+      const existing = projectMap.get(node.projectId);
+      if (existing) {
+        existing.targets.push(node);
+      } else {
+        projectMap.set(node.projectId, {
+          id: node.projectId,
+          name: node.projectName,
+          directory: node.projectDir,
+          hash: node.projectHash,
+          targets: [node],
+        });
+      }
+    });
+
+    const isDark = colorScheme === "dark";
+    const defaultBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[4];
+    const selectedBorder = theme.colors.blue[6];
+    const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
+    const nodeText = isDark ? theme.colors.gray[1] : theme.black;
+    const edgeStroke = isDark ? theme.colors.dark[3] : theme.colors.gray[5];
+
+    const flowNodes: Node[] = Array.from(projectMap.values()).map((project) => ({
+      id: project.id,
       data: {
-        label: `${node.projectName ?? node.projectId} - ${node.target}`,
-        meta: node,
+        label: `${project.name ?? project.id} (${project.targets.length})`,
+        meta: project,
       },
       position: { x: 0, y: 0 },
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       style: {
         borderRadius: 12,
-        border: "1px solid var(--mantine-color-gray-4)",
+        borderStyle: "solid",
+        borderWidth: project.id === selectedNodeId ? 2 : 1,
+        borderColor:
+          project.id === selectedNodeId ? selectedBorder : defaultBorder,
+        background: nodeBackground,
+        color: nodeText,
         padding: 8,
         fontSize: 12,
+        boxShadow:
+          project.id === selectedNodeId
+            ? "0 0 0 2px rgba(34, 139, 230, 0.2)"
+            : "none",
       },
     }));
-    const flowEdges: Edge[] = rawNodes.flatMap((node) =>
-      node.dependencies.map((dependency) => ({
-        id: `${dependency}-${node.id}`,
-        source: dependency,
-        target: node.id,
-        type: "smoothstep",
-      }))
-    );
+
+    const edgeSet = new Set<string>();
+    const flowEdges: Edge[] = [];
+    nodeMap.forEach((node) => {
+      node.dependencies.forEach((dependency) => {
+        const depNode = nodeMap.get(dependency);
+        if (!depNode) {
+          return;
+        }
+        if (depNode.projectId === node.projectId) {
+          return;
+        }
+        const edgeId = `${depNode.projectId}->${node.projectId}`;
+        if (edgeSet.has(edgeId)) {
+          return;
+        }
+        edgeSet.add(edgeId);
+        flowEdges.push({
+          id: edgeId,
+          source: depNode.projectId,
+          target: node.projectId,
+          type: "default",
+          style: { stroke: edgeStroke },
+        });
+      });
+    });
     return layoutGraph(flowNodes, flowEdges);
-  }, [graph]);
+  }, [graph, selectedNodeId, layoutVersion, colorScheme, theme]);
+
+  useEffect(() => {
+    if (!graph) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+    const manualKeys = Object.keys(manualPositions);
+    if (manualKeys.length > 0) {
+      setNodes((current) =>
+        current.map((node) => ({
+          ...node,
+          position: manualPositions[node.id] ?? node.position,
+        }))
+      );
+      return;
+    }
+    setNodes(baseGraph.nodes);
+    setEdges(baseGraph.edges);
+  }, [graph, baseGraph, manualPositions, setNodes, setEdges]);
 
   const handleSelectTargets = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const values = Array.from(event.target.selectedOptions).map(
@@ -286,27 +398,38 @@ const App = () => {
     });
   };
 
-  const loadNodeResult = async (node: GraphNode) => {
-    setSelectedNode(node);
-    const cacheKey = `${node.projectHash}/${node.target}/${node.targetHash}`;
-    if (nodeResults[cacheKey]) {
-      return;
-    }
-    const response = await fetch(
-      `/api/build/result/${node.projectHash}/${node.target}/${node.targetHash}`
+  const loadProjectResults = async (project: ProjectNode) => {
+    setSelectedProject(project);
+    setSelectedNodeId(project.id);
+    await Promise.all(
+      project.targets.map(async (node) => {
+        const cacheKey = `${node.projectHash}/${node.target}/${node.targetHash}`;
+        if (nodeResults[cacheKey]) {
+          return;
+        }
+        const response = await fetch(
+          `/api/build/result/${node.projectHash}/${node.target}/${node.targetHash}`
+        );
+        if (!response.ok) {
+          return;
+        }
+        const summary = (await response.json()) as TargetSummary;
+        setNodeResults((prev) => ({ ...prev, [cacheKey]: summary }));
+      })
     );
-    if (!response.ok) {
-      return;
-    }
-    const summary = (await response.json()) as TargetSummary;
-    setNodeResults((prev) => ({ ...prev, [cacheKey]: summary }));
   };
 
-  const selectedResult =
-    selectedNode &&
-    nodeResults[
-      `${selectedNode.projectHash}/${selectedNode.target}/${selectedNode.targetHash}`
-    ];
+  const buildTargetLog = (summary: TargetSummary) => {
+    return summary.operations
+      .flatMap((group) =>
+        group.map((operation) => {
+          const header = operation.metaCommand || operation.command;
+          return `${header}\n${operation.log || ""}`.trim();
+        })
+      )
+      .filter((value) => value.length > 0)
+      .join("\n\n");
+  };
 
   return (
     <AppShell
@@ -404,48 +527,88 @@ const App = () => {
             <Paper withBorder p="md" radius="md">
               <Stack spacing="xs">
                 <Text fw={600}>Node Details</Text>
-                {selectedNode ? (
+                {selectedProject ? (
                   <>
                     <Text fw={600}>
-                      {selectedNode.projectName ?? selectedNode.projectId}
+                      {selectedProject.name ?? selectedProject.id}
                     </Text>
                     <Text size="xs" c="dimmed">
-                      {selectedNode.projectDir}
+                      {selectedProject.directory}
                     </Text>
                     <Group position="apart">
                       <Text size="sm" c="dimmed">
-                        Target
+                        Targets
                       </Text>
-                      <Text size="sm">{selectedNode.target}</Text>
+                      <Text size="sm">{selectedProject.targets.length}</Text>
                     </Group>
-                    {selectedResult ? (
-                      <>
-                        <Group position="apart">
-                          <Text size="sm" c="dimmed">
-                            Status
-                          </Text>
-                          <Badge color={selectedResult.isSuccessful ? "green" : "red"}>
-                            {selectedResult.isSuccessful ? "Success" : "Failed"}
-                          </Badge>
-                        </Group>
-                        <Group position="apart">
-                          <Text size="sm" c="dimmed">
-                            Duration
-                          </Text>
-                          <Text size="sm">{selectedResult.duration}</Text>
-                        </Group>
-                        <Group position="apart">
-                          <Text size="sm" c="dimmed">
-                            Cache
-                          </Text>
-                          <Text size="sm">{selectedResult.cache}</Text>
-                        </Group>
-                      </>
-                    ) : (
-                      <Text size="sm" c="dimmed">
-                        No cached result yet.
-                      </Text>
-                    )}
+                    <Accordion variant="contained">
+                      {selectedProject.targets.map((target) => {
+                        const cacheKey = `${target.projectHash}/${target.target}/${target.targetHash}`;
+                        const summary = nodeResults[cacheKey];
+                        return (
+                          <Accordion.Item key={cacheKey} value={cacheKey}>
+                            <Accordion.Control>
+                              <Group position="apart" style={{ width: "100%" }}>
+                                <Text size="sm">{target.target}</Text>
+                                {summary ? (
+                                  <Badge
+                                    color={
+                                      summary.isSuccessful ? "green" : "red"
+                                    }
+                                  >
+                                    {summary.isSuccessful
+                                      ? "Success"
+                                      : "Failed"}
+                                  </Badge>
+                                ) : (
+                                  <Badge color="gray">No cache</Badge>
+                                )}
+                              </Group>
+                            </Accordion.Control>
+                            <Accordion.Panel>
+                              {summary ? (
+                                <Stack spacing="xs">
+                                  <Group position="apart">
+                                    <Text size="sm" c="dimmed">
+                                      Duration
+                                    </Text>
+                                    <Text size="sm">{summary.duration}</Text>
+                                  </Group>
+                                  <Group position="apart">
+                                    <Text size="sm" c="dimmed">
+                                      Cache
+                                    </Text>
+                                    <Text size="sm">{summary.cache}</Text>
+                                  </Group>
+                                  <Box
+                                    component="pre"
+                                    style={{
+                                      margin: 0,
+                                      padding: 12,
+                                      borderRadius: 8,
+                                      background:
+                                        colorScheme === "dark"
+                                          ? "#111214"
+                                          : "#f6f7f9",
+                                      fontSize: 12,
+                                      whiteSpace: "pre-wrap",
+                                      fontFamily:
+                                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+                                    }}
+                                  >
+                                    {buildTargetLog(summary) || "No logs."}
+                                  </Box>
+                                </Stack>
+                              ) : (
+                                <Text size="sm" c="dimmed">
+                                  No cached result yet.
+                                </Text>
+                              )}
+                            </Accordion.Panel>
+                          </Accordion.Item>
+                        );
+                      })}
+                    </Accordion>
                   </>
                 ) : (
                   <Text size="sm" c="dimmed">
@@ -469,22 +632,47 @@ const App = () => {
           >
             <Group position="apart" mb="sm">
               <Title order={4}>Execution Graph</Title>
-              {graphError && (
-                <Text size="sm" c="red">
-                  {graphError}
-                </Text>
-              )}
+              <Group spacing="xs">
+                {graphError && (
+                  <Text size="sm" c="red">
+                    {graphError}
+                  </Text>
+                )}
+                <Button
+                  size="xs"
+                  variant="light"
+                  onClick={() => {
+                    setManualPositions({});
+                    setLayoutVersion((value) => value + 1);
+                  }}
+                >
+                  Reflow
+                </Button>
+              </Group>
             </Group>
             <Box style={{ flex: 1, minHeight: 0 }}>
               {graph ? (
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  fitView
-                  onNodeClick={(_, node) =>
-                    loadNodeResult(node.data.meta as GraphNode)
-                  }
-                >
+                  <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    fitView
+                    onNodesChange={(changes) => {
+                      setNodes((current) => {
+                        const updated = applyNodeChanges(changes, current);
+                        const positions: Record<string, { x: number; y: number }> =
+                          {};
+                        updated.forEach((node) => {
+                          positions[node.id] = node.position;
+                        });
+                        setManualPositions(positions);
+                        return updated;
+                      });
+                    }}
+                    onEdgesChange={onEdgesChange}
+                    onNodeClick={(_, node) =>
+                      loadProjectResults(node.data.meta as ProjectNode)
+                    }
+                  >
                   <Background gap={24} />
                   <Controls position="bottom-right" />
                 </ReactFlow>
