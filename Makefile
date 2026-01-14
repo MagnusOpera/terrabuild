@@ -105,7 +105,7 @@ terrabuild:
 #
 
 ui: webui
-	$(terrabuild) graph --no-open
+	$(terrabuild) graph --no-open --port 5179
 
 test-scaffold:
 	$(terrabuild) scaffold --workspace tests/scaffold --debug --log

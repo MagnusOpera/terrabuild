@@ -1,10 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AppShell,
+  Badge,
+  Box,
+  Button,
+  Checkbox,
+  Group,
+  MultiSelect,
+  Navbar,
+  NumberInput,
+  Paper,
+  ActionIcon,
+  Stack,
+  Text,
+  Title,
+  useMantineColorScheme,
+} from "@mantine/core";
 import ReactFlow, { Background, Controls, Node, Edge } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 
 type ProjectInfo = {
   id: string;
@@ -84,11 +102,7 @@ const App = () => {
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
   );
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-  }, [theme]);
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
 
   const terminalRef = useRef<HTMLDivElement | null>(null);
   const terminal = useRef<Terminal | null>(null);
@@ -100,11 +114,6 @@ const App = () => {
       convertEol: false,
       scrollback: 3000,
       fontSize: 12,
-      theme: {
-        background: "#0e0f12",
-        foreground: "#d8e1e6",
-        selectionBackground: "#414b57",
-      },
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -121,6 +130,17 @@ const App = () => {
       term.dispose();
     };
   }, []);
+
+  useEffect(() => {
+    if (!terminal.current) {
+      return;
+    }
+    terminal.current.options.theme = {
+      background: colorScheme === "dark" ? "#141517" : "#ffffff",
+      foreground: colorScheme === "dark" ? "#d8dbe0" : "#1f2328",
+      selectionBackground: colorScheme === "dark" ? "#3b3f45" : "#c9d0d8",
+    };
+  }, [colorScheme]);
 
   useEffect(() => {
     const load = async () => {
@@ -176,7 +196,12 @@ const App = () => {
         meta: node,
       },
       position: { x: 0, y: 0 },
-      className: "tb-node",
+      style: {
+        borderRadius: 12,
+        border: "1px solid var(--mantine-color-gray-4)",
+        padding: 8,
+        fontSize: 12,
+      },
     }));
     const flowEdges: Edge[] = rawNodes.flatMap((node) =>
       node.dependencies.map((dependency) => ({
@@ -184,7 +209,6 @@ const App = () => {
         source: dependency,
         target: node.id,
         type: "smoothstep",
-        className: "tb-edge",
       }))
     );
     return layoutGraph(flowNodes, flowEdges);
@@ -285,169 +309,212 @@ const App = () => {
     ];
 
   return (
-    <div className="app">
-      <aside className="panel">
-        <div className="panel-header">
-          <div>
-            <p className="eyebrow">Terrabuild</p>
-            <h1>Graph Console</h1>
-          </div>
-          <button
-            className="ghost"
-            onClick={() =>
-              setTheme((current) => (current === "dark" ? "light" : "dark"))
-            }
-          >
-            {theme === "dark" ? "Light mode" : "Dark mode"}
-          </button>
-        </div>
-        <section className="panel-section">
-          <label>
-            Targets (required)
-            <select
-              multiple
-              value={selectedTargets}
-              onChange={handleSelectTargets}
-            >
-              {targets.map((target) => (
-                <option key={target} value={target}>
-                  {target}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Projects (optional)
-            <select
-              multiple
-              value={selectedProjects}
-              onChange={handleSelectProjects}
-            >
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name ? `${project.name} (${project.id})` : project.id}
-                </option>
-              ))}
-            </select>
-          </label>
-        </section>
-        <section className="panel-section">
-          <div className="row">
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={forceBuild}
-                onChange={(event) => setForceBuild(event.target.checked)}
-              />
-              Force
-            </label>
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={retryBuild}
-                onChange={(event) => setRetryBuild(event.target.checked)}
-              />
-              Retry
-            </label>
-          </div>
-          <label>
-            Parallelism
-            <input
-              type="number"
-              min={1}
-              value={parallelism}
-              placeholder="auto"
-              onChange={(event) => setParallelism(event.target.value)}
-            />
-          </label>
-          <button
-            className="primary"
-            onClick={startBuild}
-            disabled={buildRunning || selectedTargets.length === 0}
-          >
-            {buildRunning ? "Building..." : "Build"}
-          </button>
-          {buildError && <p className="error">{buildError}</p>}
-        </section>
-        <section className="panel-section details">
-          <h2>Node Details</h2>
-          {selectedNode ? (
-            <div className="detail-card">
-              <h3>{selectedNode.projectName ?? selectedNode.projectId}</h3>
-              <p className="muted">{selectedNode.projectDir}</p>
-              <div className="detail-row">
-                <span>Target</span>
-                <span>{selectedNode.target}</span>
-              </div>
-              {selectedResult ? (
-                <>
-                  <div className="detail-row">
-                    <span>Status</span>
-                    <span
-                      className={
-                        selectedResult.isSuccessful ? "ok" : "fail"
-                      }
-                    >
-                      {selectedResult.isSuccessful ? "Success" : "Failed"}
-                    </span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Duration</span>
-                    <span>{selectedResult.duration}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span>Cache</span>
-                    <span>{selectedResult.cache}</span>
-                  </div>
-                </>
-              ) : (
-                <p className="muted">
-                  No cached result yet. Run a build or select another node.
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="muted">Select a node in the graph to inspect it.</p>
-          )}
-        </section>
-      </aside>
-      <main className="workspace">
-        <section className="graph">
-          <header>
-            <h2>Execution Graph</h2>
-            {graphError && <span className="error">{graphError}</span>}
-          </header>
-          <div className="graph-canvas">
-            {graph ? (
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                fitView
-                onNodeClick={(_, node) =>
-                  loadNodeResult(node.data.meta as GraphNode)
-                }
+    <AppShell
+      padding="md"
+      navbar={
+        <Navbar p="md" width={{ base: 360 }}>
+          <Stack spacing="md">
+            <Group position="apart" align="center">
+              <Box>
+                <Text size="xs" tt="uppercase" fw={600} c="dimmed">
+                  Terrabuild
+                </Text>
+                <Title order={3}>Graph Console</Title>
+              </Box>
+              <ActionIcon
+                onClick={() => toggleColorScheme()}
+                variant="default"
+                size="xl"
+                radius="md"
+                aria-label="Toggle color scheme"
               >
-                <Background color="#31404e" gap={24} />
-                <Controls position="bottom-right" />
-              </ReactFlow>
-            ) : (
-              <div className="graph-empty">
-                <p>Select at least one target to view the graph.</p>
-              </div>
+                {colorScheme === "dark" ? (
+                  <IconSun stroke={1.5} />
+                ) : (
+                  <IconMoon stroke={1.5} />
+                )}
+              </ActionIcon>
+            </Group>
+
+            <MultiSelect
+              data={targets.map((target) => ({ value: target, label: target }))}
+              label="Targets (required)"
+              placeholder="Select targets"
+              searchable
+              nothingFound="No targets"
+              value={selectedTargets}
+              onChange={(values) => setSelectedTargets(values)}
+            />
+
+            <MultiSelect
+              data={projects.map((project) => ({
+                value: project.id,
+                label: project.name
+                  ? `${project.name} (${project.id})`
+                  : project.id,
+              }))}
+              label="Projects (optional)"
+              placeholder="Select projects"
+              searchable
+              nothingFound="No projects"
+              value={selectedProjects}
+              onChange={(values) => setSelectedProjects(values)}
+            />
+
+            <Group spacing="md">
+              <Checkbox
+                label="Force"
+                checked={forceBuild}
+                onChange={(event) => setForceBuild(event.currentTarget.checked)}
+              />
+              <Checkbox
+                label="Retry"
+                checked={retryBuild}
+                onChange={(event) => setRetryBuild(event.currentTarget.checked)}
+              />
+            </Group>
+
+            <NumberInput
+              label="Parallelism"
+              placeholder="auto"
+              min={1}
+              value={parallelism === "" ? undefined : Number(parallelism)}
+              onChange={(value) => {
+                if (value === "" || value === null) {
+                  setParallelism("");
+                } else {
+                  setParallelism(String(value));
+                }
+              }}
+            />
+
+            <Button
+              onClick={startBuild}
+              disabled={buildRunning || selectedTargets.length === 0}
+            >
+              {buildRunning ? "Building..." : "Build"}
+            </Button>
+
+            {buildError && (
+              <Text size="sm" c="red">
+                {buildError}
+              </Text>
             )}
-          </div>
-        </section>
-        <section className="terminal">
-          <header>
-            <h2>Build Log</h2>
-            <span className={buildRunning ? "status live" : "status"}>
-              {buildRunning ? "Live" : "Idle"}
-            </span>
-          </header>
-          <div className="terminal-body" ref={terminalRef} />
-        </section>
-      </main>
-    </div>
+
+            <Paper withBorder p="md" radius="md">
+              <Stack spacing="xs">
+                <Text fw={600}>Node Details</Text>
+                {selectedNode ? (
+                  <>
+                    <Text fw={600}>
+                      {selectedNode.projectName ?? selectedNode.projectId}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {selectedNode.projectDir}
+                    </Text>
+                    <Group position="apart">
+                      <Text size="sm" c="dimmed">
+                        Target
+                      </Text>
+                      <Text size="sm">{selectedNode.target}</Text>
+                    </Group>
+                    {selectedResult ? (
+                      <>
+                        <Group position="apart">
+                          <Text size="sm" c="dimmed">
+                            Status
+                          </Text>
+                          <Badge color={selectedResult.isSuccessful ? "green" : "red"}>
+                            {selectedResult.isSuccessful ? "Success" : "Failed"}
+                          </Badge>
+                        </Group>
+                        <Group position="apart">
+                          <Text size="sm" c="dimmed">
+                            Duration
+                          </Text>
+                          <Text size="sm">{selectedResult.duration}</Text>
+                        </Group>
+                        <Group position="apart">
+                          <Text size="sm" c="dimmed">
+                            Cache
+                          </Text>
+                          <Text size="sm">{selectedResult.cache}</Text>
+                        </Group>
+                      </>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        No cached result yet.
+                      </Text>
+                    )}
+                  </>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    Select a node in the graph to inspect it.
+                  </Text>
+                )}
+              </Stack>
+            </Paper>
+          </Stack>
+        </Navbar>
+      }
+      styles={{ main: { height: "100vh" } }}
+    >
+      <Box style={{ height: "100%" }}>
+        <Stack spacing="md" style={{ height: "100%" }}>
+          <Paper
+            withBorder
+            radius="md"
+            p="md"
+            style={{ flex: 1, display: "flex", flexDirection: "column" }}
+          >
+            <Group position="apart" mb="sm">
+              <Title order={4}>Execution Graph</Title>
+              {graphError && (
+                <Text size="sm" c="red">
+                  {graphError}
+                </Text>
+              )}
+            </Group>
+            <Box style={{ flex: 1, minHeight: 0 }}>
+              {graph ? (
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  fitView
+                  onNodeClick={(_, node) =>
+                    loadNodeResult(node.data.meta as GraphNode)
+                  }
+                >
+                  <Background gap={24} />
+                  <Controls position="bottom-right" />
+                </ReactFlow>
+              ) : (
+                <Group position="center" style={{ height: "100%" }}>
+                  <Text size="sm" c="dimmed">
+                    Select at least one target to view the graph.
+                  </Text>
+                </Group>
+              )}
+            </Box>
+          </Paper>
+
+          <Paper
+            withBorder
+            radius="md"
+            p="md"
+            style={{ height: 280, display: "flex", flexDirection: "column" }}
+          >
+            <Group position="apart" mb="sm">
+              <Title order={4}>Build Log</Title>
+              <Badge color={buildRunning ? "orange" : "gray"}>
+                {buildRunning ? "Live" : "Idle"}
+              </Badge>
+            </Group>
+            <Box className="terminal-body" ref={terminalRef} />
+          </Paper>
+        </Stack>
+      </Box>
+    </AppShell>
   );
 };
 

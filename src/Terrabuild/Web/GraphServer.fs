@@ -15,6 +15,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.FileProviders
 open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.DependencyInjection
 open Collections
 open Environment
 open CLI
@@ -254,9 +255,10 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         |> resolveWorkspace
     let shouldOpenBrowser = graphArgs.Contains(GraphArgs.No_Open) |> not
     let uiRoot = Path.Combine(AppContext.BaseDirectory, "ui")
-    let port = pickPort()
+    let port = graphArgs.TryGetResult(GraphArgs.Port) |> Option.defaultValue 5179
     let url = $"http://127.0.0.1:{port}"
     let builder = WebApplication.CreateBuilder()
+    builder.Services.AddCors() |> ignore
     builder.WebHost.UseUrls(url) |> ignore
 
     let app = builder.Build()
@@ -273,6 +275,14 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         )
     defaultFiles.DefaultFileNames.Clear()
     defaultFiles.DefaultFileNames.Add("index.html")
+
+    app.UseCors(fun policy ->
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+        |> ignore)
+    |> ignore
 
     app.UseDefaultFiles(defaultFiles) |> ignore
     app.UseStaticFiles(StaticFileOptions(FileProvider = fileProvider, RequestPath = PathString.Empty)) |> ignore

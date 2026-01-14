@@ -107,12 +107,14 @@ with
 type GraphArgs =
     | [<Unique; AltCommandLine("-w")>] Workspace of path:string
     | [<Unique>] No_Open
+    | [<Unique; AltCommandLine("-p")>] Port of port:int
 with
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Workspace _ -> "Root of workspace. If not specified, current directory is used."
             | No_Open -> "Do not open the browser automatically."
+            | Port _ -> "Port to bind the graph API and UI server."
 
 
 [<RequireQualifiedAccess>]
