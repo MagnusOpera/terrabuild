@@ -27,6 +27,7 @@ import ReactFlow, {
   useEdgesState,
   useNodesState,
   ReactFlowInstance,
+  MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
@@ -403,6 +404,12 @@ const App = () => {
           target: node.projectId,
           type: "default",
           style: { stroke: edgeStroke },
+          markerStart: {
+            type: MarkerType.ArrowClosed,
+            color: edgeStroke,
+            width: 52,
+            height: 52,
+          },
         });
       });
     });
@@ -794,6 +801,7 @@ const App = () => {
                     onInit={(instance) => {
                       flowInstance.current = instance;
                     }}
+                    proOptions={{ hideAttribution: true }}
                     nodesDraggable
                     elementsSelectable
                     panOnDrag
