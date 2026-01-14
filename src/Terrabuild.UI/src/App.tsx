@@ -180,6 +180,48 @@ const App = () => {
     };
   }, [colorScheme]);
 
+  const getNodeStyle = (nodeId: string) => {
+    const isDark = colorScheme === "dark";
+    const defaultBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[4];
+    const selectedBorder = theme.colors.blue[6];
+    const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
+    const nodeText = isDark ? theme.colors.gray[1] : theme.black;
+    return {
+      borderRadius: 12,
+      borderStyle: "solid",
+      borderWidth: nodeId === selectedNodeId ? 2 : 1,
+      borderColor: nodeId === selectedNodeId ? selectedBorder : defaultBorder,
+      background: nodeBackground,
+      color: nodeText,
+      padding: 8,
+      fontSize: 24,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "fit-content",
+      minWidth: 200,
+      minHeight: 80,
+      boxShadow:
+        nodeId === selectedNodeId
+          ? "0 0 0 2px rgba(34, 139, 230, 0.2)"
+          : "none",
+    };
+  };
+
+  useEffect(() => {
+    const selected = nodes.find((node) => node.selected);
+    setSelectedNodeId(selected ? selected.id : null);
+  }, [nodes]);
+
+  useEffect(() => {
+    setNodes((current) =>
+      current.map((node) => ({
+        ...node,
+        style: getNodeStyle(node.id),
+      }))
+    );
+  }, [selectedNodeId, colorScheme, theme, setNodes]);
+
   useEffect(() => {
     const load = async () => {
       const [targetsRes, projectsRes] = await Promise.all([
@@ -246,38 +288,23 @@ const App = () => {
     });
 
     const isDark = colorScheme === "dark";
-    const defaultBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[4];
-    const selectedBorder = theme.colors.blue[6];
-    const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
-    const nodeText = isDark ? theme.colors.gray[1] : theme.black;
     const edgeStroke = isDark ? theme.colors.dark[3] : theme.colors.gray[5];
 
-    const flowNodes: Node[] = Array.from(projectMap.values()).map((project) => ({
-      id: project.id,
-      data: {
-        label: `${project.name ?? project.id} (${project.targets.length})`,
-        meta: project,
-      },
-      position: { x: 0, y: 0 },
-      sourcePosition: Position.Right,
-      targetPosition: Position.Left,
-      style: {
-        borderRadius: 12,
-        borderStyle: "solid",
-        borderWidth: project.id === selectedNodeId ? 2 : 1,
-        borderColor:
-          project.id === selectedNodeId ? selectedBorder : defaultBorder,
-        background: nodeBackground,
-        color: nodeText,
-        padding: 8,
-        fontSize: 12,
-        boxShadow:
-          project.id === selectedNodeId
-            ? "0 0 0 2px rgba(34, 139, 230, 0.2)"
-            : "none",
-      },
-    }));
+    const flowNodes: Node[] = Array.from(projectMap.values())
+      .filter((project) => project.directory !== ".")
+      .map((project) => ({
+        id: project.id,
+        data: {
+          label: `${project.directory} (${project.targets.length})`,
+          meta: project,
+        },
+        position: { x: 0, y: 0 },
+        sourcePosition: Position.Right,
+        targetPosition: Position.Left,
+        style: getNodeStyle(project.id),
+      }));
 
+    const visibleProjects = new Set(flowNodes.map((node) => node.id));
     const edgeSet = new Set<string>();
     const flowEdges: Edge[] = [];
     nodeMap.forEach((node) => {
@@ -289,6 +316,12 @@ const App = () => {
         if (depNode.projectId === node.projectId) {
           return;
         }
+        if (
+          !visibleProjects.has(depNode.projectId) ||
+          !visibleProjects.has(node.projectId)
+        ) {
+          return;
+        }
         const edgeId = `${depNode.projectId}->${node.projectId}`;
         if (edgeSet.has(edgeId)) {
           return;
@@ -298,7 +331,7 @@ const App = () => {
           id: edgeId,
           source: depNode.projectId,
           target: node.projectId,
-          type: "default",
+          type: "bezier",
           style: { stroke: edgeStroke },
         });
       });
@@ -656,6 +689,9 @@ const App = () => {
                     nodes={nodes}
                     edges={edges}
                     fitView
+                    nodesDraggable
+                    elementsSelectable
+                    panOnDrag={[2]}
                     onNodesChange={(changes) => {
                       setNodes((current) => {
                         const updated = applyNodeChanges(changes, current);
@@ -663,6 +699,9 @@ const App = () => {
                           {};
                         updated.forEach((node) => {
                           positions[node.id] = node.position;
+                          if (node.selected) {
+                            setSelectedNodeId(node.id);
+                          }
                         });
                         setManualPositions(positions);
                         return updated;
