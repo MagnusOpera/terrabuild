@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Accordion,
   AppShell,
   Badge,
   Box,
@@ -130,6 +129,9 @@ const App = () => {
     null
   );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedTargetKey, setSelectedTargetKey] = useState<string | null>(
+    null
+  );
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
   );
@@ -325,7 +327,7 @@ const App = () => {
       .map((project) => ({
         id: project.id,
         data: {
-          label: `${project.directory} (${project.targets.length})`,
+          label: project.directory,
           meta: project,
         },
         position: { x: 0, y: 0 },
@@ -464,6 +466,7 @@ const App = () => {
   const loadProjectResults = async (project: ProjectNode) => {
     setSelectedProject(project);
     setSelectedNodeId(project.id);
+    setSelectedTargetKey(null);
     await Promise.all(
       project.targets.map(async (node) => {
         const cacheKey = `${node.projectHash}/${node.target}/${node.targetHash}`;
@@ -492,6 +495,20 @@ const App = () => {
       )
       .filter((value) => value.length > 0)
       .join("\n\n");
+  };
+
+  const showTargetLog = (summary: TargetSummary | null, key: string) => {
+    if (!terminal.current) {
+      return;
+    }
+    setSelectedTargetKey(key);
+    terminal.current.reset();
+    if (!summary) {
+      terminal.current.write("No cached log available.\n");
+      return;
+    }
+    const log = buildTargetLog(summary);
+    terminal.current.write(log.length > 0 ? log : "No cached log available.\n");
   };
 
   return (
@@ -592,86 +609,44 @@ const App = () => {
                 <Text fw={600}>Node Details</Text>
                 {selectedProject ? (
                   <>
-                    <Text fw={600}>
-                      {selectedProject.name ?? selectedProject.id}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {selectedProject.directory}
-                    </Text>
-                    <Group position="apart">
-                      <Text size="sm" c="dimmed">
-                        Targets
-                      </Text>
-                      <Text size="sm">{selectedProject.targets.length}</Text>
-                    </Group>
-                    <Accordion variant="contained">
+                    <Text fw={600}>{selectedProject.directory}</Text>
+                    <Stack spacing="xs">
                       {selectedProject.targets.map((target) => {
                         const cacheKey = `${target.projectHash}/${target.target}/${target.targetHash}`;
                         const summary = nodeResults[cacheKey];
                         return (
-                          <Accordion.Item key={cacheKey} value={cacheKey}>
-                            <Accordion.Control>
-                              <Group position="apart" style={{ width: "100%" }}>
-                                <Text size="sm">{target.target}</Text>
-                                {summary ? (
-                                  <Badge
-                                    color={
-                                      summary.isSuccessful ? "green" : "red"
-                                    }
-                                  >
-                                    {summary.isSuccessful
-                                      ? "Success"
-                                      : "Failed"}
-                                  </Badge>
-                                ) : (
-                                  <Badge color="gray">No cache</Badge>
-                                )}
-                              </Group>
-                            </Accordion.Control>
-                            <Accordion.Panel>
-                              {summary ? (
-                                <Stack spacing="xs">
-                                  <Group position="apart">
-                                    <Text size="sm" c="dimmed">
-                                      Duration
-                                    </Text>
-                                    <Text size="sm">{summary.duration}</Text>
-                                  </Group>
-                                  <Group position="apart">
-                                    <Text size="sm" c="dimmed">
-                                      Cache
-                                    </Text>
-                                    <Text size="sm">{summary.cache}</Text>
-                                  </Group>
-                                  <Box
-                                    component="pre"
-                                    style={{
-                                      margin: 0,
-                                      padding: 12,
-                                      borderRadius: 8,
-                                      background:
-                                        colorScheme === "dark"
-                                          ? "#111214"
-                                          : "#f6f7f9",
-                                      fontSize: 12,
-                                      whiteSpace: "pre-wrap",
-                                      fontFamily:
-                                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
-                                    }}
-                                  >
-                                    {buildTargetLog(summary) || "No logs."}
-                                  </Box>
-                                </Stack>
+                          <Button
+                            key={cacheKey}
+                            variant={
+                              selectedTargetKey === cacheKey
+                                ? "filled"
+                                : "light"
+                            }
+                            color={
+                              selectedTargetKey === cacheKey
+                                ? "blue"
+                                : "gray"
+                            }
+                            onClick={() =>
+                              showTargetLog(summary ?? null, cacheKey)
+                            }
+                            rightIcon={
+                              summary ? (
+                                <Badge
+                                  color={summary.isSuccessful ? "green" : "red"}
+                                >
+                                  {summary.isSuccessful ? "Success" : "Failed"}
+                                </Badge>
                               ) : (
-                                <Text size="sm" c="dimmed">
-                                  No cached result yet.
-                                </Text>
-                              )}
-                            </Accordion.Panel>
-                          </Accordion.Item>
+                                <Badge color="gray">No cache</Badge>
+                              )
+                            }
+                          >
+                            {target.target}
+                          </Button>
                         );
                       })}
-                    </Accordion>
+                    </Stack>
                   </>
                 ) : (
                   <Text size="sm" c="dimmed">
