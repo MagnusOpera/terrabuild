@@ -107,7 +107,7 @@ with
 type GraphArgs =
     | [<Unique; AltCommandLine("-w")>] Workspace of path:string
     | [<Unique>] No_Open
-    | [<Unique; AltCommandLine("-p")>] Port of port:int
+    | [<Unique; Hidden; AltCommandLine("-p")>] Port of port:int
 with
     interface IArgParserTemplate with
         member this.Usage =

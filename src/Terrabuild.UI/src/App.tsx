@@ -761,7 +761,7 @@ const App = () => {
       styles={{ main: { height: "100vh" } }}
     >
       <Box style={{ height: "100%" }}>
-        <Stack spacing="md" style={{ height: "100%" }}>
+        <Stack spacing={showTerminal ? "md" : 0} style={{ height: "100%" }}>
           <Paper
             withBorder
             shadow="md"
@@ -839,10 +839,10 @@ const App = () => {
           </Paper>
 
           <Paper
-            withBorder
-            shadow="md"
+            withBorder={showTerminal}
+            shadow={showTerminal ? "md" : undefined}
             radius="md"
-            p="md"
+            p={showTerminal ? "md" : 0}
             style={{
               height: showTerminal ? 280 : 0,
               opacity: showTerminal ? 1 : 0,
@@ -853,22 +853,24 @@ const App = () => {
               pointerEvents: showTerminal ? "auto" : "none",
             }}
           >
-            <Group position="apart" mb="sm">
-              <Title order={4}>Build Log</Title>
-              <Group spacing="xs">
-                <Badge color={buildRunning ? "orange" : "gray"}>
-                  {buildRunning ? "Live" : "Idle"}
-                </Badge>
-                <ActionIcon
-                  size="lg"
-                  variant="subtle"
-                  onClick={() => setShowTerminal(false)}
-                  aria-label="Hide terminal"
-                >
-                  <IconSquareRoundedChevronDown size={18} />
-                </ActionIcon>
+            {showTerminal && (
+              <Group position="apart" mb="sm">
+                <Title order={4}>Build Log</Title>
+                <Group spacing="xs">
+                  <Badge color={buildRunning ? "orange" : "gray"}>
+                    {buildRunning ? "Live" : "Idle"}
+                  </Badge>
+                  <ActionIcon
+                    size="lg"
+                    variant="subtle"
+                    onClick={() => setShowTerminal(false)}
+                    aria-label="Hide terminal"
+                  >
+                    <IconSquareRoundedChevronDown size={18} />
+                  </ActionIcon>
+                </Group>
               </Group>
-            </Group>
+            )}
             <Box className="terminal-body" ref={terminalRef} />
           </Paper>
         </Stack>
