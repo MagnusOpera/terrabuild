@@ -2,7 +2,7 @@
 project terrabuild {
     labels = [ "app"
                "dotnet"]
-
+    depends_on = [ project.terrabuild_ui ]
     @dotnet { }
 }
 

@@ -1,4 +1,4 @@
-project terrabuildui {
+project terrabuild_ui {
     @pnpm { }
 }
 
