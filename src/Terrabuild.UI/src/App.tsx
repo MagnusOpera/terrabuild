@@ -146,6 +146,7 @@ const App = () => {
   const terminal = useRef<Terminal | null>(null);
   const fitAddon = useRef<FitAddon | null>(null);
   const logAbort = useRef<AbortController | null>(null);
+  const terminalReady = useRef(false);
 
   useEffect(() => {
     const term = new Terminal({
@@ -159,7 +160,30 @@ const App = () => {
     fitAddon.current = fit;
     if (terminalRef.current) {
       term.open(terminalRef.current);
-      fit.fit();
+      terminalReady.current = true;
+      const resizeObserver = new ResizeObserver(() => {
+        if (!terminalRef.current) {
+          return;
+        }
+        if (terminalRef.current.offsetWidth === 0) {
+          return;
+        }
+        fit.fit();
+      });
+      resizeObserver.observe(terminalRef.current);
+      requestAnimationFrame(() => {
+        if (!terminalRef.current) {
+          return;
+        }
+        if (terminalRef.current.offsetWidth === 0) {
+          return;
+        }
+        fit.fit();
+      });
+      return () => {
+        resizeObserver.disconnect();
+        term.dispose();
+      };
     }
     const handleResize = () => fit.fit();
     window.addEventListener("resize", handleResize);
@@ -171,6 +195,12 @@ const App = () => {
 
   useEffect(() => {
     if (!terminal.current) {
+      return;
+    }
+    if (!terminalReady.current) {
+      return;
+    }
+    if (!terminalRef.current || terminalRef.current.offsetWidth === 0) {
       return;
     }
     terminal.current.options.theme = {
@@ -331,7 +361,7 @@ const App = () => {
           id: edgeId,
           source: depNode.projectId,
           target: node.projectId,
-          type: "bezier",
+          type: "default",
           style: { stroke: edgeStroke },
         });
       });
@@ -691,7 +721,7 @@ const App = () => {
                     fitView
                     nodesDraggable
                     elementsSelectable
-                    panOnDrag={[2]}
+                    panOnDrag
                     onNodesChange={(changes) => {
                       setNodes((current) => {
                         const updated = applyNodeChanges(changes, current);
