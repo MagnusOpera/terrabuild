@@ -740,38 +740,39 @@ const App = () => {
             </Box>
           </Paper>
 
-          {showTerminal && (
-            <Paper
-              withBorder
-              shadow="md"
-              radius="md"
-              p="md"
-              style={{
-                height: 280,
-                display: "flex",
-                flexDirection: "column",
-                animation: "terminal-slide 220ms ease",
-              }}
-            >
-              <Group position="apart" mb="sm">
-                <Title order={4}>Build Log</Title>
-                <Group spacing="xs">
-                  <Badge color={buildRunning ? "orange" : "gray"}>
-                    {buildRunning ? "Live" : "Idle"}
-                  </Badge>
-                  <ActionIcon
-                    size="lg"
-                    variant="subtle"
-                    onClick={() => setShowTerminal(false)}
-                    aria-label="Hide terminal"
-                  >
-                    <IconSquareRoundedChevronDown size={18} />
-                  </ActionIcon>
-                </Group>
+          <Paper
+            withBorder
+            shadow="md"
+            radius="md"
+            p="md"
+            style={{
+              height: showTerminal ? 280 : 0,
+              opacity: showTerminal ? 1 : 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              transition: "height 200ms ease, opacity 200ms ease",
+              pointerEvents: showTerminal ? "auto" : "none",
+            }}
+          >
+            <Group position="apart" mb="sm">
+              <Title order={4}>Build Log</Title>
+              <Group spacing="xs">
+                <Badge color={buildRunning ? "orange" : "gray"}>
+                  {buildRunning ? "Live" : "Idle"}
+                </Badge>
+                <ActionIcon
+                  size="lg"
+                  variant="subtle"
+                  onClick={() => setShowTerminal(false)}
+                  aria-label="Hide terminal"
+                >
+                  <IconSquareRoundedChevronDown size={18} />
+                </ActionIcon>
               </Group>
-              <Box className="terminal-body" ref={terminalRef} />
-            </Paper>
-          )}
+            </Group>
+            <Box className="terminal-body" ref={terminalRef} />
+          </Paper>
         </Stack>
       </Box>
     </AppShell>
