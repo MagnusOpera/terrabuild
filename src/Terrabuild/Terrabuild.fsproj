@@ -5,6 +5,7 @@
     <ToolCommandName>terrabuild</ToolCommandName>
     <AssemblyName>terrabuild</AssemblyName>
     <IsPackable>true</IsPackable>
+    <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Contracts/Api.fs" />
@@ -82,6 +83,9 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>ui\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
+    <EmbeddedResource Include="..\Terrabuild.UI\dist\**\*">
+      <LogicalName>ui\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <PropertyGroup>

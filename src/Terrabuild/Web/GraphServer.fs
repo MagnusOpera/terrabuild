@@ -261,7 +261,22 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         graphArgs.TryGetResult(CLI.GraphArgs.Workspace)
         |> resolveWorkspace
     let shouldOpenBrowser = graphArgs.Contains(GraphArgs.No_Open) |> not
-    let uiRoot = Path.Combine(AppContext.BaseDirectory, "ui")
+    let processDir =
+        System.Environment.ProcessPath
+        |> Option.ofObj
+        |> Option.bind (fun path -> Path.GetDirectoryName(path) |> Option.ofObj)
+    let defaultUiRoot = Path.Combine(AppContext.BaseDirectory, "ui")
+    let uiEnv = System.Environment.GetEnvironmentVariable("TB_UI_ROOT") |> Option.ofObj |> Option.defaultValue defaultUiRoot
+    let uiCandidates =
+        [
+            uiEnv
+            defaultUiRoot
+            Path.Combine(AppContext.BaseDirectory, "..", "ui")
+            Path.Combine(AppContext.BaseDirectory, "..", "share", "terrabuild", "ui")
+            Path.Combine(AppContext.BaseDirectory, "..", "lib", "terrabuild", "ui")
+        ]
+        |> List.append (processDir |> Option.map (fun dir -> Path.Combine(dir, "ui")) |> Option.toList)
+        |> List.map (fun path -> Path.GetFullPath(path))
     let port = graphArgs.TryGetResult(GraphArgs.Port) |> Option.defaultValue 5179
     let url = $"http://127.0.0.1:{port}"
     let builder = WebApplication.CreateBuilder()
@@ -274,7 +289,26 @@ let start (graphArgs: ParseResults<GraphArgs>) =
     let buildState = createBuildState()
     let workspaceLock = obj()
 
-    let fileProvider = new PhysicalFileProvider(uiRoot)
+    let embeddedProvider =
+        try
+            let assembly = System.Reflection.Assembly.GetExecutingAssembly()
+            let provider = new ManifestEmbeddedFileProvider(assembly, "ui")
+            if provider.GetFileInfo("index.html").Exists then
+                Some (provider :> IFileProvider)
+            else
+                None
+        with :? InvalidOperationException ->
+            None
+
+    let physicalProvider =
+        uiCandidates
+        |> List.tryFind Directory.Exists
+        |> Option.map (fun root -> new PhysicalFileProvider(root) :> IFileProvider)
+
+    let fileProvider =
+        embeddedProvider
+        |> Option.orElse physicalProvider
+        |> Option.defaultValue (new Microsoft.Extensions.FileProviders.NullFileProvider() :> IFileProvider)
     let defaultFiles =
         DefaultFilesOptions(
             FileProvider = fileProvider,
@@ -484,14 +518,16 @@ let start (graphArgs: ParseResults<GraphArgs>) =
 
     app.MapFallback(Func<HttpContext, Task>(fun ctx ->
         task {
-            let indexFile = Path.Combine(uiRoot, "index.html")
-            if File.Exists(indexFile) then
+            let indexFile = fileProvider.GetFileInfo("index.html")
+            if indexFile.Exists then
                 ctx.Response.ContentType <- "text/html"
-                let! html = File.ReadAllTextAsync(indexFile)
+                use stream = indexFile.CreateReadStream()
+                use reader = new StreamReader(stream, Encoding.UTF8)
+                let! html = reader.ReadToEndAsync()
                 do! ctx.Response.WriteAsync(html)
             else
                 ctx.Response.StatusCode <- 404
-                do! ctx.Response.WriteAsync("UI assets not found. Build Terrabuild.UI first.")
+                do! ctx.Response.WriteAsync("UI assets not found. Set TB_UI_ROOT or build Terrabuild.UI.")
         }))
     |> ignore
 
