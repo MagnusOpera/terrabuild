@@ -223,6 +223,8 @@ let private startBuildProcess (workspace: string) (request: BuildRequest) (logSt
                     RedirectStandardError = true,
                     UseShellExecute = false
                 )
+            psi.EnvironmentVariables["TB_FORCE_ANSI"] <- "1"
+            psi.EnvironmentVariables["TERM"] <- "xterm-256color"
             let proc = new Process(StartInfo = psi, EnableRaisingEvents = true)
             if proc.Start() |> not then
                 Error "Failed to start build process."

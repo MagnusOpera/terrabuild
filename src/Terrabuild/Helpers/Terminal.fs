@@ -21,8 +21,15 @@ let private terms = [
     "alacritty" // Alacritty
 ]
 
+let private forceAnsi =
+    match System.Environment.GetEnvironmentVariable("TB_FORCE_ANSI") |> Option.ofObj with
+    | Some "1" -> true
+    | Some "true" -> true
+    | Some "TRUE" -> true
+    | _ -> false
+
 let supportAnsi =
-    not Console.IsOutputRedirected
+    (forceAnsi || not Console.IsOutputRedirected)
     &&
     match System.Environment.GetEnvironmentVariable("TERM") |> Option.ofObj with
     | Some currTerm ->
