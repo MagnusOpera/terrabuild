@@ -691,7 +691,7 @@ const App = () => {
             withBorder
             radius="md"
             p="md"
-            style={{ flex: 1, display: "flex", flexDirection: "column" }}
+            style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
           >
             <Group position="apart" mb="sm">
               <Title order={4}>Execution Graph</Title>
@@ -713,12 +713,12 @@ const App = () => {
                 </Button>
               </Group>
             </Group>
-            <Box style={{ flex: 1, minHeight: 0 }}>
+            <Box style={{ flex: 1, minHeight: 0, width: "100%", height: "100%" }}>
               {graph ? (
-                  <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    fitView
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  fitView
                     nodesDraggable
                     elementsSelectable
                     panOnDrag
@@ -742,9 +742,9 @@ const App = () => {
                       loadProjectResults(node.data.meta as ProjectNode)
                     }
                   >
-                  <Background gap={24} />
-                  <Controls position="bottom-right" />
-                </ReactFlow>
+                    <Background gap={24} />
+                    <Controls position="bottom-right" />
+                  </ReactFlow>
               ) : (
                 <Group position="center" style={{ height: "100%" }}>
                   <Text size="sm" c="dimmed">
