@@ -20,8 +20,12 @@ current_dir = $(shell pwd)
 # |_______/ |_______|   \__/
 #
 
-build:
+build: webui
 	dotnet build -c $(config) terrabuild.slnx
+
+webui:
+	cd src/Terrabuild.UI && pnpm install
+	cd src/Terrabuild.UI && pnpm build
 
 test:
 	dotnet test -c $(config) terrabuild.slnx

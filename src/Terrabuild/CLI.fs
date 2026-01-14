@@ -103,6 +103,15 @@ with
             | Type _-> "Select projects based on extension types."
             | Project _ -> "Select projets base on id."
 
+[<RequireQualifiedAccess>]
+type GraphArgs =
+    | [<Unique; AltCommandLine("-w")>] Workspace of path:string
+with
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Workspace _ -> "Root of workspace. If not specified, current directory is used."
+
 
 [<RequireQualifiedAccess>]
 type ClearArgs =
@@ -145,6 +154,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Logs of ParseResults<LogsArgs>
     | [<CliPrefix(CliPrefix.None)>] Run of ParseResults<RunArgs>
     | [<CliPrefix(CliPrefix.None)>] Serve of ParseResults<ServeArgs>
+    | [<CliPrefix(CliPrefix.None)>] Graph of ParseResults<GraphArgs>
     | [<CliPrefix(CliPrefix.None)>] Clear of ParseResults<ClearArgs>
     | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<LoginArgs>
     | [<CliPrefix(CliPrefix.None)>] Logout of ParseResults<LogoutArgs>
@@ -159,6 +169,7 @@ with
             | Logs _ -> "dump logs."
             | Run _ -> "Run specified targets."
             | Serve _ -> "Serve specified targets."
+            | Graph _ -> "Visualize and build graph in a web UI."
             | Clear _ -> "Clear specified caches."
             | Login _ -> "Connect to backend."
             | Logout _ -> "Disconnect from backend."

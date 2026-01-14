@@ -20,6 +20,7 @@ locals {
 
     versions = {
         dotnet_sdk: "10.0.100" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
+        pnpm: "22-10" # https://hub.docker.com/r/guergeiro/pnpm/tags
     }
 }
 
@@ -51,5 +52,15 @@ extension @dotnet {
         runtime = local.runtimes.dotnet
         configuration = local.dotnet.config
         evaluate = local.dotnet.evaluate
+    }
+}
+
+extension @pnpm {
+    image = local.is_local_build ? nothing : "docker.io/guergeiro/pnpm:${local.versions.pnpm}"
+    defaults {
+        frozen = true
+    }
+    env {
+        CI = true
     }
 }

@@ -1,0 +1,11 @@
+project terrabuildui {
+    @pnpm { }
+}
+
+target install {
+    @pnpm install { }
+}
+
+target build {
+    @pnpm build { }
+}

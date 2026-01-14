@@ -300,6 +300,9 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Engine = None }
         runTarget options
 
+    let graph (graphArgs: ParseResults<GraphArgs>) =
+        GraphServer.start graphArgs
+
     let logs (logsArgs: ParseResults<LogsArgs>) =
         let targets = logsArgs.GetResult(LogsArgs.Target) |> Seq.map String.toLower
         let wsDir =
@@ -366,6 +369,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | p when p.Contains(TerrabuildArgs.Logs) -> p.GetResult(TerrabuildArgs.Logs) |> logs
     | p when p.Contains(TerrabuildArgs.Run) -> p.GetResult(TerrabuildArgs.Run) |> run
     | p when p.Contains(TerrabuildArgs.Serve) -> p.GetResult(TerrabuildArgs.Serve) |> serve
+    | p when p.Contains(TerrabuildArgs.Graph) -> p.GetResult(TerrabuildArgs.Graph) |> graph
     | p when p.Contains(TerrabuildArgs.Clear) -> p.GetResult(TerrabuildArgs.Clear) |> clear
     | p when p.Contains(TerrabuildArgs.Login) -> p.GetResult(TerrabuildArgs.Login) |> login
     | p when p.Contains(TerrabuildArgs.Logout) -> p.GetResult(TerrabuildArgs.Logout) |> logout
