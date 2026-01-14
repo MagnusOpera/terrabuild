@@ -20,8 +20,12 @@ current_dir = $(shell pwd)
 # |_______/ |_______|   \__/
 #
 
-build:
+build: webui
 	dotnet build -c $(config) terrabuild.slnx
+
+webui:
+	cd src/Terrabuild.UI && pnpm install
+	cd src/Terrabuild.UI && pnpm build
 
 test:
 	dotnet test -c $(config) terrabuild.slnx
@@ -99,6 +103,9 @@ terrabuild:
 #     |  |     |  |____.----)   |      |  |    .----)   |
 #     |__|     |_______|_______/       |__|    |_______/
 #
+
+ui: webui
+	$(terrabuild) graph --no-open --port 5179
 
 test-scaffold:
 	$(terrabuild) scaffold --workspace tests/scaffold --debug --log

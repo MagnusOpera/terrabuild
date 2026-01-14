@@ -41,6 +41,7 @@
     <Compile Include="Storages/AzureBlobStorage.fs" />
     <Compile Include="Storages/Factory.fs" />
     <Compile Include="CLI.fs" />
+    <Compile Include="Web/GraphServer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -54,6 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageReference Include="FSharp.Data" Version="6.6.0" />
     <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
@@ -72,6 +74,14 @@
     </Content>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="Terrabuild.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Terrabuild.UI\dist\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>ui\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup>
