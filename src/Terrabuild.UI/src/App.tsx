@@ -32,7 +32,12 @@ import dagre from "dagre";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
-import { IconMoon, IconSun } from "@tabler/icons-react";
+import {
+  IconAffiliate,
+  IconMoon,
+  IconSun,
+  IconSquareRoundedChevronDown,
+} from "@tabler/icons-react";
 
 type ProjectInfo = {
   id: string;
@@ -132,6 +137,7 @@ const App = () => {
   const [selectedTargetKey, setSelectedTargetKey] = useState<string | null>(
     null
   );
+  const [showTerminal, setShowTerminal] = useState(false);
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
   );
@@ -226,7 +232,7 @@ const App = () => {
       background: nodeBackground,
       color: nodeText,
       padding: 8,
-      fontSize: 24,
+      fontSize: 32,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -410,6 +416,7 @@ const App = () => {
       return;
     }
     terminal.current.reset();
+    setShowTerminal(true);
     logAbort.current?.abort();
     const controller = new AbortController();
     logAbort.current = controller;
@@ -503,6 +510,7 @@ const App = () => {
     }
     setSelectedTargetKey(key);
     terminal.current.reset();
+    setShowTerminal(true);
     if (!summary) {
       terminal.current.write("No cached log available.\n");
       return;
@@ -604,7 +612,7 @@ const App = () => {
               </Text>
             )}
 
-            <Paper withBorder p="md" radius="md">
+            <Paper withBorder p="md" radius="md" shadow="md">
               <Stack spacing="xs">
                 <Text fw={600}>Node Details</Text>
                 {selectedProject ? (
@@ -664,6 +672,7 @@ const App = () => {
         <Stack spacing="md" style={{ height: "100%" }}>
           <Paper
             withBorder
+            shadow="md"
             radius="md"
             p="md"
             style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
@@ -676,16 +685,17 @@ const App = () => {
                     {graphError}
                   </Text>
                 )}
-                <Button
-                  size="xs"
+                <ActionIcon
+                  size="lg"
                   variant="light"
                   onClick={() => {
                     setManualPositions({});
                     setLayoutVersion((value) => value + 1);
                   }}
+                  aria-label="Reflow graph"
                 >
-                  Reflow
-                </Button>
+                  <IconAffiliate size={18} />
+                </ActionIcon>
               </Group>
             </Group>
             <Box style={{ flex: 1, minHeight: 0, width: "100%", height: "100%" }}>
@@ -730,20 +740,38 @@ const App = () => {
             </Box>
           </Paper>
 
-          <Paper
-            withBorder
-            radius="md"
-            p="md"
-            style={{ height: 280, display: "flex", flexDirection: "column" }}
-          >
-            <Group position="apart" mb="sm">
-              <Title order={4}>Build Log</Title>
-              <Badge color={buildRunning ? "orange" : "gray"}>
-                {buildRunning ? "Live" : "Idle"}
-              </Badge>
-            </Group>
-            <Box className="terminal-body" ref={terminalRef} />
-          </Paper>
+          {showTerminal && (
+            <Paper
+              withBorder
+              shadow="md"
+              radius="md"
+              p="md"
+              style={{
+                height: 280,
+                display: "flex",
+                flexDirection: "column",
+                animation: "terminal-slide 220ms ease",
+              }}
+            >
+              <Group position="apart" mb="sm">
+                <Title order={4}>Build Log</Title>
+                <Group spacing="xs">
+                  <Badge color={buildRunning ? "orange" : "gray"}>
+                    {buildRunning ? "Live" : "Idle"}
+                  </Badge>
+                  <ActionIcon
+                    size="lg"
+                    variant="subtle"
+                    onClick={() => setShowTerminal(false)}
+                    aria-label="Hide terminal"
+                  >
+                    <IconSquareRoundedChevronDown size={18} />
+                  </ActionIcon>
+                </Group>
+              </Group>
+              <Box className="terminal-body" ref={terminalRef} />
+            </Paper>
+          )}
         </Stack>
       </Box>
     </AppShell>
