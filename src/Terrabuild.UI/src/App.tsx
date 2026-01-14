@@ -26,6 +26,7 @@ import ReactFlow, {
   applyNodeChanges,
   useEdgesState,
   useNodesState,
+  ReactFlowInstance,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "dagre";
@@ -89,13 +90,13 @@ type TargetSummary = {
   outputs?: string | null;
 };
 
-const nodeWidth = 240;
-const nodeHeight = 80;
+const nodeWidth = 320;
+const nodeHeight = 120;
 
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
   graph.setDefaultEdgeLabel(() => ({}));
-  graph.setGraph({ rankdir: "LR", nodesep: 50, ranksep: 80 });
+  graph.setGraph({ rankdir: "LR", nodesep: 90, ranksep: 140 });
 
   nodes.forEach((node) => {
     graph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -147,6 +148,7 @@ const App = () => {
   >({});
   const [nodes, setNodes] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const flowInstance = useRef<ReactFlowInstance | null>(null);
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
 
@@ -220,7 +222,7 @@ const App = () => {
 
   const getNodeStyle = (nodeId: string) => {
     const isDark = colorScheme === "dark";
-    const defaultBorder = isDark ? theme.colors.dark[4] : theme.colors.gray[4];
+    const defaultBorder = isDark ? theme.colors.dark[3] : theme.colors.gray[6];
     const selectedBorder = theme.colors.blue[6];
     const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
     const nodeText = isDark ? theme.colors.gray[1] : theme.black;
@@ -239,6 +241,7 @@ const App = () => {
       width: "fit-content",
       minWidth: 200,
       minHeight: 80,
+      maxWidth: 360,
       boxShadow:
         nodeId === selectedNodeId
           ? "0 0 0 2px rgba(34, 139, 230, 0.2)"
@@ -395,6 +398,13 @@ const App = () => {
     }
     setNodes(baseGraph.nodes);
     setEdges(baseGraph.edges);
+    requestAnimationFrame(() => {
+      flowInstance.current?.fitView({
+        padding: 0.5,
+        duration: 300,
+        minZoom: 0.1,
+      });
+    });
   }, [graph, baseGraph, manualPositions, setNodes, setEdges]);
 
   const handleSelectTargets = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -530,87 +540,89 @@ const App = () => {
                 <Text size="xs" tt="uppercase" fw={600} c="dimmed">
                   Terrabuild
                 </Text>
-                <Title order={3}>Graph Console</Title>
               </Box>
               <ActionIcon
                 onClick={() => toggleColorScheme()}
-                variant="default"
-                size="xl"
-                radius="md"
+                variant="light"
+                size="lg"
                 aria-label="Toggle color scheme"
               >
                 {colorScheme === "dark" ? (
-                  <IconSun stroke={1.5} />
+                  <IconSun size={18} />
                 ) : (
-                  <IconMoon stroke={1.5} />
+                  <IconMoon size={18} />
                 )}
               </ActionIcon>
             </Group>
 
-            <MultiSelect
-              data={targets.map((target) => ({ value: target, label: target }))}
-              label="Targets (required)"
-              placeholder="Select targets"
-              searchable
-              nothingFound="No targets"
-              value={selectedTargets}
-              onChange={(values) => setSelectedTargets(values)}
-            />
+            <Paper withBorder p="md" radius="md" shadow="md">
+              <Stack spacing="sm">
+                <MultiSelect
+                  data={targets.map((target) => ({ value: target, label: target }))}
+                  label="Targets (required)"
+                  placeholder="Select targets"
+                  searchable
+                  nothingFound="No targets"
+                  value={selectedTargets}
+                  onChange={(values) => setSelectedTargets(values)}
+                />
 
-            <MultiSelect
-              data={projects.map((project) => ({
-                value: project.id,
-                label: project.name
-                  ? `${project.name} (${project.id})`
-                  : project.id,
-              }))}
-              label="Projects (optional)"
-              placeholder="Select projects"
-              searchable
-              nothingFound="No projects"
-              value={selectedProjects}
-              onChange={(values) => setSelectedProjects(values)}
-            />
+                <MultiSelect
+                  data={projects.map((project) => ({
+                    value: project.id,
+                    label: project.name
+                      ? `${project.name} (${project.id})`
+                      : project.id,
+                  }))}
+                  label="Projects (optional)"
+                  placeholder="Select projects"
+                  searchable
+                  nothingFound="No projects"
+                  value={selectedProjects}
+                  onChange={(values) => setSelectedProjects(values)}
+                />
 
-            <Group spacing="md">
-              <Checkbox
-                label="Force"
-                checked={forceBuild}
-                onChange={(event) => setForceBuild(event.currentTarget.checked)}
-              />
-              <Checkbox
-                label="Retry"
-                checked={retryBuild}
-                onChange={(event) => setRetryBuild(event.currentTarget.checked)}
-              />
-            </Group>
+                <Group spacing="md">
+                  <Checkbox
+                    label="Force"
+                    checked={forceBuild}
+                    onChange={(event) => setForceBuild(event.currentTarget.checked)}
+                  />
+                  <Checkbox
+                    label="Retry"
+                    checked={retryBuild}
+                    onChange={(event) => setRetryBuild(event.currentTarget.checked)}
+                  />
+                </Group>
 
-            <NumberInput
-              label="Parallelism"
-              placeholder="auto"
-              min={1}
-              value={parallelism === "" ? undefined : Number(parallelism)}
-              onChange={(value) => {
-                if (value === "" || value === null) {
-                  setParallelism("");
-                } else {
-                  setParallelism(String(value));
-                }
-              }}
-            />
+                <NumberInput
+                  label="Parallelism"
+                  placeholder="auto"
+                  min={1}
+                  value={parallelism === "" ? undefined : Number(parallelism)}
+                  onChange={(value) => {
+                    if (value === "" || value === null) {
+                      setParallelism("");
+                    } else {
+                      setParallelism(String(value));
+                    }
+                  }}
+                />
 
-            <Button
-              onClick={startBuild}
-              disabled={buildRunning || selectedTargets.length === 0}
-            >
-              {buildRunning ? "Building..." : "Build"}
-            </Button>
+                <Button
+                  onClick={startBuild}
+                  disabled={buildRunning || selectedTargets.length === 0}
+                >
+                  {buildRunning ? "Building..." : "Build"}
+                </Button>
 
-            {buildError && (
-              <Text size="sm" c="red">
-                {buildError}
-              </Text>
-            )}
+                {buildError && (
+                  <Text size="sm" c="red">
+                    {buildError}
+                  </Text>
+                )}
+              </Stack>
+            </Paper>
 
             <Paper withBorder p="md" radius="md" shadow="md">
               <Stack spacing="xs">
@@ -700,10 +712,15 @@ const App = () => {
             </Group>
             <Box style={{ flex: 1, minHeight: 0, width: "100%", height: "100%" }}>
               {graph ? (
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  fitView
+                  <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    fitView
+                    fitViewOptions={{ padding: 0.5, minZoom: 0.1 }}
+                    minZoom={0.1}
+                    onInit={(instance) => {
+                      flowInstance.current = instance;
+                    }}
                     nodesDraggable
                     elementsSelectable
                     panOnDrag
