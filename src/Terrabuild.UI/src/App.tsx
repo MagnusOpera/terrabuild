@@ -500,6 +500,11 @@ const App = () => {
         setNodeResults((prev) => ({ ...prev, [cacheKey]: summary }));
       })
     );
+    if (project.targets.length > 0) {
+      const first = project.targets[0];
+      const cacheKey = `${first.projectHash}/${first.target}/${first.targetHash}`;
+      await showTargetLog(cacheKey, first);
+    }
   };
 
   const buildTargetLog = (summary: TargetSummary) => {
@@ -514,19 +519,26 @@ const App = () => {
       .join("\n\n");
   };
 
-  const showTargetLog = (summary: TargetSummary | null, key: string) => {
+  const showTargetLog = async (key: string, target: GraphNode) => {
     if (!terminal.current) {
       return;
     }
     setSelectedTargetKey(key);
     terminal.current.reset();
     setShowTerminal(true);
-    if (!summary) {
-      terminal.current.write("No cached log available.\n");
-      return;
+    try {
+      const response = await fetch(
+        `/api/build/target-log/${target.projectHash}/${target.target}/${target.targetHash}`
+      );
+      if (!response.ok) {
+        terminal.current.write("No cached log available.\n");
+        return;
+      }
+      const log = await response.text();
+      terminal.current.write(log.length > 0 ? log : "No cached log available.\n");
+    } catch {
+      terminal.current.write("Failed to load cached log.\n");
     }
-    const log = buildTargetLog(summary);
-    terminal.current.write(log.length > 0 ? log : "No cached log available.\n");
   };
 
   return (
@@ -648,7 +660,7 @@ const App = () => {
                                 : "gray"
                             }
                             onClick={() =>
-                              showTargetLog(summary ?? null, cacheKey)
+                              showTargetLog(cacheKey, target)
                             }
                             rightIcon={
                               summary ? (

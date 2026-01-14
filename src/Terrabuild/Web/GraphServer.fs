@@ -408,6 +408,38 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         }))
     |> ignore
 
+    app.MapGet("/api/build/target-log/{projectHash}/{targetName}/{targetHash}", Func<HttpContext, Task<IResult>>(fun ctx ->
+        task {
+            let getRouteValue name =
+                match ctx.Request.RouteValues.TryGetValue(name) with
+                | true, null -> None
+                | true, (:? string as value) -> Some value
+                | _ -> None
+
+            match getRouteValue "projectHash", getRouteValue "targetName", getRouteValue "targetHash" with
+            | Some projectHash, Some targetName, Some targetHash ->
+                let cacheKey = $"{projectHash}/{targetName}/{targetHash}"
+                let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
+                match cache.TryGetSummary false cacheKey with
+                | Some summary ->
+                    let builder = StringBuilder()
+                    summary.Operations
+                    |> List.collect id
+                    |> List.iter (fun step ->
+                        if IO.exists step.Log then
+                            let content = IO.readTextFile step.Log
+                            if String.IsNullOrWhiteSpace(content) |> not then
+                                if builder.Length > 0 then builder.AppendLine().AppendLine() |> ignore
+                                builder.AppendLine(step.MetaCommand).AppendLine(content) |> ignore
+                    )
+                    let logText = builder.ToString()
+                    return Results.Text(logText, "text/plain")
+                | None -> return Results.NotFound()
+            | _ ->
+                return Results.BadRequest("Missing route values.")
+        }))
+    |> ignore
+
     app.MapFallback(Func<HttpContext, Task>(fun ctx ->
         task {
             let indexFile = Path.Combine(uiRoot, "index.html")
