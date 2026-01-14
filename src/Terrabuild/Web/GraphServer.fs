@@ -36,6 +36,11 @@ type ProjectInfo = {
     Hash: string
 }
 
+type ProjectStatus = {
+    ProjectId: string
+    Status: string
+}
+
 type BuildLogState = {
     Buffer: StringBuilder
     Subscribers: ConcurrentDictionary<Guid, Channel<string>>
@@ -330,6 +335,37 @@ let start (graphArgs: ParseResults<GraphArgs>) =
                         buildBatchGraph workspace targets projects
                     )
                 let json = Json.Serialize graph
+                return Results.Text(json, "application/json")
+        }))
+    |> ignore
+
+    app.MapGet("/api/build/status", Func<HttpContext, Task<IResult>>(fun ctx ->
+        task {
+            let targets = ctx.Request.Query.["targets"] |> parseCsvValues
+            let projects = ctx.Request.Query.["projects"] |> parseCsvValues |> function | [] -> None | values -> Some values
+            if targets.IsEmpty then
+                return Results.BadRequest("At least one target is required.")
+            else
+                let graph =
+                    lock workspaceLock (fun () ->
+                        buildBatchGraph workspace targets projects
+                    )
+                let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
+                let statuses =
+                    graph.Nodes
+                    |> Map.toSeq
+                    |> Seq.choose (fun (_, node) ->
+                        let cacheKey = GraphDef.buildCacheKey node
+                        match cache.TryGetSummary false cacheKey with
+                        | Some summary -> Some (node.ProjectId, summary.IsSuccessful)
+                        | _ -> None)
+                    |> Seq.groupBy fst
+                    |> Seq.map (fun (projectId, results) ->
+                        let hasFailure = results |> Seq.exists (fun (_, ok) -> ok = false)
+                        let status = if hasFailure then "failed" else "success"
+                        { ProjectStatus.ProjectId = projectId; ProjectStatus.Status = status })
+                    |> Seq.toList
+                let json = Json.Serialize statuses
                 return Results.Text(json, "application/json")
         }))
     |> ignore

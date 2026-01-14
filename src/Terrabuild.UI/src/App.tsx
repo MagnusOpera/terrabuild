@@ -62,6 +62,11 @@ type GraphResponse = {
   nodes: Record<string, GraphNode>;
 };
 
+type ProjectStatus = {
+  projectId: string;
+  status: "success" | "failed";
+};
+
 type ProjectNode = {
   id: string;
   name?: string | null;
@@ -138,6 +143,9 @@ const App = () => {
   const [selectedTargetKey, setSelectedTargetKey] = useState<string | null>(
     null
   );
+  const [projectStatus, setProjectStatus] = useState<
+    Record<string, ProjectStatus["status"]>
+  >({});
   const [showTerminal, setShowTerminal] = useState(false);
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
@@ -226,12 +234,19 @@ const App = () => {
     const selectedBorder = theme.colors.blue[6];
     const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
     const nodeText = isDark ? theme.colors.gray[1] : theme.black;
+    const status = projectStatus[nodeId];
+    const statusColor =
+      status === "failed"
+        ? theme.fn.rgba(theme.colors.red[6], isDark ? 0.35 : 0.15)
+        : status === "success"
+        ? theme.fn.rgba(theme.colors.green[6], isDark ? 0.35 : 0.15)
+        : null;
     return {
       borderRadius: 12,
       borderStyle: "solid",
       borderWidth: nodeId === selectedNodeId ? 2 : 1,
       borderColor: nodeId === selectedNodeId ? selectedBorder : defaultBorder,
-      background: nodeBackground,
+      background: statusColor ?? nodeBackground,
       color: nodeText,
       padding: 8,
       fontSize: 32,
@@ -261,7 +276,7 @@ const App = () => {
         style: getNodeStyle(node.id),
       }))
     );
-  }, [selectedNodeId, colorScheme, theme, setNodes]);
+  }, [selectedNodeId, colorScheme, theme, projectStatus, setNodes]);
 
   useEffect(() => {
     const load = async () => {
@@ -299,6 +314,20 @@ const App = () => {
       const data = (await response.json()) as GraphResponse;
       setManualPositions({});
       setGraph(data);
+
+      const statusResponse = await fetch(
+        `/api/build/status?${params.toString()}`
+      );
+      if (statusResponse.ok) {
+        const statusData = (await statusResponse.json()) as ProjectStatus[];
+        const statusMap: Record<string, ProjectStatus["status"]> = {};
+        statusData.forEach((item) => {
+          statusMap[item.projectId] = item.status;
+        });
+        setProjectStatus(statusMap);
+      } else {
+        setProjectStatus({});
+      }
     };
     fetchGraph().catch(() => {
       setGraphError("Failed to load graph.");
@@ -479,6 +508,38 @@ const App = () => {
       setBuildRunning(false);
     });
   };
+
+  useEffect(() => {
+    if (buildRunning) {
+      return;
+    }
+    if (selectedTargets.length === 0) {
+      return;
+    }
+    const refresh = async () => {
+      const params = new URLSearchParams();
+      selectedTargets.forEach((target) => params.append("targets", target));
+      selectedProjects.forEach((project) => params.append("projects", project));
+      const response = await fetch(`/api/graph?${params.toString()}`);
+      if (response.ok) {
+        const data = (await response.json()) as GraphResponse;
+        setManualPositions({});
+        setGraph(data);
+      }
+      const statusResponse = await fetch(
+        `/api/build/status?${params.toString()}`
+      );
+      if (statusResponse.ok) {
+        const statusData = (await statusResponse.json()) as ProjectStatus[];
+        const statusMap: Record<string, ProjectStatus["status"]> = {};
+        statusData.forEach((item) => {
+          statusMap[item.projectId] = item.status;
+        });
+        setProjectStatus(statusMap);
+      }
+    };
+    refresh().catch(() => null);
+  }, [buildRunning, selectedTargets, selectedProjects]);
 
   const loadProjectResults = async (project: ProjectNode) => {
     setSelectedProject(project);
