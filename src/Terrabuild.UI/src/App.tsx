@@ -254,10 +254,10 @@ const App = () => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      textAlign: "center",
       width: "fit-content",
-      minWidth: 200,
       minHeight: 80,
-      maxWidth: 360,
+      whiteSpace: "nowrap",
       boxShadow:
         nodeId === selectedNodeId
           ? "0 0 0 2px rgba(34, 139, 230, 0.2)"
