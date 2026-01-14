@@ -717,7 +717,7 @@ let read (options: ConfigOptions.Options) =
             $"Targets [{targets}]"
             if labels.IsSome then $"Labels [{labels.Value}]"
             if types.IsSome then $"Types [{types.Value}]"
-            if projects.IsSome then $"Types [{projects.Value}]"
+            if projects.IsSome then $"Projects [{projects.Value}]"
         ]
     configInfos |> List.iter (fun configInfo -> $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {configInfo}" |> Terminal.writeLine)
 

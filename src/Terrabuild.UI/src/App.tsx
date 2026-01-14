@@ -703,10 +703,12 @@ const App = () => {
                 />
 
                 <MultiSelect
-                  data={projects.map((project) => ({
-                    value: project.id,
-                    label: project.name ?? project.id,
-                  }))}
+                  data={projects
+                    .filter((project) => project.name)
+                    .map((project) => ({
+                      value: project.name as string,
+                      label: project.name as string,
+                    }))}
                   label="Projects (optional)"
                   placeholder="Select projects"
                   searchable
