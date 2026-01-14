@@ -252,6 +252,7 @@ let start (graphArgs: ParseResults<GraphArgs>) =
     let workspace =
         graphArgs.TryGetResult(CLI.GraphArgs.Workspace)
         |> resolveWorkspace
+    let shouldOpenBrowser = graphArgs.Contains(GraphArgs.No_Open) |> not
     let uiRoot = Path.Combine(AppContext.BaseDirectory, "ui")
     let port = pickPort()
     let url = $"http://127.0.0.1:{port}"
@@ -410,6 +411,7 @@ let start (graphArgs: ParseResults<GraphArgs>) =
     |> ignore
 
     let runTask = app.RunAsync()
-    openBrowser url
+    if shouldOpenBrowser then
+        openBrowser url
     runTask.Wait()
     0

@@ -422,3 +422,4 @@ terrabuild-debug.md
 *.fsyacc.output
 
 !**/results/terrabuild-debug.*
+.pnpm-store

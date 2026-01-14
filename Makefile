@@ -104,6 +104,9 @@ terrabuild:
 #     |__|     |_______|_______/       |__|    |_______/
 #
 
+ui: webui
+	$(terrabuild) graph --no-open
+
 test-scaffold:
 	$(terrabuild) scaffold --workspace tests/scaffold --debug --log
 

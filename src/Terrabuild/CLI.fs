@@ -106,11 +106,13 @@ with
 [<RequireQualifiedAccess>]
 type GraphArgs =
     | [<Unique; AltCommandLine("-w")>] Workspace of path:string
+    | [<Unique>] No_Open
 with
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Workspace _ -> "Root of workspace. If not specified, current directory is used."
+            | No_Open -> "Do not open the browser automatically."
 
 
 [<RequireQualifiedAccess>]

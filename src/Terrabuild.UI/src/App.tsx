@@ -84,6 +84,11 @@ const App = () => {
   const [nodeResults, setNodeResults] = useState<Record<string, TargetSummary>>(
     {}
   );
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+  }, [theme]);
 
   const terminalRef = useRef<HTMLDivElement | null>(null);
   const terminal = useRef<Terminal | null>(null);
@@ -287,6 +292,14 @@ const App = () => {
             <p className="eyebrow">Terrabuild</p>
             <h1>Graph Console</h1>
           </div>
+          <button
+            className="ghost"
+            onClick={() =>
+              setTheme((current) => (current === "dark" ? "light" : "dark"))
+            }
+          >
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
         </div>
         <section className="panel-section">
           <label>
