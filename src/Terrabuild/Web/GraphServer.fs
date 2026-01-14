@@ -22,11 +22,11 @@ open CLI
 open Errors
 
 type BuildRequest = {
-    Targets: string list
+    Targets: string list option
     Projects: string list option
     Parallelism: int option
-    Force: bool
-    Retry: bool
+    Force: bool option
+    Retry: bool option
 }
 
 type ProjectInfo = {
@@ -183,7 +183,7 @@ let private openBrowser (url: string) =
 let private createBuildCommand (workspace: string) (request: BuildRequest) =
     let exePath = System.Environment.ProcessPath |> Option.ofObj |> Option.defaultValue "dotnet"
     let assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location
-    let targets = request.Targets |> Seq.map String.toLower |> String.join " "
+    let targets = request.Targets |> Option.defaultValue [] |> Seq.map String.toLower |> String.join " "
     let projectArgs =
         match request.Projects with
         | Some projects when projects.Length > 0 ->
@@ -193,8 +193,8 @@ let private createBuildCommand (workspace: string) (request: BuildRequest) =
         match request.Parallelism with
         | Some value when value > 0 -> $" --parallel {value}"
         | _ -> ""
-    let forceArg = if request.Force then " -f" else ""
-    let retryArg = if request.Retry then " -r" else ""
+    let forceArg = if request.Force |> Option.defaultValue false then " -f" else ""
+    let retryArg = if request.Retry |> Option.defaultValue false then " -r" else ""
     let baseArgs = $"run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{forceArg}{retryArg}"
     if isDotnetHost exePath then
         exePath, $"\"{assemblyPath}\" {baseArgs}"
@@ -345,7 +345,8 @@ let start (graphArgs: ParseResults<GraphArgs>) =
             match request with
             | Error err -> return Results.BadRequest(err)
             | Ok request ->
-                if request.Targets.IsEmpty then
+                let targets = request.Targets |> Option.defaultValue []
+                if targets.IsEmpty then
                     return Results.BadRequest("At least one target is required.")
                 else
                     match startBuildProcess workspace request logState buildState with

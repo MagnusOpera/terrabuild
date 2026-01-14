@@ -150,7 +150,7 @@ const App = () => {
 
   useEffect(() => {
     const term = new Terminal({
-      convertEol: false,
+      convertEol: true,
       scrollback: 3000,
       fontSize: 12,
     });
@@ -441,8 +441,8 @@ const App = () => {
       parallelism.trim().length > 0 ? Number(parallelism) : null;
     const payload = {
       targets: selectedTargets,
-      projects: selectedProjects.length > 0 ? selectedProjects : null,
-      parallelism: parallel && parallel > 0 ? parallel : null,
+      projects: selectedProjects,
+      parallelism: parallel && parallel > 0 ? parallel : undefined,
       force: forceBuild,
       retry: retryBuild,
     };
