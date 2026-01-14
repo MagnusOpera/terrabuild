@@ -311,12 +311,16 @@ let start (graphArgs: ParseResults<GraphArgs>) =
                     let _, config = buildConfig workspace [] None
                     config.Projects
                     |> Map.toList
-                    |> List.map (fun (_, project) ->
-                        { ProjectInfo.Id = project.Id
-                          ProjectInfo.Name = project.Name
-                          ProjectInfo.Directory = project.Directory
-                          ProjectInfo.Hash = project.Hash })
-                    |> List.sortBy (fun project -> project.Id)
+                    |> List.choose (fun (_, project) ->
+                        match project.Name with
+                        | Some name ->
+                            { ProjectInfo.Id = project.Id
+                              ProjectInfo.Name = Some name
+                              ProjectInfo.Directory = project.Directory
+                              ProjectInfo.Hash = project.Hash }
+                            |> Some
+                        | None -> None)
+                    |> List.sortBy (fun project -> project.Name |> Option.defaultValue project.Id)
                 )
             let json = Json.Serialize projects
             return Results.Text(json, "application/json")

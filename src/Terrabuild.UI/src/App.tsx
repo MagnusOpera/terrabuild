@@ -650,9 +650,7 @@ const App = () => {
                 <MultiSelect
                   data={projects.map((project) => ({
                     value: project.id,
-                    label: project.name
-                      ? `${project.name} (${project.id})`
-                      : project.id,
+                    label: project.name ?? project.id,
                   }))}
                   label="Projects (optional)"
                   placeholder="Select projects"
