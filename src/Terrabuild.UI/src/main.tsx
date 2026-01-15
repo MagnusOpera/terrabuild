@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { useLocalStorage } from "@mantine/hooks";
 import App from "./App";
 import "./styles.css";
@@ -15,6 +16,20 @@ const Root = () => {
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
 
+  const notificationTheme = {
+    colorScheme,
+    components: {
+      Notification: {
+        styles: (theme: any) => ({
+          root: {
+            border: `1px solid ${theme.colors.gray[3]}`,
+            borderRadius: 8,
+          },
+        }),
+      },
+    },
+  };
+
   return (
     <ColorSchemeProvider
       colorScheme={colorScheme}
@@ -23,8 +38,9 @@ const Root = () => {
       <MantineProvider
         withGlobalStyles
         withNormalizeCSS
-        theme={{ colorScheme }}
+        theme={notificationTheme}
       >
+        <Notifications position="top-right" />
         <App />
       </MantineProvider>
     </ColorSchemeProvider>
