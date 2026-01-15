@@ -12,8 +12,11 @@ type private EmbeddedUiFileInfo(resourceName: string, name: string, assembly: As
         member _.Exists = true
         member _.Length =
             try
-                use stream = assembly.GetManifestResourceStream(resourceName)
-                if isNull stream then -1L else stream.Length
+                match assembly.GetManifestResourceStream(resourceName) |> Option.ofObj with
+                | None -> -1L
+                | Some stream ->
+                    use stream = stream
+                    stream.Length
             with _ -> -1L
         member _.PhysicalPath = null
         member _.Name = name
@@ -22,9 +25,9 @@ type private EmbeddedUiFileInfo(resourceName: string, name: string, assembly: As
             DateTimeOffset.FromUnixTimeSeconds(0)
         member _.IsDirectory = false
         member _.CreateReadStream() =
-            match assembly.GetManifestResourceStream(resourceName) with
-            | null -> raise (FileNotFoundException($"Embedded resource not found: {resourceName}"))
-            | stream -> stream
+            match assembly.GetManifestResourceStream(resourceName) |> Option.ofObj with
+            | None -> raise (FileNotFoundException($"Embedded resource not found: {resourceName}"))
+            | Some stream -> stream
 
 type Provider(assembly: Assembly) =
     let normalizePath (path: string) =
@@ -62,7 +65,8 @@ type Provider(assembly: Assembly) =
             let key = normalizePath subpath
             match resourceMap.TryGetValue(key) with
             | true, resourceName ->
-                EmbeddedUiFileInfo(resourceName, Path.GetFileName(key), assembly) :> IFileInfo
+                let fileName = Path.GetFileName(key) |> Option.ofObj |> Option.defaultValue key
+                EmbeddedUiFileInfo(resourceName, fileName, assembly) :> IFileInfo
             | _ -> NotFoundFileInfo(subpath) :> IFileInfo
 
         member _.GetDirectoryContents(_subpath) =
