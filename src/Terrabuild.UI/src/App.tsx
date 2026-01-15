@@ -17,6 +17,7 @@ import {
   useMantineTheme,
   useMantineColorScheme,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import ReactFlow, {
   Background,
   Controls,
@@ -36,6 +37,7 @@ import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import {
   IconAffiliate,
+  IconCopy,
   IconMoon,
   IconSun,
   IconSquareRoundedChevronDown,
@@ -483,7 +485,99 @@ const App = () => {
         terminal.current.write(chunk);
       }
     }
+    try {
+      const params = new URLSearchParams();
+      selectedTargets.forEach((target) => params.append("targets", target));
+      selectedProjects.forEach((project) => params.append("projects", project));
+      const statusResponse = await fetch(
+        `/api/build/status?${params.toString()}`
+      );
+      if (statusResponse.ok) {
+        const statusData = (await statusResponse.json()) as ProjectStatus[];
+        const hasFailure = statusData.some((item) => item.status === "failed");
+        notifications.show({
+          color: hasFailure ? "red" : "green",
+          title: hasFailure ? "Build completed with failures" : "Build completed",
+          message: hasFailure
+            ? "One or more targets failed."
+            : "All targets completed successfully.",
+        });
+      } else {
+        notifications.show({
+          color: "yellow",
+          title: "Build completed",
+          message: "Unable to fetch build status.",
+        });
+      }
+    } catch {
+      notifications.show({
+        color: "yellow",
+        title: "Build completed",
+        message: "Unable to fetch build status.",
+      });
+    }
     setBuildRunning(false);
+  };
+
+  const buildPayload = () => {
+    const parallel =
+      parallelism.trim().length > 0 ? Number(parallelism) : null;
+    return {
+      targets: selectedTargets,
+      projects: selectedProjects,
+      parallelism: parallel && parallel > 0 ? parallel : undefined,
+      force: forceBuild,
+      retry: retryBuild,
+    };
+  };
+
+  const copyTextToClipboard = async (value: string) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  };
+
+  const copyBuildCommand = async () => {
+    if (selectedTargets.length === 0) {
+      return;
+    }
+    try {
+      const response = await fetch("/api/build/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload()),
+      });
+      if (!response.ok) {
+        notifications.show({
+          color: "red",
+          title: "Copy failed",
+          message: "Failed to generate build command.",
+        });
+        return;
+      }
+      const command = await response.text();
+      await copyTextToClipboard(command);
+      notifications.show({
+        color: "green",
+        title: "Copied",
+        message: "Build command copied to clipboard.",
+      });
+    } catch {
+      notifications.show({
+        color: "red",
+        title: "Copy failed",
+        message: "Failed to copy build command.",
+      });
+    }
   };
 
   const startBuild = async () => {
@@ -492,15 +586,7 @@ const App = () => {
     }
     setBuildRunning(true);
     setBuildError(null);
-    const parallel =
-      parallelism.trim().length > 0 ? Number(parallelism) : null;
-    const payload = {
-      targets: selectedTargets,
-      projects: selectedProjects,
-      parallelism: parallel && parallel > 0 ? parallel : undefined,
-      force: forceBuild,
-      retry: retryBuild,
-    };
+    const payload = buildPayload();
     const response = await fetch("/api/build", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -508,11 +594,27 @@ const App = () => {
     });
     if (!response.ok) {
       setBuildRunning(false);
-      setBuildError(await response.text());
+      const message = await response.text();
+      setBuildError(message);
+      notifications.show({
+        color: "red",
+        title: "Build failed to start",
+        message,
+      });
       return;
     }
+    notifications.show({
+      color: "blue",
+      title: "Build started",
+      message: "Build is running.",
+    });
     startLogStream().catch(() => {
       setBuildRunning(false);
+      notifications.show({
+        color: "red",
+        title: "Build failed",
+        message: "Build log stream failed.",
+      });
     });
   };
 
@@ -744,18 +846,31 @@ const App = () => {
                   }}
                 />
 
-                <Button
-                  onClick={startBuild}
-                  disabled={buildRunning || selectedTargets.length === 0}
-                >
-                  {buildRunning ? "Building..." : "Build"}
-                </Button>
+                <Group spacing="xs" noWrap>
+                  <Button
+                    onClick={startBuild}
+                    disabled={buildRunning || selectedTargets.length === 0}
+                    style={{ flex: 1 }}
+                  >
+                    {buildRunning ? "Building..." : "Build"}
+                  </Button>
+                  <ActionIcon
+                    size="lg"
+                    variant="light"
+                    onClick={copyBuildCommand}
+                    disabled={selectedTargets.length === 0}
+                    aria-label="Copy build command"
+                  >
+                    <IconCopy size={18} />
+                  </ActionIcon>
+                </Group>
 
                 {buildError && (
                   <Text size="sm" c="red">
                     {buildError}
                   </Text>
                 )}
+
               </Stack>
             </Paper>
 

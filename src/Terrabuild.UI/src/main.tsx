@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { useLocalStorage } from "@mantine/hooks";
 import App from "./App";
 import "./styles.css";
@@ -25,6 +26,7 @@ const Root = () => {
         withNormalizeCSS
         theme={{ colorScheme }}
       >
+        <Notifications position="top-right" />
         <App />
       </MantineProvider>
     </ColorSchemeProvider>

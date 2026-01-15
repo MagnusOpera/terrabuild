@@ -431,6 +431,26 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         }))
     |> ignore
 
+    app.MapPost("/api/build/command", Func<HttpContext, Task<IResult>>(fun ctx ->
+        task {
+            let! body = readBody ctx
+            let request =
+                try
+                    Json.Deserialize<BuildRequest> body |> Ok
+                with ex ->
+                    Error ex.Message
+            match request with
+            | Error err -> return Results.BadRequest(err)
+            | Ok request ->
+                let targets = request.Targets |> Option.defaultValue []
+                if targets.IsEmpty then
+                    return Results.BadRequest("At least one target is required.")
+                else
+                    let command, args = createBuildCommand workspace request
+                    return Results.Text($"{command} {args}", "text/plain")
+        }))
+    |> ignore
+
     app.MapGet("/api/build/log", Func<HttpContext, Task>(fun ctx ->
         task {
             ctx.Response.Headers.CacheControl <- "no-cache"
