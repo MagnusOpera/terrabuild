@@ -6,6 +6,7 @@
     <AssemblyName>terrabuild</AssemblyName>
     <IsPackable>true</IsPackable>
     <RuntimeIdentifiers></RuntimeIdentifiers>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
