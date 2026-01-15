@@ -17,7 +17,9 @@ type private EmbeddedUiFileInfo(resourceName: string, name: string, assembly: As
             with _ -> -1L
         member _.PhysicalPath = null
         member _.Name = name
-        member _.LastModified = DateTimeOffset.MinValue
+        member _.LastModified =
+            // Avoid DateTimeOffset.MinValue which fails ToFileTime in StaticFileMiddleware.
+            DateTimeOffset.FromUnixTimeSeconds(0)
         member _.IsDirectory = false
         member _.CreateReadStream() =
             match assembly.GetManifestResourceStream(resourceName) with
