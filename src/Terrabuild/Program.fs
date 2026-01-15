@@ -61,7 +61,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
     let logFile name = FS.combinePath launchDir $"terrabuild-debug.{name}"
 
-    if debug then
+    if log || debug then
         let loggerBuilder = LoggerConfiguration().WriteTo.File(logFile "log")
         let loggerBuilder =
             if debug then loggerBuilder.MinimumLevel.Debug()
@@ -301,7 +301,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         runTarget options
 
     let graph (graphArgs: ParseResults<GraphArgs>) =
-        GraphServer.start graphArgs
+        "Press Ctrl+C to exit graph server mode." |> Terminal.writeLine
+        Terminal.flush()
+        Console.SetOut(IO.TextWriter.Null)
+        Console.SetError(IO.TextWriter.Null)
+        GraphServer.start graphArgs (log || debug) debug
 
     let logs (logsArgs: ParseResults<LogsArgs>) =
         let targets = logsArgs.GetResult(LogsArgs.Target) |> Seq.map String.toLower
