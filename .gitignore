@@ -423,3 +423,4 @@ terrabuild-debug.md
 
 !**/results/terrabuild-debug.*
 .pnpm-store
+.vite
