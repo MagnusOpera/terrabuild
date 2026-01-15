@@ -290,14 +290,11 @@ let start (graphArgs: ParseResults<GraphArgs>) =
     let workspaceLock = obj()
 
     let embeddedProvider =
-        try
-            let assembly = System.Reflection.Assembly.GetExecutingAssembly()
-            let provider = new ManifestEmbeddedFileProvider(assembly, "ui")
-            if provider.GetFileInfo("index.html").Exists then
-                Some (provider :> IFileProvider)
-            else
-                None
-        with :? InvalidOperationException ->
+        let assembly = System.Reflection.Assembly.GetExecutingAssembly()
+        let provider = EmbeddedUiFileProvider.Provider(assembly) :> IFileProvider
+        if provider.GetFileInfo("index.html").Exists then
+            Some provider
+        else
             None
 
     let physicalProvider =
@@ -325,7 +322,10 @@ let start (graphArgs: ParseResults<GraphArgs>) =
         |> ignore)
     |> ignore
 
-    app.UseDefaultFiles(defaultFiles) |> ignore
+    match fileProvider with
+    | :? PhysicalFileProvider ->
+        app.UseDefaultFiles(defaultFiles) |> ignore
+    | _ -> ()
     app.UseStaticFiles(StaticFileOptions(FileProvider = fileProvider, RequestPath = PathString.Empty)) |> ignore
 
     app.MapGet("/api/targets", Func<HttpContext, Task<IResult>>(fun _ ->

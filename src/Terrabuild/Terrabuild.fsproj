@@ -42,6 +42,7 @@
     <Compile Include="Storages/AzureBlobStorage.fs" />
     <Compile Include="Storages/Factory.fs" />
     <Compile Include="CLI.fs" />
+    <Compile Include="Web/EmbeddedUiFileProvider.fs" />
     <Compile Include="Web/GraphServer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -78,11 +79,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Terrabuild.UI\dist\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <TargetPath>ui\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-    </Content>
     <EmbeddedResource Include="..\Terrabuild.UI\dist\**\*">
       <LogicalName>ui\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
