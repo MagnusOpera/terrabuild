@@ -5,6 +5,7 @@
     <ToolCommandName>terrabuild</ToolCommandName>
     <AssemblyName>terrabuild</AssemblyName>
     <IsPackable>true</IsPackable>
+    <RuntimeIdentifiers></RuntimeIdentifiers>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
