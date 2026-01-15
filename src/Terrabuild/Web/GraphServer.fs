@@ -16,6 +16,8 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.FileProviders
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Logging
+open Serilog
 open Collections
 open Environment
 open CLI
@@ -256,7 +258,7 @@ let private startBuildProcess (workspace: string) (request: BuildRequest) (logSt
                 Ok proc.Id
     )
 
-let start (graphArgs: ParseResults<GraphArgs>) =
+let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled: bool) =
     let workspace =
         graphArgs.TryGetResult(CLI.GraphArgs.Workspace)
         |> resolveWorkspace
@@ -280,6 +282,11 @@ let start (graphArgs: ParseResults<GraphArgs>) =
     let port = graphArgs.TryGetResult(GraphArgs.Port) |> Option.defaultValue 5179
     let url = $"http://127.0.0.1:{port}"
     let builder = WebApplication.CreateBuilder()
+    builder.Logging.ClearProviders() |> ignore
+    if debugEnabled then
+        builder.Logging.SetMinimumLevel(LogLevel.Debug) |> ignore
+    if logEnabled then
+        builder.Logging.AddSerilog(Log.Logger, dispose = false) |> ignore
     builder.Services.AddCors() |> ignore
     builder.WebHost.UseUrls(url) |> ignore
 

@@ -55,19 +55,19 @@ usage:
 # | _| `._____||_______||_______||_______/__/     \__\ |_______/    |_______|
 #
 
-publish:
+publish: webui
 	dotnet publish -c $(config) -p:Version=$(version) -o $(PWD)/.out/dotnet src/Terrabuild
 	dotnet pack -c $(config) -p:Version=$(version) -o .out
 
-publish-darwin:
+publish-darwin: webui
 	dotnet publish -c $(config) -r osx-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/x64 src/Terrabuild
 	dotnet publish -c $(config) -r osx-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/arm64 src/Terrabuild
 
-publish-linux:
+publish-linux: webui
 	dotnet publish -c $(config) -r linux-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/x64 src/Terrabuild
 	dotnet publish -c $(config) -r linux-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/arm64 src/Terrabuild
 
-publish-windows:
+publish-windows: webui
 	dotnet publish -c $(config) -r win-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/x64 src/Terrabuild
 	dotnet publish -c $(config) -r win-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/arm64 src/Terrabuild
 
