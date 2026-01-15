@@ -490,13 +490,13 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
     |> ignore
 
     app.MapGet("/api/build/result/{projectHash}/{targetName}/{targetHash}", Func<HttpContext, Task<IResult>>(fun ctx ->
-        task {
-            let getRouteValue name =
-                match ctx.Request.RouteValues.TryGetValue(name) with
-                | true, null -> None
-                | true, (:? string as value) -> Some value
-                | _ -> None
+        let getRouteValue name =
+            match ctx.Request.RouteValues.TryGetValue(name) with
+            | true, null -> None
+            | true, (:? string as value) -> Some value
+            | _ -> None
 
+        let result =
             match getRouteValue "projectHash", getRouteValue "targetName", getRouteValue "targetHash" with
             | Some projectHash, Some targetName, Some targetHash ->
                 let cacheKey = $"{projectHash}/{targetName}/{targetHash}"
@@ -504,21 +504,21 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
                 match cache.TryGetSummary false cacheKey with
                 | Some summary ->
                     let json = Json.Serialize summary
-                    return Results.Text(json, "application/json")
-                | None -> return Results.NotFound()
+                    Results.Text(json, "application/json")
+                | None -> Results.NotFound()
             | _ ->
-                return Results.BadRequest("Missing route values.")
-        }))
+                Results.BadRequest("Missing route values.")
+        Task.FromResult(result)))
     |> ignore
 
     app.MapGet("/api/build/target-log/{projectHash}/{targetName}/{targetHash}", Func<HttpContext, Task<IResult>>(fun ctx ->
-        task {
-            let getRouteValue name =
-                match ctx.Request.RouteValues.TryGetValue(name) with
-                | true, null -> None
-                | true, (:? string as value) -> Some value
-                | _ -> None
+        let getRouteValue name =
+            match ctx.Request.RouteValues.TryGetValue(name) with
+            | true, null -> None
+            | true, (:? string as value) -> Some value
+            | _ -> None
 
+        let result =
             match getRouteValue "projectHash", getRouteValue "targetName", getRouteValue "targetHash" with
             | Some projectHash, Some targetName, Some targetHash ->
                 let cacheKey = $"{projectHash}/{targetName}/{targetHash}"
@@ -536,11 +536,11 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
                                 builder.AppendLine(step.MetaCommand).AppendLine(content) |> ignore
                     )
                     let logText = builder.ToString()
-                    return Results.Text(logText, "text/plain")
-                | None -> return Results.NotFound()
+                    Results.Text(logText, "text/plain")
+                | None -> Results.NotFound()
             | _ ->
-                return Results.BadRequest("Missing route values.")
-        }))
+                Results.BadRequest("Missing route values.")
+        Task.FromResult(result)))
     |> ignore
 
     app.MapFallback(Func<HttpContext, Task>(fun ctx ->
