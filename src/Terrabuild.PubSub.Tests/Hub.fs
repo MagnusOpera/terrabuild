@@ -2,6 +2,7 @@ module Terrabuild.PubSub.Tests
 
 open NUnit.Framework
 open FsUnit
+open System.Threading
 
 
 [<Test>]
@@ -249,3 +250,33 @@ let error_should_prevent_scheduling_new_tasks() =
     | _ -> Assert.Fail()
 
     triggeredNever |> should equal false
+
+
+[<Test>]
+let subscribing_after_error_is_noop() =
+    use hub = Hub.Create(1)
+
+    let value1 = hub.GetSignal<int> "v1"
+    let value2 = hub.GetSignal<int> "v2"
+
+    let failCallback() =
+        value1.Get<int>() |> ignore
+        failwith "boom"
+
+    hub.Subscribe "failSub" [ value1 ] failCallback
+    value1.Set(1)
+
+    match hub.WaitCompletion() with
+    | Status.SubscriptionError _ -> ()
+    | _ -> Assert.Fail()
+
+    let triggered = new ManualResetEventSlim(false)
+    let triggeredBg = new ManualResetEventSlim(false)
+
+    hub.Subscribe "lateSub" [ value2 ] (fun () -> triggered.Set())
+    hub.SubscribeBackground "lateBg" [ value2 ] (fun () -> triggeredBg.Set())
+
+    value2.Set(2)
+
+    triggered.Wait(100) |> should equal false
+    triggeredBg.Wait(100) |> should equal false

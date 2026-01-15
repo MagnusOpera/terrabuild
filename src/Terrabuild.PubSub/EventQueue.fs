@@ -15,6 +15,7 @@ type IEventQueue =
     inherit IDisposable
     abstract Enqueue: kind: Priority -> action: (unit -> unit) -> unit
     abstract WaitCompletion: unit -> ExceptionDispatchInfo option
+    abstract HasError: bool
 
 [<Struct>]
 type private WorkItem =
@@ -146,8 +147,8 @@ type EventQueue(maxConcurrency: int) =
             if isNull (box action) then
                 nullArg (nameof action)
 
-            // Once we have an error, normal work is dropped.
-            if kind = Priority.Normal && (Volatile.Read(&lastError) |> Option.isSome) then
+            // Once we have an error, no new work is accepted.
+            if Volatile.Read(&lastError) |> Option.isSome then
                 ()
             else
                 Interlocked.Increment(&pending) |> ignore
@@ -184,6 +185,9 @@ type EventQueue(maxConcurrency: int) =
             Task.WaitAll(workers.Value)
 
             lastError
+
+        member _.HasError =
+            Volatile.Read(&lastError) |> Option.isSome
 
         member _.Dispose() =
             cts.Cancel()

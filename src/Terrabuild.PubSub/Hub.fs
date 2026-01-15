@@ -29,11 +29,14 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
         member _.Name = name
         member _.IsRaised() = lock signalLock (fun () -> raised.IsSome )
         member _.Subscribe(onCompleted: SignalCompleted) =
-            lock signalLock (fun () ->
-                match raised with
-                | Some _ -> eventQueue.Enqueue kind onCompleted
-                | _ -> subscribers.Enqueue(onCompleted)
-            )
+            if eventQueue.HasError then
+                ()
+            else
+                lock signalLock (fun () ->
+                    match raised with
+                    | Some _ -> eventQueue.Enqueue kind onCompleted
+                    | _ -> subscribers.Enqueue(onCompleted)
+                )
         member _.Get<'Q>() =
             match box this with
             | :? ISignal<'Q> as signal -> signal.Value
@@ -109,11 +112,14 @@ type Hub(maxConcurrency) =
         | _ -> Errors.raiseBugError "Unexpected Signal type"
 
     member private _.Subscribe label signals kind handler =
-        let name = Guid.NewGuid().ToString()
-        let signal = Signal<Unit>(name, eventQueue, kind)
-        let subscription = Subscription(label, signal :> ISignal<Unit>, signals)
-        subscriptions.TryAdd(name, subscription) |> ignore
-        (signal :> ISignal).Subscribe(handler)
+        if eventQueue.HasError then
+            ()
+        else
+            let name = Guid.NewGuid().ToString()
+            let signal = Signal<Unit>(name, eventQueue, kind)
+            let subscription = Subscription(label, signal :> ISignal<Unit>, signals)
+            subscriptions.TryAdd(name, subscription) |> ignore
+            (signal :> ISignal).Subscribe(handler)
 
     interface IDisposable with
         member _.Dispose () =
