@@ -582,7 +582,7 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
                             let content = IO.readTextFile step.Log
                             if String.IsNullOrWhiteSpace(content) |> not then
                                 if builder.Length > 0 then builder.AppendLine().AppendLine() |> ignore
-                                builder.AppendLine(content) |> ignore
+                                builder.AppendLine(step.MetaCommand).AppendLine(content) |> ignore
                     )
                     let logText = builder.ToString()
                     Results.Text(logText, "text/plain")
