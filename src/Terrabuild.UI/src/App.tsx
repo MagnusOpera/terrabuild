@@ -788,6 +788,7 @@ const App = () => {
     setSelectedProject(project);
     setSelectedNodeId(project.id);
     setSelectedTargetKey(null);
+    const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
         const cacheKey = `${node.projectHash}/${node.target}/${node.targetHash}`;
@@ -801,14 +802,45 @@ const App = () => {
           return;
         }
         const summary = (await response.json()) as TargetSummary;
-        setNodeResults((prev) => ({ ...prev, [cacheKey]: summary }));
+        freshResults[cacheKey] = summary;
       })
     );
-    if (project.targets.length > 0) {
-      const first = project.targets[0];
-      const cacheKey = `${first.projectHash}/${first.target}/${first.targetHash}`;
-      await showTargetLog(cacheKey, first);
+    if (Object.keys(freshResults).length > 0) {
+      setNodeResults((prev) => ({ ...prev, ...freshResults }));
     }
+    if (project.targets.length === 0) {
+      return;
+    }
+    const resultsLookup = { ...nodeResults, ...freshResults };
+    const newestTarget = project.targets.reduce((newest, candidate) => {
+      if (!newest) {
+        return candidate;
+      }
+      const newestKey =
+        `${newest.projectHash}/${newest.target}/${newest.targetHash}`;
+      const candidateKey =
+        `${candidate.projectHash}/${candidate.target}/${candidate.targetHash}`;
+      const newestSummary = resultsLookup[newestKey];
+      const candidateSummary = resultsLookup[candidateKey];
+      const newestTime = newestSummary
+        ? Date.parse(newestSummary.startedAt || newestSummary.endedAt)
+        : Number.NEGATIVE_INFINITY;
+      const candidateTime = candidateSummary
+        ? Date.parse(candidateSummary.startedAt || candidateSummary.endedAt)
+        : Number.NEGATIVE_INFINITY;
+      if (candidateTime === newestTime) {
+        return candidate.target.localeCompare(newest.target) > 0
+          ? candidate
+          : newest;
+      }
+      return candidateTime > newestTime ? candidate : newest;
+    }, null as GraphNode | null);
+    if (!newestTarget) {
+      return;
+    }
+    const newestKey =
+      `${newestTarget.projectHash}/${newestTarget.target}/${newestTarget.targetHash}`;
+    await showTargetLog(newestKey, newestTarget);
   };
 
   const loadTargetLog = async (key: string, target: GraphNode) => {
