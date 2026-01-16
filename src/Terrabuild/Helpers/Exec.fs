@@ -168,16 +168,18 @@ let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: s
     try
         use logWriter = new StreamWriter(logFile)
         let writeLock = Lock()
-
-        let inline lockWrite (from: string) (msg: string | null) =
+        let inline lockWrite (msg: string | null) =
             match msg with
-            | NonNull msg -> lock writeLock (fun () -> logWriter.WriteLine($"{DateTime.UtcNow} {from} {msg}"))
+            | NonNull msg ->
+                lock writeLock (fun () ->
+                    logWriter.WriteLine(msg)
+                )
             | _ -> ()
 
         Log.Debug("Running and capturing timestamped output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
         use proc = createProcess workingDir command args envs true
-        proc.OutputDataReceived.Add(fun e -> lockWrite "OUT" e.Data)
-        proc.ErrorDataReceived.Add(fun e -> lockWrite "ERR" e.Data)
+        proc.OutputDataReceived.Add(fun e -> lockWrite e.Data)
+        proc.ErrorDataReceived.Add(fun e -> lockWrite e.Data)
         proc.BeginOutputReadLine()
         proc.BeginErrorReadLine()
         proc.WaitForExit()
