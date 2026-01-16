@@ -152,7 +152,7 @@ let private buildBatchGraph workspace targets projects =
     let graph = GraphPipeline.Node.build options config
     let graph = GraphPipeline.Action.build options cache graph
     let graph = GraphPipeline.Cascade.build graph
-    GraphPipeline.Batch.build options config graph
+    GraphPipeline.Batch.build options config graph, options
 
 let private resolveWorkspace (workspace: string option) =
     match workspace with
@@ -377,11 +377,18 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
-                let graph =
+                let graph, options =
                     lock workspaceLock (fun () ->
                         buildBatchGraph workspace targets projects
                     )
-                let json = Json.Serialize graph
+                let payload =
+                    {| nodes = graph.Nodes
+                       rootNodes = graph.RootNodes
+                       batches = graph.Batches
+                       engine = options.Engine
+                       configuration = options.Configuration
+                       environment = options.Environment |}
+                let json = Json.Serialize payload
                 return Results.Text(json, "application/json")
         }))
     |> ignore
@@ -393,7 +400,7 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
-                let graph =
+                let graph, _ =
                     lock workspaceLock (fun () ->
                         buildBatchGraph workspace targets projects
                     )
