@@ -29,6 +29,8 @@ type BuildRequest = {
     Parallelism: int option
     Force: bool option
     Retry: bool option
+    Log: bool option
+    Debug: bool option
     Engine: string option
     Configuration: string option
     Environment: string option
@@ -237,8 +239,17 @@ let private createBuildCommand (workspace: string) (request: BuildRequest) =
         | _ -> ""
     let forceArg = if request.Force |> Option.defaultValue false then " -f" else ""
     let retryArg = if request.Retry |> Option.defaultValue false then " -r" else ""
+    let logArg = if request.Log |> Option.defaultValue false then "--log" else ""
+    let debugArg = if request.Debug |> Option.defaultValue false then "--debug" else ""
+    let prefix =
+        [ logArg; debugArg ]
+        |> List.filter (fun value -> value <> "")
+        |> String.join " "
     let baseArgs =
-        $"run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{configArg}{environmentArg}{engineArg}{forceArg}{retryArg}"
+        if prefix = "" then
+            $"run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{configArg}{environmentArg}{engineArg}{forceArg}{retryArg}"
+        else
+            $"{prefix} run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{configArg}{environmentArg}{engineArg}{forceArg}{retryArg}"
     if isDotnetHost exePath then
         exePath, $"\"{assemblyPath}\" {baseArgs}"
     else
