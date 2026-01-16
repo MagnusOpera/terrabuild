@@ -173,7 +173,7 @@ with
             | Logs _ -> "dump logs."
             | Run _ -> "Run specified targets."
             | Serve _ -> "Serve specified targets."
-            | Console _ -> "Visualize and build graph in a web UI."
+            | Console _ -> "Launch web console."
             | Clear _ -> "Clear specified caches."
             | Login _ -> "Connect to backend."
             | Logout _ -> "Disconnect from backend."
