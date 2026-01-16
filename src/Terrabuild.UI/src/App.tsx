@@ -20,7 +20,7 @@ import {
   useNodesState,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import dagre from "dagre";
+import dagre from "@dagrejs/dagre";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
@@ -48,7 +48,7 @@ const nodeHeight = 120;
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
   graph.setDefaultEdgeLabel(() => ({}));
-  graph.setGraph({ rankdir: "RL", nodesep: 90, ranksep: 140 });
+  graph.setGraph({ rankdir: "RL", nodesep: 100, ranksep: 200, ranker: "longest-path" });
 
   nodes.forEach((node) => {
     graph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -285,6 +285,13 @@ const App = () => {
   }, [nodes]);
 
   useEffect(() => {
+    if (selectedNodeId === null) {
+      setSelectedProject(null);
+      setSelectedTargetKey(null);
+    }
+  }, [selectedNodeId]);
+
+  useEffect(() => {
     setNodes((current) =>
       current.map((node) => ({
         ...node,
@@ -468,8 +475,10 @@ const App = () => {
     setEdges((current) =>
       current.map((edge) => {
         const isConnected =
-          draggedNodeId !== null &&
-          (edge.source === draggedNodeId || edge.target === draggedNodeId);
+          (draggedNodeId !== null &&
+            (edge.source === draggedNodeId || edge.target === draggedNodeId)) ||
+          (selectedNodeId !== null &&
+            (edge.source === selectedNodeId || edge.target === selectedNodeId));
         const stroke = isConnected ? highlightStroke : defaultStroke;
         return {
           ...edge,
@@ -487,7 +496,7 @@ const App = () => {
         };
       })
     );
-  }, [draggedNodeId, effectiveColorScheme, theme, setEdges]);
+  }, [draggedNodeId, selectedNodeId, effectiveColorScheme, theme, setEdges]);
 
   const nodeCount = graph ? Object.keys(graph.nodes).length : 0;
   const rootNodeCount = graph?.rootNodes?.length ?? 0;
