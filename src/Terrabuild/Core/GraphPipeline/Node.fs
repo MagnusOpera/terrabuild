@@ -139,8 +139,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             // auto build by default unless force
             let build =
-                let defaultForce = if options.Force then BuildMode.Always else BuildMode.Auto
-                targetConfig.Build |> Option.defaultValue defaultForce
+                if options.Force then BuildMode.Always
+                else targetConfig.Build |> Option.defaultValue BuildMode.Auto
 
             let required = build = BuildMode.Always
 
