@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  AppShell,
   Box,
   Stack,
   rgba,
@@ -30,6 +29,7 @@ import BuildDetailsPanel from "./components/BuildDetailsPanel";
 import BuildLogPanel from "./components/BuildLogPanel";
 import GraphPanel from "./components/GraphPanel";
 import NodeDetailsPanel from "./components/NodeDetailsPanel";
+import SidebarLayout from "./components/SidebarLayout";
 import SidebarHeader from "./components/SidebarHeader";
 import {
   GraphNode,
@@ -870,44 +870,41 @@ const App = () => {
     : "Build Log";
 
   return (
-    <AppShell
-      padding="md"
-      navbar={{ width: 360 }}
-      styles={{
-        root: {
-          height: "100vh",
-        },
-        main: {
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          minHeight: 0,
-        },
+    <SidebarLayout
+      sidebarWidth={360}
+      sidebarStyle={{
+        background:
+          effectiveColorScheme === "dark"
+            ? "rgba(20, 20, 23, 0.92)"
+            : "rgba(250, 250, 250, 0.95)",
+        paddingLeft:
+          "calc(var(--mantine-spacing-md) - var(--mantine-spacing-xs))",
+        paddingRight:
+          "calc(var(--mantine-spacing-md) - var(--mantine-spacing-xs))",
       }}
-    >
-      <AppShell.Navbar
-        p="md"
-        style={{
-          background:
-            effectiveColorScheme === "dark"
-              ? "rgba(20, 20, 23, 0.92)"
-              : "rgba(250, 250, 250, 0.95)",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-        }}
-      >
-        <Box
-          style={{
-            flexShrink: 0,
-            paddingBottom: theme.spacing.xs,
-          }}
-        >
-          <SidebarHeader />
-        </Box>
+      mainStyle={{ minHeight: 0 }}
+      sidebar={
+        <>
+          <Box
+            style={{
+              flexShrink: 0,
+              paddingBottom: theme.spacing.xs,
+              paddingLeft: theme.spacing.xs,
+              paddingRight: theme.spacing.xs,
+            }}
+          >
+            <SidebarHeader />
+          </Box>
 
         <Box
-          style={{ flex: 1, overflowY: "auto", marginTop: theme.spacing.xs }}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            marginTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.md,
+            paddingLeft: theme.spacing.xs,
+            paddingRight: theme.spacing.xs,
+          }}
         >
           <Stack spacing="md">
             <BuildControlsPanel
@@ -956,51 +953,51 @@ const App = () => {
             />
           </Stack>
         </Box>
-      </AppShell.Navbar>
-      <AppShell.Main style={{ height: "100%", minHeight: 0, flex: 1 }}>
-        <Box
-          style={{
-            height: "100%",
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: showTerminal ? theme.spacing.md : 0,
-          }}
-        >
-          <Box style={{ flex: 1, minHeight: 0 }}>
-            <GraphPanel
-              graph={graph}
-              graphError={graphError}
-              nodes={nodes}
-              edges={edges}
-              onInit={(instance) => {
-                flowInstance.current = instance;
-              }}
-              onNodesChange={handleNodesChange}
-              onEdgesChange={onEdgesChange}
-              onNodeClick={(_, node) =>
-                loadProjectResults(node.data.meta as ProjectNode)
-              }
-              onNodeDragStart={(_, node) => setDraggedNodeId(node.id)}
-              onNodeDragStop={() => setDraggedNodeId(null)}
-              onReflow={() => {
-                setManualPositions({});
-                setLayoutVersion((value) => value + 1);
-              }}
-            />
-          </Box>
-
-          <BuildLogPanel
-            showTerminal={showTerminal}
-            buildRunning={buildRunning}
-            title={buildLogTitle}
-            onHide={() => setShowTerminal(false)}
-            terminalRef={terminalRef}
-            background={terminalBackground}
+        </>
+      }
+    >
+      <Box
+        style={{
+          height: "100%",
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: showTerminal ? theme.spacing.md : 0,
+        }}
+      >
+        <Box style={{ flex: 1, minHeight: 0 }}>
+          <GraphPanel
+            graph={graph}
+            graphError={graphError}
+            nodes={nodes}
+            edges={edges}
+            onInit={(instance) => {
+              flowInstance.current = instance;
+            }}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={(_, node) =>
+              loadProjectResults(node.data.meta as ProjectNode)
+            }
+            onNodeDragStart={(_, node) => setDraggedNodeId(node.id)}
+            onNodeDragStop={() => setDraggedNodeId(null)}
+            onReflow={() => {
+              setManualPositions({});
+              setLayoutVersion((value) => value + 1);
+            }}
           />
         </Box>
-      </AppShell.Main>
-    </AppShell>
+
+        <BuildLogPanel
+          showTerminal={showTerminal}
+          buildRunning={buildRunning}
+          title={buildLogTitle}
+          onHide={() => setShowTerminal(false)}
+          terminalRef={terminalRef}
+          background={terminalBackground}
+        />
+      </Box>
+    </SidebarLayout>
   );
 };
 
