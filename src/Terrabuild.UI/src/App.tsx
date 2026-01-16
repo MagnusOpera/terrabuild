@@ -102,6 +102,7 @@ const App = () => {
   const [manualPositions, setManualPositions] = useState<
     Record<string, { x: number; y: number }>
   >({});
+  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [nodes, setNodes] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const flowInstance = useRef<ReactFlowInstance | null>(null);
@@ -426,6 +427,34 @@ const App = () => {
     });
     return layoutGraph(flowNodes, flowEdges);
   }, [graph, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
+
+  useEffect(() => {
+    const isDark = effectiveColorScheme === "dark";
+    const defaultStroke = isDark ? theme.colors.dark[3] : theme.colors.gray[5];
+    const highlightStroke = theme.colors.blue[6];
+    setEdges((current) =>
+      current.map((edge) => {
+        const isConnected =
+          draggedNodeId !== null &&
+          (edge.source === draggedNodeId || edge.target === draggedNodeId);
+        const stroke = isConnected ? highlightStroke : defaultStroke;
+        return {
+          ...edge,
+          style: {
+            ...edge.style,
+            stroke,
+            strokeWidth: isConnected ? 2 : 1,
+          },
+          markerStart: edge.markerStart
+            ? {
+                ...edge.markerStart,
+                color: stroke,
+              }
+            : edge.markerStart,
+        };
+      })
+    );
+  }, [draggedNodeId, effectiveColorScheme, theme, setEdges]);
 
   const nodeCount = graph ? Object.keys(graph.nodes).length : 0;
   const rootNodeCount = graph?.rootNodes?.length ?? 0;
@@ -876,6 +905,8 @@ const App = () => {
               onNodeClick={(_, node) =>
                 loadProjectResults(node.data.meta as ProjectNode)
               }
+              onNodeDragStart={(_, node) => setDraggedNodeId(node.id)}
+              onNodeDragStop={() => setDraggedNodeId(null)}
               onReflow={() => {
                 setManualPositions({});
                 setLayoutVersion((value) => value + 1);
