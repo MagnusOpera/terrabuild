@@ -21,6 +21,8 @@ type GraphPanelProps = {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onNodeClick: NodeMouseHandler;
+  onNodeDragStart: NodeMouseHandler;
+  onNodeDragStop: NodeMouseHandler;
   onReflow: () => void;
 };
 
@@ -33,6 +35,8 @@ const GraphPanel = ({
   onNodesChange,
   onEdgesChange,
   onNodeClick,
+  onNodeDragStart,
+  onNodeDragStop,
   onReflow,
 }: GraphPanelProps) => {
   return (
@@ -87,9 +91,11 @@ const GraphPanel = ({
               elementsSelectable
               panOnDrag
               onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onNodeClick={onNodeClick}
-            >
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDragStop={onNodeDragStop}
+          >
               <Background gap={24} />
               <Controls position="bottom-right" />
             </ReactFlow>
