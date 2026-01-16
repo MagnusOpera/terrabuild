@@ -305,11 +305,11 @@ let private startBuildProcess (workspace: string) (request: BuildRequest) (logSt
                 Ok proc.Id
     )
 
-let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled: bool) =
+let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnabled: bool) =
     let workspace =
-        graphArgs.TryGetResult(CLI.GraphArgs.Workspace)
+        graphArgs.TryGetResult(CLI.ConsoleArgs.Workspace)
         |> resolveWorkspace
-    let shouldOpenBrowser = graphArgs.Contains(GraphArgs.No_Open) |> not
+    let shouldOpenBrowser = graphArgs.Contains(ConsoleArgs.No_Open) |> not
     let processDir =
         System.Environment.ProcessPath
         |> Option.ofObj
@@ -326,7 +326,7 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
         ]
         |> List.append (processDir |> Option.map (fun dir -> Path.Combine(dir, "ui")) |> Option.toList)
         |> List.map (fun path -> Path.GetFullPath(path))
-    let port = graphArgs.TryGetResult(GraphArgs.Port) |> Option.defaultValue 5179
+    let port = graphArgs.TryGetResult(ConsoleArgs.Port) |> Option.defaultValue 5179
     let url = $"http://127.0.0.1:{port}"
     let builder = WebApplication.CreateBuilder()
     builder.Logging.ClearProviders() |> ignore
