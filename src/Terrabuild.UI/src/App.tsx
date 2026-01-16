@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Accordion,
   AppShell,
   Badge,
   Box,
@@ -11,8 +12,10 @@ import {
   NumberInput,
   Paper,
   ActionIcon,
+  Select,
   Stack,
   Text,
+  TextInput,
   Title,
   useMantineTheme,
   useMantineColorScheme,
@@ -105,6 +108,13 @@ type TargetSummary = {
 const nodeWidth = 320;
 const nodeHeight = 120;
 
+const engineOptions = [
+  { value: "default", label: "Default" },
+  { value: "none", label: "None" },
+  { value: "docker", label: "Docker" },
+  { value: "podman", label: "Podman" },
+];
+
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
   graph.setDefaultEdgeLabel(() => ({}));
@@ -143,6 +153,9 @@ const App = () => {
   const [forceBuild, setForceBuild] = useState(false);
   const [retryBuild, setRetryBuild] = useState(false);
   const [parallelism, setParallelism] = useState("");
+  const [engine, setEngine] = useState("default");
+  const [configuration, setConfiguration] = useState("");
+  const [environment, setEnvironment] = useState("");
   const [selectedProject, setSelectedProject] = useState<ProjectNode | null>(
     null
   );
@@ -185,6 +198,7 @@ const App = () => {
     fitAddon.current = fit;
     if (terminalRef.current) {
       term.open(terminalRef.current);
+      term.write("\u001b[?25l");
       terminalReady.current = true;
       const resizeObserver = new ResizeObserver(() => {
         if (!terminalRef.current) {
@@ -207,6 +221,7 @@ const App = () => {
       });
       return () => {
         resizeObserver.disconnect();
+        term.write("\u001b[?25h");
         term.dispose();
       };
     }
@@ -214,6 +229,7 @@ const App = () => {
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
+      term.write("\u001b[?25h");
       term.dispose();
     };
   }, []);
@@ -228,12 +244,14 @@ const App = () => {
     if (!terminalRef.current || terminalRef.current.offsetWidth === 0) {
       return;
     }
+    const darkBackground = theme.colors.dark[7];
+    const lightBackground = theme.white;
     terminal.current.options.theme = {
-      background: colorScheme === "dark" ? "#141517" : "#ffffff",
+      background: colorScheme === "dark" ? darkBackground : lightBackground,
       foreground: colorScheme === "dark" ? "#d8dbe0" : "#1f2328",
       selectionBackground: colorScheme === "dark" ? "#3b3f45" : "#c9d0d8",
     };
-  }, [colorScheme]);
+  }, [colorScheme, theme]);
 
   const getNodeStyle = (nodeId: string) => {
     const isDark = colorScheme === "dark";
@@ -301,6 +319,20 @@ const App = () => {
     load().catch(() => null);
   }, []);
 
+  const appendBuildParams = (params: URLSearchParams) => {
+    const configValue = configuration.trim();
+    const envValue = environment.trim();
+    if (configValue.length > 0) {
+      params.set("configuration", configValue);
+    }
+    if (envValue.length > 0) {
+      params.set("environment", envValue);
+    }
+    if (engine !== "default") {
+      params.set("engine", engine);
+    }
+  };
+
   useEffect(() => {
     const fetchGraph = async () => {
       if (selectedTargets.length === 0) {
@@ -312,6 +344,7 @@ const App = () => {
       const params = new URLSearchParams();
       selectedTargets.forEach((target) => params.append("targets", target));
       selectedProjects.forEach((project) => params.append("projects", project));
+      appendBuildParams(params);
       const response = await fetch(`/api/graph?${params.toString()}`);
       if (!response.ok) {
         setGraphError(await response.text());
@@ -340,7 +373,7 @@ const App = () => {
       setGraphError("Failed to load graph.");
       setGraph(null);
     });
-  }, [selectedTargets, selectedProjects]);
+  }, [selectedTargets, selectedProjects, configuration, environment, engine]);
 
   const baseGraph = useMemo(() => {
     if (!graph) {
@@ -424,9 +457,20 @@ const App = () => {
 
   const nodeCount = graph ? Object.keys(graph.nodes).length : 0;
   const rootNodeCount = graph?.rootNodes?.length ?? 0;
-  const engineLabel = graph?.engine ?? "Default";
-  const configurationLabel = graph?.configuration ?? "Default";
-  const environmentLabel = graph?.environment ?? "Default";
+  const formatLabel = (value: string) =>
+    value.length > 0 ? value[0].toUpperCase() + value.slice(1) : value;
+  const engineValue = engine === "default" ? graph?.engine ?? "default" : engine;
+  const configValue =
+    configuration.trim().length > 0
+      ? configuration.trim()
+      : graph?.configuration ?? "default";
+  const environmentValue =
+    environment.trim().length > 0
+      ? environment.trim()
+      : graph?.environment ?? "default";
+  const engineLabel = formatLabel(engineValue);
+  const configurationLabel = formatLabel(configValue);
+  const environmentLabel = formatLabel(environmentValue);
 
   useEffect(() => {
     if (!graph) {
@@ -485,6 +529,9 @@ const App = () => {
     }
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    const scrollTerminalToBottom = () => {
+      terminal.current?.scrollToBottom();
+    };
     while (true) {
       const { value, done } = await reader.read();
       if (done) {
@@ -493,6 +540,7 @@ const App = () => {
       if (value) {
         const chunk = decoder.decode(value, { stream: true });
         terminal.current.write(chunk);
+        scrollTerminalToBottom();
       }
     }
     try {
@@ -532,12 +580,18 @@ const App = () => {
   const buildPayload = () => {
     const parallel =
       parallelism.trim().length > 0 ? Number(parallelism) : null;
+    const configValue = configuration.trim();
+    const envValue = environment.trim();
+    const engineValue = engine === "default" ? undefined : engine;
     return {
       targets: selectedTargets,
       projects: selectedProjects,
       parallelism: parallel && parallel > 0 ? parallel : undefined,
       force: forceBuild,
       retry: retryBuild,
+      configuration: configValue.length > 0 ? configValue : undefined,
+      environment: envValue.length > 0 ? envValue : undefined,
+      engine: engineValue,
     };
   };
 
@@ -639,6 +693,7 @@ const App = () => {
       const params = new URLSearchParams();
       selectedTargets.forEach((target) => params.append("targets", target));
       selectedProjects.forEach((project) => params.append("projects", project));
+      appendBuildParams(params);
       const response = await fetch(`/api/graph?${params.toString()}`);
       if (response.ok) {
         const data = (await response.json()) as GraphResponse;
@@ -658,7 +713,7 @@ const App = () => {
       }
     };
     refresh().catch(() => null);
-  }, [buildRunning, selectedTargets, selectedProjects]);
+  }, [buildRunning, selectedTargets, selectedProjects, configuration, environment, engine]);
 
   const loadProjectResults = async (project: ProjectNode) => {
     setSelectedProject(project);
@@ -712,12 +767,15 @@ const App = () => {
       );
       if (!response.ok) {
         terminal.current.write("No cached log available.\n");
+        terminal.current.scrollToBottom();
         return;
       }
       const log = await response.text();
       terminal.current.write(log.length > 0 ? log : "No cached log available.\n");
+      terminal.current.scrollToBottom();
     } catch {
       terminal.current.write("Failed to load cached log.\n");
+      terminal.current.scrollToBottom();
     }
   };
 
@@ -818,7 +876,7 @@ const App = () => {
               <Stack spacing="sm">
                 <MultiSelect
                   data={targets.map((target) => ({ value: target, label: target }))}
-                  label="Targets (required)"
+                  label="Targets"
                   placeholder="Select targets"
                   searchable
                   nothingFound="No targets"
@@ -826,47 +884,125 @@ const App = () => {
                   onChange={(values) => setSelectedTargets(values)}
                 />
 
-                <MultiSelect
-                  data={projects
-                    .filter((project) => project.name)
-                    .map((project) => ({
-                      value: project.name as string,
-                      label: project.name as string,
-                    }))}
-                  label="Projects (optional)"
-                  placeholder="Select projects"
-                  searchable
-                  nothingFound="No projects"
-                  value={selectedProjects}
-                  onChange={(values) => setSelectedProjects(values)}
-                />
-
                 <Group spacing="md">
                   <Checkbox
                     label="Force"
                     checked={forceBuild}
-                    onChange={(event) => setForceBuild(event.currentTarget.checked)}
+                    onChange={(event) => {
+                      const checked = event.currentTarget.checked;
+                      setForceBuild(checked);
+                      if (checked) {
+                        setRetryBuild(false);
+                      }
+                    }}
                   />
                   <Checkbox
                     label="Retry"
                     checked={retryBuild}
-                    onChange={(event) => setRetryBuild(event.currentTarget.checked)}
+                    onChange={(event) => {
+                      const checked = event.currentTarget.checked;
+                      setRetryBuild(checked);
+                      if (checked) {
+                        setForceBuild(false);
+                      }
+                    }}
                   />
                 </Group>
 
-                <NumberInput
-                  label="Parallelism"
-                  placeholder="auto"
-                  min={1}
-                  value={parallelism === "" ? undefined : Number(parallelism)}
-                  onChange={(value) => {
-                    if (value === "" || value === null) {
-                      setParallelism("");
-                    } else {
-                      setParallelism(String(value));
-                    }
+                <Accordion
+                  variant="contained"
+                  radius={0}
+                  defaultValue={null}
+                  style={{ width: "100%", marginLeft: 0, marginRight: 0 }}
+                  styles={{
+                    item: {
+                      borderLeft: "none",
+                      borderRight: "none",
+                      borderTop: "none",
+                      borderBottom: "none",
+                    },
+                    control: {
+                      paddingLeft: 0,
+                      paddingRight: 0,
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? theme.colors.dark[7]
+                          : theme.white,
+                    },
+                    content: { paddingLeft: 0, paddingRight: 0 },
+                    panel: {
+                      paddingLeft: 0,
+                      paddingRight: 0,
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? theme.colors.dark[7]
+                          : theme.white,
+                    },
                   }}
-                />
+                >
+                  <Accordion.Item value="advanced">
+                    <Accordion.Control>Advanced</Accordion.Control>
+                    <Accordion.Panel>
+                      <Stack spacing="sm">
+                        <MultiSelect
+                          data={projects
+                            .filter((project) => project.name)
+                            .map((project) => ({
+                              value: project.name as string,
+                              label: project.name as string,
+                            }))}
+                          label="Projects"
+                          placeholder="Select projects"
+                          searchable
+                          nothingFound="No projects"
+                          value={selectedProjects}
+                          onChange={(values) => setSelectedProjects(values)}
+                        />
+
+                        <TextInput
+                          label="Configuration"
+                          placeholder="default"
+                          value={configuration}
+                          onChange={(event) =>
+                            setConfiguration(event.currentTarget.value)
+                          }
+                        />
+
+                        <TextInput
+                          label="Environment"
+                          placeholder="default"
+                          value={environment}
+                          onChange={(event) =>
+                            setEnvironment(event.currentTarget.value)
+                          }
+                        />
+
+                        <Select
+                          data={engineOptions}
+                          label="Engine"
+                          value={engine}
+                          onChange={(value) => setEngine(value ?? "default")}
+                        />
+
+                        <NumberInput
+                          label="Parallelism"
+                          placeholder="auto"
+                          min={1}
+                          value={
+                            parallelism === "" ? undefined : Number(parallelism)
+                          }
+                          onChange={(value) => {
+                            if (value === "" || value === null) {
+                              setParallelism("");
+                            } else {
+                              setParallelism(String(value));
+                            }
+                          }}
+                        />
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
 
                 <Group spacing="xs" noWrap>
                   <Button
@@ -919,14 +1055,6 @@ const App = () => {
                     </Group>
                     <Group position="apart">
                       <Text size="sm" c="dimmed">
-                        Engine
-                      </Text>
-                      <Text size="sm" fw={600}>
-                        {engineLabel}
-                      </Text>
-                    </Group>
-                    <Group position="apart">
-                      <Text size="sm" c="dimmed">
                         Configuration
                       </Text>
                       <Text size="sm" fw={600}>
@@ -939,6 +1067,14 @@ const App = () => {
                       </Text>
                       <Text size="sm" fw={600}>
                         {environmentLabel}
+                      </Text>
+                    </Group>
+                    <Group position="apart">
+                      <Text size="sm" c="dimmed">
+                        Engine
+                      </Text>
+                      <Text size="sm" fw={600}>
+                        {engineLabel}
                       </Text>
                     </Group>
                   </>
@@ -1118,7 +1254,14 @@ const App = () => {
                 </Group>
               </Group>
             )}
-            <Box className="terminal-body" ref={terminalRef} />
+            <Box
+              className="terminal-body"
+              ref={terminalRef}
+              style={{
+                background:
+                  colorScheme === "dark" ? theme.colors.dark[7] : theme.white,
+              }}
+            />
           </Paper>
         </Stack>
       </Box>

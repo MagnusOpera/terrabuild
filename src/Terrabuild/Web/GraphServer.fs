@@ -29,6 +29,9 @@ type BuildRequest = {
     Parallelism: int option
     Force: bool option
     Retry: bool option
+    Engine: string option
+    Configuration: string option
+    Environment: string option
 }
 
 type ProjectInfo = {
@@ -105,7 +108,27 @@ let private readBody (ctx: HttpContext) =
         return! reader.ReadToEndAsync()
     }
 
-let private buildConfig (workspace: string) (targets: string list) (projects: string list option) =
+let private readQueryValue (ctx: HttpContext) (name: string) =
+    match ctx.Request.Query.TryGetValue(name) with
+    | true, values ->
+        let value = values.ToString()
+        if String.IsNullOrWhiteSpace(value) then None else Some value
+    | _ -> None
+
+let private parseEngineOption (value: string option) =
+    value
+    |> Option.map (fun v -> v.Trim().ToLowerInvariant())
+    |> Option.bind (fun v ->
+        if String.IsNullOrWhiteSpace(v) || v = "default" then None else Some v)
+
+let private buildConfig
+    (workspace: string)
+    (targets: string list)
+    (projects: string list option)
+    (configuration: string option)
+    (environment: string option)
+    (engine: string option)
+    =
     let previousDir = System.Environment.CurrentDirectory
     System.Environment.CurrentDirectory <- workspace
     try
@@ -128,15 +151,15 @@ let private buildConfig (workspace: string) (targets: string list) (projects: st
               ConfigOptions.Options.StartedAt = DateTime.UtcNow
               ConfigOptions.Options.Targets = targets |> Seq.map String.toLower |> Set
               ConfigOptions.Options.LogTypes = sourceControl.LogTypes
-              ConfigOptions.Options.Configuration = None
-              ConfigOptions.Options.Environment = None
+              ConfigOptions.Options.Configuration = configuration
+              ConfigOptions.Options.Environment = environment
               ConfigOptions.Options.Note = None
               ConfigOptions.Options.Label = None
               ConfigOptions.Options.Types = None
               ConfigOptions.Options.Labels = None
               ConfigOptions.Options.Projects = projects |> Option.map (fun items -> items |> Seq.map String.toLower |> Set)
               ConfigOptions.Options.Variables = Map.empty
-              ConfigOptions.Options.Engine = None
+              ConfigOptions.Options.Engine = engine
               ConfigOptions.Options.HeadCommit = sourceControl.HeadCommit
               ConfigOptions.Options.CommitLog = sourceControl.CommitLog
               ConfigOptions.Options.BranchOrTag = sourceControl.BranchOrTag
@@ -145,8 +168,8 @@ let private buildConfig (workspace: string) (targets: string list) (projects: st
     finally
         System.Environment.CurrentDirectory <- previousDir
 
-let private buildBatchGraph workspace targets projects =
-    let options, config = buildConfig workspace targets projects
+let private buildBatchGraph workspace targets projects configuration environment engine =
+    let options, config = buildConfig workspace targets projects configuration environment engine
     let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
     let options = { options with MaxConcurrency = System.Environment.ProcessorCount |> max 1 }
     let graph = GraphPipeline.Node.build options config
@@ -200,9 +223,22 @@ let private createBuildCommand (workspace: string) (request: BuildRequest) =
         match request.Parallelism with
         | Some value when value > 0 -> $" --parallel {value}"
         | _ -> ""
+    let configArg =
+        match request.Configuration |> Option.bind (fun value -> if String.IsNullOrWhiteSpace(value) then None else Some value) with
+        | Some value -> $" --configuration \"{value}\""
+        | _ -> ""
+    let environmentArg =
+        match request.Environment |> Option.bind (fun value -> if String.IsNullOrWhiteSpace(value) then None else Some value) with
+        | Some value -> $" --environment \"{value}\""
+        | _ -> ""
+    let engineArg =
+        match request.Engine |> Option.bind (fun value -> if String.IsNullOrWhiteSpace(value) then None else Some value) with
+        | Some value -> $" --engine {value}"
+        | _ -> ""
     let forceArg = if request.Force |> Option.defaultValue false then " -f" else ""
     let retryArg = if request.Retry |> Option.defaultValue false then " -r" else ""
-    let baseArgs = $"run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{forceArg}{retryArg}"
+    let baseArgs =
+        $"run {targets} -w \"{workspace}\"{projectArgs}{parallelArg}{configArg}{environmentArg}{engineArg}{forceArg}{retryArg}"
     if isDotnetHost exePath then
         exePath, $"\"{assemblyPath}\" {baseArgs}"
     else
@@ -339,7 +375,7 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
         task {
             let targets =
                 lock workspaceLock (fun () ->
-                    let _, config = buildConfig workspace [] None
+                    let _, config = buildConfig workspace [] None None None None
                     config.Targets |> Map.keys |> Seq.sort |> Seq.toList
                 )
             let json = Json.Serialize targets
@@ -351,7 +387,7 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
         task {
             let projects =
                 lock workspaceLock (fun () ->
-                    let _, config = buildConfig workspace [] None
+                    let _, config = buildConfig workspace [] None None None None
                     config.Projects
                     |> Map.toList
                     |> List.choose (fun (_, project) ->
@@ -374,12 +410,15 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
         task {
             let targets = ctx.Request.Query.["targets"] |> parseCsvValues
             let projects = ctx.Request.Query.["projects"] |> parseCsvValues |> function | [] -> None | values -> Some values
+            let configuration = readQueryValue ctx "configuration"
+            let environment = readQueryValue ctx "environment"
+            let engine = readQueryValue ctx "engine" |> parseEngineOption
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
                 let graph, options =
                     lock workspaceLock (fun () ->
-                        buildBatchGraph workspace targets projects
+                        buildBatchGraph workspace targets projects configuration environment engine
                     )
                 let payload =
                     {| nodes = graph.Nodes
@@ -397,12 +436,15 @@ let start (graphArgs: ParseResults<GraphArgs>) (logEnabled: bool) (debugEnabled:
         task {
             let targets = ctx.Request.Query.["targets"] |> parseCsvValues
             let projects = ctx.Request.Query.["projects"] |> parseCsvValues |> function | [] -> None | values -> Some values
+            let configuration = readQueryValue ctx "configuration"
+            let environment = readQueryValue ctx "environment"
+            let engine = readQueryValue ctx "engine" |> parseEngineOption
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
                 let graph, _ =
                     lock workspaceLock (fun () ->
-                        buildBatchGraph workspace targets projects
+                        buildBatchGraph workspace targets projects configuration environment engine
                     )
                 let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
                 let statuses =
