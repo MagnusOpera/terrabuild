@@ -32,7 +32,7 @@ const Root = () => {
   return (
     <MantineProvider
       theme={theme}
-      defaultColorScheme="dark"
+      defaultColorScheme="auto"
       colorSchemeManager={colorSchemeManager}
     >
       <Notifications position="top-right" />
