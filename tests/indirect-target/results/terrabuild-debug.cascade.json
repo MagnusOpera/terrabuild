@@ -75,7 +75,7 @@
         }
       ],
       "artifacts": "none",
-      "build": "auto",
+      "build": "always",
       "batch": "single",
       "action": "exec",
       "required": true
