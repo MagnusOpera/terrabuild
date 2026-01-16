@@ -1,49 +1,43 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ColorScheme, ColorSchemeProvider, MantineProvider } from "@mantine/core";
+import {
+  MantineProvider,
+  createTheme,
+  localStorageColorSchemeManager,
+} from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
-import { useLocalStorage } from "@mantine/hooks";
+import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 import App from "./App";
 import "./styles.css";
 
-const Root = () => {
-  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
-    key: "tb-color-scheme",
-    defaultValue: "dark",
-    getInitialValueInEffect: true,
-  });
+const colorSchemeManager = localStorageColorSchemeManager({
+  key: "tb-color-scheme",
+});
 
-  const toggleColorScheme = (value?: ColorScheme) =>
-    setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
-
-  const notificationTheme = {
-    colorScheme,
-    components: {
-      Notification: {
-        styles: (theme: any) => ({
-          root: {
-            border: `1px solid ${theme.colors.gray[3]}`,
-            borderRadius: 8,
-          },
-        }),
-      },
+const theme = createTheme({
+  components: {
+    Notification: {
+      styles: (mantineTheme) => ({
+        root: {
+          border: `1px solid ${mantineTheme.colors.gray[3]}`,
+          borderRadius: 8,
+        },
+      }),
     },
-  };
+  },
+});
 
+const Root = () => {
   return (
-    <ColorSchemeProvider
-      colorScheme={colorScheme}
-      toggleColorScheme={toggleColorScheme}
+    <MantineProvider
+      theme={theme}
+      defaultColorScheme="dark"
+      colorSchemeManager={colorSchemeManager}
     >
-      <MantineProvider
-        withGlobalStyles
-        withNormalizeCSS
-        theme={notificationTheme}
-      >
-        <Notifications position="top-right" />
-        <App />
-      </MantineProvider>
-    </ColorSchemeProvider>
+      <Notifications position="top-right" />
+      <App />
+    </MantineProvider>
   );
 };
 
