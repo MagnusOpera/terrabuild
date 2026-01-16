@@ -243,7 +243,7 @@ const App = () => {
     applyTerminalTheme();
   }, [effectiveColorScheme, theme]);
 
-  const getNodeStyle = (nodeId: string) => {
+  const getNodeStyle = (nodeId: string, isNamedProject: boolean) => {
     const isDark = effectiveColorScheme === "dark";
     const defaultBorder = isDark ? theme.colors.dark[3] : theme.colors.gray[6];
     const selectedBorder = theme.colors.blue[6];
@@ -257,7 +257,7 @@ const App = () => {
         ? rgba(theme.colors.green[6], isDark ? 0.35 : 0.15)
         : null;
     return {
-      borderRadius: 12,
+      borderRadius: isNamedProject ? 9999 : 12,
       borderStyle: "solid",
       borderWidth: nodeId === selectedNodeId ? 2 : 1,
       borderColor: nodeId === selectedNodeId ? selectedBorder : defaultBorder,
@@ -288,7 +288,10 @@ const App = () => {
     setNodes((current) =>
       current.map((node) => ({
         ...node,
-        style: getNodeStyle(node.id),
+        style: getNodeStyle(
+          node.id,
+          Boolean((node.data as { meta?: ProjectNode })?.meta?.name)
+        ),
       }))
     );
   }, [selectedNodeId, effectiveColorScheme, theme, projectStatus, setNodes]);
@@ -401,17 +404,21 @@ const App = () => {
 
     const flowNodes: Node[] = Array.from(projectMap.values())
       .filter((project) => project.directory !== ".")
-      .map((project) => ({
-        id: project.id,
-        data: {
-          label: project.directory,
-          meta: project,
-        },
-        position: { x: 0, y: 0 },
-        sourcePosition: Position.Left,
-        targetPosition: Position.Right,
-        style: getNodeStyle(project.id),
-      }));
+      .map((project) => {
+        const projectName = project.name?.trim();
+        const hasProjectName = Boolean(projectName);
+        return {
+          id: project.id,
+          data: {
+            label: hasProjectName ? projectName : project.directory,
+            meta: project,
+          },
+          position: { x: 0, y: 0 },
+          sourcePosition: Position.Left,
+          targetPosition: Position.Right,
+          style: getNodeStyle(project.id, hasProjectName),
+        };
+      });
 
     const visibleProjects = new Set(flowNodes.map((node) => node.id));
     const edgeSet = new Set<string>();
