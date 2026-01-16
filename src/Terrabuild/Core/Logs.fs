@@ -53,7 +53,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     let dumpLogs () =
                         summary.Operations |> List.iter (fun group ->
                             group |> List.iter (fun step ->
-                                $"### {step.MetaCommand}" |> append
+                                $"### {step.MetaCommand} (exit code {step.ExitCode} - {step.EndedAt})" |> append
                                 if options.Debug then
                                     let cmd = $"{step.Command} {step.Arguments}" |> String.trim
                                     $"*{cmd}*" |> append
@@ -61,7 +61,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                                 append "```"
                                 step.Log |> IO.readTextFile |> append
                                 append "```"
-                                $"*Exit code {step.ExitCode}*" |> append
                             )
                         )
                     dumpLogs
