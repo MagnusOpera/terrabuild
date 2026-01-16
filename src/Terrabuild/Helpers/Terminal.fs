@@ -1,5 +1,6 @@
 module Terminal
 open System
+open System.Threading
 
 let private terms = [
     "^xterm" // xterm, PuTTY, Mintty
@@ -28,6 +29,24 @@ let private forceAnsi =
     | Some "TRUE" -> true
     | _ -> false
 
+let private silent =
+    match System.Environment.GetEnvironmentVariable("TB_SILENT") |> Option.ofObj with
+    | Some "1"
+    | Some "true"
+    | Some "TRUE" -> true
+    | _ -> false
+
+let mutable private runtimeMuted = false
+
+let private isMuted () =
+    silent || Volatile.Read(&runtimeMuted)
+
+let mute () =
+    Volatile.Write(&runtimeMuted, true)
+
+let unmute () =
+    Volatile.Write(&runtimeMuted, false)
+
 let supportAnsi =
     (forceAnsi || not Console.IsOutputRedirected)
     &&
@@ -41,21 +60,24 @@ let supportAnsi =
 
 
 let flush () =
-    Console.Out.Flush()
+    if not (isMuted ()) then
+        Console.Out.Flush()
 
 let write (str: string) =
-    Console.Out.Write(str)
+    if not (isMuted ()) then
+        Console.Out.Write(str)
 
 let writeLine (str: string) =
-    Console.Out.WriteLine(str)
+    if not (isMuted ()) then
+        Console.Out.WriteLine(str)
 
 let hideCursor() =
-    if supportAnsi then Ansi.Styles.cursorHide |> write
+    if supportAnsi && not (isMuted ()) then Ansi.Styles.cursorHide |> write
 
 let showCursor() =
     if supportAnsi then Ansi.Styles.cursorShow |> write
 
 let autoflush() =
-    if supportAnsi then
+    if supportAnsi && not (isMuted ()) then
         new IO.StreamWriter(Console.OpenStandardOutput(), AutoFlush = true)
         |> Console.SetOut
