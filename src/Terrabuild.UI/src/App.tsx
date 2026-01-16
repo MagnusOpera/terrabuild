@@ -82,6 +82,8 @@ const App = () => {
   const [buildRunning, setBuildRunning] = useState(false);
   const [forceBuild, setForceBuild] = useState(false);
   const [retryBuild, setRetryBuild] = useState(false);
+  const [logBuild, setLogBuild] = useState(false);
+  const [debugBuild, setDebugBuild] = useState(false);
   const [parallelism, setParallelism] = useState("");
   const [engine, setEngine] = useState("default");
   const [configuration, setConfiguration] = useState("");
@@ -616,6 +618,8 @@ const App = () => {
       parallelism: parallel && parallel > 0 ? parallel : undefined,
       force: forceBuild,
       retry: retryBuild,
+      log: logBuild ? true : undefined,
+      debug: debugBuild ? true : undefined,
       configuration: configValue.length > 0 ? configValue : undefined,
       environment: envValue.length > 0 ? envValue : undefined,
       engine: engineValue,
@@ -914,6 +918,10 @@ const App = () => {
               retryBuild={retryBuild}
               onForceBuildChange={setForceBuild}
               onRetryBuildChange={setRetryBuild}
+              logBuild={logBuild}
+              onLogBuildChange={setLogBuild}
+              debugBuild={debugBuild}
+              onDebugBuildChange={setDebugBuild}
               projects={projects}
               selectedProjects={selectedProjects}
               onProjectsChange={setSelectedProjects}

@@ -33,6 +33,10 @@ type BuildControlsPanelProps = {
   retryBuild: boolean;
   onForceBuildChange: (checked: boolean) => void;
   onRetryBuildChange: (checked: boolean) => void;
+  logBuild: boolean;
+  onLogBuildChange: (checked: boolean) => void;
+  debugBuild: boolean;
+  onDebugBuildChange: (checked: boolean) => void;
   projects: ProjectInfo[];
   selectedProjects: string[];
   onProjectsChange: (values: string[]) => void;
@@ -58,6 +62,10 @@ const BuildControlsPanel = ({
   retryBuild,
   onForceBuildChange,
   onRetryBuildChange,
+  logBuild,
+  onLogBuildChange,
+  debugBuild,
+  onDebugBuildChange,
   projects,
   selectedProjects,
   onProjectsChange,
@@ -114,6 +122,13 @@ const BuildControlsPanel = ({
               if (checked) {
                 onForceBuildChange(false);
               }
+            }}
+          />
+          <Checkbox
+            label="Log"
+            checked={logBuild}
+            onChange={(event) => {
+              onLogBuildChange(event.currentTarget.checked);
             }}
           />
         </Group>
@@ -205,6 +220,14 @@ const BuildControlsPanel = ({
                       onParallelismChange(String(value));
                     }
                   }}
+                />
+
+                <Checkbox
+                  label="Debug"
+                  checked={debugBuild}
+                  onChange={(event) =>
+                    onDebugBuildChange(event.currentTarget.checked)
+                  }
                 />
               </Stack>
             </Accordion.Panel>
