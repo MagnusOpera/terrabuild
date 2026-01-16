@@ -75,10 +75,10 @@
         }
       ],
       "artifacts": "none",
-      "build": "auto",
+      "build": "always",
       "batch": "single",
       "action": "exec",
-      "required": false
+      "required": true
     },
     "workspace/path#c:build": {
       "id": "workspace/path#c:build",
