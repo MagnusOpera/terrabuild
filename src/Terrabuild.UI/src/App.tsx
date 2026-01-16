@@ -103,7 +103,7 @@ const App = () => {
     Record<string, { x: number; y: number }>
   >({});
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
-  const [buildStartedAt, setBuildStartedAt] = useState<Date | null>(null);
+  const [buildEndedAt, setBuildEndedAt] = useState<Date | null>(null);
   const [nodes, setNodes] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const flowInstance = useRef<ReactFlowInstance | null>(null);
@@ -688,13 +688,13 @@ const App = () => {
       });
     } catch {
       setBuildRunning(false);
-      setBuildStartedAt(null);
+      setBuildEndedAt(null);
       notifyApiUnavailable();
       return;
     }
     if (!response.ok) {
       setBuildRunning(false);
-      setBuildStartedAt(null);
+      setBuildEndedAt(null);
       const message = await response.text();
       setBuildError(message);
       notifications.show({
@@ -704,7 +704,7 @@ const App = () => {
       });
       return;
     }
-    setBuildStartedAt(null);
+    setBuildEndedAt(null);
     notifications.show({
       color: "blue",
       title: "Build started",
@@ -795,10 +795,10 @@ const App = () => {
       return;
     }
     const summary = nodeResults[key];
-    if (summary?.startedAt) {
-      setBuildStartedAt(new Date(summary.startedAt));
+    if (summary?.endedAt) {
+      setBuildEndedAt(new Date(summary.endedAt));
     } else {
-      setBuildStartedAt(null);
+      setBuildEndedAt(null);
     }
     setSelectedTargetKey(key);
     terminal.current.reset();
@@ -835,8 +835,8 @@ const App = () => {
       return;
     }
     const summary = nodeResults[selectedTargetKey];
-    if (summary?.startedAt) {
-      setBuildStartedAt(new Date(summary.startedAt));
+    if (summary?.endedAt) {
+      setBuildEndedAt(new Date(summary.endedAt));
     }
   }, [selectedTargetKey, nodeResults]);
 
@@ -857,8 +857,8 @@ const App = () => {
 
   const terminalBackground =
     effectiveColorScheme === "dark" ? theme.colors.dark[7] : theme.white;
-  const buildLogTitle = buildStartedAt
-    ? `Build Log ${buildStartedAt
+  const buildLogTitle = buildEndedAt
+    ? `Build Log ${buildEndedAt
         .toISOString()
         .replace("T", " ")
         .replace("Z", "")

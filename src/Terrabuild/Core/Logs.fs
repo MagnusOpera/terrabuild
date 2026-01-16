@@ -148,6 +148,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
     let dumpTerminal (nodes: GraphDef.Node seq) =
         let dumpTerminal (node: GraphDef.Node) =
             let label = $"{node.Target} {node.ProjectDir}"
+            let formatEndedAt (value: System.DateTime) =
+                value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
 
             let getHeaderFooter success =
                 let color =
@@ -164,7 +166,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     let dumpLogs () =
                         summary.Operations |> Seq.iter (fun group ->
                             group |> Seq.iter (fun step ->
-                                $"{Ansi.Styles.yellow}{step.MetaCommand} {Ansi.Styles.dimwhite}(exit code {step.ExitCode}){Ansi.Styles.reset}" |> Terminal.writeLine
+                                let endedAt = formatEndedAt step.EndedAt
+                                $"{Ansi.Styles.yellow}{step.MetaCommand} {Ansi.Styles.dimwhite}(exit code {step.ExitCode} - {endedAt}){Ansi.Styles.reset}"
+                                |> Terminal.writeLine
                                 if options.Debug then
                                     $"{Ansi.Styles.cyan}{step.Command} {step.Arguments}{Ansi.Styles.reset}" |> Terminal.writeLine
                                 step.Log |> IO.readTextFile |> Terminal.write
@@ -189,6 +193,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let label = $"{node.Target} {node.ProjectDir}"
             let cacheEntryId = GraphDef.buildCacheKey node
             let summary = cache.TryGetSummaryOnly false cacheEntryId
+            let formatEndedAt (value: System.DateTime) =
+                value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
 
             match summary with
             | Some (_, summary) ->
@@ -198,7 +204,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     | Some command ->
                         match command |> List.tryLast with
                         | Some operation ->
-                            $"::group::{operation.MetaCommand}" |> Terminal.writeLine
+                            let endedAt = formatEndedAt operation.EndedAt
+                            $"::group::{operation.MetaCommand} (exit code {operation.ExitCode} - {endedAt})"
+                            |> Terminal.writeLine
                             operation.Log |> IO.readTextFile |> Terminal.write
                             $"::endgroup::" |> Terminal.writeLine
                         | _ -> ()
