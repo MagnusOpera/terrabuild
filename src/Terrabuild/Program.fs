@@ -301,21 +301,21 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Engine = None }
         runTarget options
 
-    let graph (graphArgs: ParseResults<GraphArgs>) =
+    let console (consoleArgs: ParseResults<ConsoleArgs>) =
         let workspaceResult =
-            match graphArgs.TryGetResult(GraphArgs.Workspace) with
+            match consoleArgs.TryGetResult(ConsoleArgs.Workspace) with
             | Some ws -> findWorkspace (ws |> FS.fullPath)
             | None -> findWorkspace (currentDir())
         match workspaceResult with
         | None ->
-            "No workspace found. Start Terrabuild graph from a workspace directory or pass -w <path>."
+            "No workspace found. Start console from a workspace directory or pass -w <path>."
             |> Terminal.writeLine
             5
         | Some _ ->
-            "Press Ctrl+C to exit graph server mode." |> Terminal.writeLine
+            "Press Ctrl+C to exit console server mode." |> Terminal.writeLine
             Terminal.flush()
             Terminal.mute()
-            GraphServer.start graphArgs (log || debug) debug |> ignore
+            GraphServer.start consoleArgs (log || debug) debug |> ignore
             Terminal.unmute()
             0
 
@@ -385,7 +385,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | p when p.Contains(TerrabuildArgs.Logs) -> p.GetResult(TerrabuildArgs.Logs) |> logs
     | p when p.Contains(TerrabuildArgs.Run) -> p.GetResult(TerrabuildArgs.Run) |> run
     | p when p.Contains(TerrabuildArgs.Serve) -> p.GetResult(TerrabuildArgs.Serve) |> serve
-    | p when p.Contains(TerrabuildArgs.Graph) -> p.GetResult(TerrabuildArgs.Graph) |> graph
+    | p when p.Contains(TerrabuildArgs.Console) -> p.GetResult(TerrabuildArgs.Console) |> console
     | p when p.Contains(TerrabuildArgs.Clear) -> p.GetResult(TerrabuildArgs.Clear) |> clear
     | p when p.Contains(TerrabuildArgs.Login) -> p.GetResult(TerrabuildArgs.Login) |> login
     | p when p.Contains(TerrabuildArgs.Logout) -> p.GetResult(TerrabuildArgs.Logout) |> logout
