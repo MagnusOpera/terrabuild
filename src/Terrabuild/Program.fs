@@ -41,6 +41,7 @@ let launchDir = currentDir()
 let cleanup() =
     Exec.cleanup()
     Environment.CurrentDirectory <- launchDir
+    Terminal.unmute()
     Terminal.showCursor()
 
 Console.CancelKeyPress.Add(fun _ -> cleanup())
@@ -303,9 +304,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     let graph (graphArgs: ParseResults<GraphArgs>) =
         "Press Ctrl+C to exit graph server mode." |> Terminal.writeLine
         Terminal.flush()
-        Console.SetOut(IO.TextWriter.Null)
-        Console.SetError(IO.TextWriter.Null)
-        GraphServer.start graphArgs (log || debug) debug
+        Terminal.mute()
+        GraphServer.start graphArgs (log || debug) debug |> ignore
+        Terminal.unmute()
+        0
 
     let logs (logsArgs: ParseResults<LogsArgs>) =
         let targets = logsArgs.GetResult(LogsArgs.Target) |> Seq.map String.toLower
