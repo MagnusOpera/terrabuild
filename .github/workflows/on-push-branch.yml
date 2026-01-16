@@ -8,10 +8,6 @@ on:
       - fix/**
       - chore/**
       - release/**
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
