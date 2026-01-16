@@ -5,6 +5,7 @@ import { RefObject } from "react";
 type BuildLogPanelProps = {
   showTerminal: boolean;
   buildRunning: boolean;
+  title: string;
   onHide: () => void;
   terminalRef: RefObject<HTMLDivElement | null>;
   background: string;
@@ -13,6 +14,7 @@ type BuildLogPanelProps = {
 const BuildLogPanel = ({
   showTerminal,
   buildRunning,
+  title,
   onHide,
   terminalRef,
   background,
@@ -35,7 +37,7 @@ const BuildLogPanel = ({
     >
       {showTerminal && (
         <Group justify="space-between" align="center" mb="sm">
-          <Title order={4}>Build Log</Title>
+          <Title order={4}>{title}</Title>
           <Group spacing="xs" align="center" justify="flex-end">
             <Badge color={buildRunning ? "orange" : "gray"}>
               {buildRunning ? "Live" : "Idle"}

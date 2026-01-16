@@ -103,6 +103,7 @@ const App = () => {
     Record<string, { x: number; y: number }>
   >({});
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+  const [buildStartedAt, setBuildStartedAt] = useState<Date | null>(null);
   const [nodes, setNodes] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const flowInstance = useRef<ReactFlowInstance | null>(null);
@@ -121,6 +122,7 @@ const App = () => {
     null
   );
   const pendingBuildLogRef = useRef(false);
+  const lastApiNoticeRef = useRef(0);
   const applyTerminalTheme = () => {
     if (!terminal.current || !terminalReady.current) {
       return;
@@ -137,6 +139,19 @@ const App = () => {
       selectionBackground:
         effectiveColorScheme === "dark" ? "#3b3f45" : "#c9d0d8",
     };
+  };
+
+  const notifyApiUnavailable = () => {
+    const now = Date.now();
+    if (now - lastApiNoticeRef.current < 15000) {
+      return;
+    }
+    lastApiNoticeRef.current = now;
+    notifications.show({
+      color: "red",
+      title: "API unavailable",
+      message: "Unable to reach the Terrabuild API.",
+    });
   };
   const flushPendingTerminalActions = () => {
     if (!terminalReady.current) {
@@ -278,15 +293,23 @@ const App = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [targetsRes, projectsRes] = await Promise.all([
-        fetch("/api/targets"),
-        fetch("/api/projects"),
-      ]);
-      if (targetsRes.ok) {
-        setTargets(await targetsRes.json());
-      }
-      if (projectsRes.ok) {
-        setProjects(await projectsRes.json());
+      try {
+        const [targetsRes, projectsRes] = await Promise.all([
+          fetch("/api/targets"),
+          fetch("/api/projects"),
+        ]);
+        if (targetsRes.ok) {
+          setTargets(await targetsRes.json());
+        } else {
+          notifyApiUnavailable();
+        }
+        if (projectsRes.ok) {
+          setProjects(await projectsRes.json());
+        } else {
+          notifyApiUnavailable();
+        }
+      } catch {
+        notifyApiUnavailable();
       }
     };
     load().catch(() => null);
@@ -345,6 +368,7 @@ const App = () => {
     fetchGraph().catch(() => {
       setGraphError("Failed to load graph.");
       setGraph(null);
+      notifyApiUnavailable();
     });
   }, [selectedTargets, selectedProjects, configuration, environment, engine]);
 
@@ -510,7 +534,14 @@ const App = () => {
     const controller = new AbortController();
     logAbort.current = controller;
 
-    const response = await fetch("/api/build/log", { signal: controller.signal });
+    let response: Response;
+    try {
+      response = await fetch("/api/build/log", { signal: controller.signal });
+    } catch {
+      notifyApiUnavailable();
+      setBuildRunning(false);
+      return;
+    }
     if (!response.body) {
       return;
     }
@@ -632,6 +663,7 @@ const App = () => {
         message: "Build command copied to clipboard.",
       });
     } catch {
+      notifyApiUnavailable();
       notifications.show({
         color: "red",
         title: "Copy failed",
@@ -647,13 +679,22 @@ const App = () => {
     setBuildRunning(true);
     setBuildError(null);
     const payload = buildPayload();
-    const response = await fetch("/api/build", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      setBuildRunning(false);
+      setBuildStartedAt(null);
+      notifyApiUnavailable();
+      return;
+    }
     if (!response.ok) {
       setBuildRunning(false);
+      setBuildStartedAt(null);
       const message = await response.text();
       setBuildError(message);
       notifications.show({
@@ -663,6 +704,7 @@ const App = () => {
       });
       return;
     }
+    setBuildStartedAt(null);
     notifications.show({
       color: "blue",
       title: "Build started",
@@ -670,6 +712,7 @@ const App = () => {
     });
     startLogStream().catch(() => {
       setBuildRunning(false);
+      notifyApiUnavailable();
       notifications.show({
         color: "red",
         title: "Build failed",
@@ -708,7 +751,9 @@ const App = () => {
         setProjectStatus(statusMap);
       }
     };
-    refresh().catch(() => null);
+    refresh().catch(() => {
+      notifyApiUnavailable();
+    });
   }, [
     buildRunning,
     selectedTargets,
@@ -749,6 +794,12 @@ const App = () => {
     if (!terminal.current) {
       return;
     }
+    const summary = nodeResults[key];
+    if (summary?.startedAt) {
+      setBuildStartedAt(new Date(summary.startedAt));
+    } else {
+      setBuildStartedAt(null);
+    }
     setSelectedTargetKey(key);
     terminal.current.reset();
     setShowTerminal(true);
@@ -779,6 +830,16 @@ const App = () => {
     await loadTargetLog(key, target);
   };
 
+  useEffect(() => {
+    if (!selectedTargetKey) {
+      return;
+    }
+    const summary = nodeResults[selectedTargetKey];
+    if (summary?.startedAt) {
+      setBuildStartedAt(new Date(summary.startedAt));
+    }
+  }, [selectedTargetKey, nodeResults]);
+
   const handleNodesChange: OnNodesChange = (changes) => {
     setNodes((current) => {
       const updated = applyNodeChanges(changes, current);
@@ -796,6 +857,13 @@ const App = () => {
 
   const terminalBackground =
     effectiveColorScheme === "dark" ? theme.colors.dark[7] : theme.white;
+  const buildLogTitle = buildStartedAt
+    ? `Build Log ${buildStartedAt
+        .toISOString()
+        .replace("T", " ")
+        .replace("Z", "")
+        .slice(0, 19)}`
+    : "Build Log";
 
   return (
     <AppShell
@@ -917,6 +985,7 @@ const App = () => {
           <BuildLogPanel
             showTerminal={showTerminal}
             buildRunning={buildRunning}
+            title={buildLogTitle}
             onHide={() => setShowTerminal(false)}
             terminalRef={terminalRef}
             background={terminalBackground}
