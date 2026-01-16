@@ -48,7 +48,7 @@ const nodeHeight = 120;
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
   graph.setDefaultEdgeLabel(() => ({}));
-  graph.setGraph({ rankdir: "LR", nodesep: 90, ranksep: 140 });
+  graph.setGraph({ rankdir: "RL", nodesep: 90, ranksep: 140 });
 
   nodes.forEach((node) => {
     graph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -408,8 +408,8 @@ const App = () => {
           meta: project,
         },
         position: { x: 0, y: 0 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
+        sourcePosition: Position.Left,
+        targetPosition: Position.Right,
         style: getNodeStyle(project.id),
       }));
 
