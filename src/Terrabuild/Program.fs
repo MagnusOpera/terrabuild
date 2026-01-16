@@ -302,12 +302,22 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         runTarget options
 
     let graph (graphArgs: ParseResults<GraphArgs>) =
-        "Press Ctrl+C to exit graph server mode." |> Terminal.writeLine
-        Terminal.flush()
-        Terminal.mute()
-        GraphServer.start graphArgs (log || debug) debug |> ignore
-        Terminal.unmute()
-        0
+        let workspaceResult =
+            match graphArgs.TryGetResult(GraphArgs.Workspace) with
+            | Some ws -> findWorkspace (ws |> FS.fullPath)
+            | None -> findWorkspace (currentDir())
+        match workspaceResult with
+        | None ->
+            "No workspace found. Start Terrabuild graph from a workspace directory or pass -w <path>."
+            |> Terminal.writeLine
+            5
+        | Some _ ->
+            "Press Ctrl+C to exit graph server mode." |> Terminal.writeLine
+            Terminal.flush()
+            Terminal.mute()
+            GraphServer.start graphArgs (log || debug) debug |> ignore
+            Terminal.unmute()
+            0
 
     let logs (logsArgs: ParseResults<LogsArgs>) =
         let targets = logsArgs.GetResult(LogsArgs.Target) |> Seq.map String.toLower
