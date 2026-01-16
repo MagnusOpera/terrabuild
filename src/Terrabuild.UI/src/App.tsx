@@ -44,6 +44,7 @@ type ProjectStatusMap = Record<string, ProjectStatus["status"]>;
 
 const nodeWidth = 320;
 const nodeHeight = 120;
+const nodePadding = 32;
 
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
@@ -263,7 +264,7 @@ const App = () => {
       borderColor: nodeId === selectedNodeId ? selectedBorder : defaultBorder,
       background: statusColor ?? nodeBackground,
       color: nodeText,
-      padding: 8,
+      padding: nodePadding,
       fontSize: 32,
       display: "flex",
       alignItems: "center",
