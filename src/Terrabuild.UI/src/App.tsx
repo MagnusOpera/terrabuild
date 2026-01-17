@@ -785,11 +785,10 @@ const App = () => {
   ]);
 
   const loadProjectResults = async (project: ProjectNode) => {
+    const shouldSyncLog = showTerminal && selectedTargetKey !== null;
     setSelectedProject(project);
     setSelectedNodeId(project.id);
     setSelectedTargetKey(null);
-    setShowTerminal(false);
-    setBuildEndedAt(null);
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
@@ -810,6 +809,44 @@ const App = () => {
     if (Object.keys(freshResults).length > 0) {
       setNodeResults((prev) => ({ ...prev, ...freshResults }));
     }
+    if (!shouldSyncLog || project.targets.length === 0) {
+      return;
+    }
+    const [_, selectedTargetName] = selectedTargetKey.split("/", 3);
+    const matchingTarget = project.targets.find(
+      (target) => target.target === selectedTargetName
+    );
+    const resultsLookup = { ...nodeResults, ...freshResults };
+    const fallbackTarget = project.targets.reduce((newest, candidate) => {
+      if (!newest) {
+        return candidate;
+      }
+      const newestKey =
+        `${newest.projectHash}/${newest.target}/${newest.targetHash}`;
+      const candidateKey =
+        `${candidate.projectHash}/${candidate.target}/${candidate.targetHash}`;
+      const newestSummary = resultsLookup[newestKey];
+      const candidateSummary = resultsLookup[candidateKey];
+      const newestTime = newestSummary?.endedAt
+        ? Date.parse(newestSummary.endedAt)
+        : Number.NEGATIVE_INFINITY;
+      const candidateTime = candidateSummary?.endedAt
+        ? Date.parse(candidateSummary.endedAt)
+        : Number.NEGATIVE_INFINITY;
+      if (candidateTime === newestTime) {
+        return candidate.target.localeCompare(newest.target) > 0
+          ? candidate
+          : newest;
+      }
+      return candidateTime > newestTime ? candidate : newest;
+    }, null as GraphNode | null);
+    const nextTarget = matchingTarget ?? fallbackTarget;
+    if (!nextTarget) {
+      return;
+    }
+    const nextKey =
+      `${nextTarget.projectHash}/${nextTarget.target}/${nextTarget.targetHash}`;
+    await showTargetLog(nextKey, nextTarget);
   };
 
   const loadTargetLog = async (key: string, target: GraphNode) => {
@@ -844,6 +881,12 @@ const App = () => {
   };
 
   const showTargetLog = async (key: string, target: GraphNode) => {
+    if (selectedTargetKey === key) {
+      setSelectedTargetKey(null);
+      setShowTerminal(false);
+      setBuildEndedAt(null);
+      return;
+    }
     if (!terminal.current) {
       pendingTargetRef.current = { key, target };
       setShowTerminal(true);
