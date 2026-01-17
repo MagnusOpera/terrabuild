@@ -827,11 +827,11 @@ const App = () => {
         `${candidate.projectHash}/${candidate.target}/${candidate.targetHash}`;
       const newestSummary = resultsLookup[newestKey];
       const candidateSummary = resultsLookup[candidateKey];
-      const newestTime = newestSummary
-        ? Date.parse(newestSummary.startedAt || newestSummary.endedAt)
+      const newestTime = newestSummary?.endedAt
+        ? Date.parse(newestSummary.endedAt)
         : Number.NEGATIVE_INFINITY;
-      const candidateTime = candidateSummary
-        ? Date.parse(candidateSummary.startedAt || candidateSummary.endedAt)
+      const candidateTime = candidateSummary?.endedAt
+        ? Date.parse(candidateSummary.endedAt)
         : Number.NEGATIVE_INFINITY;
       if (candidateTime === newestTime) {
         return candidate.target.localeCompare(newest.target) > 0
