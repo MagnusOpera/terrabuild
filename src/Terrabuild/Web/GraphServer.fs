@@ -326,8 +326,11 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
         ]
         |> List.append (processDir |> Option.map (fun dir -> Path.Combine(dir, "ui")) |> Option.toList)
         |> List.map (fun path -> Path.GetFullPath(path))
-    let port = graphArgs.TryGetResult(ConsoleArgs.Port) |> Option.defaultValue 5179
-    let url = $"http://127.0.0.1:{port}"
+    let portOpt = graphArgs.TryGetResult(ConsoleArgs.Port)
+    let url =
+        match portOpt with
+        | Some port -> $"http://127.0.0.1:{port}"
+        | None -> "http://127.0.0.1:0"
     let builder = WebApplication.CreateBuilder()
     builder.Logging.ClearProviders() |> ignore
     if debugEnabled then
@@ -618,8 +621,15 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
         }))
     |> ignore
 
-    let runTask = app.RunAsync()
+    app.StartAsync().Wait()
+    let boundUrl =
+        match portOpt with
+        | Some _ -> url
+        | None ->
+            app.Urls
+            |> Seq.tryHead
+            |> Option.defaultValue url
     if shouldOpenBrowser then
-        openBrowser url
-    runTask.Wait()
+        openBrowser boundUrl
+    app.WaitForShutdownAsync().Wait()
     0
