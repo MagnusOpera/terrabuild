@@ -844,6 +844,12 @@ const App = () => {
   };
 
   const showTargetLog = async (key: string, target: GraphNode) => {
+    if (selectedTargetKey === key) {
+      setSelectedTargetKey(null);
+      setShowTerminal(false);
+      setBuildEndedAt(null);
+      return;
+    }
     if (!terminal.current) {
       pendingTargetRef.current = { key, target };
       setShowTerminal(true);
