@@ -123,6 +123,8 @@ const App = () => {
   const terminalReady = useRef(false);
   const activeProjectRef = useRef<string | null>(null);
   const selectedTargetKeyRef = useRef<string | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const handleResizeRef = useRef<(() => void) | null>(null);
   const pendingTargetRef = useRef<{ key: string; target: GraphNode } | null>(
     null
   );
@@ -194,6 +196,16 @@ const App = () => {
     terminalReady.current = true;
     applyTerminalTheme();
     flushPendingTerminalActions();
+    const handleResize = () => {
+      if (
+        !terminalRef.current ||
+        terminalRef.current.offsetWidth === 0 ||
+        terminalRef.current.offsetHeight === 0
+      ) {
+        return;
+      }
+      fit.fit();
+    };
     const resizeObserver = new ResizeObserver(() => {
       if (!terminalRef.current) {
         return;
@@ -207,6 +219,8 @@ const App = () => {
       fit.fit();
     });
     resizeObserver.observe(terminalRef.current);
+    resizeObserverRef.current = resizeObserver;
+    handleResizeRef.current = handleResize;
     requestAnimationFrame(() => {
       if (!terminalRef.current) {
         return;
@@ -220,27 +234,24 @@ const App = () => {
       fit.fit();
       applyTerminalTheme();
     });
-    const handleResize = () => {
-      if (
-        !terminalRef.current ||
-        terminalRef.current.offsetWidth === 0 ||
-        terminalRef.current.offsetHeight === 0
-      ) {
-        return;
-      }
-      fit.fit();
-    };
     window.addEventListener("resize", handleResize);
+  }, [showTerminal]);
+
+  useEffect(() => {
     return () => {
-      window.removeEventListener("resize", handleResize);
-      resizeObserver.disconnect();
-      terminalReady.current = false;
-      term.write("\u001b[?25h");
-      term.dispose();
+      if (handleResizeRef.current) {
+        window.removeEventListener("resize", handleResizeRef.current);
+      }
+      resizeObserverRef.current?.disconnect();
+      if (terminal.current) {
+        terminalReady.current = false;
+        terminal.current.write("\u001b[?25h");
+        terminal.current.dispose();
+      }
       terminal.current = null;
       fitAddon.current = null;
     };
-  }, [showTerminal]);
+  }, []);
 
   useEffect(() => {
     applyTerminalTheme();
@@ -788,14 +799,10 @@ const App = () => {
 
   const loadProjectResults = async (project: ProjectNode) => {
     const previousTargetKey = selectedTargetKeyRef.current;
-    const shouldSyncLog = showTerminal && previousTargetKey !== null;
+    const shouldSyncLog = previousTargetKey !== null;
     activeProjectRef.current = project.id;
     setSelectedProject(project);
     setSelectedNodeId(project.id);
-    if (!showTerminal) {
-      setSelectedTargetKey(null);
-      selectedTargetKeyRef.current = null;
-    }
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
@@ -856,10 +863,22 @@ const App = () => {
     }
     const nextKey =
       `${nextTarget.projectHash}/${nextTarget.target}/${nextTarget.targetHash}`;
+    if (showTerminal) {
+      await showTargetLog(nextKey, nextTarget, true);
+      return;
+    }
+    if (terminal.current) {
+      await loadTargetLog(nextKey, nextTarget, false);
+      return;
+    }
     await showTargetLog(nextKey, nextTarget, true);
   };
 
-  const loadTargetLog = async (key: string, target: GraphNode) => {
+  const loadTargetLog = async (
+    key: string,
+    target: GraphNode,
+    ensureExpanded: boolean = true
+  ) => {
     if (!terminal.current) {
       return;
     }
@@ -872,7 +891,9 @@ const App = () => {
     setSelectedTargetKey(key);
     selectedTargetKeyRef.current = key;
     terminal.current.reset();
-    setShowTerminal(true);
+    if (ensureExpanded) {
+      setShowTerminal(true);
+    }
     try {
       const response = await fetch(
         `/api/build/target-log/${target.projectHash}/${target.target}/${target.targetHash}`
@@ -1049,7 +1070,7 @@ const App = () => {
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          gap: showTerminal ? theme.spacing.md : 0,
+          gap: theme.spacing.md,
         }}
       >
         <Box style={{ flex: 1, minHeight: 0 }}>
@@ -1082,12 +1103,7 @@ const App = () => {
           showTerminal={showTerminal}
           buildRunning={buildRunning}
           title={buildLogTitle}
-          onHide={() => {
-            setShowTerminal(false);
-            setSelectedTargetKey(null);
-            selectedTargetKeyRef.current = null;
-            setBuildEndedAt(null);
-          }}
+          onToggle={() => setShowTerminal((value) => !value)}
           terminalRef={terminalRef}
           background={terminalBackground}
         />
