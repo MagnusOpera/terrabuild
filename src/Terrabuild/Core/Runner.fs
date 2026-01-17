@@ -510,7 +510,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         |> Set.forall (fun nodeId ->
             match nodeStatus |> Map.tryFind nodeId with
             | Some info -> info.Status.IsSuccess
-            | _ -> true)
+            | _ -> false)
 
     let buildInfo =
         { Summary.Commit = headCommit.Sha
