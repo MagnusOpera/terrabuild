@@ -46,6 +46,7 @@ const BuildLogPanel = ({
               size="lg"
               variant="subtle"
               onClick={onHide}
+              disabled={buildRunning}
               aria-label="Hide terminal"
             >
               <IconSquareRoundedChevronDown size={18} />

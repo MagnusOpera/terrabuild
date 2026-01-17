@@ -121,6 +121,8 @@ const App = () => {
   const fitAddon = useRef<FitAddon | null>(null);
   const logAbort = useRef<AbortController | null>(null);
   const terminalReady = useRef(false);
+  const activeProjectRef = useRef<string | null>(null);
+  const selectedTargetKeyRef = useRef<string | null>(null);
   const pendingTargetRef = useRef<{ key: string; target: GraphNode } | null>(
     null
   );
@@ -785,10 +787,15 @@ const App = () => {
   ]);
 
   const loadProjectResults = async (project: ProjectNode) => {
-    const shouldSyncLog = showTerminal && selectedTargetKey !== null;
+    const previousTargetKey = selectedTargetKeyRef.current;
+    const shouldSyncLog = showTerminal && previousTargetKey !== null;
+    activeProjectRef.current = project.id;
     setSelectedProject(project);
     setSelectedNodeId(project.id);
-    setSelectedTargetKey(null);
+    if (!showTerminal) {
+      setSelectedTargetKey(null);
+      selectedTargetKeyRef.current = null;
+    }
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
@@ -809,10 +816,13 @@ const App = () => {
     if (Object.keys(freshResults).length > 0) {
       setNodeResults((prev) => ({ ...prev, ...freshResults }));
     }
+    if (activeProjectRef.current !== project.id) {
+      return;
+    }
     if (!shouldSyncLog || project.targets.length === 0) {
       return;
     }
-    const [_, selectedTargetName] = selectedTargetKey.split("/", 3);
+    const [_, selectedTargetName] = previousTargetKey.split("/", 3);
     const matchingTarget = project.targets.find(
       (target) => target.target === selectedTargetName
     );
@@ -846,7 +856,7 @@ const App = () => {
     }
     const nextKey =
       `${nextTarget.projectHash}/${nextTarget.target}/${nextTarget.targetHash}`;
-    await showTargetLog(nextKey, nextTarget);
+    await showTargetLog(nextKey, nextTarget, true);
   };
 
   const loadTargetLog = async (key: string, target: GraphNode) => {
@@ -860,6 +870,7 @@ const App = () => {
       setBuildEndedAt(null);
     }
     setSelectedTargetKey(key);
+    selectedTargetKeyRef.current = key;
     terminal.current.reset();
     setShowTerminal(true);
     try {
@@ -867,22 +878,36 @@ const App = () => {
         `/api/build/target-log/${target.projectHash}/${target.target}/${target.targetHash}`
       );
       if (!response.ok) {
+        if (selectedTargetKeyRef.current !== key) {
+          return;
+        }
         terminal.current.write("No cached log available.\n");
         terminal.current.scrollToBottom();
         return;
       }
       const log = await response.text();
+      if (selectedTargetKeyRef.current !== key) {
+        return;
+      }
       terminal.current.write(log.length > 0 ? log : "No cached log available.\n");
       terminal.current.scrollToBottom();
     } catch {
+      if (selectedTargetKeyRef.current !== key) {
+        return;
+      }
       terminal.current.write("Failed to load cached log.\n");
       terminal.current.scrollToBottom();
     }
   };
 
-  const showTargetLog = async (key: string, target: GraphNode) => {
-    if (selectedTargetKey === key) {
+  const showTargetLog = async (
+    key: string,
+    target: GraphNode,
+    forceShow: boolean = false
+  ) => {
+    if (!forceShow && selectedTargetKey === key) {
       setSelectedTargetKey(null);
+      selectedTargetKeyRef.current = null;
       setShowTerminal(false);
       setBuildEndedAt(null);
       return;
@@ -896,6 +921,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    selectedTargetKeyRef.current = selectedTargetKey;
     if (!selectedTargetKey) {
       return;
     }
@@ -1040,7 +1066,10 @@ const App = () => {
             onNodeClick={(_, node) =>
               loadProjectResults(node.data.meta as ProjectNode)
             }
-            onNodeDragStart={(_, node) => setDraggedNodeId(node.id)}
+            onNodeDragStart={(_, node) => {
+              setDraggedNodeId(node.id);
+              loadProjectResults(node.data.meta as ProjectNode);
+            }}
             onNodeDragStop={() => setDraggedNodeId(null)}
             onReflow={() => {
               setManualPositions({});
@@ -1053,7 +1082,12 @@ const App = () => {
           showTerminal={showTerminal}
           buildRunning={buildRunning}
           title={buildLogTitle}
-          onHide={() => setShowTerminal(false)}
+          onHide={() => {
+            setShowTerminal(false);
+            setSelectedTargetKey(null);
+            selectedTargetKeyRef.current = null;
+            setBuildEndedAt(null);
+          }}
           terminalRef={terminalRef}
           background={terminalBackground}
         />
