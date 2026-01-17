@@ -788,6 +788,8 @@ const App = () => {
     setSelectedProject(project);
     setSelectedNodeId(project.id);
     setSelectedTargetKey(null);
+    setShowTerminal(false);
+    setBuildEndedAt(null);
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
@@ -808,39 +810,6 @@ const App = () => {
     if (Object.keys(freshResults).length > 0) {
       setNodeResults((prev) => ({ ...prev, ...freshResults }));
     }
-    if (project.targets.length === 0) {
-      return;
-    }
-    const resultsLookup = { ...nodeResults, ...freshResults };
-    const newestTarget = project.targets.reduce((newest, candidate) => {
-      if (!newest) {
-        return candidate;
-      }
-      const newestKey =
-        `${newest.projectHash}/${newest.target}/${newest.targetHash}`;
-      const candidateKey =
-        `${candidate.projectHash}/${candidate.target}/${candidate.targetHash}`;
-      const newestSummary = resultsLookup[newestKey];
-      const candidateSummary = resultsLookup[candidateKey];
-      const newestTime = newestSummary
-        ? Date.parse(newestSummary.startedAt || newestSummary.endedAt)
-        : Number.NEGATIVE_INFINITY;
-      const candidateTime = candidateSummary
-        ? Date.parse(candidateSummary.startedAt || candidateSummary.endedAt)
-        : Number.NEGATIVE_INFINITY;
-      if (candidateTime === newestTime) {
-        return candidate.target.localeCompare(newest.target) > 0
-          ? candidate
-          : newest;
-      }
-      return candidateTime > newestTime ? candidate : newest;
-    }, null as GraphNode | null);
-    if (!newestTarget) {
-      return;
-    }
-    const newestKey =
-      `${newestTarget.projectHash}/${newestTarget.target}/${newestTarget.targetHash}`;
-    await showTargetLog(newestKey, newestTarget);
   };
 
   const loadTargetLog = async (key: string, target: GraphNode) => {
