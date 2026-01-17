@@ -788,8 +788,6 @@ const App = () => {
     setSelectedProject(project);
     setSelectedNodeId(project.id);
     setSelectedTargetKey(null);
-    setShowTerminal(false);
-    setBuildEndedAt(null);
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
