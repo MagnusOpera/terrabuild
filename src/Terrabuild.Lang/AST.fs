@@ -12,7 +12,8 @@ with
 
     static member Append (attributes: Attribute list) (attribute: Attribute) =
         if attributes |> List.exists (fun a -> a.Name = attribute.Name) then
-            Errors.raiseParseError $"duplicated attribute '{attribute.Name}'"
+            Errors.reportParseError $"duplicated attribute '{attribute.Name}'"
+            attributes
         else
             attributes @ [attribute]
 
@@ -35,4 +36,3 @@ type [<RequireQualifiedAccess>] File =
 with
     static member Build blocks =
         { File.Blocks = blocks }
-

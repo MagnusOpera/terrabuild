@@ -1,0 +1,7 @@
+badblock {
+attribute1 "missing_equal"
+}
+
+goodblock {
+^badattr = 1
+}

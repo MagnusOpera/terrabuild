@@ -3,6 +3,8 @@ open Terrabuild.Lang.AST
 open Helpers
 open Terrabuild.Expressions
 open System
+open Errors
+open FSharp.Text.Parsing
 
 
 #if DEBUG
@@ -10,6 +12,16 @@ let debugPrint s = printfn "### %s" s
 #else
 let debugPrint s = ignore s
 #endif
+
+let parse_error_rich =
+    Some (fun (ctxt: ParseErrorContext<_>) ->
+        let pos =
+            try Some (ctxt.ParseState.InputStartPosition(1))
+            with _ -> None
+
+        match pos with
+        | Some pos -> reportParseErrorAt(pos.Line + 1, pos.Column + 1, ctxt.Message)
+        | None -> reportParseError ctxt.Message)
 
 %}
  
@@ -71,6 +83,8 @@ Blocks:
 Block:
     | ResourceName LBRACE BlockContent RBRACE { Block.Build $1 None $3 }
     | ResourceName ResourceIdentifier LBRACE BlockContent RBRACE { Block.Build $1 (Some $2) $4 }
+    | ResourceName LBRACE error RBRACE { Block.Build $1 None ([], []) }
+    | ResourceName ResourceIdentifier LBRACE error RBRACE { Block.Build $1 (Some $2) ([], []) }
 
 BlockContent:
     | /* empty */ { ([], []) }

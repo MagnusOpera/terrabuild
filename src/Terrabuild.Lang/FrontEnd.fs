@@ -21,17 +21,32 @@ let parse txt =
         token
 
     let lexbuf = LexBuffer<_>.FromString txt
+    beginParseErrorCollection (fun () -> Some (lexbuf.StartPos.Line + 1, lexbuf.StartPos.Column + 1))
+    let mutable result = Unchecked.defaultof<_>
+    let mutable fatalException: exn option = None
     try
-        Parser.File switchableLexer lexbuf
+        result <- Parser.File switchableLexer lexbuf
     with
     | :? TerrabuildException as exn ->
-        let err = sprintf "Parse error at (%d,%d): %s"
-                        (lexbuf.StartPos.Line + 1) (lexbuf.StartPos.Column + 1)
-                        exn.Message
-        forwardParseError(err, exn)
+        fatalException <- Some exn
+        reportParseError exn.Message
     | exn ->
-        let err = sprintf "Unexpected token '%s' at (%d,%d): %s"
-                        (LexBuffer<_>.LexemeString lexbuf |> string) 
-                        (lexbuf.StartPos.Line + 1) (lexbuf.StartPos.Column + 1)
+        fatalException <- Some exn
+        let err = sprintf "Unexpected token '%s': %s"
+                        (LexBuffer<_>.LexemeString lexbuf |> string)
                         exn.Message
-        forwardParseError(err, exn)
+        reportParseError err
+
+    let errors = endParseErrorCollection()
+    match errors with
+    | [] ->
+        match fatalException with
+        | Some exn -> raise exn
+        | None -> result
+    | [single] ->
+        TerrabuildException(single.Message, ErrorArea.Parse, single.InnerException) |> raise
+    | errors ->
+        let msg =
+            "Parse errors:\n"
+            + (errors |> List.map (fun e -> e.Message) |> String.concat "\n")
+        TerrabuildException(msg, ErrorArea.Parse) |> raise

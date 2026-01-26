@@ -8,13 +8,17 @@ let parseFunction expr = function
     | "lower" -> Expr.Function (Function.Lower, expr)
     | "replace" -> Expr.Function (Function.Replace, expr)
     | "count" -> Expr.Function (Function.Count, expr)
-    | s -> raiseParseError $"unknown function '{s}'"
+    | s ->
+        Errors.reportParseError $"unknown function '{s}'"
+        Expr.Nothing
 
 let parseExpressionLiteral = function
     | "true" -> Expr.Bool true
     | "false" -> Expr.Bool false
     | "nothing" -> Expr.Nothing
-    | s -> raiseParseError $"unknown literal '{s}'"
+    | s ->
+        Errors.reportParseError $"unknown literal '{s}'"
+        Expr.Nothing
 
 let (|RegularIdentifier|ExtensionIdentifier|TargetIdentifier|) (value: string) =
     match value[0] with
@@ -25,24 +29,34 @@ let (|RegularIdentifier|ExtensionIdentifier|TargetIdentifier|) (value: string) =
 let parseResourceName s =
     match s with
     | ExtensionIdentifier | RegularIdentifier -> s
-    | _ -> raiseParseError $"invalid resource name '{s}'"
+    | _ ->
+        Errors.reportParseError $"invalid resource name '{s}'"
+        s
 
 let parseResourceIdentifier s =
     match s with
     | ExtensionIdentifier | RegularIdentifier -> s
-    | _ -> raiseParseError $"invalid resource identifier '{s}'"
+    | _ ->
+        Errors.reportParseError $"invalid resource identifier '{s}'"
+        s
 
 let parseAttributeName s =
     match s with
     | RegularIdentifier -> s
-    | s -> raiseParseError $"invalid attribute name '{s}'"
+    | s ->
+        Errors.reportParseError $"invalid attribute name '{s}'"
+        s
 
 let parseScopeIdentifier s =
     match s with
     | RegularIdentifier -> s
-    | s -> raiseParseError $"invalid scope identifier '{s}'"
+    | s ->
+        Errors.reportParseError $"invalid scope identifier '{s}'"
+        s
 
 let parseIdentifier s =
     match s with
     | TargetIdentifier | RegularIdentifier -> s
-    | _ -> raiseParseError $"invalid resource identifier '{s}'"
+    | _ ->
+        Errors.reportParseError $"invalid resource identifier '{s}'"
+        s

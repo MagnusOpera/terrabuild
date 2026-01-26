@@ -96,7 +96,10 @@ rule token lexerMode = parse
     | whitespace { token lexerMode lexbuf }
     | newline { lexbuf.EndPos <- lexbuf.EndPos.NextLine; token lexerMode lexbuf }
     | eof { EOF }
-    | _ { Errors.raiseParseError $"unrecognized input: '{lexeme lexbuf}'" }
+    | _ {
+        Errors.reportParseError $"unrecognized input: '{lexeme lexbuf}'"
+        token lexerMode lexbuf
+    }
 
 and singleLineComment lexerMode = parse
     | newline { lexbuf.EndPos <- lexbuf.EndPos.NextLine; token lexerMode lexbuf }
@@ -104,7 +107,11 @@ and singleLineComment lexerMode = parse
     | _ { singleLineComment lexerMode lexbuf }
 
 and interpolatedString (acc: StringBuilder) lexerMode = parse
-    | newline { raiseParseError "newline encountered in string" }
+    | newline {
+        Errors.reportParseError "newline encountered in string"
+        lexbuf.EndPos <- lexbuf.EndPos.NextLine
+        interpolatedString acc lexerMode lexbuf
+    }
     | "\"\"" {
         acc.Append("\"") |> ignore
         interpolatedString acc lexerMode lexbuf

@@ -140,3 +140,15 @@ let invalidScopeIdentifier() =
 let invalidScopedIdentifier() =
     let content = File.ReadAllText("TestFiles/Error_InvalidScopedIdentifier")
     (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,21): invalid resource identifier '@value'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let errorRecoveryCollectsMultipleErrors() =
+    let content = File.ReadAllText("TestFiles/Error_RecoveryMultiple")
+    try
+        FrontEnd.parse content |> ignore
+        Assert.Fail("Expected parse errors")
+    with
+    | :? Errors.TerrabuildException as ex ->
+        ex.Message |> should contain "Parse errors:"
+        ex.Message |> should contain "Parse error at (2,"
+        ex.Message |> should contain "invalid attribute name '^badattr'"

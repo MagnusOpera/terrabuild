@@ -370,84 +370,91 @@ and token lexerMode lexbuf =
           )
   | 32 -> ( 
 # 99 "Lexer.fsl"
-                         Errors.raiseParseError $"unrecognized input: '{lexeme lexbuf}'" 
-# 374 "Gen/Lexer.fs"
+                        
+                       Errors.reportParseError $"unrecognized input: '{lexeme lexbuf}'"
+                       token lexerMode lexbuf
+                   
+# 377 "Gen/Lexer.fs"
           )
   | _ -> failwith "token"
 // Rule singleLineComment
 and singleLineComment lexerMode lexbuf =
   match _fslex_tables.Interpret(13,lexbuf) with
   | 0 -> ( 
-# 102 "Lexer.fsl"
+# 105 "Lexer.fsl"
                                lexbuf.EndPos <- lexbuf.EndPos.NextLine; token lexerMode lexbuf 
-# 383 "Gen/Lexer.fs"
+# 386 "Gen/Lexer.fs"
           )
   | 1 -> ( 
-# 103 "Lexer.fsl"
+# 106 "Lexer.fsl"
                            EOF 
-# 388 "Gen/Lexer.fs"
+# 391 "Gen/Lexer.fs"
           )
   | 2 -> ( 
-# 104 "Lexer.fsl"
+# 107 "Lexer.fsl"
                          singleLineComment lexerMode lexbuf 
-# 393 "Gen/Lexer.fs"
+# 396 "Gen/Lexer.fs"
           )
   | _ -> failwith "singleLineComment"
 // Rule interpolatedString
 and interpolatedString (acc: StringBuilder) lexerMode lexbuf =
   match _fslex_tables.Interpret(0,lexbuf) with
   | 0 -> ( 
-# 107 "Lexer.fsl"
-                               raiseParseError "newline encountered in string" 
-# 402 "Gen/Lexer.fs"
+# 110 "Lexer.fsl"
+                              
+                       Errors.reportParseError "newline encountered in string"
+                       lexbuf.EndPos <- lexbuf.EndPos.NextLine
+                       interpolatedString acc lexerMode lexbuf
+                   
+# 409 "Gen/Lexer.fs"
           )
   | 1 -> ( 
-# 108 "Lexer.fsl"
+# 115 "Lexer.fsl"
                              
                        acc.Append("\"") |> ignore
                        interpolatedString acc lexerMode lexbuf
                    
-# 410 "Gen/Lexer.fs"
+# 417 "Gen/Lexer.fs"
           )
   | 2 -> ( 
-# 112 "Lexer.fsl"
+# 119 "Lexer.fsl"
                            
                        acc.Append("{") |> ignore
                        interpolatedString acc lexerMode lexbuf
                    
-# 418 "Gen/Lexer.fs"
+# 425 "Gen/Lexer.fs"
           )
   | 3 -> ( 
-# 116 "Lexer.fsl"
+# 123 "Lexer.fsl"
                            
                        acc.Append("}") |> ignore
                        interpolatedString acc lexerMode lexbuf
                    
-# 426 "Gen/Lexer.fs"
+# 433 "Gen/Lexer.fs"
           )
   | 4 -> ( 
-# 120 "Lexer.fsl"
+# 127 "Lexer.fsl"
                           
                        lexerMode |> pop |> ignore
                        STRING_END (acc.ToString())
                    
-# 434 "Gen/Lexer.fs"
+# 441 "Gen/Lexer.fs"
           )
   | 5 -> ( 
-# 124 "Lexer.fsl"
+# 131 "Lexer.fsl"
                            
                        lexerMode |> push LexerMode.Default
                        EXPRESSION_START (acc.ToString())
                    
-# 442 "Gen/Lexer.fs"
+# 449 "Gen/Lexer.fs"
           )
   | 6 -> ( 
-# 128 "Lexer.fsl"
+# 135 "Lexer.fsl"
                         
                        lexbuf |> lexeme |> acc.Append |> ignore
                        interpolatedString acc lexerMode lexbuf
                    
-# 450 "Gen/Lexer.fs"
+# 457 "Gen/Lexer.fs"
           )
   | _ -> failwith "interpolatedString"
 
