@@ -17,6 +17,7 @@ let parse txt =
             | Lexer.LexerMode.String -> Lexer.interpolatedString (StringBuilder()) lexerMode
 
         let token = lexer lexbuff
+        Errors.updateLastLexeme (LexBuffer<_>.LexemeString lexbuff |> string)
         // printfn $"### SwitchableLexer  mode: {mode}  token: {token}"
         token
 

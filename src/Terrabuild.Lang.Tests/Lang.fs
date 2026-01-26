@@ -104,42 +104,42 @@ let checkValidSyntax() =
 [<Test>]
 let duplicatedAttributeIsError() =
     let content = File.ReadAllText("TestFiles/Error_DuplicatedAttribute")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (4,1): duplicated attribute 'attribute1'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "duplicated attribute 'attribute1' at (4,1)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let unknownFunctionIsError() =
     let content = File.ReadAllText("TestFiles/Error_UnknownFunction")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,26): unknown function 'tagada'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "unknown function 'tagada' at (2,26)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let unknownLiteralIsError() =
     let content = File.ReadAllText("TestFiles/Error_UnknownLiteral")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (3,1): unknown literal 'tagada'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "unknown literal 'tagada' at (3,1)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let invalidResourceName() =
     let content = File.ReadAllText("TestFiles/Error_InvalidResourceName")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (1,1): invalid resource name '^toto'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "invalid resource name '^toto' at (1,1)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let invalidResourceIdentifier() =
     let content = File.ReadAllText("TestFiles/Error_InvalidResourceIdentifier")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (1,31): invalid resource identifier '^toto'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "invalid resource identifier '^toto' at (1,31)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let invalidAttributeName() =
     let content = File.ReadAllText("TestFiles/Error_InvalidAttributeName")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,15): invalid attribute name '^attribute1'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "invalid attribute name '^attribute1' at (2,15)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let invalidScopeIdentifier() =
     let content = File.ReadAllText("TestFiles/Error_InvalidScopeIdentifier")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,22): invalid scope identifier '^toto'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "invalid scope identifier '^toto' at (2,22)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let invalidScopedIdentifier() =
     let content = File.ReadAllText("TestFiles/Error_InvalidScopedIdentifier")
-    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,21): invalid resource identifier '@value'") typeof<Errors.TerrabuildException>
+    (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "invalid resource identifier '@value' at (2,21)") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let errorRecoveryCollectsMultipleErrors() =
@@ -150,5 +150,5 @@ let errorRecoveryCollectsMultipleErrors() =
     with
     | :? Errors.TerrabuildException as ex ->
         ex.Message |> should contain "Parse errors:"
-        ex.Message |> should contain "Parse error at (2,"
-        ex.Message |> should contain "invalid attribute name '^badattr'"
+        ex.Message |> should contain "unexpected token"
+        ex.Message |> should contain "invalid attribute name '^badattr' at (6,10)"

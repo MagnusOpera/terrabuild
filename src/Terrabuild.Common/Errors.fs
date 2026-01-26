@@ -23,6 +23,13 @@ type private ParseErrorCollector =
       PosProvider: (unit -> (int * int) option) option }
 
 let private parseErrorCollector = AsyncLocal<ParseErrorCollector option>()
+let private lastLexeme = AsyncLocal<string option>()
+
+let updateLastLexeme (value: string) =
+    lastLexeme.Value <- Some value
+
+let tryGetLastLexeme () =
+    lastLexeme.Value
 
 let beginParseErrorCollection (posProvider: unit -> (int * int) option) =
     parseErrorCollector.Value <- Some { Errors = ResizeArray(); PosProvider = Some posProvider }
@@ -37,11 +44,16 @@ let endParseErrorCollection () =
     errors
 
 let private formatParseError (msg: string) (pos: (int * int) option) =
-    if msg.StartsWith("Parse error at", StringComparison.Ordinal) then
+    if msg.Contains(" at (") then
         msg
+    elif msg.StartsWith("Parse error at ", StringComparison.Ordinal) then
+        let rest = msg.Substring("Parse error at ".Length)
+        let parts = rest.Split([|": "|], 2, StringSplitOptions.None)
+        if parts.Length = 2 then $"{parts[1]} at {parts[0]}"
+        else msg
     else
         match pos with
-        | Some (line, col) -> sprintf "Parse error at (%d,%d): %s" line col msg
+        | Some (line, col) -> sprintf "%s at (%d,%d)" msg line col
         | None -> msg
 
 let private tryCollectParseError (msg: string) (inner: Exception option) (pos: (int * int) option) =

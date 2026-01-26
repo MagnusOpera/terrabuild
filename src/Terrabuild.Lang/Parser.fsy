@@ -19,9 +19,19 @@ let parse_error_rich =
             try Some (ctxt.ParseState.InputStartPosition(1))
             with _ -> None
 
+        let lexeme =
+            tryGetLastLexeme()
+            |> Option.filter (fun value -> value |> String.IsNullOrWhiteSpace |> not)
+
+        let msg =
+            match lexeme, ctxt.CurrentToken with
+            | Some value, _ -> sprintf "unexpected token '%s'" value
+            | None, Some tok -> sprintf "unexpected token '%A'" tok
+            | None, None -> "unexpected end of input"
+
         match pos with
-        | Some pos -> reportParseErrorAt(pos.Line + 1, pos.Column + 1, ctxt.Message)
-        | None -> reportParseError ctxt.Message)
+        | Some pos -> reportParseErrorAt(pos.Line + 1, pos.Column + 1, msg)
+        | None -> reportParseError msg)
 
 %}
  

@@ -448,7 +448,32 @@ let main _ =
                 Log.Fatal("Failed in area {Area} with {Exception}", area, ex.ToString())
                 let reason =
                     if debug then $"[{area}] {ex}"
-                    else dumpKnownException ex |> String.join "\n   "
+                    else
+                        let lines =
+                            dumpKnownException ex
+                            |> Seq.collect (fun msg -> msg.Split('\n'))
+                            |> Seq.toList
+
+                        let parseErrorsIndex =
+                            lines |> List.tryFindIndex (fun line -> line.Trim().Equals("Parse errors:", StringComparison.Ordinal))
+
+                        match parseErrorsIndex with
+                        | None -> lines |> String.join "\n   "
+                        | Some index ->
+                            let otherLines = lines |> List.take index
+                            let parseLines = lines |> List.skip (index + 1) |> List.filter (fun line -> line.Trim().Length > 0)
+
+                            let head, tail =
+                                match otherLines with
+                                | [] -> "Parse errors", []
+                                | head :: tail -> head, tail
+
+                            let baseLines = head :: (tail |> List.map (fun line -> $"   {line}"))
+                            let formattedParseLines =
+                                parseLines |> List.map (fun line -> $"   | {line.Trim()}")
+
+                            (baseLines @ formattedParseLines) |> String.join "\n"
+
                 $"{Ansi.Emojis.explosion} {reason}" |> Terminal.writeLine
                 5
 
