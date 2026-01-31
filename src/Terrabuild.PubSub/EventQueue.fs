@@ -37,7 +37,7 @@ type EventQueue(maxConcurrency: int) =
         UnboundedChannelOptions(
             SingleReader = false,
             SingleWriter = false,
-            AllowSynchronousContinuations = true
+            AllowSynchronousContinuations = false
         )
 
     let normal = Channel.CreateUnbounded<WorkItem>(options)
