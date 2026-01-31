@@ -3,6 +3,7 @@ module Terrabuild.PubSub.Tests
 open NUnit.Framework
 open FsUnit
 open System.Threading
+open System.Threading.Tasks
 
 
 [<Test>]
@@ -280,3 +281,23 @@ let subscribing_after_error_is_noop() =
 
     triggered.Wait(100) |> should equal false
     triggeredBg.Wait(100) |> should equal false
+
+
+[<Test>]
+let reentrant_get_in_callback_does_not_deadlock() =
+    use hub = Hub.Create(1)
+
+    let signal = hub.GetSignal<int> "reentrant"
+
+    let mutable triggered = false
+    hub.Subscribe "reentrant-sub" [ signal ] (fun () ->
+        signal.Get<int>() |> should equal 7
+        triggered <- true)
+
+    signal.Set(7)
+
+    let waitTask = Task.Run(fun () -> hub.WaitCompletion())
+    waitTask.Wait(500) |> should equal true
+
+    waitTask.Result |> should equal Status.Ok
+    triggered |> should equal true
