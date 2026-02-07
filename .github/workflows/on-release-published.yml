@@ -31,9 +31,6 @@ jobs:
   sign-and-notarize:
     runs-on: macos-latest
     steps:
-      - name: Cloning repository
-        uses: actions/checkout@v4
-
       - name: Download Github Release artifacts
         uses: robinraju/release-downloader@v1.11
         with:
@@ -44,6 +41,7 @@ jobs:
         run: |
           mkdir -p .out/darwin
           unzip -d .out/darwin terrabuild-${{ github.ref_name }}-darwin-unsigned.zip
+          test -f .out/darwin/entitlements.plist
 
       - name: Add Cert to Keychain
         uses: apple-actions/import-codesign-certs@v3
@@ -53,8 +51,8 @@ jobs:
 
       - name: Sign Binaries
         run: |
-          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/arm64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
-          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/x64/terrabuild --options=runtime --no-strict --entitlements entitlements.plist
+          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/arm64/terrabuild --options=runtime --no-strict --entitlements .out/darwin/entitlements.plist
+          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/x64/terrabuild --options=runtime --no-strict --entitlements .out/darwin/entitlements.plist
           (cd .out/darwin/arm64; zip ../terrabuild-${{ github.ref_name }}-darwin-arm64.zip ./*)
           (cd .out/darwin/x64; zip ../terrabuild-${{ github.ref_name }}-darwin-x64.zip ./*)
 
