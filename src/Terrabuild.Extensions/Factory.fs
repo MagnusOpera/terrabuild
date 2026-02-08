@@ -23,6 +23,7 @@ let systemScripts =
 
 let systemScriptFiles =
     Map [
+        "@make", "scripts/make.fss"
         "@npx", "scripts/npx.fss"
         "@null", "scripts/null.fss"
         "@shell", "scripts/shell.fss"
