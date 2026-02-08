@@ -16,9 +16,12 @@ let systemExtensions =
     Terrabuild.Extensions.Factory.systemScripts
     |> Seq.map (fun kvp ->
         let defaults =
-            if String.Equals(kvp.Key, "@shell", StringComparison.OrdinalIgnoreCase) then
+            match kvp.Key.ToLowerInvariant() with
+            | "@shell" ->
                 Some (Map [ "args", Expr.String "" ])
-            else
+            | "@npx" ->
+                Some (Map [ "args", Expr.String "" ])
+            | _ ->
                 None
 
         kvp.Key, { ExtensionBlock.Image = None
