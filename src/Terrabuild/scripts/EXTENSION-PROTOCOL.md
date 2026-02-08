@@ -137,6 +137,7 @@ Default handler example:
 - `shell.fss`: `dispatch (context) (args)`
 - `gradle.fss`: `defaults (context)`, `dispatch (context) (args)`, `build (context) (configuration) (args)`
 - `make.fss`: `dispatch (context) (variables) (args)`
+- `dotnet.fss`: `defaults (context)`, `dispatch (context) (args)`, `restore/build/publish/test (context) ...`
 - `docker.fss`: `dispatch (context) (args)`, `build (context) ...`, `push (context) ...`
 - `npx.fss`: `run (context) (package) (args)`
 - `playwright.fss`: `test (context) (browser) (project) (args)`

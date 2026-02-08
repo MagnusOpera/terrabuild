@@ -61,7 +61,18 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore .terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln",
+          "arguments": "restore libraries/dotnet-lib/dotnet-lib.csproj",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore projects/dotnet-app/dotnet-app.csproj",
           "errorLevel": 0
         },
         {
@@ -72,7 +83,18 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build .terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln --no-restore --configuration Debug",
+          "arguments": "build libraries/dotnet-lib/dotnet-lib.csproj --no-restore --configuration Debug",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build projects/dotnet-app/dotnet-app.csproj --no-restore --configuration Debug",
           "errorLevel": 0
         }
       ],
