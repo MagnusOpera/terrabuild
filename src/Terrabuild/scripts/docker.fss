@@ -1,0 +1,74 @@
+let append_part acc part =
+  match (acc, part) with
+  | (_, "") -> acc
+  | ("", _) -> part
+  | _ -> $"{acc} {part}"
+
+let append_csv acc value =
+  match acc with
+  | "" -> value
+  | _ -> $"{acc},{value}"
+
+let append_build_arg acc key value =
+  append_part acc $"--build-arg {key}=\"{value}\""
+
+let format_platforms platforms =
+  let joined = List.fold append_csv "" platforms
+  match joined with
+  | "" -> ""
+  | _ -> $"--platform {joined}"
+
+let format_build_args build_args =
+  Map.fold append_build_arg "" build_args
+
+let as_text value =
+  value |> Option.defaultValue ""
+
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command = append_part context.Command (as_text args)
+  [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+
+export let build (context: { CI: bool; Hash: string }) (image: string) (dockerfile: string option) (platforms: string list option) (build_args: string map option) (args: string option) =
+  let dockerfile = dockerfile |> Option.defaultValue "Dockerfile"
+  let platforms = platforms |> Option.map format_platforms |> Option.defaultValue ""
+  let build_args = build_args |> Option.map format_build_args |> Option.defaultValue ""
+  let args = args |> as_text
+
+  let command =
+    ""
+    |> append_part "build"
+    |> append_part $"--file {dockerfile}"
+    |> append_part $"--tag {image}:{context.Hash}"
+    |> append_part build_args
+    |> append_part platforms
+    |> append_part args
+    |> append_part "."
+
+  let ops = [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+  if context.CI then
+    ops @ [{ Command = "docker"; Arguments = $"push {image}:{context.Hash}"; ErrorLevel = 0 }]
+  else
+    ops
+
+export let push (context: { CI: bool; Hash: string }) (image: string) (tag: string) (args: string option) =
+  let args = args |> as_text
+  let command =
+    if context.CI then
+      ""
+      |> append_part "buildx imagetools create"
+      |> append_part $"-t {image}:{tag}"
+      |> append_part $"{image}:{context.Hash}"
+      |> append_part args
+    else
+      ""
+      |> append_part "tag"
+      |> append_part $"{image}:{context.Hash}"
+      |> append_part $"{image}:{tag}"
+      |> append_part args
+  [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof dispatch = ["dispatch"; "never"]
+  nameof build = ["external"]
+  nameof push = ["external"]
+}

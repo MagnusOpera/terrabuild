@@ -133,6 +133,7 @@ Default handler example:
 
 - `shell.fss`: `dispatch (context) (args)`
 - `make.fss`: `dispatch (context) (variables) (args)`
+- `docker.fss`: `dispatch (context) (args)`, `build (context) ...`, `push (context) ...`
 - `npx.fss`: `run (context) (package) (args)`
 - `null.fss`: exported handlers follow the same `context`-first rule
 

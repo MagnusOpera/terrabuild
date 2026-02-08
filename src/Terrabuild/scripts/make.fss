@@ -1,9 +1,8 @@
 let append_variable acc key value =
   let item = $"{key}=\"{value}\""
-  if acc = "" then
-    item
-  else
-    $"{acc} {item}"
+  match (acc, item) with
+  | ("", _) -> item
+  | _ -> $"{acc} {item}"
 
 let format_variables vars =
   Map.fold append_variable "" vars
@@ -17,14 +16,11 @@ export let dispatch (context: { Command: string }) (variables: string map option
   let args = args |> Option.defaultValue ""
 
   let command =
-    if variables = "" && args = "" then
-      context.Command
-    elif variables = "" then
-      $"{context.Command} {args}"
-    elif args = "" then
-      $"{context.Command} {variables}"
-    else
-      $"{context.Command} {variables} {args}"
+    match (variables, args) with
+    | ("", "") -> context.Command
+    | ("", _) -> $"{context.Command} {args}"
+    | (_, "") -> $"{context.Command} {variables}"
+    | _ -> $"{context.Command} {variables} {args}"
 
   [{ Command = "make"; Arguments = command; ErrorLevel = 0 }]
 

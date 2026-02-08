@@ -1,10 +1,8 @@
 let append_parts acc part =
-  if part = "" then
-    acc
-  elif acc = "" then
-    part
-  else
-    $"{acc} {part}"
+  match (acc, part) with
+  | (_, "") -> acc
+  | ("", _) -> part
+  | _ -> $"{acc} {part}"
 
 let with_profile profile =
   profile |> Option.map (fun value -> $"--profile {value}") |> Option.defaultValue ""
