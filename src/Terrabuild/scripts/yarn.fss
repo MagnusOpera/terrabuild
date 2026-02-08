@@ -26,10 +26,7 @@ let load_package directory =
 
 let collect_local_dependency acc key value =
   match Regex.matchGroups "^file:(.*)$" value with
-  | Some groups ->
-      match List.tryHead groups with
-      | Some project -> List.append [project] acc
-      | _ -> acc
+  | Some [project] -> project :: acc
   | _ -> acc
 
 let collect_local_dependencies map =

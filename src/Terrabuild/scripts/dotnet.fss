@@ -26,12 +26,8 @@ let first_project_file directory =
 
 let project_refs_from project_file =
   let content = Fs.readText project_file |> Option.defaultValue ""
-  let include =
-    Regex.matchGroups "<ProjectReference[^>]*Include=\"([^\"]+)\"" content
-    |> Option.map List.tryHead
-    |> Option.defaultValue None
-  match include with
-  | Some value -> [value]
+  match Regex.matchGroups "<ProjectReference[^>]*Include=\"([^\"]+)\"" content with
+  | Some [value] -> [value]
   | _ -> []
 
 let dependency_dirs refs =
