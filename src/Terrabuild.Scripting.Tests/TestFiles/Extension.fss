@@ -1,0 +1,8 @@
+export let run _ = "run"
+export let dispatch _ = "dispatch"
+export let defaults _ = "defaults"
+
+let hidden _ = "hidden"
+
+Map.ofList
+  [(nameof run, ["batchable"; "local"]); (nameof dispatch, ["dispatch"]); (nameof defaults, ["default"])]

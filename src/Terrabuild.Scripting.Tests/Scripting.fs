@@ -33,3 +33,29 @@ let loadVSSolution() =
 
     let expectedDependencies = Set [ "src"; "src\Terrabuild\Terrabuild.fsproj"; "src\Terrabuild.Configuration\Terrabuild.Configuration.fsproj" ]
     res.Dependencies |> should equal expectedDependencies
+
+[<Test>]
+let loadFScriptExports() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/Extension.fss"
+    script.GetMethod("run").IsSome |> should equal true
+    script.GetMethod("hidden").IsNone |> should equal true
+
+[<Test>]
+let loadFScriptDispatchAndDefault() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/Extension.fss"
+    script.ResolveCommandMethod("unknown") |> should equal (Some "dispatch")
+    script.ResolveDefaultMethod() |> should equal (Some "defaults")
+
+[<Test>]
+let loadFScriptFlags() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/Extension.fss"
+    let flags = script.TryGetFunctionFlags("run")
+    flags |> should equal (Some [ ExportFlag.Batchable; ExportFlag.Cache Cacheability.Local ])
+
+[<Test>]
+let invokeFScriptMethod() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/Extension.fss"
+    let invocable = script.GetMethod("run")
+    let args = Value.Map Map.empty
+    let res = invocable.Value.Invoke<string> args
+    res |> should equal "run"
