@@ -165,7 +165,7 @@ let genWorkspace (extensions: ExtensionType set) =
             let declare = image <> None || variables <> Map.empty
             if declare then
                 ""
-                $"extension {extension |> toExtension} {{"
+                $"extension @{extension |> toExtension} {{"
                 match image with
                 | Some image ->
                     $"  image = \"{image}\""
@@ -194,7 +194,7 @@ let genProject (project: Project) =
             yield $"# WARNING: other project types detected: {exts}"
         | _ -> ()
         yield $"project {{"
-        yield $"  {project.Type |> toExtension} {{ }}"
+        yield $"  @{project.Type |> toExtension} {{ }}"
         yield "}"
 
         // generate targets
@@ -212,7 +212,7 @@ let genProject (project: Project) =
             yield ""
             yield $"target {targetType |> toLower} {{"
             for (projType, cmd) in cmds do
-                yield $"    {projType |> toExtension} {cmd} {{ }}"
+                yield $"    @{projType |> toExtension} {cmd} {{ }}"
             yield "}"
     }
 

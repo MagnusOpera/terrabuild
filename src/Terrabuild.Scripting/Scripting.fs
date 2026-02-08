@@ -10,9 +10,14 @@ open Terrabuild.Expressions
 open Terrabuild.Extensibility
 open Errors
 
-type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> obj
+type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> objnull
 
 type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInvoker option) =
+    let expectString (name: string) (value: objnull) =
+        match value with
+        | :? string as str -> str
+        | _ -> raiseTypeError $"Can't assign value to parameter '{name}' as string"
+
     let convertToNone (parameterType: System.Type) =
         let template = typedefof<option<_>>
         let genericType = template.MakeGenericType([| parameterType.GetGenericArguments()[0] |])
@@ -76,20 +81,20 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
                             mapParameter Terrabuild.Expressions.Value.Nothing field.Name field.PropertyType)
                 ctor ctorValues
             | TypeHelpers.TypeKind.FsMap ->
-                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> :?> string)
+                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> |> expectString itemName)
                 box mapped
             | TypeHelpers.TypeKind.FsOption ->
-                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> :?> string)
+                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> |> expectString itemName)
                 convertToSome parameterType mapped
             | typeKind ->
                 raiseTypeError $"Can't assign map to parameter '{name}' of type '{typeKind}'"
         | Terrabuild.Expressions.Value.List listValue ->
             match TypeHelpers.getKind parameterType with
             | TypeHelpers.TypeKind.FsList ->
-                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> :?> string)
+                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> |> expectString name)
                 box mapped
             | TypeHelpers.TypeKind.FsOption ->
-                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> :?> string)
+                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> |> expectString name)
                 convertToSome parameterType mapped
             | typeKind ->
                 raiseTypeError $"Can't assign list to parameter '{name}' of type '{typeKind}'"
@@ -282,13 +287,16 @@ and private Descriptor =
         dispatchMethods |> List.tryHead, defaultMethods |> List.tryHead
 
 and private Conversions =
-    static member private toFScriptValueFromObject (value: obj) =
-        let rec convertObject (objValue: obj) =
+    static member private toFScriptValueFromObject (value: objnull) =
+        let rec convertObject (objValue: objnull) =
             if isNull objValue then
                 FScript.Language.VOption None
             else
                 let valueType = objValue.GetType()
-                if valueType = typeof<string> then FScript.Language.VString (objValue :?> string)
+                if valueType = typeof<string> then
+                    match objValue with
+                    | :? string as str -> FScript.Language.VString str
+                    | _ -> raiseTypeError "Expected string object value"
                 elif valueType = typeof<bool> then FScript.Language.VBool (objValue :?> bool)
                 elif valueType = typeof<int> then FScript.Language.VInt (int64 (objValue :?> int))
                 elif valueType = typeof<int64> then FScript.Language.VInt (objValue :?> int64)
@@ -296,21 +304,23 @@ and private Conversions =
                 elif valueType = typeof<double> then FScript.Language.VFloat (objValue :?> double)
                 elif FSharpType.IsRecord(valueType, true) then
                     let fields = FSharpType.GetRecordFields(valueType)
-                    let values = FSharpValue.GetRecordFields(objValue)
+                    let values = FSharpValue.GetRecordFields(nonNull objValue)
                     let mapped =
                         Array.zip fields values
                         |> Array.map (fun (fieldInfo, fieldValue) -> fieldInfo.Name, convertObject fieldValue)
                         |> Map.ofArray
                     FScript.Language.VRecord mapped
                 elif FSharpType.IsUnion(valueType, true) && valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<option<_>> then
-                    let unionCase, fields = FSharpValue.GetUnionFields(objValue, valueType)
+                    let unionCase, fields = FSharpValue.GetUnionFields(nonNull objValue, valueType)
                     match unionCase.Name, fields with
                     | "None", _ -> FScript.Language.VOption None
                     | "Some", [| item |] -> FScript.Language.VOption (Some (convertObject item))
                     | _ -> raiseTypeError $"Unsupported option value '{unionCase.Name}'"
                 elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<list<_>> then
                     let items =
-                        objValue :?> System.Collections.IEnumerable
+                        match objValue with
+                        | :? System.Collections.IEnumerable as enumerable -> enumerable
+                        | _ -> raiseTypeError $"Unsupported list source type '{valueType.FullName}'"
                         |> Seq.cast<obj>
                         |> Seq.map convertObject
                         |> Seq.toList
@@ -333,7 +343,7 @@ and private Conversions =
         convert value
 
     static member FromFScriptValue(targetType: System.Type, value: FScript.Language.Value) =
-        let rec decode (target: System.Type) (value: FScript.Language.Value) : obj =
+        let rec decode (target: System.Type) (value: FScript.Language.Value) : objnull =
             if target = typeof<string> then
                 match value with
                 | FScript.Language.VString stringValue -> box stringValue
@@ -374,7 +384,10 @@ and private Conversions =
                 | _ -> raiseTypeError $"Expected list return type, got {value}"
             elif target.IsGenericType && target.GetGenericTypeDefinition() = typedefof<Set<_>> then
                 let innerType = target.GetGenericArguments()[0]
-                let setModuleType = typeof<Set<string>>.Assembly.GetType("Microsoft.FSharp.Collections.SetModule")
+                let setModuleType =
+                    match typeof<Set<string>>.Assembly.GetType("Microsoft.FSharp.Collections.SetModule") with
+                    | null -> raiseBugError "Cannot resolve FSharp SetModule type"
+                    | value -> value
                 let ofSeqMethod = setModuleType.GetMethods() |> Array.find (fun methodInfo -> methodInfo.Name = "OfSeq")
                 let genericOfSeq = ofSeqMethod.MakeGenericMethod([| innerType |])
                 let values =
@@ -464,8 +477,13 @@ let loadScript (references: string list) (scriptFile: string) =
     match cache |> Map.tryFind fullScriptPath with
     | Some script -> script
     | None ->
+        let extension =
+            match Path.GetExtension(fullScriptPath) with
+            | null
+            | "" -> ""
+            | value -> value.ToLowerInvariant()
         let script =
-            match Path.GetExtension(fullScriptPath).ToLowerInvariant() with
+            match extension with
             | ".fss" -> loadFScript fullScriptPath
             | _ -> loadLegacyScript references fullScriptPath
         cache <- cache |> Map.add fullScriptPath script

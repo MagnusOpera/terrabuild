@@ -128,17 +128,6 @@ let private SCOPE_NAME = "workspace/name"
 
 let private format_project_id scope id = $"{scope}#{id}"
 
-let private normalizeExtensionName (name: string) =
-    if String.IsNullOrWhiteSpace name then name
-    elif name.StartsWith("@") then name.Substring(1)
-    else name
-
-let private normalizeExtensionMap (extensions: Map<string, 'a>) =
-    extensions
-    |> Map.toList
-    |> List.map (fun (name, extensionDef) -> normalizeExtensionName name, extensionDef)
-    |> Map.ofList
-
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
@@ -247,7 +236,6 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
     // load user extension
     let userScripts =
         workspaceConfig.Extensions
-        |> normalizeExtensionMap
         |> Map.map (fun _ ext ->
             let script =
                 ext.Script
@@ -279,11 +267,10 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         | _ ->
             raiseInvalidArg $"No PROJECT found in directory '{projectFile}'"
 
-    let extensions = extensions |> Map.addMap (projectConfig.Extensions |> normalizeExtensionMap)
+    let extensions = extensions |> Map.addMap projectConfig.Extensions
 
     let projectScripts =
         projectConfig.Extensions
-        |> normalizeExtensionMap
         |> Map.map (fun _ ext ->
             ext.Script
             |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
@@ -308,7 +295,6 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         match projectConfig.Project.Type with
         | None -> projectId |> String.toLower, SCOPE_PATH, None
         | Some projectType ->
-            let projectType = normalizeExtensionName projectType
             let result =
                 Extensions.getScript projectType scripts
                 |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
@@ -324,7 +310,6 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let initProjectInfo =
         projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
-            let init = normalizeExtensionName init
             let result =
                 Extensions.getScript init scripts
                 |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
@@ -352,7 +337,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Set.map (fun depId -> format_project_id SCOPE_NAME depId)
 
     let labels = projectConfig.Project.Labels
-    let initializers = projectConfig.Project.Initializers |> Set.map normalizeExtensionName
+    let initializers = projectConfig.Project.Initializers
 
     let projectTargets =
         // apply target override
@@ -534,7 +519,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
             let targetOperations =
                 target.Steps |> List.fold (fun (targetOperations) step ->
-                    let extensionName = normalizeExtensionName step.Extension
+                    let extensionName = step.Extension
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind extensionName with
                         | Some extension -> extension
@@ -754,7 +739,7 @@ let read (options: ConfigOptions.Options) =
 
     let scripts = buildScripts options workspaceConfig evaluationContext
 
-    let extensions = Extensions.systemExtensions |> Map.addMap (workspaceConfig.Extensions |> normalizeExtensionMap)
+    let extensions = Extensions.systemExtensions |> Map.addMap workspaceConfig.Extensions
 
     let searchProjectsAndApply() =
         let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue default_ignores

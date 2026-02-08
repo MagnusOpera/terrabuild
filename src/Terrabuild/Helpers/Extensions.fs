@@ -24,10 +24,10 @@ let systemExtensions =
                    Env = None })
     |> Map.ofSeq
 
-let private normalizeExtensionName (name: string) =
-    if String.IsNullOrWhiteSpace name then name
-    elif name.StartsWith("@") then name.Substring(1)
-    else name
+let private extensionCandidates (name: string) =
+    if String.IsNullOrWhiteSpace name then [ name ]
+    elif name.StartsWith("@") then [ name; name.Substring(1) ]
+    else [ name; $"@{name}" ]
 
 // NOTE: when app in package as a single file, Terrabuild.Assembly can't be found...
 //       this means native deployments are not supported ¯\_(ツ)_/¯
@@ -43,22 +43,24 @@ let terrabuildExtensibility =
 
 let lazyLoadScript (name: string) (script: string option) =
     let initScript () =
-        let name = normalizeExtensionName name
         match script with
         | Some script ->
             loadScript [ terrabuildExtensibility ] script
         | _ ->
-            match Terrabuild.Extensions.Factory.systemScripts |> Map.tryFind name with
+            let systemScript =
+                extensionCandidates name
+                |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScripts |> Map.tryFind candidate)
+
+            match systemScript with
             | Some sysTpe -> Script(sysTpe)
             | _ -> raiseSymbolError $"Script is not defined for extension '{name}'"
 
     lazy(initScript())
 
 let getScript (extension: string) (scripts: Map<string, Lazy<Script>>) =
-    let extension = normalizeExtensionName extension
-    scripts
-    |> Map.tryFind extension
-    |> Option.map (fun script -> script.Value)
+    extensionCandidates extension
+    |> List.tryPick (fun candidate -> scripts |> Map.tryFind candidate)
+    |> Option.map _.Value
 
 let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option) =
     match script with
