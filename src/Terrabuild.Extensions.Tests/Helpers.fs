@@ -33,6 +33,7 @@ let ciContext =
       ActionContext.CI = true
       ActionContext.Command = "ci-command"
       ActionContext.Hash = "ABCDEF123456789"
+      ActionContext.Directory = "tests/context/ci"
       ActionContext.Batch = None }
 
 let localContext =
@@ -40,6 +41,7 @@ let localContext =
       ActionContext.CI = false
       ActionContext.Command = "local-command"
       ActionContext.Hash = "123456789ABCDEF"
+      ActionContext.Directory = "tests/context/local"
       ActionContext.Batch = None }
 
 let batchContext tmpDir projectDirs =
@@ -47,6 +49,7 @@ let batchContext tmpDir projectDirs =
       ActionContext.CI = false
       ActionContext.Command = "local-command"
       ActionContext.Hash = "123456789ABCDEF"
+      ActionContext.Directory = "tests/context/batch"
       ActionContext.Batch = Some { BatchContext.Hash = "FEDCBA987654321"
                                    BatchContext.TempDir = tmpDir
                                    BatchContext.ProjectPaths = projectDirs } }

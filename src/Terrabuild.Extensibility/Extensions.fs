@@ -34,6 +34,7 @@ type ActionContext = {
     CI: bool
     Command: string
     Hash: string
+    Directory: string
     Batch: BatchContext option
 }
 

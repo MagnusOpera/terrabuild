@@ -150,6 +150,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                           Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
                           Terrabuild.Extensibility.ActionContext.Command = operation.Command
                           Terrabuild.Extensibility.ActionContext.Hash = batch.ClusterHash
+                          Terrabuild.Extensibility.ActionContext.Directory = projectConfig.Directory
                           Terrabuild.Extensibility.ActionContext.Batch = batchContext }
 
                     let parameters =

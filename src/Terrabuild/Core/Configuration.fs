@@ -231,7 +231,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
     let sysScripts =
         Extensions.systemExtensions
         |> Map.map (fun _ _ -> None)
-        |> Map.map Extensions.lazyLoadScript
+        |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
     // load user extension
     let userScripts =
@@ -243,7 +243,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
             match script with
             | Some script -> script |> FS.workspaceRelative options.Workspace "" |> Some
             | _ -> None)
-        |> Map.map Extensions.lazyLoadScript
+        |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
     let scripts = sysScripts |> Map.addMap userScripts
     scripts
@@ -278,7 +278,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let scripts =
         scripts
-        |> Map.addMap (projectScripts |> Map.map Extensions.lazyLoadScript)
+        |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace))
 
     let evalAsStringSet expr =
         expr

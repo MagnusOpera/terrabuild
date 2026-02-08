@@ -513,13 +513,8 @@ let private loadLegacyScript (references: string list) (scriptFile: string) =
 
     Script(mainType)
 
-let private loadFScript (scriptFile: string) =
+let private loadFScript (rootDirectory: string) (scriptFile: string) =
     let fullPath = Path.GetFullPath(scriptFile)
-    let rootDirectory =
-        match Path.GetDirectoryName(fullPath) with
-        | null
-        | "" -> Directory.GetCurrentDirectory()
-        | value -> value
     let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
     let loaded = FScript.Runtime.ScriptHost.loadFile externs fullPath
     loaded.ExportedFunctionNames
@@ -535,9 +530,11 @@ let private loadFScript (scriptFile: string) =
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     Script(FScript(loaded, descriptor, dispatchMethod, defaultMethod))
 
-let loadScript (references: string list) (scriptFile: string) =
+let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
-    match cache |> Map.tryFind fullScriptPath with
+    let fullRootDirectory = Path.GetFullPath(rootDirectory)
+    let cacheKey = $"{fullRootDirectory}::{fullScriptPath}"
+    match cache |> Map.tryFind cacheKey with
     | Some script -> script
     | None ->
         let extension =
@@ -547,7 +544,7 @@ let loadScript (references: string list) (scriptFile: string) =
             | value -> value.ToLowerInvariant()
         let script =
             match extension with
-            | ".fss" -> loadFScript fullScriptPath
+            | ".fss" -> loadFScript fullRootDirectory fullScriptPath
             | _ -> loadLegacyScript references fullScriptPath
-        cache <- cache |> Map.add fullScriptPath script
+        cache <- cache |> Map.add cacheKey script
         script

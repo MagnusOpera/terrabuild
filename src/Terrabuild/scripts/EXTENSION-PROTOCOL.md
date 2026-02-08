@@ -40,7 +40,7 @@ export let dispatch (context: { Command: string }) (variables: string map option
 
 1. Context is structurally typed.
 2. Scripts **MAY** use partial record annotations for context.
-3. Terrabuild currently provides fields compatible with `ActionContext` (for example `Command`, `Debug`, `CI`, `Hash`, `Batch`).
+3. Terrabuild currently provides fields compatible with `ActionContext` (for example `Command`, `Directory`, `Debug`, `CI`, `Hash`, `Batch`).
 
 Canonical host shape:
 
@@ -56,6 +56,7 @@ type ActionContext = {
   CI: bool
   Command: string
   Hash: string
+  Directory: string
   Batch: BatchContext option
 }
 ```
@@ -65,6 +66,8 @@ Partial annotation is valid and preferred when only a subset is needed:
 ```fsharp
 export let dispatch (context: { Command: string }) ...
 ```
+
+4. FScript filesystem externs are sandboxed to the workspace root directory.
 
 ## 5. Descriptor Contract
 

@@ -50,11 +50,11 @@ let terrabuildExtensibility =
     let path = FS.combinePath terrabuildDir "Terrabuild.Extensibility.dll"
     path
 
-let lazyLoadScript (name: string) (script: string option) =
+let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option) =
     let initScript () =
         match script with
         | Some script ->
-            loadScript [ terrabuildExtensibility ] script
+            loadScript workspaceRoot [ terrabuildExtensibility ] script
         | _ ->
             let systemScriptPath =
                 extensionCandidates name
@@ -63,7 +63,7 @@ let lazyLoadScript (name: string) (script: string option) =
 
             match systemScriptPath with
             | Some scriptPath when System.IO.File.Exists scriptPath ->
-                loadScript [ terrabuildExtensibility ] scriptPath
+                loadScript workspaceRoot [ terrabuildExtensibility ] scriptPath
             | _ ->
                 let systemScript =
                     extensionCandidates name

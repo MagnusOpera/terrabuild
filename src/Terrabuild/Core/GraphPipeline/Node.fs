@@ -79,6 +79,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                           Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
                           Terrabuild.Extensibility.ActionContext.Command = operation.Command
                           Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
+                          Terrabuild.Extensibility.ActionContext.Directory = projectConfig.Directory
                           Terrabuild.Extensibility.ActionContext.Batch = None }
 
                     let parameters = 
