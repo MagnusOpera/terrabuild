@@ -1,0 +1,12 @@
+export let defaults _ =
+  { Id = None; Outputs = []; Dependencies = [] }
+
+export let dispatch _ = []
+
+export let fake _ = []
+
+#{
+  nameof defaults = ["default"]
+  nameof dispatch = ["dispatch"; "never"]
+  nameof fake = ["never"]
+}
