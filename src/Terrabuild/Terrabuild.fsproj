@@ -76,6 +76,10 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
+    <Content Include="scripts\*.fss" Pack="true" PackagePath="tools\scripts\">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="Terrabuild.png" Pack="true" PackagePath="\" />
   </ItemGroup>

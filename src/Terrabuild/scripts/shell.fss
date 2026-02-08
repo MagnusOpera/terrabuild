@@ -1,0 +1,6 @@
+export let dispatch (input: { context: { Command: string }; args: string }) =
+  let context = input.context
+  let args = input.args
+  [{ Command = context.Command; Arguments = args; ErrorLevel = 0 }]
+
+Map.ofList [(nameof dispatch, ["dispatch"; "never"])]

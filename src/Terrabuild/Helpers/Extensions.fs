@@ -15,12 +15,18 @@ type InvocationResult<'t> =
 let systemExtensions =
     Terrabuild.Extensions.Factory.systemScripts
     |> Seq.map (fun kvp ->
+        let defaults =
+            if String.Equals(kvp.Key, "@shell", StringComparison.OrdinalIgnoreCase) then
+                Some (Map [ "args", Expr.String "" ])
+            else
+                None
+
         kvp.Key, { ExtensionBlock.Image = None
                    Platform = None
                    Variables = None
                    Script = None
                    Cpus = None
-                   Defaults = None
+                   Defaults = defaults
                    Env = None })
     |> Map.ofSeq
 
@@ -47,13 +53,22 @@ let lazyLoadScript (name: string) (script: string option) =
         | Some script ->
             loadScript [ terrabuildExtensibility ] script
         | _ ->
-            let systemScript =
+            let systemScriptPath =
                 extensionCandidates name
-                |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScripts |> Map.tryFind candidate)
+                |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScriptFiles |> Map.tryFind candidate)
+                |> Option.map (FS.combinePath terrabuildDir)
 
-            match systemScript with
-            | Some sysTpe -> Script(sysTpe)
-            | _ -> raiseSymbolError $"Script is not defined for extension '{name}'"
+            match systemScriptPath with
+            | Some scriptPath when System.IO.File.Exists scriptPath ->
+                loadScript [ terrabuildExtensibility ] scriptPath
+            | _ ->
+                let systemScript =
+                    extensionCandidates name
+                    |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScripts |> Map.tryFind candidate)
+
+                match systemScript with
+                | Some sysTpe -> Script(sysTpe)
+                | _ -> raiseSymbolError $"Script is not defined for extension '{name}'"
 
     lazy(initScript())
 

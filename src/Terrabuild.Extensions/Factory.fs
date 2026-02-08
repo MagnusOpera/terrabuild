@@ -20,3 +20,8 @@ let systemScripts =
         "@terraform", typeof<Terraform>
         "@yarn", typeof<Yarn>
     ]
+
+let systemScriptFiles =
+    Map [
+        "@shell", "scripts/shell.fss"
+    ]
