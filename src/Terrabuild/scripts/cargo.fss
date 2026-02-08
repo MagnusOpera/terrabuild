@@ -1,0 +1,43 @@
+let append_parts acc part =
+  if part = "" then
+    acc
+  elif acc = "" then
+    part
+  else
+    $"{acc} {part}"
+
+let with_profile profile =
+  profile |> Option.map (fun value -> $"--profile {value}") |> Option.defaultValue ""
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+export let defaults (context: { Directory: string }) =
+  { Id = None; Outputs = ["target/debug/"; "target/release/"]; Dependencies = [] }
+
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command = append_parts context.Command (with_args args)
+  [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
+
+export let build (context: { Command: string }) (profile: string option) (args: string option) =
+  let command =
+    ""
+    |> append_parts "build"
+    |> append_parts (with_profile profile)
+    |> append_parts (with_args args)
+  [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
+
+export let test (context: { Command: string }) (profile: string option) (args: string option) =
+  let command =
+    ""
+    |> append_parts "test"
+    |> append_parts (with_profile profile)
+    |> append_parts (with_args args)
+  [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof defaults = ["default"]
+  nameof dispatch = ["dispatch"; "never"]
+  nameof build = ["remote"]
+  nameof test = ["remote"]
+}

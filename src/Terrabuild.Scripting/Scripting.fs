@@ -440,9 +440,13 @@ and private Conversions =
                     | value -> value
                 let ofSeqMethod = setModuleType.GetMethods() |> Array.find (fun methodInfo -> methodInfo.Name = "OfSeq")
                 let genericOfSeq = ofSeqMethod.MakeGenericMethod([| innerType |])
-                let values =
+                let values: obj =
                     match value with
-                    | FScript.Language.VList items -> items |> Seq.map (decode innerType) |> Seq.cast<obj>
+                    | FScript.Language.VList items ->
+                        let array = System.Array.CreateInstance(innerType, items.Length)
+                        items
+                        |> List.iteri (fun index item -> array.SetValue(decode innerType item, index))
+                        array
                     | _ -> raiseTypeError $"Expected list return type to decode set, got {value}"
                 genericOfSeq.Invoke(null, [| values |])
             elif FSharpType.IsRecord(target, true) then
