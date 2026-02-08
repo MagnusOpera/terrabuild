@@ -1,0 +1,118 @@
+type Package = { name: string; dependencies: string map option; devDependencies: string map option }
+
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let map_true flag value =
+  match value with
+  | Some true -> flag
+  | _ -> ""
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+let load_package directory =
+  let package_file = Fs.combinePath directory "package.json"
+  let content = Fs.readText package_file |> Option.defaultValue ""
+  Json.deserialize (typeof Package) content
+
+let collect_local_dependency acc key value =
+  match Regex.matchGroups "^file:(.*)$" value with
+  | Some groups ->
+      match List.tryHead groups with
+      | Some project -> List.append [project] acc
+      | _ -> acc
+  | _ -> acc
+
+let collect_local_dependencies map =
+  Map.fold collect_local_dependency [] map
+
+let dependencies_from (package: Package) =
+  let dependencies =
+    package.dependencies
+    |> Option.map collect_local_dependencies
+    |> Option.defaultValue []
+
+  let dev_dependencies =
+    package.devDependencies
+    |> Option.map collect_local_dependencies
+    |> Option.defaultValue []
+
+  List.append dependencies dev_dependencies
+  |> List.distinct
+
+export let defaults (context: { Directory: string }) =
+  let dependencies =
+    context.Directory
+    |> load_package
+    |> Option.map dependencies_from
+    |> Option.defaultValue []
+
+  { Id = None; Outputs = ["dist/**"]; Dependencies = dependencies }
+
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part context.Command
+    |> append_part (with_args args)
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+export let install (context: { Command: string }) (force: bool option) (clean: bool option) (args: string option) =
+  let force = force |> map_true "--force"
+  let clean = clean |> map_true "clean-"
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part $"{clean}install"
+    |> append_part force
+    |> append_part args
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+export let build (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part "run build --"
+    |> append_part (with_args args)
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+export let test (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part "run test --"
+    |> append_part (with_args args)
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+export let run (context: { Command: string }) (target: string) (args: string option) =
+  let command =
+    ""
+    |> append_part $"run {target} --"
+    |> append_part (with_args args)
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+export let exec (context: { Command: string }) (package: string) (args: string option) =
+  let command =
+    ""
+    |> append_part "exec --"
+    |> append_part package
+    |> append_part (with_args args)
+
+  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof defaults = ["default"]
+  nameof dispatch = ["dispatch"; "never"]
+  nameof install = ["local"]
+  nameof build = ["remote"]
+  nameof test = ["remote"]
+  nameof run = ["local"]
+  nameof exec = ["local"]
+}

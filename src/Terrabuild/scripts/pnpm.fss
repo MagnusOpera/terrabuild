@@ -1,0 +1,138 @@
+type Package = { name: string; dependencies: string map option; devDependencies: string map option }
+
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let map_true flag value =
+  match value with
+  | Some true -> flag
+  | _ -> ""
+
+let map_false flag value =
+  match value with
+  | Some true -> ""
+  | _ -> flag
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+let load_package directory =
+  let package_file = Fs.combinePath directory "package.json"
+  let content = Fs.readText package_file |> Option.defaultValue ""
+  Json.deserialize (typeof Package) content
+
+let collect_workspace_dependency acc key value =
+  match value with
+  | "workspace:*" -> List.append [key] acc
+  | _ -> acc
+
+let collect_workspace_dependencies map =
+  Map.fold collect_workspace_dependency [] map
+
+let dependencies_from (package: Package) =
+  let dependencies =
+    package.dependencies
+    |> Option.map collect_workspace_dependencies
+    |> Option.defaultValue []
+
+  let dev_dependencies =
+    package.devDependencies
+    |> Option.map collect_workspace_dependencies
+    |> Option.defaultValue []
+
+  List.append dependencies dev_dependencies
+  |> List.distinct
+
+let batch_filters (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) =
+  match context.Batch with
+  | Some batch ->
+      batch.ProjectPaths
+      |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
+  | _ -> ""
+
+export let defaults (context: { Directory: string }) =
+  let package = load_package context.Directory
+
+  let id =
+    package
+    |> Option.map (fun (value: Package) -> value.name)
+
+  let dependencies =
+    package
+    |> Option.map dependencies_from
+    |> Option.defaultValue []
+
+  { Id = id; Outputs = ["dist/**"]; Dependencies = dependencies }
+
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part context.Command
+    |> append_part (with_args args)
+
+  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+export let install (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (force: bool option) (frozen: bool option) (args: string option) =
+  let filters = batch_filters context
+  let frozen = frozen |> map_true "--frozen-lockfile"
+  let force = force |> map_true "--force"
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part filters
+    |> append_part "install"
+    |> append_part frozen
+    |> append_part "--link-workspace-packages"
+    |> append_part force
+    |> append_part args
+
+  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+export let build (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (args: string option) =
+  let filters = batch_filters context
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part filters
+    |> append_part "run build"
+    |> append_part args
+
+  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+export let test (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (args: string option) =
+  let filters = batch_filters context
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part filters
+    |> append_part "run test"
+    |> append_part args
+
+  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+export let run (context: { Command: string }) (target: string) (no_recursive: bool option) (args: string option) =
+  let recursive = no_recursive |> map_false "--recursive"
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part recursive
+    |> append_part $"run {target}"
+    |> append_part args
+
+  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof defaults = ["default"]
+  nameof dispatch = ["dispatch"; "never"]
+  nameof install = ["local"; "batchable"]
+  nameof build = ["remote"; "batchable"]
+  nameof test = ["remote"; "batchable"]
+  nameof run = ["local"]
+}

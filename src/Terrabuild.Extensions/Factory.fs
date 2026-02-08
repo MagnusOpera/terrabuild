@@ -28,10 +28,13 @@ let systemScriptFiles =
         "@dotnet", "scripts/dotnet.fss"
         "@gradle", "scripts/gradle.fss"
         "@make", "scripts/make.fss"
+        "@npm", "scripts/npm.fss"
         "@npx", "scripts/npx.fss"
         "@openapi", "scripts/openapi.fss"
         "@null", "scripts/null.fss"
         "@playwright", "scripts/playwright.fss"
+        "@pnpm", "scripts/pnpm.fss"
         "@sentry", "scripts/sentry.fss"
         "@shell", "scripts/shell.fss"
+        "@yarn", "scripts/yarn.fss"
     ]
