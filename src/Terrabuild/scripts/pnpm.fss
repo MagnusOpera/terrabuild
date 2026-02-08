@@ -128,11 +128,11 @@ export let run (context: { Command: string }) (target: string) (no_recursive: bo
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof install = ["local"; "batchable"]
-  nameof build = ["remote"; "batchable"]
-  nameof test = ["remote"; "batchable"]
-  nameof run = ["local"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof install] = ["local"; "batchable"]
+  [nameof build] = ["remote"; "batchable"]
+  [nameof test] = ["remote"; "batchable"]
+  [nameof run] = ["local"]
 }

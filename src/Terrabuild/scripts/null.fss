@@ -5,8 +5,8 @@ export let dispatch (context: { Command: string }) = []
 
 export let fake (context: { Command: string }) = []
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof fake = ["never"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof fake] = ["never"]
 }

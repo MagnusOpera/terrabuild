@@ -67,8 +67,8 @@ export let push (context: { CI: bool; Hash: string }) (image: string) (tag: stri
       |> append_part args
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof dispatch = ["dispatch"; "never"]
-  nameof build = ["external"]
-  nameof push = ["external"]
+{
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof build] = ["external"]
+  [nameof push] = ["external"]
 }

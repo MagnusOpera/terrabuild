@@ -24,6 +24,6 @@ export let dispatch (context: { Command: string }) (variables: string map option
 
   [{ Command = "make"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof dispatch = ["dispatch"; "never"]
+{
+  [nameof dispatch] = ["dispatch"; "never"]
 }

@@ -4,8 +4,8 @@ export let defaults (context: { Directory: string }) = "defaults"
 
 let hidden _ = "hidden"
 
-#{
-  nameof run = ["batchable"; "local"]
-  nameof dispatch = ["dispatch"]
-  nameof defaults = ["default"]
+{
+  [nameof run] = ["batchable"; "local"]
+  [nameof dispatch] = ["dispatch"]
+  [nameof defaults] = ["default"]
 }

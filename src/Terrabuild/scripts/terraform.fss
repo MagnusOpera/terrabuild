@@ -98,13 +98,13 @@ export let destroy (context: { Command: string }) (variables: string map option)
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof init = ["local"]
-  nameof validate = ["remote"]
-  nameof select = ["never"]
-  nameof plan = ["remote"]
-  nameof apply = ["remote"]
-  nameof destroy = ["remote"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof init] = ["local"]
+  [nameof validate] = ["remote"]
+  [nameof select] = ["never"]
+  [nameof plan] = ["remote"]
+  [nameof apply] = ["remote"]
+  [nameof destroy] = ["remote"]
 }

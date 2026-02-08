@@ -34,6 +34,6 @@ export let generate (context: { Command: string }) (generator: string) (input: s
 
   [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof generate = ["remote"]
+{
+  [nameof generate] = ["remote"]
 }

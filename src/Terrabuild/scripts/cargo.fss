@@ -33,9 +33,9 @@ export let test (context: { Command: string }) (profile: string option) (args: s
     |> append_parts (with_args args)
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof build = ["remote"]
-  nameof test = ["remote"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof build] = ["remote"]
+  [nameof test] = ["remote"]
 }

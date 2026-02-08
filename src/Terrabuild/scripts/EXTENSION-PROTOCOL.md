@@ -76,8 +76,8 @@ The script descriptor **MUST** be a map from function name to flag list.
 Canonical form:
 
 ```fsharp
-#{
-  nameof dispatch = ["dispatch"; "never"]
+{
+  [nameof dispatch] = ["dispatch"; "never"]
 }
 ```
 

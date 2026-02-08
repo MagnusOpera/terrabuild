@@ -174,13 +174,13 @@ export let test (context: { Batch: { Hash: string; TempDir: string; ProjectPaths
 
   with_batch_projects context create_command
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof tool = ["local"]
-  nameof restore = ["local"; "batchable"]
-  nameof build = ["remote"; "batchable"]
-  nameof pack = ["remote"]
-  nameof publish = ["remote"; "batchable"]
-  nameof test = ["remote"; "batchable"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof tool] = ["local"]
+  [nameof restore] = ["local"; "batchable"]
+  [nameof build] = ["remote"; "batchable"]
+  [nameof pack] = ["remote"]
+  [nameof publish] = ["remote"; "batchable"]
+  [nameof test] = ["remote"; "batchable"]
 }

@@ -21,6 +21,6 @@ export let test (context: { Command: string }) (browser: string option) (project
 
   [{ Command = "npx"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof test = ["remote"]
+{
+  [nameof test] = ["remote"]
 }

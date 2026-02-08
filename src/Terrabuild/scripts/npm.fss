@@ -104,12 +104,12 @@ export let exec (context: { Command: string }) (package: string) (args: string o
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof install = ["local"]
-  nameof build = ["remote"]
-  nameof test = ["remote"]
-  nameof run = ["local"]
-  nameof exec = ["local"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof install] = ["local"]
+  [nameof build] = ["remote"]
+  [nameof test] = ["remote"]
+  [nameof run] = ["local"]
+  [nameof exec] = ["local"]
 }

@@ -25,8 +25,8 @@ export let build (context: { Command: string }) (configuration: string option) (
     |> append_part (with_args args)
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
-#{
-  nameof defaults = ["default"]
-  nameof dispatch = ["dispatch"; "never"]
-  nameof build = ["remote"]
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof build] = ["remote"]
 }
