@@ -59,3 +59,37 @@ let invokeFScriptMethod() =
     let args = Value.Map Map.empty
     let res = invocable.Value.Invoke<string> args
     res |> should equal "run"
+
+[<Test>]
+let invokeFScriptMethodWithPascalCaseAliases() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/PascalCaseDispatch.fss"
+    let invocable = script.GetMethod("dispatch")
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "build"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Batch = None }
+    let args =
+        Value.Map
+            (Map [
+                "context", Value.Object context
+                "variables", Value.Map (Map [ "secret", Value.String "tagada" ])
+                "args", Value.String "-n"
+             ])
+
+    let res = invocable.Value.Invoke<string> args
+    res |> should equal "build|1|-n"
+
+[<Test>]
+let invokeFScriptMethodWithPascalCaseAliasesDefaults() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/PascalCaseDispatch.fss"
+    let invocable = script.GetMethod("dispatch")
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "build"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Batch = None }
+    let args = Value.Map (Map [ "context", Value.Object context ])
+
+    let res = invocable.Value.Invoke<string> args
+    res |> should equal "build|0|<none>"

@@ -146,7 +146,7 @@ type Script internal (runtime: ScriptRuntime) =
         | FScript(loaded, _, _, _) ->
             if loaded.ExportedFunctionNames |> List.contains name then
                 let runtimeInvoke (args: Terrabuild.Expressions.Value) (targetType: System.Type) =
-                    let argValue = Conversions.ToFScriptValue args
+                    let argValue = Conversions.ToFScriptInvocationValue args
                     let result = FScript.Runtime.ScriptHost.invoke loaded name [ argValue ]
                     Conversions.FromFScriptValue(targetType, result)
                 Invocable.FromRuntime(runtimeInvoke) |> Some
@@ -287,6 +287,54 @@ and private Descriptor =
         dispatchMethods |> List.tryHead, defaultMethods |> List.tryHead
 
 and private Conversions =
+    static member private toFScriptCoreValue(value: Terrabuild.Expressions.Value) =
+        let rec convert value =
+            match value with
+            | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
+            | Terrabuild.Expressions.Value.Bool boolValue -> FScript.Language.VBool boolValue
+            | Terrabuild.Expressions.Value.String stringValue -> FScript.Language.VString stringValue
+            | Terrabuild.Expressions.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
+            | Terrabuild.Expressions.Value.Enum enumValue -> FScript.Language.VString enumValue
+            | Terrabuild.Expressions.Value.Map mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> FScript.Language.VRecord
+            | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
+            | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
+        convert value
+
+    static member private withPascalCaseAliases(rawMap: Map<string, FScript.Language.Value>) =
+        let addAlias alias key state =
+            if state |> Map.containsKey alias then
+                state
+            else
+                match state |> Map.tryFind key with
+                | Some value -> state |> Map.add alias value
+                | None -> state
+
+        let addOptionAlias alias key state =
+            if state |> Map.containsKey alias then
+                state
+            else
+                let optionValue =
+                    match state |> Map.tryFind key with
+                    | Some (FScript.Language.VOption optionValue) -> FScript.Language.VOption optionValue
+                    | Some value -> FScript.Language.VOption (Some value)
+                    | None -> FScript.Language.VOption None
+                state |> Map.add alias optionValue
+
+        rawMap
+        |> addAlias "Context" "context"
+        |> addOptionAlias "Variables" "variables"
+        |> addOptionAlias "Args" "args"
+
+    static member ToFScriptInvocationValue(value: Terrabuild.Expressions.Value) =
+        match value with
+        | Terrabuild.Expressions.Value.Map rawMap ->
+            rawMap
+            |> Map.map (fun _ itemValue -> Conversions.toFScriptCoreValue itemValue)
+            |> Conversions.withPascalCaseAliases
+            |> FScript.Language.VRecord
+        | _ ->
+            Conversions.toFScriptCoreValue value
+
     static member private toFScriptValueFromObject (value: objnull) =
         let rec convertObject (objValue: objnull) =
             if isNull objValue then
@@ -330,17 +378,7 @@ and private Conversions =
         convertObject value
 
     static member ToFScriptValue(value: Terrabuild.Expressions.Value) =
-        let rec convert value =
-            match value with
-            | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
-            | Terrabuild.Expressions.Value.Bool boolValue -> FScript.Language.VBool boolValue
-            | Terrabuild.Expressions.Value.String stringValue -> FScript.Language.VString stringValue
-            | Terrabuild.Expressions.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
-            | Terrabuild.Expressions.Value.Enum enumValue -> FScript.Language.VString enumValue
-            | Terrabuild.Expressions.Value.Map mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> FScript.Language.VRecord
-            | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
-            | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
-        convert value
+        Conversions.toFScriptCoreValue value
 
     static member FromFScriptValue(targetType: System.Type, value: FScript.Language.Value) =
         let rec decode (target: System.Type) (value: FScript.Language.Value) : objnull =

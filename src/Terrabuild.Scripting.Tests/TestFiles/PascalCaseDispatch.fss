@@ -1,0 +1,11 @@
+export let dispatch (Input: { Context: { Command: string }; Variables: string map option; Args: string option }) =
+  let varsCount =
+    Input.Variables
+    |> Option.map Map.count
+    |> Option.defaultValue 0
+
+  let argsValue = Input.Args |> Option.defaultValue "<none>"
+
+  $"{Input.Context.Command}|{varsCount}|{argsValue}"
+
+Map.ofList [(nameof dispatch, ["dispatch"])]

@@ -8,15 +8,23 @@ let append_variable acc key value =
 let format_variables vars =
   Map.fold append_variable "" vars
 
-export let dispatch (input: { context: { Command: string }; variables: string map }) =
-  let context = input.context
-  let variables = format_variables input.variables
+export let dispatch (Input: { Context: { Command: string }; Variables: string map option; Args: string option }) =
+  let Variables =
+    Input.Variables
+    |> Option.map format_variables
+    |> Option.defaultValue ""
+
+  let Args = Input.Args |> Option.defaultValue ""
 
   let command =
-    if variables = "" then
-      context.Command
+    if Variables = "" && Args = "" then
+      Input.Context.Command
+    elif Variables = "" then
+      $"{Input.Context.Command} {Args}"
+    elif Args = "" then
+      $"{Input.Context.Command} {Variables}"
     else
-      $"{context.Command} {variables}"
+      $"{Input.Context.Command} {Variables} {Args}"
 
   [{ Command = "make"; Arguments = command; ErrorLevel = 0 }]
 
