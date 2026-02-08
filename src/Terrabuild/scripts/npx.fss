@@ -1,6 +1,5 @@
-export let run (input: { package: string; args: string }) =
-  let package = input.package
-  let args = input.args
+export let run (context: { Command: string }) (package: string) (args: string option) =
+  let args = args |> Option.defaultValue ""
   [{ Command = "npx"; Arguments = $"--yes -- {package} {args}"; ErrorLevel = 0 }]
 
 Map.ofList [(nameof run, ["local"])]

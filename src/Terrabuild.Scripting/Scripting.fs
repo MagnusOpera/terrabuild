@@ -146,8 +146,55 @@ type Script internal (runtime: ScriptRuntime) =
         | FScript(loaded, _, _, _) ->
             if loaded.ExportedFunctionNames |> List.contains name then
                 let runtimeInvoke (args: Terrabuild.Expressions.Value) (targetType: System.Type) =
-                    let argValue = Conversions.ToFScriptInvocationValue args
-                    let result = FScript.Runtime.ScriptHost.invoke loaded name [ argValue ]
+                    let inputMap =
+                        match args with
+                        | Terrabuild.Expressions.Value.Map map -> map
+                        | _ -> raiseTypeError $"FScript function '{name}' expects map-based arguments"
+
+                    let signature =
+                        match loaded.ExportedFunctionSignatures |> Map.tryFind name with
+                        | Some value -> value
+                        | None -> raiseInvalidArg $"Missing signature metadata for exported function '{name}'"
+
+                    let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expressions.Value) =
+                        match parameterType with
+                        | FScript.Language.TOption _ ->
+                            match value with
+                            | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
+                            | _ ->
+                                match Conversions.ToFScriptValue value with
+                                | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
+                                | converted -> FScript.Language.VOption (Some converted)
+                        | _ ->
+                            Conversions.ToFScriptValue value
+
+                    let invocationArgs =
+                        match signature.ParameterNames, signature.ParameterTypes with
+                        | contextParam :: remainingParams, contextType :: remainingTypes ->
+                            if contextParam <> "context" then
+                                raiseInvalidArg $"Exported function '{name}' must declare 'context' as first parameter"
+
+                            let contextArg =
+                                match inputMap |> Map.tryFind "context" with
+                                | Some value -> toFScriptArgument contextType value
+                                | None -> raiseTypeError $"Missing required argument 'context' for function '{name}'"
+
+                            let remainingArgs =
+                                (remainingParams, remainingTypes)
+                                ||> List.map2 (fun parameterName parameterType ->
+                                    match inputMap |> Map.tryFind parameterName with
+                                    | Some value ->
+                                        toFScriptArgument parameterType value
+                                    | None ->
+                                        match parameterType with
+                                        | FScript.Language.TOption _ -> FScript.Language.VOption None
+                                        | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{name}'")
+
+                            contextArg :: remainingArgs
+                        | _ ->
+                            raiseInvalidArg $"Exported function '{name}' must declare 'context' as first parameter"
+
+                    let result = FScript.Runtime.ScriptHost.invoke loaded name invocationArgs
                     Conversions.FromFScriptValue(targetType, result)
                 Invocable.FromRuntime(runtimeInvoke) |> Some
             else
@@ -299,41 +346,6 @@ and private Conversions =
             | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
             | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
         convert value
-
-    static member private withPascalCaseAliases(rawMap: Map<string, FScript.Language.Value>) =
-        let addAlias alias key state =
-            if state |> Map.containsKey alias then
-                state
-            else
-                match state |> Map.tryFind key with
-                | Some value -> state |> Map.add alias value
-                | None -> state
-
-        let addOptionAlias alias key state =
-            if state |> Map.containsKey alias then
-                state
-            else
-                let optionValue =
-                    match state |> Map.tryFind key with
-                    | Some (FScript.Language.VOption optionValue) -> FScript.Language.VOption optionValue
-                    | Some value -> FScript.Language.VOption (Some value)
-                    | None -> FScript.Language.VOption None
-                state |> Map.add alias optionValue
-
-        rawMap
-        |> addAlias "Context" "context"
-        |> addOptionAlias "Variables" "variables"
-        |> addOptionAlias "Args" "args"
-
-    static member ToFScriptInvocationValue(value: Terrabuild.Expressions.Value) =
-        match value with
-        | Terrabuild.Expressions.Value.Map rawMap ->
-            rawMap
-            |> Map.map (fun _ itemValue -> Conversions.toFScriptCoreValue itemValue)
-            |> Conversions.withPascalCaseAliases
-            |> FScript.Language.VRecord
-        | _ ->
-            Conversions.toFScriptCoreValue value
 
     static member private toFScriptValueFromObject (value: objnull) =
         let rec convertObject (objValue: objnull) =
@@ -506,6 +518,15 @@ let private loadFScript (scriptFile: string) =
         | value -> value
     let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
     let loaded = FScript.Runtime.ScriptHost.loadFile externs fullPath
+    loaded.ExportedFunctionNames
+    |> List.iter (fun functionName ->
+        match loaded.ExportedFunctionSignatures |> Map.tryFind functionName with
+        | Some signature ->
+            match signature.ParameterNames with
+            | "context" :: _ -> ()
+            | _ -> raiseInvalidArg $"Exported function '{functionName}' must declare 'context' as first parameter"
+        | None ->
+            raiseInvalidArg $"Missing signature metadata for exported function '{functionName}'")
     let descriptor = Descriptor.Parse(loaded.ExportedFunctionNames, loaded.LastValue)
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     Script(FScript(loaded, descriptor, dispatchMethod, defaultMethod))

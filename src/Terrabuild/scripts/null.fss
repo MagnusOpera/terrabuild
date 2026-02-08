@@ -1,9 +1,9 @@
-export let defaults _ =
+export let defaults (context: { Directory: string }) =
   { Id = None; Outputs = []; Dependencies = [] }
 
-export let dispatch _ = []
+export let dispatch (context: { Command: string }) = []
 
-export let fake _ = []
+export let fake (context: { Command: string }) = []
 
 #{
   nameof defaults = ["default"]

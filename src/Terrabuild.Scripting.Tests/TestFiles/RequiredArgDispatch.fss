@@ -1,0 +1,4 @@
+export let dispatch (context: { Command: string }) (requiredArg: string) =
+  requiredArg
+
+Map.ofList [(nameof dispatch, ["dispatch"])]

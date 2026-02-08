@@ -56,12 +56,17 @@ let loadFScriptFlags() =
 let invokeFScriptMethod() =
     let script = Terrabuild.Scripting.loadScript [] "TestFiles/Extension.fss"
     let invocable = script.GetMethod("run")
-    let args = Value.Map Map.empty
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "run"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Batch = None }
+    let args = Value.Map (Map [ "context", Value.Object context ])
     let res = invocable.Value.Invoke<string> args
     res |> should equal "run"
 
 [<Test>]
-let invokeFScriptMethodWithPascalCaseAliases() =
+let invokeFScriptMethodWithStructuredArguments() =
     let script = Terrabuild.Scripting.loadScript [] "TestFiles/PascalCaseDispatch.fss"
     let invocable = script.GetMethod("dispatch")
     let context = { ActionContext.Debug = false
@@ -81,7 +86,7 @@ let invokeFScriptMethodWithPascalCaseAliases() =
     res |> should equal "build|1|-n"
 
 [<Test>]
-let invokeFScriptMethodWithPascalCaseAliasesDefaults() =
+let invokeFScriptMethodWithStructuredArgumentsDefaults() =
     let script = Terrabuild.Scripting.loadScript [] "TestFiles/PascalCaseDispatch.fss"
     let invocable = script.GetMethod("dispatch")
     let context = { ActionContext.Debug = false
@@ -89,7 +94,32 @@ let invokeFScriptMethodWithPascalCaseAliasesDefaults() =
                     ActionContext.Command = "build"
                     ActionContext.Hash = "abc"
                     ActionContext.Batch = None }
-    let args = Value.Map (Map [ "context", Value.Object context ])
+    let args =
+        Value.Map
+            (Map [
+                "context", Value.Object context
+             ])
 
     let res = invocable.Value.Invoke<string> args
     res |> should equal "build|0|<none>"
+
+[<Test>]
+let invokeFScriptMethodMissingContextFails() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/PascalCaseDispatch.fss"
+    let invocable = script.GetMethod("dispatch")
+    let args = Value.Map Map.empty
+    (fun () -> invocable.Value.Invoke<string> args |> ignore)
+    |> should (throwWithMessage "Missing required argument 'context' for function 'dispatch'") typeof<TerrabuildException>
+
+[<Test>]
+let invokeFScriptMethodMissingRequiredParameterFails() =
+    let script = Terrabuild.Scripting.loadScript [] "TestFiles/RequiredArgDispatch.fss"
+    let invocable = script.GetMethod("dispatch")
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "build"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Batch = None }
+    let args = Value.Map (Map [ "context", Value.Object context ])
+    (fun () -> invocable.Value.Invoke<string> args |> ignore)
+    |> should (throwWithMessage "Missing required argument 'requiredArg' for function 'dispatch'") typeof<TerrabuildException>
