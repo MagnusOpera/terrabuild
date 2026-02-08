@@ -4,6 +4,7 @@ open Terrabuild.Scripting
 open Terrabuild.Expressions
 open Errors
 open Terrabuild.Configuration.AST
+open Terrabuild.Extensibility
 
 type InvocationResult<'t> =
     | Success of 't
@@ -23,6 +24,11 @@ let systemExtensions =
                    Env = None })
     |> Map.ofSeq
 
+let private normalizeExtensionName (name: string) =
+    if String.IsNullOrWhiteSpace name then name
+    elif name.StartsWith("@") then name.Substring(1)
+    else name
+
 // NOTE: when app in package as a single file, Terrabuild.Assembly can't be found...
 //       this means native deployments are not supported ¯\_(ツ)_/¯
 let terrabuildDir : string =
@@ -37,6 +43,7 @@ let terrabuildExtensibility =
 
 let lazyLoadScript (name: string) (script: string option) =
     let initScript () =
+        let name = normalizeExtensionName name
         match script with
         | Some script ->
             loadScript [ terrabuildExtensibility ] script
@@ -48,6 +55,7 @@ let lazyLoadScript (name: string) (script: string option) =
     lazy(initScript())
 
 let getScript (extension: string) (scripts: Map<string, Lazy<Script>>) =
+    let extension = normalizeExtensionName extension
     scripts
     |> Map.tryFind extension
     |> Option.map (fun script -> script.Value)
@@ -56,8 +64,16 @@ let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option
     match script with
     | None -> ScriptNotFound
     | Some script ->
-        let rec invokeScriptMethod (method: string) =
-            let invocable = script.GetMethod(method)
+        let resolveMethodName () =
+            if String.Equals(method, "__defaults__", StringComparison.OrdinalIgnoreCase) then
+                script.ResolveDefaultMethod()
+            else
+                script.ResolveCommandMethod(method)
+
+        match resolveMethodName () with
+        | None -> TargetNotFound
+        | Some resolvedMethod ->
+            let invocable = script.GetMethod(resolvedMethod)
             match invocable with
             | Some invocable ->
                 try
@@ -68,20 +84,23 @@ let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option
                     | NonNull innerExn -> ErrorTarget innerExn
                     | _ -> ErrorTarget exn
                 | exn -> ErrorTarget exn
-            | None ->
-                match method with
-                | method when method.StartsWith("__") -> TargetNotFound
-                | _ -> invokeScriptMethod "__dispatch__"
+            | None -> TargetNotFound
 
-        invokeScriptMethod method
-
-let getScriptAttribute<'a when 'a :> Attribute> (method: string) (script: Script option) =
+let private getScriptFlags (method: string) (script: Script option) =
     match script with
     | None -> None
     | Some script ->
-        match script.GetAttribute<'a> method with
-        | Some attr -> Some attr
-        | _ -> 
-            match method with
-            | method when method.StartsWith("__") -> None
-            | _ -> script.GetAttribute<'a> "__dispatch__"
+        match script.ResolveCommandMethod(method) with
+        | Some resolvedMethod -> script.TryGetFunctionFlags(resolvedMethod)
+        | _ -> None
+
+let getScriptCacheability (method: string) (script: Script option) =
+    let cacheFlag =
+        getScriptFlags method script
+        |> Option.bind (List.tryPick (function | ExportFlag.Cache cacheability -> Some cacheability | _ -> None))
+    cacheFlag
+
+let isScriptBatchable (method: string) (script: Script option) =
+    getScriptFlags method script
+    |> Option.map (List.contains ExportFlag.Batchable)
+    |> Option.defaultValue false

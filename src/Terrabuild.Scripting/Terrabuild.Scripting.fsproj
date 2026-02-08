@@ -9,10 +9,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.100" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.2.0" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
     <ProjectReference Include="../Terrabuild.Expressions/Terrabuild.Expressions.fsproj" />
   </ItemGroup>
 

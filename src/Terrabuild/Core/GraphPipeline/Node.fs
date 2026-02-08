@@ -90,9 +90,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
                     let cacheability =
-                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
-                        | Some attr ->
-                            match attr.Cacheability with
+                        match Extensions.getScriptCacheability optContext.Command (Some operation.Script) with
+                        | Some cacheability ->
+                            match cacheability with
                             | Terrabuild.Extensibility.Cacheability.Never -> ArtifactMode.None
                             | Terrabuild.Extensibility.Cacheability.Local -> ArtifactMode.Workspace
                             | Terrabuild.Extensibility.Cacheability.Remote -> ArtifactMode.Managed
@@ -118,8 +118,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
 
                     let batchable = 
-                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.BatchableAttribute> optContext.Command (Some operation.Script) with
-                        | Some _ -> batchable
+                        match Extensions.isScriptBatchable optContext.Command (Some operation.Script) with
+                        | true -> batchable
                         | _ -> false
 
                     cacheability, batchable, ops @ newops

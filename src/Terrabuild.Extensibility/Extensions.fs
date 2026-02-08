@@ -53,6 +53,15 @@ type Cacheability =
     | External
     | Remote
 
+[<RequireQualifiedAccess>]
+type ExportFlag =
+    | Dispatch
+    | Default
+    | Batchable
+    | Cache of Cacheability
+
+type ScriptDescriptor = Map<string, ExportFlag list>
+
 let shellOpErrorLevel(cmd, args, errorLevel) =
     { ShellOperation.Command = cmd
       ShellOperation.Arguments = args
