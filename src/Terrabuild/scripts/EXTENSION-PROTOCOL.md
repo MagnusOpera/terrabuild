@@ -143,6 +143,7 @@ Default handler example:
 - `playwright.fss`: `test (context) (browser) (project) (args)`
 - `sentry.fss`: `sourcemaps (context) (project) (path)`
 - `openapi.fss`: `generate (context) (generator) (input) (output) (properties) (args)`
+- `terraform.fss`: `defaults (context)`, `dispatch (context) (args)`, `init/validate/select/plan/apply/destroy (context) ...`
 - `null.fss`: exported handlers follow the same `context`-first rule
 
 ## 9. Protocol Evolution

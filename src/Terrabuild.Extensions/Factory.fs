@@ -36,5 +36,6 @@ let systemScriptFiles =
         "@pnpm", "scripts/pnpm.fss"
         "@sentry", "scripts/sentry.fss"
         "@shell", "scripts/shell.fss"
+        "@terraform", "scripts/terraform.fss"
         "@yarn", "scripts/yarn.fss"
     ]

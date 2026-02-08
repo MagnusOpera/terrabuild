@@ -1,0 +1,110 @@
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let map_true flag value =
+  match value with
+  | Some true -> flag
+  | _ -> ""
+
+let map_false flag value =
+  match value with
+  | Some true -> ""
+  | _ -> flag
+
+let map_value mapper value =
+  value |> Option.map mapper |> Option.defaultValue ""
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+let format_vars variables =
+  variables
+  |> Option.map (Map.fold (fun acc key value -> acc |> append_part $"-var=\"{key}={value}\"") "")
+  |> Option.defaultValue ""
+
+export let defaults (context: { Directory: string }) =
+  { Id = None; Outputs = ["*.planfile"]; Dependencies = [] }
+
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part context.Command
+    |> append_part (with_args args)
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+export let init (context: { Command: string }) (config: string option) (args: string option) =
+  let config = config |> map_value (fun value -> $"-backend-config={value}")
+  let args = with_args args
+  let command =
+    ""
+    |> append_part "init"
+    |> append_part "-reconfigure"
+    |> append_part config
+    |> append_part args
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+export let validate (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part "validate"
+    |> append_part (with_args args)
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+export let select (context: { Command: string }) (workspace: string option) (create: bool option) (args: string option) =
+  match workspace with
+  | Some workspace ->
+      let command =
+        ""
+        |> append_part "workspace select"
+        |> append_part (map_true "-or-create" create)
+        |> append_part workspace
+        |> append_part (with_args args)
+      [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+  | _ -> []
+
+export let plan (context: { Command: string }) (variables: string map option) (args: string option) =
+  let vars = format_vars variables
+  let args = with_args args
+  let command =
+    ""
+    |> append_part "plan"
+    |> append_part "-out=terrabuild.planfile"
+    |> append_part vars
+    |> append_part args
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+export let apply (context: { Command: string }) (no_plan: bool option) (args: string option) =
+  let planfile = map_false "terrabuild.planfile" no_plan
+  let args = with_args args
+  let command =
+    ""
+    |> append_part "apply"
+    |> append_part "-input=false"
+    |> append_part planfile
+    |> append_part args
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+export let destroy (context: { Command: string }) (variables: string map option) (args: string option) =
+  let vars = format_vars variables
+  let args = with_args args
+  let command =
+    ""
+    |> append_part "destroy"
+    |> append_part "-input=false"
+    |> append_part vars
+    |> append_part args
+  [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof defaults = ["default"]
+  nameof dispatch = ["dispatch"; "never"]
+  nameof init = ["local"]
+  nameof validate = ["remote"]
+  nameof select = ["never"]
+  nameof plan = ["remote"]
+  nameof apply = ["remote"]
+  nameof destroy = ["remote"]
+}
