@@ -1,0 +1,14 @@
+let with_project project =
+  project |> Option.map (fun current -> $"--project {current}") |> Option.defaultValue ""
+
+export let sourcemaps (context: { CI: bool }) (project: string option) (path: string option) =
+  let project = with_project project
+  let path = path |> Option.defaultValue "dist"
+  let errorLevel = if context.CI then 0 else 1
+
+  [ { Command = "sentry-cli"; Arguments = $"sourcemaps inject {path}"; ErrorLevel = 0 }
+    { Command = "sentry-cli"; Arguments = $"sourcemaps upload {project} {path}"; ErrorLevel = errorLevel } ]
+
+#{
+  nameof sourcemaps = ["external"]
+}

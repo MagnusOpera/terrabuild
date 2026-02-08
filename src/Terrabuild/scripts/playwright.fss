@@ -1,0 +1,26 @@
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let with_flag flag value =
+  value |> Option.map (fun current -> $"{flag} {current}") |> Option.defaultValue ""
+
+export let test (context: { Command: string }) (browser: string option) (project: string option) (args: string option) =
+  let browser = with_flag "--browser" browser
+  let project = with_flag "--project" project
+  let args = args |> Option.defaultValue ""
+
+  let command =
+    ""
+    |> append_part "playwright test"
+    |> append_part browser
+    |> append_part project
+    |> append_part args
+
+  [{ Command = "npx"; Arguments = command; ErrorLevel = 0 }]
+
+#{
+  nameof test = ["remote"]
+}

@@ -25,8 +25,12 @@ let systemScriptFiles =
     Map [
         "@cargo", "scripts/cargo.fss"
         "@docker", "scripts/docker.fss"
+        "@gradle", "scripts/gradle.fss"
         "@make", "scripts/make.fss"
         "@npx", "scripts/npx.fss"
+        "@openapi", "scripts/openapi.fss"
         "@null", "scripts/null.fss"
+        "@playwright", "scripts/playwright.fss"
+        "@sentry", "scripts/sentry.fss"
         "@shell", "scripts/shell.fss"
     ]

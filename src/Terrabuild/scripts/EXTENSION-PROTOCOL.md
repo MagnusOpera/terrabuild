@@ -132,9 +132,13 @@ Default handler example:
 ## 8. Built-In Script Contract Examples
 
 - `shell.fss`: `dispatch (context) (args)`
+- `gradle.fss`: `defaults (context)`, `dispatch (context) (args)`, `build (context) (configuration) (args)`
 - `make.fss`: `dispatch (context) (variables) (args)`
 - `docker.fss`: `dispatch (context) (args)`, `build (context) ...`, `push (context) ...`
 - `npx.fss`: `run (context) (package) (args)`
+- `playwright.fss`: `test (context) (browser) (project) (args)`
+- `sentry.fss`: `sourcemaps (context) (project) (path)`
+- `openapi.fss`: `generate (context) (generator) (input) (output) (properties) (args)`
 - `null.fss`: exported handlers follow the same `context`-first rule
 
 ## 9. Protocol Evolution

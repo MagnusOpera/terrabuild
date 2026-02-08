@@ -1,7 +1,7 @@
-let append_part acc part =
-  match (acc, part) with
-  | (_, "") -> acc
-  | ("", _) -> part
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
   | _ -> $"{acc} {part}"
 
 let append_csv acc value =
@@ -10,7 +10,7 @@ let append_csv acc value =
   | _ -> $"{acc},{value}"
 
 let append_build_arg acc key value =
-  append_part acc $"--build-arg {key}=\"{value}\""
+  append_part $"--build-arg {key}=\"{value}\"" acc
 
 let format_platforms platforms =
   let joined = List.fold append_csv "" platforms
@@ -25,7 +25,7 @@ let as_text value =
   value |> Option.defaultValue ""
 
 export let dispatch (context: { Command: string }) (args: string option) =
-  let command = append_part context.Command (as_text args)
+  let command = as_text args |> append_part context.Command
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
 export let build (context: { CI: bool; Hash: string }) (image: string) (dockerfile: string option) (platforms: string list option) (build_args: string map option) (args: string option) =
