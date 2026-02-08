@@ -58,7 +58,7 @@ export let defaults (context: { Directory: string }) =
 
   let id =
     package
-    |> Option.map (fun (value: Package) -> value.name)
+    |> Option.map (fun value -> value.name)
 
   let dependencies =
     package
