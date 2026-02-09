@@ -2,4 +2,6 @@ export let dispatch (context: { Command: string }) (args: string option) =
   let args = args |> Option.defaultValue ""
   [{ Command = context.Command; Arguments = args; ErrorLevel = 0 }]
 
-Map.ofList [(nameof dispatch, ["dispatch"; "never"])]
+{
+  [nameof dispatch] = ["dispatch"; "never"]
+}
