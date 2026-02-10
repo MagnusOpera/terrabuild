@@ -149,3 +149,88 @@ Default handler example:
 ## 9. Protocol Evolution
 
 Any protocol change **MUST** be introduced in this document before implementation.
+
+## 10. Extension Template
+
+Copy/paste starter template:
+
+```fsharp
+// Terrabuild FScript extension template
+type BatchContext = {
+  Hash: string
+  TempDir: string
+  ProjectPaths: string list
+}
+
+type ActionContext = {
+  Debug: bool
+  CI: bool
+  Command: string
+  Hash: string
+  Directory: string
+  Batch: BatchContext option
+}
+
+type ProjectInfo = {
+  Id: string option
+  Outputs: string list
+  Dependencies: string list
+}
+
+type ShellOperation = {
+  Command: string
+  Arguments: string
+  ErrorLevel: int
+}
+
+type ShellOperations = ShellOperation list
+
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+// Optional metadata entrypoint (flagged "default")
+export let defaults (context: ActionContext) : ProjectInfo =
+  { Id = None; Outputs = []; Dependencies = [] }
+
+// Generic command fallback entrypoint (flagged "dispatch")
+export let dispatch (context: ActionContext) (args: string option) : ShellOperations =
+  let command =
+    ""
+    |> append_part context.Command
+    |> append_part (with_args args)
+
+  [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
+
+// Specific command entrypoint example
+export let build (context: ActionContext) (configuration: string option) (args: string option) : ShellOperations =
+  let configuration = configuration |> Option.defaultValue "Debug"
+  let command =
+    ""
+    |> append_part "build"
+    |> append_part $"--configuration {configuration}"
+    |> append_part (with_args args)
+
+  [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
+
+// Script descriptor: exported function name -> flag list
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof build] = ["remote"]
+}
+```
+
+Template usage rules:
+
+1. `context` **MUST** be the first parameter of every exported function.
+2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
+3. Scripts **MAY** declare protocol-aligned local types (as shown in the template) for readability and reuse.
+4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
+5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
+6. Descriptor flags **MUST** be selected from: `dispatch`, `default`, `batchable`, `never`, `local`, `external`, `remote`.
