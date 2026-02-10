@@ -131,9 +131,9 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
 
             let batchContext =
                 Some {
-                    Terrabuild.Extensibility.BatchContext.Hash = batch.BatchId
-                    Terrabuild.Extensibility.BatchContext.TempDir = options.SharedDir
-                    Terrabuild.Extensibility.BatchContext.ProjectPaths = projectDirs
+                    Terrabuild.ScriptingContracts.BatchContext.Hash = batch.BatchId
+                    Terrabuild.ScriptingContracts.BatchContext.TempDir = options.SharedDir
+                    Terrabuild.ScriptingContracts.BatchContext.ProjectPaths = projectDirs
                 }
 
             // reuse the same project/target operations definition as head node
@@ -146,11 +146,12 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                 targetConfig.Operations
                 |> List.collect (fun operation ->
                     let optContext =
-                        { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
-                          Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
-                          Terrabuild.Extensibility.ActionContext.Command = operation.Command
-                          Terrabuild.Extensibility.ActionContext.Hash = batch.ClusterHash
-                          Terrabuild.Extensibility.ActionContext.Batch = batchContext }
+                        { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
+                          Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
+                          Terrabuild.ScriptingContracts.ActionContext.Command = operation.Command
+                          Terrabuild.ScriptingContracts.ActionContext.Hash = batch.ClusterHash
+                          Terrabuild.ScriptingContracts.ActionContext.Directory = projectConfig.Directory
+                          Terrabuild.ScriptingContracts.ActionContext.Batch = batchContext }
 
                     let parameters =
                         match operation.Context with
@@ -160,7 +161,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                             |> Terrabuild.Expressions.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
-                    match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
+                    match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.ShellOperations> optContext.Command parameters (Some operation.Script) with
                     | Extensions.InvocationResult.Success executionRequest ->
                         executionRequest |> List.map (fun shellOperation -> {
                             ContaineredShellOperation.Image = operation.Image

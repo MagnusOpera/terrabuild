@@ -75,11 +75,12 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let cachable, batchable, ops =
                 targetConfig.Operations |> List.fold (fun (_, batchable, ops) operation ->
                     let optContext =
-                        { Terrabuild.Extensibility.ActionContext.Debug = options.Debug
-                          Terrabuild.Extensibility.ActionContext.CI = options.Run.IsSome
-                          Terrabuild.Extensibility.ActionContext.Command = operation.Command
-                          Terrabuild.Extensibility.ActionContext.Hash = projectConfig.Hash
-                          Terrabuild.Extensibility.ActionContext.Batch = None }
+                        { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
+                          Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
+                          Terrabuild.ScriptingContracts.ActionContext.Command = operation.Command
+                          Terrabuild.ScriptingContracts.ActionContext.Hash = projectConfig.Hash
+                          Terrabuild.ScriptingContracts.ActionContext.Directory = projectConfig.Directory
+                          Terrabuild.ScriptingContracts.ActionContext.Batch = None }
 
                     let parameters = 
                         match operation.Context with
@@ -90,17 +91,17 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
                     let cacheability =
-                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.CacheableAttribute> optContext.Command (Some operation.Script) with
-                        | Some attr ->
-                            match attr.Cacheability with
-                            | Terrabuild.Extensibility.Cacheability.Never -> ArtifactMode.None
-                            | Terrabuild.Extensibility.Cacheability.Local -> ArtifactMode.Workspace
-                            | Terrabuild.Extensibility.Cacheability.Remote -> ArtifactMode.Managed
-                            | Terrabuild.Extensibility.Cacheability.External -> ArtifactMode.External
+                        match Extensions.getScriptCacheability optContext.Command (Some operation.Script) with
+                        | Some cacheability ->
+                            match cacheability with
+                            | Terrabuild.ScriptingContracts.Cacheability.Never -> ArtifactMode.None
+                            | Terrabuild.ScriptingContracts.Cacheability.Local -> ArtifactMode.Workspace
+                            | Terrabuild.ScriptingContracts.Cacheability.Remote -> ArtifactMode.Managed
+                            | Terrabuild.ScriptingContracts.Cacheability.External -> ArtifactMode.External
                         | _ -> raiseInvalidArg $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
                     let shellOperations =
-                        match Extensions.invokeScriptMethod<Terrabuild.Extensibility.ShellOperations> optContext.Command parameters (Some operation.Script) with
+                        match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.ShellOperations> optContext.Command parameters (Some operation.Script) with
                         | Extensions.InvocationResult.Success executionRequest -> executionRequest
                         | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
                         | _ -> raiseInvalidArg $"{hash}: Failed to get shell operation (extension error)"
@@ -118,8 +119,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
 
                     let batchable = 
-                        match Extensions.getScriptAttribute<Terrabuild.Extensibility.BatchableAttribute> optContext.Command (Some operation.Script) with
-                        | Some _ -> batchable
+                        match Extensions.isScriptBatchable optContext.Command (Some operation.Script) with
+                        | true -> batchable
                         | _ -> false
 
                     cacheability, batchable, ops @ newops

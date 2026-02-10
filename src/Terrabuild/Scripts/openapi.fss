@@ -1,0 +1,46 @@
+/// <summary>Generates API clients using **OpenAPI Generator**. Requires the `openapitools/openapi-generator-cli` container in the extension configuration so the `docker-entrypoint.sh` is available.</summary>
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let append_comma acc value =
+  match (acc, value) with
+  | (_, "") -> acc
+  | ("", _) -> value
+  | _ -> $"{acc},{value}"
+
+let append_property acc key value =
+  append_comma acc $"{key}={value}"
+
+let format_properties properties =
+  match properties |> Option.map (Map.fold append_property "") with
+  | Some "" -> ""
+  | Some _ -> "--additional-properties={x}"
+  | None -> ""
+
+/// <summary>Generates an API client via `openapi-generator-cli generate`.</summary>
+/// <param name="generator" required="true" example="&quot;typescript-axios&quot;">Use provided generator.</param>
+/// <param name="input" required="true" example="&quot;src/api.json&quot;">Relative path to the OpenAPI/Swagger definition.</param>
+/// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
+/// <param name="properties" required="false" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
+/// <param name="args" required="false" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
+export let generate (context: { Command: string }) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
+  let properties = format_properties properties
+  let args = args |> Option.defaultValue ""
+
+  let command =
+    ""
+    |> append_part "generate"
+    |> append_part $"-i {input}"
+    |> append_part $"-g {generator}"
+    |> append_part $"-o {output}"
+    |> append_part properties
+    |> append_part args
+
+  [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
+
+{
+  [nameof generate] = ["remote"]
+}

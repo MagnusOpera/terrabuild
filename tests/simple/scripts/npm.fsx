@@ -1,8 +1,9 @@
 #if !TERRABUILD_SCRIPT
-#r "../../../src/Terrabuild/bin/Debug/net9.0/Terrabuild.Extensibility.dll"
+#r "../../../src/Terrabuild/bin/Debug/net9.0/Terrabuild.Scripting.dll"
 #endif
 
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 
 
 module String =

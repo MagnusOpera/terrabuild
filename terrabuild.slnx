@@ -6,9 +6,6 @@
     <Project Path="src/Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
     <Project Path="src/Terrabuild.Expressions.Tests/Terrabuild.Expressions.Tests.fsproj" />
     <Project Path="src/Terrabuild.Expressions/Terrabuild.Expressions.fsproj" />
-    <Project Path="src/Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
-    <Project Path="src/Terrabuild.Extensions.Tests/Terrabuild.Extensions.Tests.fsproj" />
-    <Project Path="src/Terrabuild.Extensions/Terrabuild.Extensions.fsproj" />
     <Project Path="src/Terrabuild.Lang.Tests/Terrabuild.Lang.Tests.fsproj" />
     <Project Path="src/Terrabuild.Lang/Terrabuild.Lang.fsproj" />
     <Project Path="src/Terrabuild.PubSub.Tests/Terrabuild.PubSub.Tests.fsproj" />

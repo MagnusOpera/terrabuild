@@ -19,7 +19,16 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore .terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.sln",
+          "arguments": "restore D/D.csproj",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore E/E.csproj",
           "errorLevel": 0
         },
         {
@@ -28,7 +37,16 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build .terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.sln --no-restore --configuration Debug",
+          "arguments": "build D/D.csproj --no-restore --configuration Debug",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "arguments": "build E/E.csproj --no-restore --configuration Debug",
           "errorLevel": 0
         }
       ],

@@ -1,17 +1,7 @@
-﻿open System.IO
+open System
+open System.IO
 open System.Text.RegularExpressions
-open FSharp.Data
-open System.Reflection
-open Terrabuild.Extensibility
-
-
-type Documentation = XmlProvider<"Examples/Terrabuild.Extensions.xml">
-
-let load (filename: string) =
-    let content = File.ReadAllText(filename)
-    let result = Documentation.Parse(content)
-    result
-
+open System.Xml.Linq
 
 type Parameter = {
     Name: string
@@ -23,119 +13,363 @@ type Parameter = {
 type Command = {
     Name: string
     Weight: int option
-    Title: string option
-    Cacheability: Cacheability option
+    mutable Title: string option
+    Cacheability: string option
     Batchability: bool
-    Summary: string
+    mutable Summary: string
     mutable Parameters: Parameter list
 }
 
 type Extension = {
     Name: string
-    Summary: string
+    mutable Summary: string
     mutable Commands: Command list
 }
 
+type private ScriptArgDoc = {
+    Name: string
+    Required: bool
+    Summary: string
+    Example: string
+}
+
+type private ScriptCommandDoc = {
+    Name: string
+    mutable Summary: string option
+    mutable Title: string option
+    mutable Args: ScriptArgDoc list
+}
+
+type private ScriptDocs = {
+    Name: string
+    mutable Summary: string option
+    mutable Commands: Map<string, ScriptCommandDoc>
+}
+
+type private FunctionMeta = {
+    Name: string
+    Parameters: string list
+}
 
 let (|Regex|_|) pattern input =
     let m = Regex.Match(input, pattern)
     if m.Success then Some(List.tail [ for g in m.Groups -> g.Value ])
     else None
 
+let private collapseText (value: string) =
+    let parts =
+        value.Split([| '\r'; '\n' |], StringSplitOptions.RemoveEmptyEntries)
+        |> Array.map (fun x -> x.Trim())
+        |> Array.filter (fun x -> x <> "")
+    match parts with
+    | [||] -> ""
+    | [| single |] -> single
+    | multiple ->
+        multiple
+        |> Array.mapi (fun idx line -> if idx = 0 then line else " " + line)
+        |> String.concat "\n"
 
-let (|Extension|Command|) s =
-    match s with
-    // T:Terrabuild.Extensions.Docker
-    | Regex "^T:Terrabuild\.Extensions\.(.+)$" [name] -> Extension (name.ToLowerInvariant())
+let private normalizeParamNameForCompare (name: string) =
+    name.ToLowerInvariant().Replace("-", "").Replace("_", "")
 
-    // M:Terrabuild.Extensions.Terraform.plan(Microsoft.FSharp.Core.FSharpOption{System.String})
-    | Regex "^M:Terrabuild\.Extensions\.([^.]+)\.([^(]+)" [extension; name] -> Command (extension.ToLowerInvariant(), name.ToLowerInvariant())
-    | _ -> failwith $"Unknown member kind: {s}"
-
-
-let getCacheInfo (methodInfo: MethodInfo) =
-    match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
-    | :? CacheableAttribute as attr -> Some attr.Cacheability
-    | _ -> None
-
-let getBatchInfo (methodInfo: MethodInfo) = 
-    match methodInfo.GetCustomAttribute(typeof<BatchableAttribute>) with
-    | :? BatchableAttribute -> true
+let private parseRequiredAttribute (raw: string option) =
+    match raw |> Option.map (fun v -> v.Trim().ToLowerInvariant()) with
+    | Some "true"
+    | Some "required" -> true
     | _ -> false
 
-let buildExtensions (assembly: Assembly) (members: Documentation.Member seq) =
-    // first find extensions
-    let extensions =
-        members
-        |> Seq.choose (fun m ->
-            match m.Name with
-            | Extension name when name <> "null" -> Some { Name = name; Summary = m.Summary.Value; Commands = List.empty }
-            | _ -> None)
-        |> Seq.map (fun ext -> ext.Name, ext)
-        |> Map.ofSeq
+let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
+    if List.isEmpty docLines then
+        None
+    else
+        try
+            let xml = "<root>\n" + (String.concat "\n" docLines) + "\n</root>"
+            let root =
+                let document = XDocument.Parse(xml)
+                match document.Root with
+                | null -> failwith $"Invalid XML doc comment in {scriptPath}: missing root node"
+                | value -> value
+            let summary =
+                root.Elements(XName.Get "summary")
+                |> Seq.tryHead
+                |> Option.map (fun e -> collapseText e.Value)
+                |> Option.filter (fun x -> x <> "")
+            let title =
+                root.Elements(XName.Get "title")
+                |> Seq.tryHead
+                |> Option.map (fun e -> collapseText e.Value)
+                |> Option.filter (fun x -> x <> "")
+            let args =
+                root.Elements(XName.Get "param")
+                |> Seq.map (fun e ->
+                    let name =
+                        e.Attribute(XName.Get "name")
+                        |> Option.ofObj
+                        |> Option.map (fun x -> x.Value.Trim())
+                        |> Option.defaultWith (fun () -> failwith $"Missing 'name' attribute on <param> in {scriptPath}")
+                    let example =
+                        e.Attribute(XName.Get "example")
+                        |> Option.ofObj
+                        |> Option.map (fun x -> x.Value.Trim())
+                        |> Option.defaultValue ""
+                    let required =
+                        e.Attribute(XName.Get "required")
+                        |> Option.ofObj
+                        |> Option.map (fun x -> x.Value)
+                        |> parseRequiredAttribute
+                    let summary = collapseText e.Value
+                    { Name = name; Required = required; Summary = summary; Example = example })
+                |> List.ofSeq
+            Some(summary, title, args)
+        with ex ->
+            failwith $"Invalid XML doc comment in {scriptPath}: {ex.Message}"
 
-    // add members
-    members
-    |> Seq.iter (fun m ->
-        match m.Name with
-        | Command (extension, name) ->
-            let fullTypename = "terrabuild.extensions." + extension
-            let extensionType = assembly.GetTypes() |> Seq.find (fun t -> (t.FullName |> nonNull).ToLowerInvariant() = fullTypename)
-            let methodInfo = extensionType.GetMethod(name, BindingFlags.Public ||| BindingFlags.Static) |> nonNull
-            let methodArgs =
-                methodInfo.GetParameters()
-                |> Seq.map (fun p -> p.Name |> nonNull) |> Set.ofSeq
-                |> Set.remove "context"
+let private parseScriptDocs (scriptPath: string) (extensionName: string) : ScriptDocs =
+    let lines = File.ReadAllLines(scriptPath)
+    let commands = System.Collections.Generic.Dictionary<string, ScriptCommandDoc>()
+    let mutable extSummary: string option = None
+    let mutable pendingDoc: string list = []
+    let mutable seenCode = false
 
-            let cacheability = getCacheInfo methodInfo
-            let batchability = getBatchInfo methodInfo
+    let addPendingDocLine (line: string) =
+        pendingDoc <- pendingDoc @ [ line.Trim() ]
 
-            match extensions |> Map.tryFind extension with
-            | None -> if extension <> "null" then failwith $"Extension {extension} does not exist"
-            | Some ext ->
-                let prms =
-                    m.Params
-                    |> Option.ofObj
-                    |> Option.defaultValue Array.empty
-                    |> Seq.map (fun prm -> { Name = prm.Name
-                                             Summary = prm.Value.Trim()
-                                             Required = prm.Required |> Option.defaultValue false
-                                             Example = prm.Example.Value })
-                    |> List.ofSeq
+    let clearPending () =
+        pendingDoc <- []
 
-                let prmNames =
-                    prms |> List.map (fun prm -> prm.Name) |> Set.ofList
-                    |> Set.remove "__dispatch__"
-                    |> Set.remove "context"
-                if name <> "__defaults__" && prmNames <> methodArgs then
-                    failwith $"Undocumented members on {extension}.{name}"
+    let applyAsExtensionDoc () =
+        match parseXmlDocBlock scriptPath pendingDoc with
+        | Some(summary, _, _) ->
+            extSummary <- summary
+        | None -> ()
+        clearPending ()
 
-                let cmd = { Name = name
-                            Title = m.Summary.Title
-                            Summary = m.Summary.Value.Trim()
-                            Cacheability = cacheability
-                            Batchability = batchability
-                            Parameters = prms
-                            Weight = m.Summary.Weight }
-                ext.Commands <- ext.Commands @ [cmd]
-        | _ -> ())
+    let applyAsCommandDoc (commandName: string) =
+        let name =
+            match commandName.Trim().ToLowerInvariant() with
+            | "dispatch" -> "__dispatch__"
+            | "defaults" -> "__defaults__"
+            | other -> other
+        let summary, title, args =
+            match parseXmlDocBlock scriptPath pendingDoc with
+            | Some(summary, title, args) -> summary, title, args
+            | None -> None, None, []
+        clearPending ()
+        let value = { Name = name; Summary = summary; Title = title; Args = args }
+        commands.[name] <- value
 
-    extensions
-    |> Map.iter (fun _ ext -> ext.Commands <- ext.Commands |> List.sortBy (fun x -> x.Weight))
+    for rawLine in lines do
+        let line = rawLine.Trim()
+        if line.StartsWith("///") then
+            addPendingDocLine (line.Substring(3))
+        elif line = "" then
+            ()
+        else
+            match line with
+            | Regex "^export\\s+let\\s+([A-Za-z_][A-Za-z0-9_]*)\\b.*$" [commandName] ->
+                applyAsCommandDoc commandName
+                seenCode <- true
+            | _ ->
+                if not seenCode && not (List.isEmpty pendingDoc) then
+                    applyAsExtensionDoc ()
+                else
+                    clearPending ()
+                seenCode <- true
 
-    extensions
+    if not seenCode && not (List.isEmpty pendingDoc) then
+        applyAsExtensionDoc ()
 
+    { Name = extensionName
+      Summary = extSummary
+      Commands = commands |> Seq.map (fun kvp -> kvp.Key, kvp.Value) |> Map.ofSeq }
 
+let private parseExportedFunctionParameters (scriptContent: string) =
+    let matches = Regex.Matches(scriptContent, @"export\s+let\s+([A-Za-z_][A-Za-z0-9_]*)\s+((?:\([^\)]*\)\s*)+)=", RegexOptions.Multiline)
+    [ for m in matches do
+        let name = m.Groups[1].Value
+        let argsGroup = m.Groups[2].Value
+        let argsMatches = Regex.Matches(argsGroup, @"\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*:")
+        let parameters = [ for a in argsMatches -> a.Groups[1].Value ]
+        yield name, { Name = name; Parameters = parameters } ]
+    |> Map.ofList
+
+let private parseDescriptorFlags (scriptContent: string) =
+    let entries =
+        Regex.Matches(scriptContent, @"\[\s*nameof\s+([A-Za-z_][A-Za-z0-9_]*)\s*\]\s*=\s*\[(.*?)\]", RegexOptions.Singleline)
+        |> Seq.cast<Match>
+        |> Seq.map (fun m ->
+            let fnName = m.Groups[1].Value
+            let flagsRaw = m.Groups[2].Value
+            let flags =
+                Regex.Matches(flagsRaw, "\"([^\r\n\"]+)\"")
+                |> Seq.cast<Match>
+                |> Seq.map (fun x -> x.Groups[1].Value.Trim().ToLowerInvariant())
+                |> List.ofSeq
+            fnName, flags)
+        |> List.ofSeq
+
+    if List.isEmpty entries then
+        failwith "Missing exported descriptor map. Expected entries like: [nameof fn] = [\"local\"; \"dispatch\"]"
+
+    entries
+
+let private toCacheability flags =
+    flags
+    |> List.tryPick (fun flag ->
+        match flag with
+        | "never" -> Some "never"
+        | "local" -> Some "local"
+        | "remote" -> Some "remote"
+        | "external" -> Some "external"
+        | _ -> None)
+
+let private buildScriptExtension (scriptPath: string) : Extension =
+    let extensionName =
+        match Path.GetFileNameWithoutExtension(scriptPath) with
+        | null -> failwith $"Unable to resolve extension name from script path '{scriptPath}'"
+        | name -> name.ToLowerInvariant()
+    let content = File.ReadAllText(scriptPath)
+
+    let directives = parseScriptDocs scriptPath extensionName
+    let functionParams = parseExportedFunctionParameters content
+    let descriptor = parseDescriptorFlags content
+
+    let commandDocs = directives.Commands
+
+    let commands =
+        descriptor
+        |> List.map (fun (functionName, flags) ->
+            let commandName =
+                if flags |> List.contains "dispatch" then "__dispatch__"
+                elif flags |> List.contains "default" then "__defaults__"
+                else functionName
+
+            let functionMeta =
+                match functionParams |> Map.tryFind functionName with
+                | Some meta -> meta
+                | None -> failwith $"Missing 'export let {functionName} ...' declaration in {scriptPath}"
+
+            let commandDoc =
+                match commandDocs |> Map.tryFind commandName with
+                | Some value -> value
+                | None -> failwith $"Missing XML doc comment block for exported function '{functionName}' in {scriptPath}"
+
+            let functionArgs = functionMeta.Parameters |> List.filter (fun p -> p <> "context")
+
+            let docArgs =
+                commandDoc.Args
+                |> List.filter (fun arg -> arg.Name <> "context")
+
+            let mergedArgs: Map<string, ScriptArgDoc> =
+                docArgs
+                |> List.fold (fun acc arg -> acc |> Map.add arg.Name arg) Map.empty
+
+            let fromDocOrder =
+                docArgs
+                |> List.filter (fun arg -> arg.Name <> "__dispatch__")
+                |> List.map (fun arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example } : Parameter))
+
+            let fromFunctionOrder =
+                functionArgs
+                |> List.map (fun name ->
+                    match mergedArgs |> Map.tryFind name with
+                    | Some arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example } : Parameter)
+                    | None -> ({ Name = name; Required = false; Summary = ""; Example = "" } : Parameter))
+
+            let commandParameters: Parameter list =
+                if commandName = "__defaults__" then
+                    fromDocOrder
+                elif not (List.isEmpty fromDocOrder) then
+                    let documented =
+                        fromDocOrder
+                        |> List.map (fun x -> normalizeParamNameForCompare x.Name)
+                        |> Set.ofList
+                    let missing =
+                        fromFunctionOrder
+                        |> List.filter (fun x -> not (documented.Contains (normalizeParamNameForCompare x.Name)))
+                    fromDocOrder @ missing
+                else
+                    fromFunctionOrder
+
+            { Name = commandName
+              Weight = None
+              Title = commandDoc.Title
+              Cacheability = toCacheability flags
+              Batchability = flags |> List.contains "batchable"
+              Summary = commandDoc.Summary |> Option.defaultValue ""
+              Parameters = commandParameters })
+
+    let extension : Extension =
+        { Name = extensionName
+          Summary = directives.Summary |> Option.defaultValue ""
+          Commands = commands }
+    extension
+
+let private buildExtensions () : Map<string, Extension> =
+    let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild/Scripts"))
+    Directory.EnumerateFiles(scriptsDir, "*.fss")
+    |> Seq.filter (fun path -> Path.GetFileName(path) <> "null.fss")
+    |> Seq.map buildScriptExtension
+    |> Seq.map (fun ext -> ext.Name, ext)
+    |> Map.ofSeq
+
+let private tryReadExistingWeight (commandFile: string) =
+    if not (File.Exists commandFile) then None
+    else
+        File.ReadAllLines(commandFile)
+        |> Array.tryPick (fun line ->
+            let trimmed = line.Trim()
+            if trimmed.StartsWith("weight:") then
+                let value = trimmed.Substring("weight:".Length).Trim()
+                match Int32.TryParse(value) with
+                | true, parsed -> Some parsed
+                | _ -> None
+            else None)
+
+let private tryReadExistingArgOrder (commandFile: string) =
+    if not (File.Exists commandFile) then []
+    else
+        let lines = File.ReadAllLines(commandFile)
+        let mutable inArgs = false
+        [
+            for line in lines do
+                let trimmed = line.Trim()
+                if trimmed = "## Argument Reference" then
+                    inArgs <- true
+                elif inArgs && trimmed.StartsWith("## ") then
+                    inArgs <- false
+                elif inArgs then
+                    match trimmed with
+                    | Regex "^\\* `([^`]+)` - \\((Required|Optional)\\).*$" [name; _] ->
+                        yield name
+                    | _ -> ()
+        ]
+
+let private reorderParameters (command: Command) (commandFile: string) =
+    let existingOrder =
+        tryReadExistingArgOrder commandFile
+        |> List.map (fun name -> if command.Name = "__dispatch__" && name = "command" then "__dispatch__" else name)
+    if List.isEmpty existingOrder then
+        command.Parameters
+    else
+        let indexed =
+            existingOrder
+            |> List.mapi (fun idx name -> normalizeParamNameForCompare name, idx)
+            |> Map.ofList
+        let withIdx, withoutIdx =
+            command.Parameters
+            |> List.partition (fun prm -> indexed |> Map.containsKey (normalizeParamNameForCompare prm.Name))
+        let sorted =
+            withIdx
+            |> List.sortBy (fun prm -> indexed.[normalizeParamNameForCompare prm.Name])
+        sorted @ withoutIdx
 
 let writeCommand extensionDir (command: Command) (batchCommand: Command option) (extension: Extension) =
-    
+
     let cacheInfo =
         match command.Cacheability with
         | None -> "never"
-        | Some Cacheability.Never -> "never"
-        | Some Cacheability.Local -> "local"
-        | Some Cacheability.Remote -> "remote"
-        | Some Cacheability.External -> "external"
+        | Some value -> value
 
     let batchInfo =
         if command.Batchability then "yes"
@@ -145,6 +379,9 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
     | "__defaults__" -> ()
     | _ ->
         let commandFile = Path.Combine(extensionDir, $"{command.Name}.md")
+        let existingWeight = tryReadExistingWeight commandFile
+        let effectiveWeight = command.Weight |> Option.orElse existingWeight
+        let orderedParameters = reorderParameters command commandFile
         let commandContent = [
             "---"
             match command.Name with
@@ -152,13 +389,13 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 $"title: \"<command>\""
             | _ ->
                 $"title: \"{command.Name}\""
-            if command.Weight |> Option.isSome then $"weight: {command.Weight.Value}"
+            if effectiveWeight |> Option.isSome then $"weight: {effectiveWeight.Value}"
             "---"
 
             command.Summary
 
             let name =
-                match command.Parameters |> List.tryFind (fun x -> x.Name = command.Name) with
+                match orderedParameters |> List.tryFind (fun x -> x.Name = command.Name) with
                 | Some nameOverride -> nameOverride.Example
                 | _ -> command.Name
 
@@ -167,7 +404,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
             | _ -> ()
 
             "```"
-            match command.Parameters with
+            match orderedParameters with
             | [] -> $"@{extension.Name} {name} {{ }}"
             | prms ->
                 $"@{extension.Name} {name} {{"
@@ -190,7 +427,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
 
 
             $"## Argument Reference"
-            match command.Parameters with
+            match orderedParameters with
             | [] -> "This command does not accept arguments."
             | prms ->
                 "The following arguments are supported:"
@@ -239,50 +476,53 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
 let writeExtension extensionDir (extension: Extension) =
     // generate extension index
     let extensionFile = Path.Combine(extensionDir, "_index.md")
-    let extensionContent = [
-        "---"
-        $"title: \"{extension.Name}\""
-        "---"
-        ""
-        extension.Summary
-        ""
-        "## Available Commands"
-        match extension.Commands with
-        | [] -> "This extension has no commands."
-        | _ ->
-            "| Command | Description |"
-            "|---------|-------------|"
-            for cmd in extension.Commands do
-                match cmd.Name with
-                | "__defaults__" ->
-                    ()
-                | "__dispatch__" ->
-                    $"| [&lt;command&gt;](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
-                | name when name.StartsWith("__") -> ()
-                | _ ->
-                    $"| [{cmd.Name}](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
+    if File.Exists extensionFile then
+        ()
+    else
+        let extensionContent = [
+            "---"
+            $"title: \"{extension.Name}\""
+            "---"
+            ""
+            extension.Summary
+            ""
+            "## Available Commands"
+            match extension.Commands with
+            | [] -> "This extension has no commands."
+            | _ ->
+                "| Command | Description |"
+                "|---------|-------------|"
+                for cmd in extension.Commands do
+                    match cmd.Name with
+                    | "__defaults__" ->
+                        ()
+                    | "__dispatch__" ->
+                        $"| [&lt;command&gt;](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
+                    | name when name.StartsWith("__") -> ()
+                    | _ ->
+                        $"| [{cmd.Name}](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
 
-            match extension.Commands |> List.tryFind (fun cmd -> cmd.Name = "__defaults__") with
-            | Some init ->
-                ""
-                $"## Project Initializer"
-                init.Summary
-                "```"
-                $"project {{"
-                $"  @{extension.Name} {{ }}"
-                "}"
-                "```"
-                "Equivalent to:"
-                "```"
-                $"project {{"
-                for prm in init.Parameters do
-                    $"    {prm.Name} = {prm.Example}"
-                "}"
-                "```"
+                match extension.Commands |> List.tryFind (fun cmd -> cmd.Name = "__defaults__") with
+                | Some init ->
+                    ""
+                    $"## Project Initializer"
+                    init.Summary
+                    "```"
+                    $"project {{"
+                    $"  @{extension.Name} {{ }}"
+                    "}"
+                    "```"
+                    "Equivalent to:"
+                    "```"
+                    $"project {{"
+                    for prm in init.Parameters do
+                        $"    {prm.Name} = {prm.Example}"
+                    "}"
+                    "```"
 
-            | _ -> ()
-    ]
-    File.WriteAllLines(extensionFile, extensionContent)
+                | _ -> ()
+        ]
+        File.WriteAllLines(extensionFile, extensionContent)
 
 
 [<EntryPoint>]
@@ -293,16 +533,7 @@ let main args =
         | [| outputDir; "--write" |] -> outputDir, true
         | _ -> failwith "Usage: DocGen <output-dir> [<--write>]"
 
-    let assemblyPath = Assembly.GetExecutingAssembly().Location
-    let docPath = Path.GetDirectoryName(assemblyPath) |> nonNull
-    let docFile = Path.Combine(docPath, "Terrabuild.Extensions.xml")
-    let doc = load docFile
-    if doc.Assembly.Name <> "Terrabuild.Extensions" then failwith "Expecting documentation for Terrabuild.Extensions"
-
-    let members = doc.Members |> Option.ofObj |> Option.defaultValue Array.empty
-    let assemblyFile = Path.ChangeExtension(docFile, "dll") |> nonNull
-    let assembly = System.Reflection.Assembly.LoadFrom assemblyFile
-    let extensions = buildExtensions assembly members
+    let extensions = buildExtensions ()
 
     // generate files
     printfn "Generating docs"

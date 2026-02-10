@@ -4,12 +4,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Contracts.fs" />
     <Compile Include="TypeHelpers.fs" />
     <Compile Include="Scripting.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.100" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.15.2" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.15.2" />
   </ItemGroup>
 
   <ItemGroup>

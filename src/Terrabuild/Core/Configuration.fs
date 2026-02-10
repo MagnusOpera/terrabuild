@@ -3,7 +3,8 @@ open System.IO
 open Collections
 open System
 open System.Collections.Concurrent
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
 open Errors
 open Terrabuild.PubSub
@@ -225,13 +226,24 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
     { evaluationContext with
         Data = evaluationContext.Data |> Map.addMap variables }
 
+let private isHttpScriptUrl (script: string) =
+    try
+        let uri = System.Uri(script, System.UriKind.Absolute)
+        uri.Scheme = System.Uri.UriSchemeHttp || uri.Scheme = System.Uri.UriSchemeHttps
+    with
+    | :? System.UriFormatException -> false
+
 
 let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) evaluationContext =
+    let normalizeScriptPath currentDir script =
+        if isHttpScriptUrl script then script
+        else script |> FS.workspaceRelative options.Workspace currentDir
+
     // load system extensions
     let sysScripts =
-        Extensions.systemExtensions
+        Extensions.SystemExtensions
         |> Map.map (fun _ _ -> None)
-        |> Map.map Extensions.lazyLoadScript
+        |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
     // load user extension
     let userScripts =
@@ -241,9 +253,9 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
                 ext.Script
                 |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
             match script with
-            | Some script -> script |> FS.workspaceRelative options.Workspace "" |> Some
+            | Some script -> script |> normalizeScriptPath "" |> Some
             | _ -> None)
-        |> Map.map Extensions.lazyLoadScript
+        |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
     let scripts = sysScripts |> Map.addMap userScripts
     scripts
@@ -270,14 +282,17 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
     let extensions = extensions |> Map.addMap projectConfig.Extensions
 
     let projectScripts =
-        projectConfig.Extensions |> Map.map (fun _ ext ->
+        projectConfig.Extensions
+        |> Map.map (fun _ ext ->
             ext.Script
             |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
-            |> Option.map (FS.workspaceRelative options.Workspace projectDir))
+            |> Option.map (fun script ->
+                if isHttpScriptUrl script then script
+                else script |> FS.workspaceRelative options.Workspace projectDir))
 
     let scripts =
         scripts
-        |> Map.addMap (projectScripts |> Map.map Extensions.lazyLoadScript)
+        |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace))
 
     let evalAsStringSet expr =
         expr
@@ -285,9 +300,9 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Option.defaultValue Set.empty
 
     let parseContext = 
-        let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
-                        Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
-                        Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
+        let context = { Terrabuild.ScriptingContracts.ExtensionContext.Debug = options.Debug
+                        Terrabuild.ScriptingContracts.ExtensionContext.Directory = projectDir
+                        Terrabuild.ScriptingContracts.ExtensionContext.CI = options.Run.IsSome }
         Value.Map (Map [ "context", Value.Object context ])
 
     let projectId, projectType, realProjectType =
@@ -518,8 +533,9 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
 
             let targetOperations =
                 target.Steps |> List.fold (fun (targetOperations) step ->
+                    let extensionName = step.Extension
                     let extension = 
-                        match projectDef.Extensions |> Map.tryFind step.Extension with
+                        match projectDef.Extensions |> Map.tryFind extensionName with
                         | Some extension -> extension
                         | _ -> raiseSymbolError $"Extension {step.Extension} is not defined"
 
@@ -559,7 +575,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         | _ -> None
 
                     let script =
-                        match Extensions.getScript step.Extension projectDef.Scripts with
+                        match Extensions.getScript extensionName projectDef.Scripts with
                         | Some script -> script
                         | _ -> raiseSymbolError $"Extension {step.Extension} is not defined"
 
@@ -582,7 +598,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                                 container :: lstVariables @ lstPlatform
                             | _ -> []
 
-                        [ step.Extension; step.Command ] @ containerDeps
+                        [ extensionName; step.Command ] @ containerDeps
                         |> Hash.sha256strings
 
                     let targetContext = {
@@ -592,7 +608,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         TargetOperation.Cpus = cpus
                         TargetOperation.ContainerVariables = variables
                         TargetOperation.Envs = envs
-                        TargetOperation.Extension = step.Extension
+                        TargetOperation.Extension = extensionName
                         TargetOperation.Command = step.Command
                         TargetOperation.Script = script
                         TargetOperation.Context = context
@@ -737,7 +753,7 @@ let read (options: ConfigOptions.Options) =
 
     let scripts = buildScripts options workspaceConfig evaluationContext
 
-    let extensions = Extensions.systemExtensions |> Map.addMap workspaceConfig.Extensions
+    let extensions = Extensions.SystemExtensions |> Map.addMap workspaceConfig.Extensions
 
     let searchProjectsAndApply() =
         let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue default_ignores

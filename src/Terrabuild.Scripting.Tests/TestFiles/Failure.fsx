@@ -1,5 +1,6 @@
 module toto
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 
 
 let tagada (context: ExtensionContext) =

@@ -19,6 +19,7 @@
     <Compile Include="Helpers/Git.fs" />
     <Compile Include="Helpers/Terminal.fs" />
     <Compile Include="Helpers/Progress.fs" />
+    <Compile Include="Scripts/Registry.fs" />
     <Compile Include="Helpers/Extensions.fs" />
     <Compile Include="Helpers/Version.fs" />
     <Compile Include="Api/Client.fs" />
@@ -50,10 +51,8 @@
 
   <ItemGroup>
    <ProjectReference Include="../Terrabuild.Common/Terrabuild.Common.fsproj" />
-   <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
    <ProjectReference Include="../Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />
    <ProjectReference Include="../Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
-   <ProjectReference Include="../Terrabuild.Extensions/Terrabuild.Extensions.fsproj" />
    <ProjectReference Include="../Terrabuild.PubSub/Terrabuild.PubSub.fsproj" />
   </ItemGroup>
 
@@ -73,6 +72,10 @@
 
   <ItemGroup>
     <Content Include="..\..\LICENSE.md" Pack="true" PackagePath="\">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Scripts\*.fss" Pack="true" PackagePath="tools\scripts\">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>

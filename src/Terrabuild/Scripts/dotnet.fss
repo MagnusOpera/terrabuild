@@ -1,0 +1,226 @@
+/// <summary>Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`). Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.</summary>
+let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
+
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let map_true flag value =
+  match value with
+  | Some true -> flag
+  | _ -> ""
+
+let map_false flag value =
+  match value with
+  | Some true -> ""
+  | _ -> flag
+
+let map_value mapper value =
+  value |> Option.map mapper |> Option.defaultValue ""
+
+let first_project_file directory =
+  project_extensions
+  |> List.collect (fun ext -> Fs.enumerateFiles directory $"*{ext}" |> Option.defaultValue [])
+  |> List.tryHead
+
+let project_refs_from project_file =
+  let content = Fs.readText project_file |> Option.defaultValue ""
+  match Regex.matchGroups "<ProjectReference[^>]*Include=\"([^\"]+)\"" content with
+  | Some [value] -> [value]
+  | _ -> []
+
+let dependency_dirs refs =
+  refs
+  |> List.choose Fs.parentDirectory
+  |> List.distinct
+
+let with_batch_projects (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) create_command =
+  match context.Batch with
+  | Some batch ->
+      batch.ProjectPaths
+      |> List.choose first_project_file
+      |> List.map create_command
+  | _ ->
+      [create_command ""]
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+let with_configuration configuration =
+  configuration |> Option.defaultValue "Debug"
+
+let command_op arguments =
+  { Command = "dotnet"; Arguments = arguments; ErrorLevel = 0 }
+
+/// <summary>Infers project metadata from the nearest SDK project file (dependencies and default outputs).</summary>
+/// <param name="ignores" required="false" example="[ &quot;**/*.binlog&quot; ]"></param>
+/// <param name="outputs" required="false" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]"></param>
+export let defaults (context: { Directory: string }) =
+  let dependencies =
+    context.Directory
+    |> first_project_file
+    |> Option.map (fun project_file -> dependency_dirs (project_refs_from project_file))
+    |> Option.defaultValue []
+
+  { Id = None; Outputs = ["bin/"; "obj/"; "**/*.binlog"]; Dependencies = dependencies }
+
+/// <summary>Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).</summary>
+/// <param name="args" required="false" example="&quot;run -- -v&quot;">Arguments appended after the dotnet command.</param>
+export let dispatch (context: { Command: string }) (args: string option) =
+  let command = with_args args |> append_part context.Command
+  [command_op command]
+
+/// <summary>Executes `dotnet tool ...` commands.</summary>
+/// <param name="args" required="false" example="&quot;install MagnusOpera.OpenApiGen&quot;">Arguments appended after `dotnet tool`.</param>
+export let tool (context: { Command: string }) (args: string option) =
+  let command =
+    ""
+    |> append_part "tool"
+    |> append_part (with_args args)
+  [command_op command]
+
+/// <summary>Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.</summary>
+/// <param name="locked" required="false" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
+/// <param name="evaluate" required="false" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
+/// <param name="args" required="false" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
+export let restore (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (locked: bool option) (evaluate: bool option) (args: string option) =
+  let locked = map_true "--locked-mode" locked
+  let force_evaluate = map_true "--force-evaluate" evaluate
+  let args = with_args args
+
+  let create_command project_file =
+    ""
+    |> append_part "restore"
+    |> append_part project_file
+    |> append_part locked
+    |> append_part force_evaluate
+    |> append_part args
+    |> command_op
+
+  with_batch_projects context create_command
+
+/// <summary>Builds the project or batch solution via `dotnet build`.</summary>
+/// <title>Build project.</title>
+/// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+/// <param name="parallel" required="false" example="1">Max worker processes (`-maxcpucount`).</param>
+/// <param name="log" required="false" example="true">Emit a binary log (`-bl`).</param>
+/// <param name="restore" required="false" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+/// <param name="version" required="false" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
+/// <param name="args" required="false" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
+export let build (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (version: string option) (args: string option) =
+  let configuration = with_configuration configuration
+  let log = map_true "-bl" log
+  let no_restore = map_false "--no-restore" restore
+  let maxcpucount = map_value (fun value -> $"-maxcpucount:{value}") parallel
+  let version = map_value (fun value -> $"-p:Version={value}") version
+  let args = with_args args
+
+  let create_command project_file =
+    ""
+    |> append_part "build"
+    |> append_part project_file
+    |> append_part no_restore
+    |> append_part $"--configuration {configuration}"
+    |> append_part log
+    |> append_part maxcpucount
+    |> append_part version
+    |> append_part args
+    |> command_op
+
+  with_batch_projects context create_command
+
+/// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
+/// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+/// <param name="restore" required="false" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+/// <param name="build" required="false" example="&quot;true&quot;">Build before packing (omit to add `--no-build`).</param>
+/// <param name="version" required="false" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
+/// <param name="args" required="false" example="&quot;--include-symbols&quot;">Additional arguments for `dotnet pack`.</param>
+export let pack (context: { Command: string }) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (args: string option) =
+  let configuration = with_configuration configuration
+  let version = version |> Option.defaultValue "0.0.0"
+  let no_restore = map_false "--no-restore" restore
+  let no_build = map_false "--no-build" build
+  let args = with_args args
+
+  let command =
+    ""
+    |> append_part "pack"
+    |> append_part no_restore
+    |> append_part no_build
+    |> append_part $"--configuration {configuration}"
+    |> append_part $"/p:Version={version}"
+    |> append_part "/p:TargetsForTfmSpecificContentInPackage="
+    |> append_part args
+
+  [command_op command]
+
+/// <summary>Publishes binaries via `dotnet publish`, optionally self-contained/trimmed and batched via a generated solution.</summary>
+/// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+/// <param name="restore" required="false" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+/// <param name="build" required="false" example="&quot;true&quot;">Build before publish (omit to add `--no-build`).</param>
+/// <param name="runtime" required="false" example="&quot;linux-x64&quot;">Runtime identifier (`-r`).</param>
+/// <param name="trim" required="false" example="true">Adds `-p:PublishTrimmed=true`.</param>
+/// <param name="single" required="false" example="true">Publishes self-contained (`--self-contained`).</param>
+/// <param name="args" required="false" example="&quot;--version-suffix beta&quot;">Additional arguments for `dotnet publish`.</param>
+export let publish (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (configuration: string option) (restore: bool option) (build: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
+  let configuration = with_configuration configuration
+  let no_restore = map_false "--no-restore" restore
+  let no_build = map_false "--no-build" build
+  let runtime = map_value (fun value -> $"-r {value}") runtime
+  let trim = map_true "-p:PublishTrimmed=true" trim
+  let single = map_true "--self-contained" single
+  let args = with_args args
+
+  let create_command project_file =
+    ""
+    |> append_part "publish"
+    |> append_part project_file
+    |> append_part no_restore
+    |> append_part no_build
+    |> append_part $"--configuration {configuration}"
+    |> append_part runtime
+    |> append_part trim
+    |> append_part single
+    |> append_part args
+    |> command_op
+
+  with_batch_projects context create_command
+
+/// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
+/// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration (defaults to `Debug`).</param>
+/// <param name="restore" required="false" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
+/// <param name="build" required="false" example="&quot;true&quot;">Build before testing (omit to add `--no-build`).</param>
+/// <param name="filter" required="false" example="&quot;TestCategory!=integration&quot;">Test filter expression (`--filter`).</param>
+/// <param name="args" required="false" example="&quot;--blame-hang&quot;">Additional arguments for `dotnet test`.</param>
+export let test (context: { Batch: { Hash: string; TempDir: string; ProjectPaths: string list } option }) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
+  let configuration = with_configuration configuration
+  let no_restore = map_false "--no-restore" restore
+  let no_build = map_false "--no-build" build
+  let filter = map_value (fun value -> $"--filter \"{value}\"") filter
+  let args = with_args args
+
+  let create_command project_file =
+    ""
+    |> append_part "test"
+    |> append_part project_file
+    |> append_part no_restore
+    |> append_part no_build
+    |> append_part $"--configuration {configuration}"
+    |> append_part filter
+    |> append_part args
+    |> command_op
+
+  with_batch_projects context create_command
+
+{
+  [nameof defaults] = ["default"]
+  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof tool] = ["local"]
+  [nameof restore] = ["local"; "batchable"]
+  [nameof build] = ["remote"; "batchable"]
+  [nameof pack] = ["remote"]
+  [nameof publish] = ["remote"; "batchable"]
+  [nameof test] = ["remote"; "batchable"]
+}
