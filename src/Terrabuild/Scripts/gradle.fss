@@ -33,8 +33,18 @@ export let build (context: { Command: string }) (configuration: string option) (
     |> append_part (with_args args)
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof build] = ["remote"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof build] = [Remote]
 }

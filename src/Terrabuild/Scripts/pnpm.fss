@@ -146,11 +146,21 @@ export let run (context: { Command: string }) (target: string) (no_recursive: bo
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof install] = ["local"; "batchable"]
-  [nameof build] = ["remote"; "batchable"]
-  [nameof test] = ["remote"; "batchable"]
-  [nameof run] = ["local"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof install] = [Local; Batchable]
+  [nameof build] = [Remote; Batchable]
+  [nameof test] = [Remote; Batchable]
+  [nameof run] = [Local]
 }

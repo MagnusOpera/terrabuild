@@ -194,17 +194,39 @@ let private parseExportedFunctionParameters (scriptContent: string) =
     |> Map.ofList
 
 let private parseDescriptorFlags (scriptContent: string) =
+    let normalizeFlag (raw: string) =
+        match raw.Trim().ToLowerInvariant() with
+        | "dispatch" -> Some "dispatch"
+        | "default" -> Some "default"
+        | "batchable" -> Some "batchable"
+        | "never" -> Some "never"
+        | "local" -> Some "local"
+        | "external" -> Some "external"
+        | "remote" -> Some "remote"
+        | _ -> None
+
+    let parseFlags (flagsRaw: string) =
+        let fromStrings =
+            Regex.Matches(flagsRaw, "\"([^\r\n\"]+)\"")
+            |> Seq.cast<Match>
+            |> Seq.choose (fun x -> normalizeFlag x.Groups[1].Value)
+            |> List.ofSeq
+
+        let fromUnionCases =
+            Regex.Matches(flagsRaw, @"\b([A-Za-z_][A-Za-z0-9_]*)\b")
+            |> Seq.cast<Match>
+            |> Seq.choose (fun x -> normalizeFlag x.Groups[1].Value)
+            |> List.ofSeq
+
+        if not (List.isEmpty fromStrings) then fromStrings else fromUnionCases
+
     let entries =
         Regex.Matches(scriptContent, @"\[\s*nameof\s+([A-Za-z_][A-Za-z0-9_]*)\s*\]\s*=\s*\[(.*?)\]", RegexOptions.Singleline)
         |> Seq.cast<Match>
         |> Seq.map (fun m ->
             let fnName = m.Groups[1].Value
             let flagsRaw = m.Groups[2].Value
-            let flags =
-                Regex.Matches(flagsRaw, "\"([^\r\n\"]+)\"")
-                |> Seq.cast<Match>
-                |> Seq.map (fun x -> x.Groups[1].Value.Trim().ToLowerInvariant())
-                |> List.ofSeq
+            let flags = parseFlags flagsRaw
             fnName, flags)
         |> List.ofSeq
 

@@ -28,6 +28,16 @@ export let dispatch (context: { Command: string }) (variables: string map option
 
   [{ Command = "make"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof dispatch] = [Dispatch; Never]
 }

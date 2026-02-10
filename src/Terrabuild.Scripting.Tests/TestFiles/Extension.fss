@@ -4,8 +4,18 @@ export let defaults (context: { Directory: string }) = "defaults"
 
 let hidden _ = "hidden"
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof run] = ["batchable"; "local"]
-  [nameof dispatch] = ["dispatch"]
-  [nameof defaults] = ["default"]
+  [nameof run] = [Batchable; Local]
+  [nameof dispatch] = [Dispatch]
+  [nameof defaults] = [Default]
 }

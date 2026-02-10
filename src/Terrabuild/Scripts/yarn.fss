@@ -120,11 +120,21 @@ export let run (context: { Command: string }) (command: string) (args: string op
 
   [{ Command = "yarn"; Arguments = operation; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof install] = ["local"]
-  [nameof build] = ["remote"]
-  [nameof test] = ["remote"]
-  [nameof run] = ["local"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof install] = [Local]
+  [nameof build] = [Remote]
+  [nameof test] = [Remote]
+  [nameof run] = [Local]
 }

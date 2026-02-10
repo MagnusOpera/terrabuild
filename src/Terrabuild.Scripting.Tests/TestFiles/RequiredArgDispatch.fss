@@ -1,4 +1,13 @@
 export let dispatch (context: { Command: string }) (requiredArg: string) =
   requiredArg
 
-Map.ofList [(nameof dispatch, ["dispatch"])]
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
+Map.ofList [(nameof dispatch, [Dispatch])]

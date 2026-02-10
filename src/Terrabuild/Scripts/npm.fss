@@ -124,12 +124,22 @@ export let exec (context: { Command: string }) (package: string) (args: string o
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof install] = ["local"]
-  [nameof build] = ["remote"]
-  [nameof test] = ["remote"]
-  [nameof run] = ["local"]
-  [nameof exec] = ["local"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof install] = [Local]
+  [nameof build] = [Remote]
+  [nameof test] = [Remote]
+  [nameof run] = [Local]
+  [nameof exec] = [Local]
 }
