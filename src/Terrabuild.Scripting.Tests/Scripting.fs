@@ -2,7 +2,8 @@ module Terrabuild.Scripting.Scripting.Tests
 
 open NUnit.Framework
 open FsUnit
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
 open Errors
 
@@ -10,7 +11,7 @@ open Errors
 [<Test>]
 let loadScript() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Extensibility.dll" ] "TestFiles/Toto.fsx"
+    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/Toto.fsx"
     let invocable = script.GetMethod("Tagada")
     let context = { ExtensionContext.Debug= false; ExtensionContext.Directory = "this is a path"; ExtensionContext.CI = false }
     let args = Value.Map (Map [ "context", Value.Object context])
@@ -20,19 +21,19 @@ let loadScript() =
 [<Test>]
 let loadScriptWithError() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    (fun () -> Terrabuild.Scripting.loadScript root [ "Terrabuild.Extensibility.dll" ] "TestFiles/Failure.fsx" |> ignore)
+    (fun () -> Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/Failure.fsx" |> ignore)
     |> should (throwWithMessage "Failed to identify function scope (either module or root class 'Failure')") typeof<TerrabuildException>
 
 [<Test>]
 let loadVSSolution() =
     let testDir = System.IO.Path.Combine(NUnit.Framework.TestContext.CurrentContext.TestDirectory, "TestFiles")
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Extensibility.dll" ] "TestFiles/VSSolution.fsx"
+    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/VSSolution.fsx"
     let invocable = script.GetMethod("__defaults__")
     let context = { ExtensionContext.Debug= false; ExtensionContext.Directory = testDir; ExtensionContext.CI = false }
     let args = Value.Map (Map [ "context", Value.Object context])
 
-    let res = invocable.Value.Invoke<Terrabuild.Extensibility.ProjectInfo> args
+    let res = invocable.Value.Invoke<Terrabuild.ScriptingContracts.ProjectInfo> args
 
     let expectedDependencies = Set [ "src"; "src\Terrabuild\Terrabuild.fsproj"; "src\Terrabuild.Configuration\Terrabuild.Configuration.fsproj" ]
     res.Dependencies |> should equal expectedDependencies

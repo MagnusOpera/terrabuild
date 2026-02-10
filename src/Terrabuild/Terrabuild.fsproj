@@ -51,7 +51,6 @@
 
   <ItemGroup>
    <ProjectReference Include="../Terrabuild.Common/Terrabuild.Common.fsproj" />
-   <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
    <ProjectReference Include="../Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />
    <ProjectReference Include="../Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
    <ProjectReference Include="../Terrabuild.PubSub/Terrabuild.PubSub.fsproj" />

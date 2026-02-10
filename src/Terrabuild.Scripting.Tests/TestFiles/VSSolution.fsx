@@ -1,8 +1,9 @@
 #if !TERRABUILD_SCRIPT
-#r "../../Terrabuild/bin/Debug/net8.0/Terrabuild.Extensibility.dll"
+#r "../../Terrabuild/bin/Debug/net8.0/Terrabuild.Scripting.dll"
 #endif
 
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 open System.IO
 open System.Text.RegularExpressions
 

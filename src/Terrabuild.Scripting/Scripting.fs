@@ -6,8 +6,8 @@ open System.Reflection
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Diagnostics
 open Microsoft.FSharp.Reflection
+open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
-open Terrabuild.Extensibility
 open Errors
 
 type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> objnull

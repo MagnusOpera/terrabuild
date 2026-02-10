@@ -4,6 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Contracts.fs" />
     <Compile Include="TypeHelpers.fs" />
     <Compile Include="Scripting.fs" />
   </ItemGroup>
@@ -15,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
     <ProjectReference Include="../Terrabuild.Expressions/Terrabuild.Expressions.fsproj" />
   </ItemGroup>
 

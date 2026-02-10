@@ -3,7 +3,8 @@ open System.IO
 open Collections
 open System
 open System.Collections.Concurrent
-open Terrabuild.Extensibility
+open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
 open Errors
 open Terrabuild.PubSub
@@ -299,9 +300,9 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Option.defaultValue Set.empty
 
     let parseContext = 
-        let context = { Terrabuild.Extensibility.ExtensionContext.Debug = options.Debug
-                        Terrabuild.Extensibility.ExtensionContext.Directory = projectDir
-                        Terrabuild.Extensibility.ExtensionContext.CI = options.Run.IsSome }
+        let context = { Terrabuild.ScriptingContracts.ExtensionContext.Debug = options.Debug
+                        Terrabuild.ScriptingContracts.ExtensionContext.Directory = projectDir
+                        Terrabuild.ScriptingContracts.ExtensionContext.CI = options.Run.IsSome }
         Value.Map (Map [ "context", Value.Object context ])
 
     let projectId, projectType, realProjectType =

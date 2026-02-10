@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />
-    <ProjectReference Include="../Terrabuild.Extensibility/Terrabuild.Extensibility.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

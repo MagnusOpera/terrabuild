@@ -5,8 +5,8 @@ open System.Net.Http
 open System.Security.Cryptography
 open System.Text
 open Terrabuild.Scripting
+open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
-open Terrabuild.Extensibility
 open Errors
 
 type InvocationResult<'t> =
@@ -30,8 +30,8 @@ let terrabuildDir : string =
     | _ -> raiseBugError "Unable to get the current process main module"
 
 //  Diagnostics.Process.GetCurrentProcess().MainModule.FileName |> FS.parentDirectory
-let terrabuildExtensibility =
-    let path = FS.combinePath terrabuildDir "Terrabuild.Extensibility.dll"
+let terrabuildScripting =
+    let path = FS.combinePath terrabuildDir "Terrabuild.Scripting.dll"
     path
 
 let private httpClient = new HttpClient()
@@ -101,10 +101,10 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 if uri.Scheme <> Uri.UriSchemeHttps then
                     raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{name}'"
                 let downloadedFile = downloadScript workspaceRoot uri
-                loadScript workspaceRoot [ terrabuildExtensibility ] downloadedFile
+                loadScript workspaceRoot [ terrabuildScripting ] downloadedFile
             | _ ->
                 let localScript = resolveLocalScriptPath workspaceRoot script
-                loadScript workspaceRoot [ terrabuildExtensibility ] localScript
+                loadScript workspaceRoot [ terrabuildScripting ] localScript
         | _ ->
             let SystemScriptPath =
                 extensionCandidates name
@@ -113,7 +113,7 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
 
             match SystemScriptPath with
             | Some scriptPath when System.IO.File.Exists scriptPath ->
-                loadScript workspaceRoot [ terrabuildExtensibility ] scriptPath
+                loadScript workspaceRoot [ terrabuildScripting ] scriptPath
             | _ ->
                 raiseSymbolError $"Script is not defined for extension '{name}'"
 
