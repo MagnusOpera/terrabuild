@@ -6,9 +6,8 @@ open System.Security.Cryptography
 open System.Text
 open Terrabuild.Scripting
 open Terrabuild.Expressions
-open Errors
-open Terrabuild.Configuration.AST
 open Terrabuild.Extensibility
+open Errors
 
 type InvocationResult<'t> =
     | Success of 't
@@ -16,26 +15,7 @@ type InvocationResult<'t> =
     | TargetNotFound
     | ErrorTarget of Exception
 
-let systemExtensions =
-    Terrabuild.Extensions.Factory.systemScripts
-    |> Seq.map (fun kvp ->
-        let defaults =
-            match kvp.Key.ToLowerInvariant() with
-            | "@shell" ->
-                Some (Map [ "args", Expr.String "" ])
-            | "@npx" ->
-                Some (Map [ "args", Expr.String "" ])
-            | _ ->
-                None
-
-        kvp.Key, { ExtensionBlock.Image = None
-                   Platform = None
-                   Variables = None
-                   Script = None
-                   Cpus = None
-                   Defaults = defaults
-                   Env = None })
-    |> Map.ofSeq
+let SystemExtensions = Scripts.SystemExtensions
 
 let private extensionCandidates (name: string) =
     if String.IsNullOrWhiteSpace name then [ name ]
@@ -126,28 +106,22 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 let localScript = resolveLocalScriptPath workspaceRoot script
                 loadScript workspaceRoot [ terrabuildExtensibility ] localScript
         | _ ->
-            let systemScriptPath =
+            let SystemScriptPath =
                 extensionCandidates name
-                |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScriptFiles |> Map.tryFind candidate)
+                |> List.tryPick (fun candidate -> Scripts.BuiltInScriptFiles |> Map.tryFind candidate)
                 |> Option.map (FS.combinePath terrabuildDir)
 
-            match systemScriptPath with
+            match SystemScriptPath with
             | Some scriptPath when System.IO.File.Exists scriptPath ->
                 loadScript workspaceRoot [ terrabuildExtensibility ] scriptPath
             | _ ->
-                let systemScript =
-                    extensionCandidates name
-                    |> List.tryPick (fun candidate -> Terrabuild.Extensions.Factory.systemScripts |> Map.tryFind candidate)
-
-                match systemScript with
-                | Some sysTpe -> Script(sysTpe)
-                | _ -> raiseSymbolError $"Script is not defined for extension '{name}'"
+                raiseSymbolError $"Script is not defined for extension '{name}'"
 
     lazy(initScript())
 
-let getScript (extension: string) (scripts: Map<string, Lazy<Script>>) =
+let getScript (extension: string) (Scripts: Map<string, Lazy<Script>>) =
     extensionCandidates extension
-    |> List.tryPick (fun candidate -> scripts |> Map.tryFind candidate)
+    |> List.tryPick (fun candidate -> Scripts |> Map.tryFind candidate)
     |> Option.map _.Value
 
 let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option) =

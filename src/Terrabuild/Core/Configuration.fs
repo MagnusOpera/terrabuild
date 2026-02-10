@@ -240,7 +240,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
 
     // load system extensions
     let sysScripts =
-        Extensions.systemExtensions
+        Extensions.SystemExtensions
         |> Map.map (fun _ _ -> None)
         |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
@@ -752,7 +752,7 @@ let read (options: ConfigOptions.Options) =
 
     let scripts = buildScripts options workspaceConfig evaluationContext
 
-    let extensions = Extensions.systemExtensions |> Map.addMap workspaceConfig.Extensions
+    let extensions = Extensions.SystemExtensions |> Map.addMap workspaceConfig.Extensions
 
     let searchProjectsAndApply() =
         let workspaceIgnores = workspaceConfig.Workspace.Ignores |> Option.defaultValue default_ignores
