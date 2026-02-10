@@ -8,4 +8,13 @@ export let dispatch (context: { Command: string }) (variables: string map option
 
   $"{context.Command}|{varsCount}|{argsValue}"
 
-Map.ofList [(nameof dispatch, ["dispatch"])]
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
+Map.ofList [(nameof dispatch, [Dispatch])]

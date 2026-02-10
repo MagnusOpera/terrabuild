@@ -127,13 +127,23 @@ export let destroy (context: { Command: string }) (variables: string map option)
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof init] = ["local"]
-  [nameof validate] = ["remote"]
-  [nameof select] = ["never"]
-  [nameof plan] = ["remote"]
-  [nameof apply] = ["remote"]
-  [nameof destroy] = ["remote"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof init] = [Local]
+  [nameof validate] = [Remote]
+  [nameof select] = [Never]
+  [nameof plan] = [Remote]
+  [nameof apply] = [Remote]
+  [nameof destroy] = [Remote]
 }

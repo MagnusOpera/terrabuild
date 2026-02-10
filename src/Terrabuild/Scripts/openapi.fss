@@ -41,6 +41,16 @@ export let generate (context: { Command: string }) (generator: string) (input: s
 
   [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof generate] = ["remote"]
+  [nameof generate] = [Remote]
 }

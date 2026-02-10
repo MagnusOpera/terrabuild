@@ -268,12 +268,6 @@ and private Descriptor =
 
     static member private parseFlag (value: FScript.Language.Value) =
         match value with
-        | FScript.Language.VString name ->
-            match Descriptor.normalizeCase name with
-            | "dispatch" -> Some ExportFlag.Dispatch
-            | "default" -> Some ExportFlag.Default
-            | "batchable" -> Some ExportFlag.Batchable
-            | _ -> Descriptor.parseCacheabilityName name |> Option.map ExportFlag.Cache
         | FScript.Language.VUnionCase(_, caseName, payload) ->
             match Descriptor.normalizeCase caseName, payload with
             | "dispatch", None -> Some ExportFlag.Dispatch
@@ -308,7 +302,7 @@ and private Descriptor =
                 |> List.map (fun flagValue ->
                     match Descriptor.parseFlag flagValue with
                     | Some flag -> flag
-                    | None -> raiseInvalidArg $"Unsupported export flag for function '{functionName}'")
+                    | None -> raiseInvalidArg $"Unsupported export flag for function '{functionName}'. Flags must be discriminated union cases")
             | _ ->
                 raiseInvalidArg $"Descriptor entry for '{functionName}' must be a list of flags")
 

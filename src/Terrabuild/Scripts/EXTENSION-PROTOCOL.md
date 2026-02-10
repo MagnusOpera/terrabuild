@@ -72,21 +72,31 @@ export let dispatch (context: { Command: string }) ...
 ## 5. Descriptor Contract
 
 The script descriptor **MUST** be a map from function name to flag list.
+Flags **MUST** be discriminated union cases (not strings).
 
 Canonical form:
 
 ```fsharp
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof dispatch] = ["dispatch"; "never"]
+  [nameof dispatch] = [Dispatch; Never]
 }
 ```
 
 Supported flags:
 
-- `dispatch`
-- `default`
-- `batchable`
-- cacheability: `never`, `local`, `external`, `remote`
+- `Dispatch`
+- `Default`
+- `Batchable`
+- cacheability: `Never`, `Local`, `External`, `Remote`
 
 ## 6. Method Resolution
 
@@ -185,6 +195,15 @@ type ShellOperation = {
 
 type ShellOperations = ShellOperation list
 
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 let append_part part acc =
   match (part, acc) with
   | ("", _) -> acc
@@ -220,9 +239,9 @@ export let build (context: ActionContext) (configuration: string option) (args: 
 
 // Script descriptor: exported function name -> flag list
 {
-  [nameof defaults] = ["default"]
-  [nameof dispatch] = ["dispatch"; "never"]
-  [nameof build] = ["remote"]
+  [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof build] = [Remote]
 }
 ```
 
@@ -233,4 +252,4 @@ Template usage rules:
 3. Scripts **MAY** declare protocol-aligned local types (as shown in the template) for readability and reuse.
 4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
-6. Descriptor flags **MUST** be selected from: `dispatch`, `default`, `batchable`, `never`, `local`, `external`, `remote`.
+6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Batchable`, `Never`, `Local`, `External`, `Remote`.

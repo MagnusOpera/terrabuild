@@ -60,6 +60,12 @@ let loadFScriptFlags() =
     flags |> should equal (Some [ ExportFlag.Batchable; ExportFlag.Cache Cacheability.Local ])
 
 [<Test>]
+let loadFScriptStringFlagsFails() =
+    let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
+    (fun () -> Terrabuild.Scripting.loadScript root [] "TestFiles/StringFlagsDescriptor.fss" |> ignore)
+    |> should (throwWithMessage "Unsupported export flag for function 'dispatch'. Flags must be discriminated union cases") typeof<TerrabuildException>
+
+[<Test>]
 let invokeFScriptMethod() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Extension.fss"

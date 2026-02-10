@@ -17,6 +17,16 @@ export let sourcemaps (context: { CI: bool }) (project: string option) (path: st
   [ { Command = "sentry-cli"; Arguments = $"sourcemaps inject {path}"; ErrorLevel = 0 }
     { Command = "sentry-cli"; Arguments = $"sourcemaps upload {project} {path}"; ErrorLevel = errorLevel } ]
 
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Batchable
+  | Never
+  | Local
+  | External
+  | Remote
+
 {
-  [nameof sourcemaps] = ["external"]
+  [nameof sourcemaps] = [External]
 }
