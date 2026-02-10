@@ -306,7 +306,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
     extension
 
 let private buildExtensions () : Map<string, Extension> =
-    let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild/scripts"))
+    let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild/Scripts"))
     Directory.EnumerateFiles(scriptsDir, "*.fss")
     |> Seq.filter (fun path -> Path.GetFileName(path) <> "null.fss")
     |> Seq.map buildScriptExtension

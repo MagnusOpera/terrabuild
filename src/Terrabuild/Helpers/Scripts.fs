@@ -4,21 +4,21 @@ open Terrabuild.Expressions
 
 let BuiltInScriptFiles =
     Map [
-        "@cargo", "scripts/cargo.fss"
-        "@docker", "scripts/docker.fss"
-        "@dotnet", "scripts/dotnet.fss"
-        "@gradle", "scripts/gradle.fss"
-        "@make", "scripts/make.fss"
-        "@npm", "scripts/npm.fss"
-        "@npx", "scripts/npx.fss"
-        "@null", "scripts/null.fss"
-        "@openapi", "scripts/openapi.fss"
-        "@playwright", "scripts/playwright.fss"
-        "@pnpm", "scripts/pnpm.fss"
-        "@sentry", "scripts/sentry.fss"
-        "@shell", "scripts/shell.fss"
-        "@terraform", "scripts/terraform.fss"
-        "@yarn", "scripts/yarn.fss"
+        "@cargo", "Scripts/cargo.fss"
+        "@docker", "Scripts/docker.fss"
+        "@dotnet", "Scripts/dotnet.fss"
+        "@gradle", "Scripts/gradle.fss"
+        "@make", "Scripts/make.fss"
+        "@npm", "Scripts/npm.fss"
+        "@npx", "Scripts/npx.fss"
+        "@null", "Scripts/null.fss"
+        "@openapi", "Scripts/openapi.fss"
+        "@playwright", "Scripts/playwright.fss"
+        "@pnpm", "Scripts/pnpm.fss"
+        "@sentry", "Scripts/sentry.fss"
+        "@shell", "Scripts/shell.fss"
+        "@terraform", "Scripts/terraform.fss"
+        "@yarn", "Scripts/yarn.fss"
     ]
 
 let private builtInDefaults name =
