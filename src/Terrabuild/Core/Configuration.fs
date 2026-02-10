@@ -225,8 +225,19 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
     { evaluationContext with
         Data = evaluationContext.Data |> Map.addMap variables }
 
+let private isHttpScriptUrl (script: string) =
+    try
+        let uri = System.Uri(script, System.UriKind.Absolute)
+        uri.Scheme = System.Uri.UriSchemeHttp || uri.Scheme = System.Uri.UriSchemeHttps
+    with
+    | :? System.UriFormatException -> false
+
 
 let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) evaluationContext =
+    let normalizeScriptPath currentDir script =
+        if isHttpScriptUrl script then script
+        else script |> FS.workspaceRelative options.Workspace currentDir
+
     // load system extensions
     let sysScripts =
         Extensions.systemExtensions
@@ -241,7 +252,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
                 ext.Script
                 |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
             match script with
-            | Some script -> script |> FS.workspaceRelative options.Workspace "" |> Some
+            | Some script -> script |> normalizeScriptPath "" |> Some
             | _ -> None)
         |> Map.map (Extensions.lazyLoadScript options.Workspace)
 
@@ -274,7 +285,9 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
         |> Map.map (fun _ ext ->
             ext.Script
             |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
-            |> Option.map (FS.workspaceRelative options.Workspace projectDir))
+            |> Option.map (fun script ->
+                if isHttpScriptUrl script then script
+                else script |> FS.workspaceRelative options.Workspace projectDir))
 
     let scripts =
         scripts

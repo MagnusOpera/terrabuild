@@ -1,5 +1,9 @@
 module Extensions
 open System
+open System.IO
+open System.Net.Http
+open System.Security.Cryptography
+open System.Text
 open Terrabuild.Scripting
 open Terrabuild.Expressions
 open Errors
@@ -50,11 +54,77 @@ let terrabuildExtensibility =
     let path = FS.combinePath terrabuildDir "Terrabuild.Extensibility.dll"
     path
 
+let private httpClient = new HttpClient()
+
+let private tryGetScriptUri (value: string) =
+    try
+        let uri = Uri(value, UriKind.Absolute)
+        if uri.Scheme = Uri.UriSchemeHttp || uri.Scheme = Uri.UriSchemeHttps then Some uri
+        else None
+    with
+    | :? UriFormatException -> None
+
+let private isWithinWorkspace (workspaceRoot: string) (candidatePath: string) =
+    let normalize (path: string) =
+        let full = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        if String.IsNullOrWhiteSpace full then full
+        else full + string Path.DirectorySeparatorChar
+
+    let workspace = normalize workspaceRoot
+    let candidate = normalize candidatePath
+    candidate.StartsWith(workspace, StringComparison.Ordinal)
+
+let private resolveLocalScriptPath (workspaceRoot: string) (script: string) =
+    let candidatePath =
+        if Path.IsPathRooted script then script
+        else Path.Combine(workspaceRoot, script)
+
+    let resolved = Path.GetFullPath(candidatePath)
+    if isWithinWorkspace workspaceRoot resolved |> not then
+        raiseInvalidArg $"Script '{script}' is outside workspace '{workspaceRoot}'"
+    resolved
+
+let private urlHash (value: string) =
+    let bytes = Encoding.UTF8.GetBytes(value)
+    using (SHA256.Create()) (fun sha ->
+        sha.ComputeHash(bytes)
+        |> Array.map (fun b -> b.ToString("x2"))
+        |> String.concat "")
+
+let private downloadScript (workspaceRoot: string) (uri: Uri) =
+    let extension =
+        match Path.GetExtension(uri.AbsolutePath) with
+        | null
+        | "" -> ".fss"
+        | ext -> ext
+
+    let cacheDir = Path.Combine(workspaceRoot, ".terrabuild", ".scripts")
+    Directory.CreateDirectory(cacheDir) |> ignore
+
+    let hash = urlHash (uri.AbsoluteUri)
+    let localFile = Path.Combine(cacheDir, $"{hash}{extension}")
+
+    let response = httpClient.GetAsync(uri).GetAwaiter().GetResult()
+    if response.IsSuccessStatusCode |> not then
+        raiseExternalError $"Failed to download script from '{uri.AbsoluteUri}' (status {(int response.StatusCode)})"
+
+    let content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+    File.WriteAllText(localFile, content)
+    localFile
+
 let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option) =
     let initScript () =
         match script with
         | Some script ->
-            loadScript workspaceRoot [ terrabuildExtensibility ] script
+            match tryGetScriptUri script with
+            | Some uri ->
+                if uri.Scheme <> Uri.UriSchemeHttps then
+                    raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{name}'"
+                let downloadedFile = downloadScript workspaceRoot uri
+                loadScript workspaceRoot [ terrabuildExtensibility ] downloadedFile
+            | _ ->
+                let localScript = resolveLocalScriptPath workspaceRoot script
+                loadScript workspaceRoot [ terrabuildExtensibility ] localScript
         | _ ->
             let systemScriptPath =
                 extensionCandidates name
