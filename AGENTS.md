@@ -96,6 +96,8 @@ For broad/core changes:
 
 ## Notes
 
-- Run commands from repository root (`/Users/pct/src/MagnusOpera/terrabuild`).
+- Run commands from the repository root (the directory containing `Makefile`).
 - Some flows rely on Docker and local tooling (`dotnet`, `pnpm`, `node`), so transient environment issues can occur.
 - If `make self` fails due environment/toolchain issues, still run `make smoke-tests` and `make try-docs` to isolate regressions from infrastructure noise.
+- If `make smoke-tests` produces diffs, they **MUST** be investigated before accepting changes.
+  The diff analysis should explain the root cause clearly (for example: file/content change, configuration change, or variable/input change).
