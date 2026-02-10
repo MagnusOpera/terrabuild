@@ -8,7 +8,7 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
 
 ## 1. Exported Functions
 
-1. Extension entrypoints **MUST** be declared with `export let`.
+1. Extension entrypoints **MUST** be declared with `[<export>] let`.
 2. Only exported functions are considered extension entrypoints.
 3. Descriptor entries **MUST** reference exported function names only.
 
@@ -24,7 +24,7 @@ For every exported extension function:
 Example:
 
 ```fsharp
-export let dispatch (context: { Command: string }) (variables: string map option) (args: string option) =
+[<export>] let dispatch (context: { Command: string }) (variables: string map option) (args: string option) =
   ...
 ```
 
@@ -64,7 +64,7 @@ type ActionContext = {
 Partial annotation is valid and preferred when only a subset is needed:
 
 ```fsharp
-export let dispatch (context: { Command: string }) ...
+[<export>] let dispatch (context: { Command: string }) ...
 ```
 
 4. FScript filesystem externs are sandboxed to the workspace root directory.
@@ -214,11 +214,11 @@ let with_args args =
   args |> Option.defaultValue ""
 
 // Optional metadata entrypoint (flagged "default")
-export let defaults (context: ActionContext) : ProjectInfo =
+[<export>] let defaults (context: ActionContext) : ProjectInfo =
   { Id = None; Outputs = []; Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
-export let dispatch (context: ActionContext) (args: string option) : ShellOperations =
+[<export>] let dispatch (context: ActionContext) (args: string option) : ShellOperations =
   let command =
     ""
     |> append_part context.Command
@@ -227,7 +227,7 @@ export let dispatch (context: ActionContext) (args: string option) : ShellOperat
   [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
 
 // Specific command entrypoint example
-export let build (context: ActionContext) (configuration: string option) (args: string option) : ShellOperations =
+[<export>] let build (context: ActionContext) (configuration: string option) (args: string option) : ShellOperations =
   let configuration = configuration |> Option.defaultValue "Debug"
   let command =
     ""

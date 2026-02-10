@@ -1,9 +1,7 @@
-export let defaults (context: { Directory: string }) =
+[<export>] let defaults (context: { Directory: string }) =
   { Id = None; Outputs = []; Dependencies = [] }
-
-export let dispatch (context: { Command: string }) = []
-
-export let fake (context: { Command: string }) = []
+[<export>] let dispatch (context: { Command: string }) = []
+[<export>] let fake (context: { Command: string }) = []
 
 
 type ExportFlag =

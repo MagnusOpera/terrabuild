@@ -1,4 +1,4 @@
-export let dispatch (context: { Command: string }) =
+[<export>] let dispatch (context: { Command: string }) =
   context.Command
 
 {
