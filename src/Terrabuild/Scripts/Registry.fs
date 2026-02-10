@@ -1,4 +1,4 @@
-module Scripts
+module ScriptRegistry
 open Terrabuild.Configuration.AST
 open Terrabuild.Expressions
 

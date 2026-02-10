@@ -15,7 +15,7 @@ type InvocationResult<'t> =
     | TargetNotFound
     | ErrorTarget of Exception
 
-let SystemExtensions = Scripts.SystemExtensions
+let SystemExtensions = ScriptRegistry.SystemExtensions
 
 let private extensionCandidates (name: string) =
     if String.IsNullOrWhiteSpace name then [ name ]
@@ -108,7 +108,7 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
         | _ ->
             let SystemScriptPath =
                 extensionCandidates name
-                |> List.tryPick (fun candidate -> Scripts.BuiltInScriptFiles |> Map.tryFind candidate)
+                |> List.tryPick (fun candidate -> ScriptRegistry.BuiltInScriptFiles |> Map.tryFind candidate)
                 |> Option.map (FS.combinePath terrabuildDir)
 
             match SystemScriptPath with
