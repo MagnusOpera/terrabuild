@@ -1,6 +1,14 @@
+/// <summary>Uploads source maps and assets with **sentry-cli**, using Debug IDs for mapping.</summary>
 let with_project project =
   project |> Option.map (fun current -> $"--project {current}") |> Option.defaultValue ""
 
+/// <summary>
+/// Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.
+/// Note sourcemaps upload is strict for CI mode.
+/// </summary>
+/// <title>Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.</title>
+/// <param name="project" required="false" example="&quot;insights&quot;">Project slug.</param>
+/// <param name="path" required="false" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param>
 export let sourcemaps (context: { CI: bool }) (project: string option) (path: string option) =
   let project = with_project project
   let path = path |> Option.defaultValue "dist"

@@ -1,3 +1,6 @@
+/// <summary>Executes a package binary via `npx --yes`.</summary>
+/// <param name="package" required="false" example="&quot;hello-world-npm&quot;">Package to execute.</param>
+/// <param name="args" required="false" example="&quot;&quot;">Arguments forwarded to the package.</param>
 export let run (context: { Command: string }) (package: string) (args: string option) =
   let args = args |> Option.defaultValue ""
   [{ Command = "npx"; Arguments = $"--yes -- {package} {args}"; ErrorLevel = 0 }]

@@ -1,3 +1,4 @@
+/// <summary>Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.</summary>
 let append_part part acc =
   match (part, acc) with
   | ("", _) -> acc
@@ -25,9 +26,14 @@ let format_vars variables =
   |> Option.map (Map.fold (fun acc key value -> acc |> append_part $"-var=\"{key}={value}\"") "")
   |> Option.defaultValue ""
 
+/// <summary>Declares default outputs for Terraform runs.</summary>
+/// <param name="ignores" required="false" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
+/// <param name="outputs" required="false" example="[ &quot;*.planfile&quot; ]"></param>
 export let defaults (context: { Directory: string }) =
   { Id = None; Outputs = ["*.planfile"]; Dependencies = [] }
 
+/// <summary>Runs an arbitrary Terraform command (action name is forwarded to `terraform`).</summary>
+/// <param name="args" required="false" example="&quot;fmt -write=false&quot;">Arguments appended after the Terraform subcommand.</param>
 export let dispatch (context: { Command: string }) (args: string option) =
   let command =
     ""
@@ -35,6 +41,9 @@ export let dispatch (context: { Command: string }) (args: string option) =
     |> append_part (with_args args)
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+/// <summary>Initializes Terraform providers and backend.</summary>
+/// <param name="config" required="false" example="&quot;backend.prod.config&quot;">Backend config file passed to `terraform init -backend-config`.</param>
+/// <param name="args" required="false" example="&quot;-upgrade&quot;">Additional arguments for `terraform init`.</param>
 export let init (context: { Command: string }) (config: string option) (args: string option) =
   let config = config |> map_value (fun value -> $"-backend-config={value}")
   let args = with_args args
@@ -46,6 +55,9 @@ export let init (context: { Command: string }) (config: string option) (args: st
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+/// <summary>Validates configuration before planning/applying.</summary>
+/// <title>Generate plan file.</title>
+/// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform validate`.</param>
 export let validate (context: { Command: string }) (args: string option) =
   let command =
     ""
@@ -53,6 +65,11 @@ export let validate (context: { Command: string }) (args: string option) =
     |> append_part (with_args args)
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+/// <summary>Selects or creates a Terraform workspace before planning/applying.</summary>
+/// <title>Select workspace.</title>
+/// <param name="workspace" required="false" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
+/// <param name="create" required="false" example="true">Create the workspace when it does not exist.</param>
+/// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform workspace select`.</param>
 export let select (context: { Command: string }) (workspace: string option) (create: bool option) (args: string option) =
   match workspace with
   | Some workspace ->
@@ -65,6 +82,10 @@ export let select (context: { Command: string }) (workspace: string option) (cre
       [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
   | _ -> []
 
+/// <summary>Generates a plan file for review/apply.</summary>
+/// <title>Generate plan file.</title>
+/// <param name="variables" required="false" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
+/// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform plan`.</param>
 export let plan (context: { Command: string }) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = with_args args
@@ -76,6 +97,10 @@ export let plan (context: { Command: string }) (variables: string map option) (a
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+/// <summary>Applies the generated plan (or runs `apply` without a plan when requested).</summary>
+/// <title>Apply plan file.</title>
+/// <param name="no_plan" required="false" example="true">Run `apply` without `-out` plan file.</param>
+/// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform apply`.</param>
 export let apply (context: { Command: string }) (no_plan: bool option) (args: string option) =
   let planfile = map_false "terrabuild.planfile" no_plan
   let args = with_args args
@@ -87,6 +112,10 @@ export let apply (context: { Command: string }) (no_plan: bool option) (args: st
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
+/// <summary>Destroys all managed resources for the current workspace.</summary>
+/// <title>Destroy the deployment.</title>
+/// <param name="variables" required="false" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
+/// <param name="args" required="false" example="&quot;&quot;">Additional arguments for `terraform destroy`.</param>
 export let destroy (context: { Command: string }) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = with_args args
