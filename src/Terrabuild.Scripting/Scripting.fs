@@ -286,9 +286,16 @@ and private Descriptor =
 
     static member Parse(exports: string list, value: FScript.Language.Value) =
         let exported = exports |> Set.ofList
-        let rawMap =
+        let rawMap: Map<string, FScript.Language.Value> =
             match value with
-            | FScript.Language.VStringMap map -> map
+            | FScript.Language.VMap map ->
+                map
+                |> Map.toList
+                |> List.map (fun (key, value) ->
+                    match key with
+                    | FScript.Language.MKString name -> name, value
+                    | FScript.Language.MKInt _ -> raiseInvalidArg "Descriptor map keys must be strings")
+                |> Map.ofList
             | FScript.Language.VRecord map -> map
             | _ -> raiseInvalidArg "FScript extension descriptor must be a map from function name to list of flags"
 
@@ -336,7 +343,12 @@ and private Conversions =
             | Terrabuild.Expressions.Value.String stringValue -> FScript.Language.VString stringValue
             | Terrabuild.Expressions.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
             | Terrabuild.Expressions.Value.Enum enumValue -> FScript.Language.VString enumValue
-            | Terrabuild.Expressions.Value.Map mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> FScript.Language.VStringMap
+            | Terrabuild.Expressions.Value.Map mapValue ->
+                mapValue
+                |> Map.toList
+                |> List.map (fun (key, itemValue) -> FScript.Language.MKString key, convert itemValue)
+                |> Map.ofList
+                |> FScript.Language.VMap
             | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
             | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
         convert value
@@ -447,7 +459,14 @@ and private Conversions =
                 let sourceMap =
                     match value with
                     | FScript.Language.VRecord map -> map
-                    | FScript.Language.VStringMap map -> map
+                    | FScript.Language.VMap map ->
+                        map
+                        |> Map.toList
+                        |> List.map (fun (key, itemValue) ->
+                            match key with
+                            | FScript.Language.MKString name -> name, itemValue
+                            | FScript.Language.MKInt _ -> raiseTypeError "Record decoding expects string map keys")
+                        |> Map.ofList
                     | _ -> raiseTypeError $"Expected record return type, got {value}"
 
                 let fields = FSharpType.GetRecordFields(target)
@@ -467,7 +486,15 @@ and private Conversions =
                     | FScript.Language.VString stringValue -> Terrabuild.Expressions.Value.String stringValue
                     | FScript.Language.VList listValue -> listValue |> List.map toTerrabuildValue |> Terrabuild.Expressions.Value.List
                     | FScript.Language.VRecord mapValue -> mapValue |> Map.map (fun _ itemValue -> toTerrabuildValue itemValue) |> Terrabuild.Expressions.Value.Map
-                    | FScript.Language.VStringMap mapValue -> mapValue |> Map.map (fun _ itemValue -> toTerrabuildValue itemValue) |> Terrabuild.Expressions.Value.Map
+                    | FScript.Language.VMap mapValue ->
+                        mapValue
+                        |> Map.toList
+                        |> List.map (fun (key, itemValue) ->
+                            match key with
+                            | FScript.Language.MKString name -> name, toTerrabuildValue itemValue
+                            | FScript.Language.MKInt _ -> raiseTypeError "Terrabuild map values expect string keys")
+                        |> Map.ofList
+                        |> Terrabuild.Expressions.Value.Map
                     | FScript.Language.VOption None -> Terrabuild.Expressions.Value.Nothing
                     | FScript.Language.VOption (Some optionValue) -> toTerrabuildValue optionValue
                     | _ -> raiseTypeError $"Unsupported FScript value '{value}' for Terrabuild.Expressions.Value"
