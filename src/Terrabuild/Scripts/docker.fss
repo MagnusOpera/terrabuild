@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Builds and publishes container images using the Docker CLI. Uses the Terrabuild action name as the Docker subcommand for ad-hoc invocations and tags images with the action hash. CI pushes rely on `docker buildx imagetools` to publish the hashed image under an explicit tag.</summary>
 let append_part part acc =
   match (part, acc) with
@@ -79,17 +82,6 @@ let as_text value =
       |> append_part $"{image}:{tag}"
       |> append_part args
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof dispatch] = [Dispatch; Never]
   [nameof build] = [External]

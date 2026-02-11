@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Provides build/install/test helpers for projects using **pnpm** and a `package.json`. Supports batch (cascade) builds when `pnpm-workspace.yaml` and a root `package.json` exist at the Terrabuild workspace root.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
@@ -145,17 +148,6 @@ let batch_filters (context: { Batch: { Hash: string; TempDir: string; ProjectPat
     |> append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

@@ -1,18 +1,10 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 [<export>] let defaults (context: { Directory: string }) =
   { Id = None; Outputs = []; Dependencies = [] }
 [<export>] let dispatch (context: { Command: string }) = []
 [<export>] let fake (context: { Command: string }) = []
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

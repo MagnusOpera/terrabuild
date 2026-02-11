@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Provides build/test helpers for projects using **yarn** and a `package.json`. Defaults outputs to `dist/**` and infers dependencies from `package.json` to link Terrabuild graphs.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
@@ -119,17 +122,6 @@ let dependencies_from (package: Package) =
     |> append_part (with_args args)
 
   [{ Command = "yarn"; Arguments = operation; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

@@ -334,7 +334,11 @@ let private buildScriptExtension (scriptPath: string) : Extension =
 let private buildExtensions () : Map<string, Extension> =
     let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild/Scripts"))
     Directory.EnumerateFiles(scriptsDir, "*.fss")
-    |> Seq.filter (fun path -> Path.GetFileName(path) <> "null.fss")
+    |> Seq.filter (fun path ->
+        let fileName = Path.GetFileName(path)
+        match fileName with
+        | null -> false
+        | name -> name <> "null.fss" && not (name.StartsWith("_")))
     |> Seq.map buildScriptExtension
     |> Seq.map (fun ext -> ext.Name, ext)
     |> Map.ofSeq

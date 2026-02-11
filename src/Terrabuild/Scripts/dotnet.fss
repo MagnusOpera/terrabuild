@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`). Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
@@ -213,17 +216,6 @@ let command_op arguments =
     |> command_op
 
   with_batch_projects context create_command
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

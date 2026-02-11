@@ -165,53 +165,8 @@ Any protocol change **MUST** be introduced in this document before implementatio
 Copy/paste starter template:
 
 ```fsharp
-// Terrabuild FScript extension template
-type BatchContext = {
-  Hash: string
-  TempDir: string
-  ProjectPaths: string list
-}
-
-type ActionContext = {
-  Debug: bool
-  CI: bool
-  Command: string
-  Hash: string
-  Directory: string
-  Batch: BatchContext option
-}
-
-type ProjectInfo = {
-  Id: string option
-  Outputs: string list
-  Dependencies: string list
-}
-
-type ShellOperation = {
-  Command: string
-  Arguments: string
-  ErrorLevel: int
-}
-
-type ShellOperations = ShellOperation list
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let with_args args =
-  args |> Option.defaultValue ""
+#include "_protocol.fss"
+#include "_helpers.fss"
 
 // Optional metadata entrypoint (flagged "default")
 [<export>] let defaults (context: ActionContext) : ProjectInfo =
@@ -249,7 +204,7 @@ Template usage rules:
 
 1. `context` **MUST** be the first parameter of every exported function.
 2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
-3. Scripts **MAY** declare protocol-aligned local types (as shown in the template) for readability and reuse.
+3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** include them.
 4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
 6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Batchable`, `Never`, `Local`, `External`, `Remote`.

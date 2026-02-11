@@ -336,7 +336,7 @@ and private Conversions =
             | Terrabuild.Expressions.Value.String stringValue -> FScript.Language.VString stringValue
             | Terrabuild.Expressions.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
             | Terrabuild.Expressions.Value.Enum enumValue -> FScript.Language.VString enumValue
-            | Terrabuild.Expressions.Value.Map mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> FScript.Language.VRecord
+            | Terrabuild.Expressions.Value.Map mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> FScript.Language.VStringMap
             | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
             | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
         convert value

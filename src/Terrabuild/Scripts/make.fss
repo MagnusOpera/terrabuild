@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Invokes GNU Make targets, passing variables and extra arguments through Terrabuild. Assumes a `Makefile` in the project directory.</summary>
 let append_variable acc key value =
   let item = $"{key}=\"{value}\""
@@ -27,17 +30,6 @@ let format_variables vars =
     | _ -> $"{context.Command} {variables} {args}"
 
   [{ Command = "make"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof dispatch] = [Dispatch; Never]
 }

@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.</summary>
 let append_part part acc =
   match (part, acc) with
@@ -126,17 +129,6 @@ let format_vars variables =
     |> append_part vars
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
