@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Runs Playwright end-to-end tests via `npx playwright`.</summary>
 let append_part part acc =
   match (part, acc) with
@@ -25,17 +28,6 @@ let with_flag flag value =
     |> append_part args
 
   [{ Command = "npx"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof test] = [Remote]
 }

@@ -1,0 +1,27 @@
+let append_part part acc =
+  match (part, acc) with
+  | ("", _) -> acc
+  | (_, "") -> part
+  | _ -> $"{acc} {part}"
+
+let with_args args =
+  args |> Option.defaultValue ""
+
+let with_configuration configuration =
+  configuration |> Option.defaultValue "Debug"
+
+let map_true flag value =
+  match value with
+  | Some true -> flag
+  | _ -> ""
+
+let map_false flag value =
+  match value with
+  | Some true -> ""
+  | _ -> flag
+
+let map_value mapper value =
+  value |> Option.map mapper |> Option.defaultValue ""
+
+let with_flag flag value =
+  value |> Option.map (fun current -> $"{flag} {current}") |> Option.defaultValue ""

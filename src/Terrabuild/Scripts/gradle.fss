@@ -1,3 +1,6 @@
+#include "_protocol.fss"
+#include "_helpers.fss"
+
 /// <summary>Provides build support for Gradle projects using the Gradle CLI. Defaults outputs to Gradle's `build/classes/` directory and forwards Terrabuild action names to `gradle`.</summary>
 let append_part part acc =
   match (part, acc) with
@@ -32,17 +35,6 @@ let with_configuration configuration =
     |> append_part (with_configuration configuration)
     |> append_part (with_args args)
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
-
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
-
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
