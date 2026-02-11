@@ -2,12 +2,6 @@
 #include "_helpers.fss"
 
 /// <summary>Builds and publishes container images using the Docker CLI. Uses the Terrabuild action name as the Docker subcommand for ad-hoc invocations and tags images with the action hash. CI pushes rely on `docker buildx imagetools` to publish the hashed image under an explicit tag.</summary>
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
 let append_csv acc value =
   match acc with
   | "" -> value
@@ -25,13 +19,10 @@ let format_platforms platforms =
 let format_build_args build_args =
   Map.fold append_build_arg "" build_args
 
-let as_text value =
-  value |> Option.defaultValue ""
-
 /// <summary>Runs an arbitrary Docker CLI command (action name is forwarded to `docker`).</summary>
 /// <param name="args" required="false" example="&quot;image prune -f&quot;">Arguments appended after the Docker subcommand.</param>
 [<export>] let dispatch (context: { Command: string }) (args: string option) =
-  let command = as_text args |> append_part context.Command
+  let command = with_args args |> append_part context.Command
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds a Docker image and tags it with the Terrabuild hash; pushes automatically when running in CI.</summary>
@@ -44,7 +35,7 @@ let as_text value =
   let dockerfile = dockerfile |> Option.defaultValue "Dockerfile"
   let platforms = platforms |> Option.map format_platforms |> Option.defaultValue ""
   let build_args = build_args |> Option.map format_build_args |> Option.defaultValue ""
-  let args = args |> as_text
+  let args = args |> with_args
 
   let command =
     ""
@@ -67,7 +58,7 @@ let as_text value =
 /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Tag applied to the image (hash tag is used as the source).</param>
 /// <param name="args" required="false" example="&quot;--disable-content-trust&quot;">Additional arguments passed to tagging/push.</param>
 [<export>] let push (context: { CI: bool; Hash: string }) (image: string) (tag: string) (args: string option) =
-  let args = args |> as_text
+  let args = args |> with_args
   let command =
     if context.CI then
       ""
@@ -82,6 +73,8 @@ let as_text value =
       |> append_part $"{image}:{tag}"
       |> append_part args
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof dispatch] = [Dispatch; Never]
   [nameof build] = [External]

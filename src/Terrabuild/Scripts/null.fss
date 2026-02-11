@@ -5,6 +5,8 @@
   { Id = None; Outputs = []; Dependencies = [] }
 [<export>] let dispatch (context: { Command: string }) = []
 [<export>] let fake (context: { Command: string }) = []
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

@@ -4,25 +4,6 @@
 /// <summary>Provides build/install/test helpers for projects using **pnpm** and a `package.json`. Supports batch (cascade) builds when `pnpm-workspace.yaml` and a root `package.json` exist at the Terrabuild workspace root.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let map_true flag value =
-  match value with
-  | Some true -> flag
-  | _ -> ""
-
-let map_false flag value =
-  match value with
-  | Some true -> ""
-  | _ -> flag
-
-let with_args args =
-  args |> Option.defaultValue ""
-
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
   let content = Fs.readText package_file |> Option.defaultValue ""
@@ -148,6 +129,8 @@ let batch_filters (context: { Batch: { Hash: string; TempDir: string; ProjectPat
     |> append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

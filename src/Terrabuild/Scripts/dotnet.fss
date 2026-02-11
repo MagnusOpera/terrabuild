@@ -4,25 +4,6 @@
 /// <summary>Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`). Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let map_true flag value =
-  match value with
-  | Some true -> flag
-  | _ -> ""
-
-let map_false flag value =
-  match value with
-  | Some true -> ""
-  | _ -> flag
-
-let map_value mapper value =
-  value |> Option.map mapper |> Option.defaultValue ""
-
 let first_project_file directory =
   project_extensions
   |> List.collect (fun ext -> Fs.enumerateFiles directory $"*{ext}" |> Option.defaultValue [])
@@ -47,12 +28,6 @@ let with_batch_projects (context: { Batch: { Hash: string; TempDir: string; Proj
       |> List.map create_command
   | _ ->
       [create_command ""]
-
-let with_args args =
-  args |> Option.defaultValue ""
-
-let with_configuration configuration =
-  configuration |> Option.defaultValue "Debug"
 
 let command_op arguments =
   { Command = "dotnet"; Arguments = arguments; ErrorLevel = 0 }
@@ -216,6 +191,8 @@ let command_op arguments =
     |> command_op
 
   with_batch_projects context create_command
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

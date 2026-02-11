@@ -2,15 +2,6 @@
 #include "_helpers.fss"
 
 /// <summary>Runs Playwright end-to-end tests via `npx playwright`.</summary>
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let with_flag flag value =
-  value |> Option.map (fun current -> $"{flag} {current}") |> Option.defaultValue ""
-
 /// <summary>Executes `playwright test` with optional browser/project selection.</summary>
 /// <param name="browser" required="false" example="&quot;webkit&quot;">Browser to use.</param>
 /// <param name="project" required="false" example="&quot;ci&quot;">Project to use.</param>
@@ -28,6 +19,8 @@ let with_flag flag value =
     |> append_part args
 
   [{ Command = "npx"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof test] = [Remote]
 }
