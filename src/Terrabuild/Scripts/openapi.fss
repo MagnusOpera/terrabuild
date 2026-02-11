@@ -2,12 +2,6 @@
 #include "_helpers.fss"
 
 /// <summary>Generates API clients using **OpenAPI Generator**. Requires the `openapitools/openapi-generator-cli` container in the extension configuration so the `docker-entrypoint.sh` is available.</summary>
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
 let append_comma acc value =
   match (acc, value) with
   | (_, "") -> acc
@@ -43,6 +37,8 @@ let format_properties properties =
     |> append_part args
 
   [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof generate] = [Remote]
 }

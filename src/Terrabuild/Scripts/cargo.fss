@@ -2,17 +2,8 @@
 #include "_helpers.fss"
 
 /// <summary>Provides build/test helpers for Rust projects using **Cargo** and a `Cargo.toml` at the project root. Infers dependencies from `Cargo.toml` to link Terrabuild graphs and defaults outputs to `target/{debug,release}`.</summary>
-let append_parts part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
 let with_profile profile =
   profile |> Option.map (fun value -> $"--profile {value}") |> Option.defaultValue ""
-
-let with_args args =
-  args |> Option.defaultValue ""
 
 /// <summary>Infers project metadata from `Cargo.toml` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ ]"></param>
@@ -23,7 +14,7 @@ let with_args args =
 /// <summary>Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).</summary>
 /// <param name="args" required="false" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
 [<export>] let dispatch (context: { Command: string }) (args: string option) =
-  let command = with_args args |> append_parts context.Command
+  let command = with_args args |> append_part context.Command
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds the project with `cargo build`.</summary>
@@ -33,9 +24,9 @@ let with_args args =
 [<export>] let build (context: { Command: string }) (profile: string option) (args: string option) =
   let command =
     ""
-    |> append_parts "build"
-    |> append_parts (with_profile profile)
-    |> append_parts (with_args args)
+    |> append_part "build"
+    |> append_part (with_profile profile)
+    |> append_part (with_args args)
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs tests with `cargo test`.</summary>
@@ -44,10 +35,12 @@ let with_args args =
 [<export>] let test (context: { Command: string }) (profile: string option) (args: string option) =
   let command =
     ""
-    |> append_parts "test"
-    |> append_parts (with_profile profile)
-    |> append_parts (with_args args)
+    |> append_part "test"
+    |> append_part (with_profile profile)
+    |> append_part (with_args args)
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

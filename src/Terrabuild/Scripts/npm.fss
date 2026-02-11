@@ -4,20 +4,6 @@
 /// <summary>Provides build, test, and exec helpers for projects that use **npm** and a `package.json` at the project root. Infers dependencies from `package.json` to wire Terrabuild graphs and defaults outputs to `dist/**`.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let map_true flag value =
-  match value with
-  | Some true -> flag
-  | _ -> ""
-
-let with_args args =
-  args |> Option.defaultValue ""
-
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
   let content = Fs.readText package_file |> Option.defaultValue ""
@@ -126,6 +112,8 @@ let dependencies_from (package: Package) =
     |> append_part (with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]

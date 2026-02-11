@@ -2,28 +2,6 @@
 #include "_helpers.fss"
 
 /// <summary>Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.</summary>
-let append_part part acc =
-  match (part, acc) with
-  | ("", _) -> acc
-  | (_, "") -> part
-  | _ -> $"{acc} {part}"
-
-let map_true flag value =
-  match value with
-  | Some true -> flag
-  | _ -> ""
-
-let map_false flag value =
-  match value with
-  | Some true -> ""
-  | _ -> flag
-
-let map_value mapper value =
-  value |> Option.map mapper |> Option.defaultValue ""
-
-let with_args args =
-  args |> Option.defaultValue ""
-
 let format_vars variables =
   variables
   |> Option.map (Map.fold (fun acc key value -> acc |> append_part $"-var=\"{key}={value}\"") "")
@@ -129,6 +107,8 @@ let format_vars variables =
     |> append_part vars
     |> append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
+
+// Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
