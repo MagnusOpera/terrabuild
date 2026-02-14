@@ -4,19 +4,19 @@
 /// <summary>Provides build support for Gradle projects using the Gradle CLI. Defaults outputs to Gradle's `build/classes/` directory and forwards Terrabuild action names to `gradle`.</summary>
 /// <summary>Declares default project outputs for Gradle builds.</summary>
 /// <param name="outputs" required="false" example="[ &quot;build/classes/&quot; ]"></param>
-[<export>] let defaults (context: { Directory: string }) =
+[<export>] let defaults (context: {| Directory: string |}) =
   { Id = None; Outputs = ["build/classes/"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Gradle command (action name is forwarded to `gradle`).</summary>
 /// <param name="args" required="false" example="&quot;clean --info&quot;">Arguments appended after the Gradle command.</param>
-[<export>] let dispatch (context: { Command: string }) (args: string option) =
+[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
   let command = with_args args |> append_part context.Command
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
 /// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
 /// <param name="args" required="false" example="&quot;--scan&quot;">Additional arguments passed to `gradle assemble`.</param>
-[<export>] let build (context: { Command: string }) (configuration: string option) (args: string option) =
+[<export>] let build (context: {| Command: string |}) (configuration: string option) (args: string option) =
   let command =
     ""
     |> append_part "assemble"

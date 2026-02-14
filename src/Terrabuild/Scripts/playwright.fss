@@ -6,7 +6,7 @@
 /// <param name="browser" required="false" example="&quot;webkit&quot;">Browser to use.</param>
 /// <param name="project" required="false" example="&quot;ci&quot;">Project to use.</param>
 /// <param name="args" required="false" example="&quot;--debug&quot;">Additional arguments passed to `playwright test`.</param>
-[<export>] let test (context: { Command: string }) (browser: string option) (project: string option) (args: string option) =
+[<export>] let test (context: {| Command: string |}) (browser: string option) (project: string option) (args: string option) =
   let browser = with_flag "--browser" browser
   let project = with_flag "--project" project
   let args = args |> Option.defaultValue ""

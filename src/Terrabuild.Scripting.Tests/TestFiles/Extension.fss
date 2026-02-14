@@ -1,6 +1,6 @@
-[<export>] let run (context: { Command: string }) = "run"
-[<export>] let dispatch (context: { Command: string }) = "dispatch"
-[<export>] let defaults (context: { Directory: string }) = "defaults"
+[<export>] let run (context: {| Command: string |}) = "run"
+[<export>] let dispatch (context: {| Command: string |}) = "dispatch"
+[<export>] let defaults (context: {| Directory: string |}) = "defaults"
 
 let hidden _ = "hidden"
 

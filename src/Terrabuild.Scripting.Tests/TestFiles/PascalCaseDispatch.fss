@@ -1,4 +1,4 @@
-[<export>] let dispatch (context: { Command: string }) (variables: string map option) (args: string option) =
+[<export>] let dispatch (context: {| Command: string |}) (variables: string map option) (args: string option) =
   let varsCount =
     variables
     |> Option.map Map.count

@@ -24,7 +24,7 @@ For every exported extension function:
 Example:
 
 ```fsharp
-[<export>] let dispatch (context: { Command: string }) (variables: string map option) (args: string option) =
+[<export>] let dispatch (context: {| Command: string |}) (variables: string map option) (args: string option) =
   ...
 ```
 
@@ -64,7 +64,7 @@ type ActionContext = {
 Partial annotation is valid and preferred when only a subset is needed:
 
 ```fsharp
-[<export>] let dispatch (context: { Command: string }) ...
+[<export>] let dispatch (context: {| Command: string |}) ...
 ```
 
 4. FScript filesystem externs are sandboxed to the workspace root directory.

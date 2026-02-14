@@ -34,7 +34,7 @@ let dependencies_from (package: Package) =
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: { Directory: string }) =
+[<export>] let defaults (context: {| Directory: string |}) =
   let dependencies =
     context.Directory
     |> load_package
@@ -45,7 +45,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended after the yarn command.</param>
-[<export>] let dispatch (context: { Command: string }) (args: string option) =
+[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
   let command =
     ""
     |> append_part context.Command
@@ -58,7 +58,7 @@ let dependencies_from (package: Package) =
 /// <param name="update" required="false" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param>
 /// <param name="ignore-engines" required="false" example="true">Adds `--ignore-engines`.</param>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param>
-[<export>] let install (context: { Command: string }) (update: bool option) (ignoreEngines: bool option) (args: string option) =
+[<export>] let install (context: {| Command: string |}) (update: bool option) (ignoreEngines: bool option) (args: string option) =
   let update = update |> map_false "--frozen-lockfile"
   let ignore_engines = ignoreEngines |> map_true "--ignore-engines"
   let args = with_args args
@@ -74,7 +74,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let build (context: { Command: string }) (args: string option) =
+[<export>] let build (context: {| Command: string |}) (args: string option) =
   let command =
     ""
     |> append_part "build --"
@@ -84,7 +84,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let test (context: { Command: string }) (args: string option) =
+[<export>] let test (context: {| Command: string |}) (args: string option) =
   let command =
     ""
     |> append_part "test --"
@@ -95,7 +95,7 @@ let dependencies_from (package: Package) =
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
 /// <param name="command" required="false" example="&quot;build-prod&quot;">Command to run.</param>
 /// <param name="args" required="false" example="&quot;build-prod&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let run (context: { Command: string }) (command: string) (args: string option) =
+[<export>] let run (context: {| Command: string |}) (command: string) (args: string option) =
   let operation =
     ""
     |> append_part command

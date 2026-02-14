@@ -23,7 +23,7 @@ let format_properties properties =
 /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
 /// <param name="properties" required="false" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
 /// <param name="args" required="false" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
-[<export>] let generate (context: { Command: string }) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
+[<export>] let generate (context: {| Command: string |}) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
   let properties = format_properties properties
   let args = args |> Option.defaultValue ""
 
