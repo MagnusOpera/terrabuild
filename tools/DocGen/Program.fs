@@ -8,6 +8,7 @@ type Parameter = {
     Required: bool
     Summary: string
     Example: string
+    DefaultValue: string option
 }
 
 type Command = {
@@ -31,6 +32,7 @@ type private ScriptArgDoc = {
     Required: bool
     Summary: string
     Example: string
+    DefaultValue: string option
 }
 
 type private ScriptCommandDoc = {
@@ -78,6 +80,11 @@ let private parseRequiredAttribute (raw: string option) =
     | Some "required" -> true
     | _ -> false
 
+let private parseDefaultAttribute (raw: string option) =
+    raw
+    |> Option.map (fun v -> v.Trim())
+    |> Option.filter (fun v -> v <> "")
+
 let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
     if List.isEmpty docLines then
         None
@@ -117,8 +124,13 @@ let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
                         |> Option.ofObj
                         |> Option.map (fun x -> x.Value)
                         |> parseRequiredAttribute
+                    let defaultValue =
+                        e.Attribute(XName.Get "default")
+                        |> Option.ofObj
+                        |> Option.map (fun x -> x.Value)
+                        |> parseDefaultAttribute
                     let summary = collapseText e.Value
-                    { Name = name; Required = required; Summary = summary; Example = example })
+                    { Name = name; Required = required; Summary = summary; Example = example; DefaultValue = defaultValue })
                 |> List.ofSeq
             Some(summary, title, args)
         with ex ->
@@ -293,14 +305,14 @@ let private buildScriptExtension (scriptPath: string) : Extension =
             let fromDocOrder =
                 docArgs
                 |> List.filter (fun arg -> arg.Name <> "__dispatch__")
-                |> List.map (fun arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example } : Parameter))
+                |> List.map (fun arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example; DefaultValue = arg.DefaultValue } : Parameter))
 
             let fromFunctionOrder =
                 functionArgs
                 |> List.map (fun name ->
                     match mergedArgs |> Map.tryFind name with
-                    | Some arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example } : Parameter)
-                    | None -> ({ Name = name; Required = false; Summary = ""; Example = "" } : Parameter))
+                    | Some arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example; DefaultValue = arg.DefaultValue } : Parameter)
+                    | None -> ({ Name = name; Required = false; Summary = ""; Example = ""; DefaultValue = None } : Parameter))
 
             let commandParameters: Parameter list =
                 if commandName = "__defaults__" then
@@ -412,6 +424,15 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
         let existingWeight = tryReadExistingWeight commandFile
         let effectiveWeight = command.Weight |> Option.orElse existingWeight
         let orderedParameters = reorderParameters command commandFile
+        let formatArgumentSummary (parameter: Parameter) =
+            let summary = parameter.Summary.Trim()
+            match parameter.DefaultValue with
+            | Some defaultValue when summary = "" ->
+                $"Default value is {defaultValue}."
+            | Some defaultValue ->
+                $"{summary} Default value is {defaultValue}."
+            | None ->
+                summary
         let commandContent = [
             "---"
             match command.Name with
@@ -467,7 +488,8 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                     | _ ->
                         let prmName = if prm.Name = "__dispatch__" then "command" else prm.Name
                         let required = if prm.Required then "Required" else "Optional"
-                        $"* `{prmName}` - ({required}) {prm.Summary}"
+                        let summary = formatArgumentSummary prm
+                        $"* `{prmName}` - ({required}) {summary}"
 
             match batchCommand with
             | Some batchCommand ->
@@ -496,7 +518,8 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                         | "context" -> ()
                         | _ ->
                             let required = if prm.Required then "Required" else "Optional"
-                            $"* `{prm.Name}` - ({required}) {prm.Summary}"
+                            let summary = formatArgumentSummary prm
+                            $"* `{prm.Name}` - ({required}) {summary}"
             | _ -> ()
         ]
         File.WriteAllLines(commandFile, commandContent)

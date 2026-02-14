@@ -208,3 +208,10 @@ Template usage rules:
 4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
 6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Batchable`, `Never`, `Local`, `External`, `Remote`.
+
+Parameter XML documentation attributes:
+
+1. `<param name="...">` **MUST** define a parameter name.
+2. `required="true|false"` **MAY** be used to mark argument requiredness in generated docs.
+3. `default="..."` **MAY** be used to declare the default value used when omitted.
+4. When `default` is set, DocGen appends `Default value is <value>.` to the generated argument description.
