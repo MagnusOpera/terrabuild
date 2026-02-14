@@ -74,11 +74,13 @@ let private collapseText (value: string) =
 let private normalizeParamNameForCompare (name: string) =
     name.ToLowerInvariant().Replace("-", "").Replace("_", "")
 
-let private parseRequiredAttribute (raw: string option) =
+let private parseRequiredAttribute (raw: string option) (defaultValue: string option) =
     match raw |> Option.map (fun v -> v.Trim().ToLowerInvariant()) with
     | Some "true"
     | Some "required" -> true
-    | _ -> false
+    | Some "false"
+    | Some "optional" -> false
+    | _ -> defaultValue |> Option.isNone
 
 let private parseDefaultAttribute (raw: string option) =
     raw
@@ -119,16 +121,16 @@ let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
                         |> Option.ofObj
                         |> Option.map (fun x -> x.Value.Trim())
                         |> Option.defaultValue ""
-                    let required =
-                        e.Attribute(XName.Get "required")
-                        |> Option.ofObj
-                        |> Option.map (fun x -> x.Value)
-                        |> parseRequiredAttribute
                     let defaultValue =
                         e.Attribute(XName.Get "default")
                         |> Option.ofObj
                         |> Option.map (fun x -> x.Value)
                         |> parseDefaultAttribute
+                    let required =
+                        e.Attribute(XName.Get "required")
+                        |> Option.ofObj
+                        |> Option.map (fun x -> x.Value)
+                        |> fun raw -> parseRequiredAttribute raw defaultValue
                     let summary = collapseText e.Value
                     { Name = name; Required = required; Summary = summary; Example = example; DefaultValue = defaultValue })
                 |> List.ofSeq

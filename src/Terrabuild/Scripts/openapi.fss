@@ -18,9 +18,9 @@ let format_properties properties =
   | None -> ""
 
 /// <summary>Generates an API client via `openapi-generator-cli generate`.</summary>
-/// <param name="generator" required="true" example="&quot;typescript-axios&quot;">Use provided generator.</param>
-/// <param name="input" required="true" example="&quot;src/api.json&quot;">Relative path to the OpenAPI/Swagger definition.</param>
-/// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
+/// <param name="generator" example="&quot;typescript-axios&quot;">Use provided generator.</param>
+/// <param name="input" example="&quot;src/api.json&quot;">Relative path to the OpenAPI/Swagger definition.</param>
+/// <param name="output" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
 /// <param name="properties" required="false" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
 /// <param name="args" required="false" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
 [<export>] let generate (context: Protocol.ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =

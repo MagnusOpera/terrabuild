@@ -10,7 +10,7 @@
 			<summary>
 				Push a docker image to registry.
 			</summary>
-			<param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">
+			<param name="image" example="&quot;ghcr.io/example/project&quot;">
 				Docker image to build.
 			</param>
 		</member>
@@ -21,7 +21,7 @@
 			<param name="dockerfile" example="&quot;Dockerfile&quot;">
 				Use alternative Dockerfile. Default is Dockerfile.
 			</param>
-			<param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">
+			<param name="image" example="&quot;ghcr.io/example/project&quot;">
 				Docker image to build.
 			</param>
 			<param name="arguments" example="{ configuration: &quot;Release&quot; }">
