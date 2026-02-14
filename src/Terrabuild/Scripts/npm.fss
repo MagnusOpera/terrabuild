@@ -1,5 +1,5 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Provides build, test, and exec helpers for projects that use **npm** and a `package.json` at the project root. Infers dependencies from `package.json` to wire Terrabuild graphs and defaults outputs to `dist/**`.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
@@ -34,7 +34,7 @@ let dependencies_from (package: Package) =
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -45,11 +45,11 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended to the npm command.</param>
-[<export>] let dispatch (context: ActionContext) (args: string option) =
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part context.Command
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part context.Command
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
@@ -57,59 +57,59 @@ let dependencies_from (package: Package) =
 /// <param name="force" required="false" example="true">Adds `--force` to bypass failed checks.</param>
 /// <param name="clean" required="false" example="true">Enable clean install; set `true` to enforce `clean-install`.</param>
 /// <param name="args" required="false" example="&quot;--install-strategy hoisted&quot;">Additional arguments passed to `npm ci`.</param>
-[<export>] let install (context: ActionContext) (force: bool option) (clean: bool option) (args: string option) =
-  let force = force |> _helpers.map_true "--force"
-  let clean = clean |> _helpers.map_true "clean-"
-  let args = _helpers.with_args args
+[<export>] let install (context: Protocol.ActionContext) (force: bool option) (clean: bool option) (args: string option) =
+  let force = force |> Helpers.map_true "--force"
+  let clean = clean |> Helpers.map_true "clean-"
+  let args = Helpers.with_args args
 
   let command =
     ""
-    |> _helpers.append_part $"{clean}install"
-    |> _helpers.append_part force
-    |> _helpers.append_part args
+    |> Helpers.append_part $"{clean}install"
+    |> Helpers.append_part force
+    |> Helpers.append_part args
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script via `npm run build`.</summary>
 /// <param name="args" required="false" example="&quot;--workspaces&quot;">Extra arguments forwarded after `--`.</param>
-[<export>] let build (context: ActionContext) (args: string option) =
+[<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "run build --"
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "run build --"
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script via `npm run test`.</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Extra arguments forwarded after `--`.</param>
-[<export>] let test (context: ActionContext) (args: string option) =
+[<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "run test --"
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "run test --"
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary npm script via `npm run &lt;target&gt;`.</summary>
 /// <param name="target" required="false" example="&quot;build-prod&quot;">Script target to invoke.</param>
 /// <param name="args" required="false" example="&quot;build-prod&quot;">Extra arguments forwarded after `--`.</param>
-[<export>] let run (context: ActionContext) (target: string) (args: string option) =
+[<export>] let run (context: Protocol.ActionContext) (target: string) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part $"run {target} --"
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part $"run {target} --"
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Executes a package binary via `npm exec`.</summary>
 /// <param name="package" required="false" example="&quot;hello-world-npm&quot;">Package to run with `npm exec`.</param>
 /// <param name="args" required="false" example="&quot;build-prod&quot;">Arguments passed to the package command.</param>
-[<export>] let exec (context: ActionContext) (package: string) (args: string option) =
+[<export>] let exec (context: Protocol.ActionContext) (package: string) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "exec --"
-    |> _helpers.append_part package
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "exec --"
+    |> Helpers.append_part package
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 

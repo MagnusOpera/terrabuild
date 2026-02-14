@@ -165,8 +165,8 @@ Any protocol change **MUST** be introduced in this document before implementatio
 Copy/paste starter template:
 
 ```fsharp
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
 [<export>] let defaults (context: ActionContext) : ProjectInfo =
@@ -204,7 +204,7 @@ Template usage rules:
 
 1. `context` **MUST** be the first parameter of every exported function.
 2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
-3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** include them.
+3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** import them as `Protocol` and `Helpers`.
 4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
 6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Batchable`, `Never`, `Local`, `External`, `Remote`.

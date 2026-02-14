@@ -1,49 +1,49 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.</summary>
 let format_vars variables =
   variables
-  |> Option.map (Map.fold (fun acc key value -> acc |> _helpers.append_part $"-var=\"{key}={value}\"") "")
+  |> Option.map (Map.fold (fun acc key value -> acc |> Helpers.append_part $"-var=\"{key}={value}\"") "")
   |> Option.defaultValue ""
 
 /// <summary>Declares default outputs for Terraform runs.</summary>
 /// <param name="ignores" required="false" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;*.planfile&quot; ]"></param>
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["*.planfile"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Terraform command (action name is forwarded to `terraform`).</summary>
 /// <param name="args" required="false" example="&quot;fmt -write=false&quot;">Arguments appended after the Terraform subcommand.</param>
-[<export>] let dispatch (context: ActionContext) (args: string option) =
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part context.Command
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part context.Command
+    |> Helpers.append_part (Helpers.with_args args)
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Initializes Terraform providers and backend.</summary>
 /// <param name="config" required="false" example="&quot;backend.prod.config&quot;">Backend config file passed to `terraform init -backend-config`.</param>
 /// <param name="args" required="false" example="&quot;-upgrade&quot;">Additional arguments for `terraform init`.</param>
-[<export>] let init (context: ActionContext) (config: string option) (args: string option) =
-  let config = config |> _helpers.map_value (fun value -> $"-backend-config={value}")
-  let args = _helpers.with_args args
+[<export>] let init (context: Protocol.ActionContext) (config: string option) (args: string option) =
+  let config = config |> Helpers.map_value (fun value -> $"-backend-config={value}")
+  let args = Helpers.with_args args
   let command =
     ""
-    |> _helpers.append_part "init"
-    |> _helpers.append_part "-reconfigure"
-    |> _helpers.append_part config
-    |> _helpers.append_part args
+    |> Helpers.append_part "init"
+    |> Helpers.append_part "-reconfigure"
+    |> Helpers.append_part config
+    |> Helpers.append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Validates configuration before planning/applying.</summary>
 /// <title>Generate plan file.</title>
 /// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform validate`.</param>
-[<export>] let validate (context: ActionContext) (args: string option) =
+[<export>] let validate (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "validate"
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "validate"
+    |> Helpers.append_part (Helpers.with_args args)
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Selects or creates a Terraform workspace before planning/applying.</summary>
@@ -51,15 +51,15 @@ let format_vars variables =
 /// <param name="workspace" required="false" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
 /// <param name="create" required="false" example="true">Create the workspace when it does not exist.</param>
 /// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform workspace select`.</param>
-[<export>] let select (context: ActionContext) (workspace: string option) (create: bool option) (args: string option) =
+[<export>] let select (context: Protocol.ActionContext) (workspace: string option) (create: bool option) (args: string option) =
   match workspace with
   | Some workspace ->
       let command =
         ""
-        |> _helpers.append_part "workspace select"
-        |> _helpers.append_part (_helpers.map_true "-or-create" create)
-        |> _helpers.append_part workspace
-        |> _helpers.append_part (_helpers.with_args args)
+        |> Helpers.append_part "workspace select"
+        |> Helpers.append_part (Helpers.map_true "-or-create" create)
+        |> Helpers.append_part workspace
+        |> Helpers.append_part (Helpers.with_args args)
       [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
   | _ -> []
 
@@ -67,45 +67,45 @@ let format_vars variables =
 /// <title>Generate plan file.</title>
 /// <param name="variables" required="false" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
 /// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform plan`.</param>
-[<export>] let plan (context: ActionContext) (variables: string map option) (args: string option) =
+[<export>] let plan (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
-  let args = _helpers.with_args args
+  let args = Helpers.with_args args
   let command =
     ""
-    |> _helpers.append_part "plan"
-    |> _helpers.append_part "-out=terrabuild.planfile"
-    |> _helpers.append_part vars
-    |> _helpers.append_part args
+    |> Helpers.append_part "plan"
+    |> Helpers.append_part "-out=terrabuild.planfile"
+    |> Helpers.append_part vars
+    |> Helpers.append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Applies the generated plan (or runs `apply` without a plan when requested).</summary>
 /// <title>Apply plan file.</title>
 /// <param name="no_plan" required="false" example="true">Run `apply` without `-out` plan file.</param>
 /// <param name="args" required="false" example="&quot;-no-color&quot;">Additional arguments for `terraform apply`.</param>
-[<export>] let apply (context: ActionContext) (no_plan: bool option) (args: string option) =
-  let planfile = _helpers.map_false "terrabuild.planfile" no_plan
-  let args = _helpers.with_args args
+[<export>] let apply (context: Protocol.ActionContext) (no_plan: bool option) (args: string option) =
+  let planfile = Helpers.map_false "terrabuild.planfile" no_plan
+  let args = Helpers.with_args args
   let command =
     ""
-    |> _helpers.append_part "apply"
-    |> _helpers.append_part "-input=false"
-    |> _helpers.append_part planfile
-    |> _helpers.append_part args
+    |> Helpers.append_part "apply"
+    |> Helpers.append_part "-input=false"
+    |> Helpers.append_part planfile
+    |> Helpers.append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Destroys all managed resources for the current workspace.</summary>
 /// <title>Destroy the deployment.</title>
 /// <param name="variables" required="false" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
 /// <param name="args" required="false" example="&quot;&quot;">Additional arguments for `terraform destroy`.</param>
-[<export>] let destroy (context: ActionContext) (variables: string map option) (args: string option) =
+[<export>] let destroy (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
-  let args = _helpers.with_args args
+  let args = Helpers.with_args args
   let command =
     ""
-    |> _helpers.append_part "destroy"
-    |> _helpers.append_part "-input=false"
-    |> _helpers.append_part vars
-    |> _helpers.append_part args
+    |> Helpers.append_part "destroy"
+    |> Helpers.append_part "-input=false"
+    |> Helpers.append_part vars
+    |> Helpers.append_part args
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 // Exported functions and Terrabuild execution flags.

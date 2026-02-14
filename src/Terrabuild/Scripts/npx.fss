@@ -1,10 +1,10 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Executes a package binary via `npx --yes`.</summary>
 /// <param name="package" required="false" example="&quot;hello-world-npm&quot;">Package to execute.</param>
 /// <param name="args" required="false" example="&quot;&quot;">Arguments forwarded to the package.</param>
-[<export>] let run (context: ActionContext) (package: string) (args: string option) =
+[<export>] let run (context: Protocol.ActionContext) (package: string) (args: string option) =
   let args = args |> Option.defaultValue ""
   [{ Command = "npx"; Arguments = $"--yes -- {package} {args}"; ErrorLevel = 0 }]
 

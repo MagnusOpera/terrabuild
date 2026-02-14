@@ -1,27 +1,27 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Provides build support for Gradle projects using the Gradle CLI. Defaults outputs to Gradle's `build/classes/` directory and forwards Terrabuild action names to `gradle`.</summary>
 /// <summary>Declares default project outputs for Gradle builds.</summary>
 /// <param name="outputs" required="false" example="[ &quot;build/classes/&quot; ]"></param>
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["build/classes/"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Gradle command (action name is forwarded to `gradle`).</summary>
 /// <param name="args" required="false" example="&quot;clean --info&quot;">Arguments appended after the Gradle command.</param>
-[<export>] let dispatch (context: ActionContext) (args: string option) =
-  let command = _helpers.with_args args |> _helpers.append_part context.Command
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+  let command = Helpers.with_args args |> Helpers.append_part context.Command
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
 /// <param name="configuration" required="false" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
 /// <param name="args" required="false" example="&quot;--scan&quot;">Additional arguments passed to `gradle assemble`.</param>
-[<export>] let build (context: ActionContext) (configuration: string option) (args: string option) =
+[<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "assemble"
-    |> _helpers.append_part (_helpers.with_configuration configuration)
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "assemble"
+    |> Helpers.append_part (Helpers.with_configuration configuration)
+    |> Helpers.append_part (Helpers.with_args args)
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
 // Exported functions and Terrabuild execution flags.

@@ -1,5 +1,5 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Provides build/test helpers for Rust projects using **Cargo** and a `Cargo.toml` at the project root. Infers dependencies from `Cargo.toml` to link Terrabuild graphs and defaults outputs to `target/{debug,release}`.</summary>
 let with_profile profile =
@@ -8,36 +8,36 @@ let with_profile profile =
 /// <summary>Infers project metadata from `Cargo.toml` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["target/debug/"; "target/release/"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).</summary>
 /// <param name="args" required="false" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
-[<export>] let dispatch (context: ActionContext) (args: string option) =
-  let command = _helpers.with_args args |> _helpers.append_part context.Command
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+  let command = Helpers.with_args args |> Helpers.append_part context.Command
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds the project with `cargo build`.</summary>
 /// <title>Build project.</title>
 /// <param name="profile" required="false" example="&quot;release&quot;">Cargo profile (defaults to `dev`).</param>
 /// <param name="args" required="false" example="&quot;--keep-going&quot;">Additional arguments passed to `cargo build`.</param>
-[<export>] let build (context: ActionContext) (profile: string option) (args: string option) =
+[<export>] let build (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "build"
-    |> _helpers.append_part (with_profile profile)
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "build"
+    |> Helpers.append_part (with_profile profile)
+    |> Helpers.append_part (Helpers.with_args args)
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs tests with `cargo test`.</summary>
 /// <param name="profile" required="false" example="&quot;release&quot;">Cargo profile for tests (defaults to `dev`).</param>
 /// <param name="args" required="false" example="&quot;--blame-hang&quot;">Additional arguments passed to `cargo test`.</param>
-[<export>] let test (context: ActionContext) (profile: string option) (args: string option) =
+[<export>] let test (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part "test"
-    |> _helpers.append_part (with_profile profile)
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part "test"
+    |> Helpers.append_part (with_profile profile)
+    |> Helpers.append_part (Helpers.with_args args)
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 // Exported functions and Terrabuild execution flags.

@@ -1,5 +1,5 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
 /// <summary>Provides build/install/test helpers for projects using **pnpm** and a `package.json`. Supports batch (cascade) builds when `pnpm-workspace.yaml` and a root `package.json` exist at the Terrabuild workspace root.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
@@ -31,7 +31,7 @@ let dependencies_from (package: Package) =
   List.append dependencies dev_dependencies
   |> List.distinct
 
-let batch_filters (context: ActionContext) =
+let batch_filters (context: Protocol.ActionContext) =
   match context.Batch with
   | Some batch ->
       batch.ProjectPaths
@@ -41,7 +41,7 @@ let batch_filters (context: ActionContext) =
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   let package = load_package context.Directory
 
   let id =
@@ -57,11 +57,11 @@ let batch_filters (context: ActionContext) =
 
 /// <summary>Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param>
-[<export>] let dispatch (context: ActionContext) (args: string option) =
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> _helpers.append_part context.Command
-    |> _helpers.append_part (_helpers.with_args args)
+    |> Helpers.append_part context.Command
+    |> Helpers.append_part (Helpers.with_args args)
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
@@ -69,48 +69,48 @@ let batch_filters (context: ActionContext) =
 /// <param name="force" required="false" example="true">Adds `--force` to reinstall when checks fail.</param>
 /// <param name="frozen" required="false" example="true">Enable frozen versions; set `true` to enforce `--frozen-lockfile`.</param>
 /// <param name="args" required="false" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param>
-[<export>] let install (context: ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
+[<export>] let install (context: Protocol.ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
   let filters = batch_filters context
-  let frozen = frozen |> _helpers.map_true "--frozen-lockfile"
-  let force = force |> _helpers.map_true "--force"
-  let args = _helpers.with_args args
+  let frozen = frozen |> Helpers.map_true "--frozen-lockfile"
+  let force = force |> Helpers.map_true "--force"
+  let args = Helpers.with_args args
 
   let command =
     ""
-    |> _helpers.append_part filters
-    |> _helpers.append_part "install"
-    |> _helpers.append_part frozen
-    |> _helpers.append_part "--link-workspace-packages"
-    |> _helpers.append_part force
-    |> _helpers.append_part args
+    |> Helpers.append_part filters
+    |> Helpers.append_part "install"
+    |> Helpers.append_part frozen
+    |> Helpers.append_part "--link-workspace-packages"
+    |> Helpers.append_part force
+    |> Helpers.append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script (`pnpm run build`) across targeted workspaces.</summary>
 /// <param name="args" required="false" example="&quot;--no-color&quot;">Additional arguments for the script.</param>
-[<export>] let build (context: ActionContext) (args: string option) =
+[<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
-  let args = _helpers.with_args args
+  let args = Helpers.with_args args
 
   let command =
     ""
-    |> _helpers.append_part filters
-    |> _helpers.append_part "run build"
-    |> _helpers.append_part args
+    |> Helpers.append_part filters
+    |> Helpers.append_part "run build"
+    |> Helpers.append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script (`pnpm run test`) across targeted workspaces.</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments for the script.</param>
-[<export>] let test (context: ActionContext) (args: string option) =
+[<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
-  let args = _helpers.with_args args
+  let args = Helpers.with_args args
 
   let command =
     ""
-    |> _helpers.append_part filters
-    |> _helpers.append_part "run test"
-    |> _helpers.append_part args
+    |> Helpers.append_part filters
+    |> Helpers.append_part "run test"
+    |> Helpers.append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
@@ -118,15 +118,15 @@ let batch_filters (context: ActionContext) =
 /// <param name="target" required="false" example="&quot;build-prod&quot;">Target to invoke.</param>
 /// <param name="args" required="false" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
 /// <param name="no_recursive" required="false" example="true">Skip `--recursive` when targeting a single workspace.</param>
-[<export>] let run (context: ActionContext) (target: string) (no_recursive: bool option) (args: string option) =
-  let recursive = no_recursive |> _helpers.map_false "--recursive"
-  let args = _helpers.with_args args
+[<export>] let run (context: Protocol.ActionContext) (target: string) (no_recursive: bool option) (args: string option) =
+  let recursive = no_recursive |> Helpers.map_false "--recursive"
+  let args = Helpers.with_args args
 
   let command =
     ""
-    |> _helpers.append_part recursive
-    |> _helpers.append_part $"run {target}"
-    |> _helpers.append_part args
+    |> Helpers.append_part recursive
+    |> Helpers.append_part $"run {target}"
+    |> Helpers.append_part args
 
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 

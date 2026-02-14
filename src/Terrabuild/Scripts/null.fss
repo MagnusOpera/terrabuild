@@ -1,10 +1,10 @@
-import "_protocol.fss"
-import "_helpers.fss"
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
 
-[<export>] let defaults (context: ActionContext) =
+[<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = []; Dependencies = [] }
-[<export>] let dispatch (context: ActionContext) = []
-[<export>] let fake (context: ActionContext) = []
+[<export>] let dispatch (context: Protocol.ActionContext) = []
+[<export>] let fake (context: Protocol.ActionContext) = []
 
 // Exported functions and Terrabuild execution flags.
 {
