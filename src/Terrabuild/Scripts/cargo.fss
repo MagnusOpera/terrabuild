@@ -6,21 +6,21 @@ let with_profile profile =
   profile |> Option.map (fun value -> $"--profile {value}") |> Option.defaultValue ""
 
 /// <summary>Infers project metadata from `Cargo.toml` (dependencies and default outputs).</summary>
-/// <param name="ignores" required="false" example="[ ]"></param>
-/// <param name="outputs" required="false" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
+/// <param name="ignores" example="[ ]"></param>
+/// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["target/debug/"; "target/release/"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).</summary>
-/// <param name="args" required="false" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
+/// <param name="args" default="" example="&quot;check --locked&quot;">Additional arguments appended after the subcommand.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds the project with `cargo build`.</summary>
 /// <title>Build project.</title>
-/// <param name="profile" required="false" example="&quot;release&quot;">Cargo profile (defaults to `dev`).</param>
-/// <param name="args" required="false" example="&quot;--keep-going&quot;">Additional arguments passed to `cargo build`.</param>
+/// <param name="profile" default="" example="&quot;release&quot;">Cargo profile (defaults to `dev`).</param>
+/// <param name="args" default="" example="&quot;--keep-going&quot;">Additional arguments passed to `cargo build`.</param>
 [<export>] let build (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""
@@ -30,8 +30,8 @@ let with_profile profile =
   [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs tests with `cargo test`.</summary>
-/// <param name="profile" required="false" example="&quot;release&quot;">Cargo profile for tests (defaults to `dev`).</param>
-/// <param name="args" required="false" example="&quot;--blame-hang&quot;">Additional arguments passed to `cargo test`.</param>
+/// <param name="profile" default="" example="&quot;release&quot;">Cargo profile for tests (defaults to `dev`).</param>
+/// <param name="args" default="" example="&quot;--blame-hang&quot;">Additional arguments passed to `cargo test`.</param>
 [<export>] let test (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""

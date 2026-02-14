@@ -39,8 +39,8 @@ let batch_filters (context: Protocol.ActionContext) =
   | _ -> ""
 
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
-/// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
-/// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
+/// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
+/// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
   let package = load_package context.Directory
 
@@ -56,7 +56,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Id = id; Outputs = ["dist/**"]; Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).</summary>
-/// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param>
+/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
@@ -66,9 +66,9 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.</summary>
-/// <param name="force" required="false" example="true">Adds `--force` to reinstall when checks fail.</param>
-/// <param name="frozen" required="false" example="true">Enable frozen versions; set `true` to enforce `--frozen-lockfile`.</param>
-/// <param name="args" required="false" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param>
+/// <param name="force" default="true" example="true">Adds `--force` to reinstall when checks fail.</param>
+/// <param name="frozen" default="true" example="true">Enable frozen versions; set `true` to enforce `--frozen-lockfile`.</param>
+/// <param name="args" default="" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param>
 [<export>] let install (context: Protocol.ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
   let filters = batch_filters context
   let frozen = frozen |> Helpers.map_true "--frozen-lockfile"
@@ -87,7 +87,7 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script (`pnpm run build`) across targeted workspaces.</summary>
-/// <param name="args" required="false" example="&quot;--no-color&quot;">Additional arguments for the script.</param>
+/// <param name="args" default="" example="&quot;--no-color&quot;">Additional arguments for the script.</param>
 [<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
   let args = Helpers.with_args args
@@ -101,7 +101,7 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script (`pnpm run test`) across targeted workspaces.</summary>
-/// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments for the script.</param>
+/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments for the script.</param>
 [<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
   let args = Helpers.with_args args
@@ -115,9 +115,9 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary pnpm script (`pnpm run &lt;target&gt;`).</summary>
-/// <param name="target" required="false" example="&quot;build-prod&quot;">Target to invoke.</param>
-/// <param name="args" required="false" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
-/// <param name="no_recursive" required="false" example="true">Skip `--recursive` when targeting a single workspace.</param>
+/// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param>
+/// <param name="args" default="" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
+/// <param name="no_recursive" default="false" example="true">Skip `--recursive` when targeting a single workspace.</param>
 [<export>] let run (context: Protocol.ActionContext) (target: string) (no_recursive: bool option) (args: string option) =
   let recursive = no_recursive |> Helpers.map_false "--recursive"
   let args = Helpers.with_args args

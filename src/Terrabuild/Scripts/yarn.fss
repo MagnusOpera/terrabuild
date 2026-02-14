@@ -32,8 +32,8 @@ let dependencies_from (package: Package) =
   |> List.distinct
 
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
-/// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
-/// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
+/// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
+/// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
   let dependencies =
     context.Directory
@@ -44,7 +44,7 @@ let dependencies_from (package: Package) =
   { Id = None; Outputs = ["dist/**"]; Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).</summary>
-/// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended after the yarn command.</param>
+/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments appended after the yarn command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
@@ -55,9 +55,9 @@ let dependencies_from (package: Package) =
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Installs packages with `yarn install`, optionally updating the lockfile or ignoring engines.</summary>
-/// <param name="update" required="false" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param>
-/// <param name="ignore-engines" required="false" example="true">Adds `--ignore-engines`.</param>
-/// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param>
+/// <param name="update" default="false" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param>
+/// <param name="ignore-engines" default="false" example="true">Adds `--ignore-engines`.</param>
+/// <param name="args" default="" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param>
 [<export>] let install (context: Protocol.ActionContext) (update: bool option) (ignoreEngines: bool option) (args: string option) =
   let update = update |> Helpers.map_false "--frozen-lockfile"
   let ignore_engines = ignoreEngines |> Helpers.map_true "--ignore-engines"
@@ -73,7 +73,7 @@ let dependencies_from (package: Package) =
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
-/// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
+/// <param name="args" default="" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
 [<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
@@ -83,7 +83,7 @@ let dependencies_from (package: Package) =
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
-/// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
+/// <param name="args" default="" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
 [<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
@@ -93,8 +93,8 @@ let dependencies_from (package: Package) =
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
-/// <param name="command" required="false" example="&quot;build-prod&quot;">Command to run.</param>
-/// <param name="args" required="false" example="&quot;build-prod&quot;">Additional arguments forwarded after `--`.</param>
+/// <param name="command" example="&quot;build-prod&quot;">Command to run.</param>
+/// <param name="args" default="" example="&quot;build-prod&quot;">Additional arguments forwarded after `--`.</param>
 [<export>] let run (context: Protocol.ActionContext) (command: string) (args: string option) =
   let operation =
     ""

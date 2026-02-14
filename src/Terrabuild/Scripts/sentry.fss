@@ -10,8 +10,8 @@ let with_project project =
 /// Note sourcemaps upload is strict for CI mode.
 /// </summary>
 /// <title>Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.</title>
-/// <param name="project" required="false" example="&quot;insights&quot;">Project slug.</param>
-/// <param name="path" required="false" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param>
+/// <param name="project" default="" example="&quot;insights&quot;">Project slug.</param>
+/// <param name="path" default="dist" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param>
 [<export>] let sourcemaps (context: Protocol.ActionContext) (project: string option) (path: string option) =
   let project = with_project project
   let path = path |> Option.defaultValue "dist"
