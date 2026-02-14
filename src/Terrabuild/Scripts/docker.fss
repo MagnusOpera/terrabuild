@@ -1,5 +1,5 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Builds and publishes container images using the Docker CLI. Uses the Terrabuild action name as the Docker subcommand for ad-hoc invocations and tags images with the action hash. CI pushes rely on `docker buildx imagetools` to publish the hashed image under an explicit tag.</summary>
 let append_csv acc value =
@@ -8,7 +8,7 @@ let append_csv acc value =
   | _ -> $"{acc},{value}"
 
 let append_build_arg acc key value =
-  append_part $"--build-arg {key}=\"{value}\"" acc
+  _helpers.append_part $"--build-arg {key}=\"{value}\"" acc
 
 let format_platforms platforms =
   let joined = List.fold append_csv "" platforms
@@ -21,8 +21,8 @@ let format_build_args build_args =
 
 /// <summary>Runs an arbitrary Docker CLI command (action name is forwarded to `docker`).</summary>
 /// <param name="args" required="false" example="&quot;image prune -f&quot;">Arguments appended after the Docker subcommand.</param>
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
-  let command = with_args args |> append_part context.Command
+[<export>] let dispatch (context: ActionContext) (args: string option) =
+  let command = _helpers.with_args args |> _helpers.append_part context.Command
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds a Docker image and tags it with the Terrabuild hash; pushes automatically when running in CI.</summary>
@@ -31,21 +31,21 @@ let format_build_args build_args =
 /// <param name="platforms" required="false" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
 /// <param name="build_args" required="false" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param>
 /// <param name="args" required="false" example="&quot;--debug&quot;">Additional arguments passed to `docker build`.</param>
-[<export>] let build (context: {| CI: bool; Hash: string |}) (image: string) (dockerfile: string option) (platforms: string list option) (build_args: string map option) (args: string option) =
+[<export>] let build (context: ActionContext) (image: string) (dockerfile: string option) (platforms: string list option) (build_args: string map option) (args: string option) =
   let dockerfile = dockerfile |> Option.defaultValue "Dockerfile"
   let platforms = platforms |> Option.map format_platforms |> Option.defaultValue ""
   let build_args = build_args |> Option.map format_build_args |> Option.defaultValue ""
-  let args = args |> with_args
+  let args = args |> _helpers.with_args
 
   let command =
     ""
-    |> append_part "build"
-    |> append_part $"--file {dockerfile}"
-    |> append_part $"--tag {image}:{context.Hash}"
-    |> append_part build_args
-    |> append_part platforms
-    |> append_part args
-    |> append_part "."
+    |> _helpers.append_part "build"
+    |> _helpers.append_part $"--file {dockerfile}"
+    |> _helpers.append_part $"--tag {image}:{context.Hash}"
+    |> _helpers.append_part build_args
+    |> _helpers.append_part platforms
+    |> _helpers.append_part args
+    |> _helpers.append_part "."
 
   let ops = [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
   if context.CI then
@@ -57,21 +57,21 @@ let format_build_args build_args =
 /// <param name="image" required="true" example="&quot;ghcr.io/example/project&quot;">Repository to push.</param>
 /// <param name="tag" required="true" example="&quot;1.2.3-stable&quot;">Tag applied to the image (hash tag is used as the source).</param>
 /// <param name="args" required="false" example="&quot;--disable-content-trust&quot;">Additional arguments passed to tagging/push.</param>
-[<export>] let push (context: {| CI: bool; Hash: string |}) (image: string) (tag: string) (args: string option) =
-  let args = args |> with_args
+[<export>] let push (context: ActionContext) (image: string) (tag: string) (args: string option) =
+  let args = args |> _helpers.with_args
   let command =
     if context.CI then
       ""
-      |> append_part "buildx imagetools create"
-      |> append_part $"-t {image}:{tag}"
-      |> append_part $"{image}:{context.Hash}"
-      |> append_part args
+      |> _helpers.append_part "buildx imagetools create"
+      |> _helpers.append_part $"-t {image}:{tag}"
+      |> _helpers.append_part $"{image}:{context.Hash}"
+      |> _helpers.append_part args
     else
       ""
-      |> append_part "tag"
-      |> append_part $"{image}:{context.Hash}"
-      |> append_part $"{image}:{tag}"
-      |> append_part args
+      |> _helpers.append_part "tag"
+      |> _helpers.append_part $"{image}:{context.Hash}"
+      |> _helpers.append_part $"{image}:{tag}"
+      |> _helpers.append_part args
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
 // Exported functions and Terrabuild execution flags.

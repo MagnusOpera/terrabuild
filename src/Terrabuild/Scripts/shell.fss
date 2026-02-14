@@ -1,9 +1,9 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Runs the Terrabuild action name as the shell command.</summary>
 /// <param name="args" required="false" example="&quot;Hello Terrabuild&quot;">Arguments passed to the command.</param>
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
+[<export>] let dispatch (context: ActionContext) (args: string option) =
   let args = args |> Option.defaultValue ""
   [{ Command = context.Command; Arguments = args; ErrorLevel = 0 }]
 

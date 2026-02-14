@@ -1,5 +1,5 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`). Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
@@ -20,7 +20,7 @@ let dependency_dirs refs =
   |> List.choose Fs.parentDirectory
   |> List.distinct
 
-let with_batch_projects (context: {| Batch: BatchContext option |}) create_command =
+let with_batch_projects (context: _protocol.ActionContext) create_command =
   match context.Batch with
   | Some batch ->
       batch.ProjectPaths
@@ -35,7 +35,7 @@ let command_op arguments =
 /// <summary>Infers project metadata from the nearest SDK project file (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ &quot;**/*.binlog&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]"></param>
-[<export>] let defaults (context: {| Directory: string |}) =
+[<export>] let defaults (context: _protocol.ActionContext) =
   let dependencies =
     context.Directory
     |> first_project_file
@@ -46,35 +46,35 @@ let command_op arguments =
 
 /// <summary>Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).</summary>
 /// <param name="args" required="false" example="&quot;run -- -v&quot;">Arguments appended after the dotnet command.</param>
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
-  let command = with_args args |> append_part context.Command
+[<export>] let dispatch (context: _protocol.ActionContext) (args: string option) =
+  let command = _helpers.with_args args |> _helpers.append_part context.Command
   [command_op command]
 
 /// <summary>Executes `dotnet tool ...` commands.</summary>
 /// <param name="args" required="false" example="&quot;install MagnusOpera.OpenApiGen&quot;">Arguments appended after `dotnet tool`.</param>
-[<export>] let tool (context: {| Command: string |}) (args: string option) =
+[<export>] let tool (context: _protocol.ActionContext) (args: string option) =
   let command =
     ""
-    |> append_part "tool"
-    |> append_part (with_args args)
+    |> _helpers.append_part "tool"
+    |> _helpers.append_part (_helpers.with_args args)
   [command_op command]
 
 /// <summary>Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.</summary>
 /// <param name="locked" required="false" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
 /// <param name="evaluate" required="false" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
 /// <param name="args" required="false" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
-[<export>] let restore (context: {| Batch: BatchContext option |}) (locked: bool option) (evaluate: bool option) (args: string option) =
-  let locked = map_true "--locked-mode" locked
-  let force_evaluate = map_true "--force-evaluate" evaluate
-  let args = with_args args
+[<export>] let restore (context: _protocol.ActionContext) (locked: bool option) (evaluate: bool option) (args: string option) =
+  let locked = _helpers.map_true "--locked-mode" locked
+  let force_evaluate = _helpers.map_true "--force-evaluate" evaluate
+  let args = _helpers.with_args args
 
   let create_command project_file =
     ""
-    |> append_part "restore"
-    |> append_part project_file
-    |> append_part locked
-    |> append_part force_evaluate
-    |> append_part args
+    |> _helpers.append_part "restore"
+    |> _helpers.append_part project_file
+    |> _helpers.append_part locked
+    |> _helpers.append_part force_evaluate
+    |> _helpers.append_part args
     |> command_op
 
   with_batch_projects context create_command
@@ -87,24 +87,24 @@ let command_op arguments =
 /// <param name="restore" required="false" example="&quot;true&quot;">Perform restore (omit to add `--no-restore`).</param>
 /// <param name="version" required="false" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
 /// <param name="args" required="false" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
-[<export>] let build (context: {| Batch: BatchContext option |}) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (version: string option) (args: string option) =
-  let configuration = with_configuration configuration
-  let log = map_true "-bl" log
-  let no_restore = map_false "--no-restore" restore
-  let maxcpucount = map_value (fun value -> $"-maxcpucount:{value}") parallel
-  let version = map_value (fun value -> $"-p:Version={value}") version
-  let args = with_args args
+[<export>] let build (context: _protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (version: string option) (args: string option) =
+  let configuration = _helpers.with_configuration configuration
+  let log = _helpers.map_true "-bl" log
+  let no_restore = _helpers.map_false "--no-restore" restore
+  let maxcpucount = _helpers.map_value (fun value -> $"-maxcpucount:{value}") parallel
+  let version = _helpers.map_value (fun value -> $"-p:Version={value}") version
+  let args = _helpers.with_args args
 
   let create_command project_file =
     ""
-    |> append_part "build"
-    |> append_part project_file
-    |> append_part no_restore
-    |> append_part $"--configuration {configuration}"
-    |> append_part log
-    |> append_part maxcpucount
-    |> append_part version
-    |> append_part args
+    |> _helpers.append_part "build"
+    |> _helpers.append_part project_file
+    |> _helpers.append_part no_restore
+    |> _helpers.append_part $"--configuration {configuration}"
+    |> _helpers.append_part log
+    |> _helpers.append_part maxcpucount
+    |> _helpers.append_part version
+    |> _helpers.append_part args
     |> command_op
 
   with_batch_projects context create_command
@@ -115,22 +115,22 @@ let command_op arguments =
 /// <param name="build" required="false" example="&quot;true&quot;">Build before packing (omit to add `--no-build`).</param>
 /// <param name="version" required="false" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
 /// <param name="args" required="false" example="&quot;--include-symbols&quot;">Additional arguments for `dotnet pack`.</param>
-[<export>] let pack (context: {| Command: string |}) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (args: string option) =
-  let configuration = with_configuration configuration
+[<export>] let pack (context: _protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (args: string option) =
+  let configuration = _helpers.with_configuration configuration
   let version = version |> Option.defaultValue "0.0.0"
-  let no_restore = map_false "--no-restore" restore
-  let no_build = map_false "--no-build" build
-  let args = with_args args
+  let no_restore = _helpers.map_false "--no-restore" restore
+  let no_build = _helpers.map_false "--no-build" build
+  let args = _helpers.with_args args
 
   let command =
     ""
-    |> append_part "pack"
-    |> append_part no_restore
-    |> append_part no_build
-    |> append_part $"--configuration {configuration}"
-    |> append_part $"/p:Version={version}"
-    |> append_part "/p:TargetsForTfmSpecificContentInPackage="
-    |> append_part args
+    |> _helpers.append_part "pack"
+    |> _helpers.append_part no_restore
+    |> _helpers.append_part no_build
+    |> _helpers.append_part $"--configuration {configuration}"
+    |> _helpers.append_part $"/p:Version={version}"
+    |> _helpers.append_part "/p:TargetsForTfmSpecificContentInPackage="
+    |> _helpers.append_part args
 
   [command_op command]
 
@@ -142,26 +142,26 @@ let command_op arguments =
 /// <param name="trim" required="false" example="true">Adds `-p:PublishTrimmed=true`.</param>
 /// <param name="single" required="false" example="true">Publishes self-contained (`--self-contained`).</param>
 /// <param name="args" required="false" example="&quot;--version-suffix beta&quot;">Additional arguments for `dotnet publish`.</param>
-[<export>] let publish (context: {| Batch: BatchContext option |}) (configuration: string option) (restore: bool option) (build: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
-  let configuration = with_configuration configuration
-  let no_restore = map_false "--no-restore" restore
-  let no_build = map_false "--no-build" build
-  let runtime = map_value (fun value -> $"-r {value}") runtime
-  let trim = map_true "-p:PublishTrimmed=true" trim
-  let single = map_true "--self-contained" single
-  let args = with_args args
+[<export>] let publish (context: _protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
+  let configuration = _helpers.with_configuration configuration
+  let no_restore = _helpers.map_false "--no-restore" restore
+  let no_build = _helpers.map_false "--no-build" build
+  let runtime = _helpers.map_value (fun value -> $"-r {value}") runtime
+  let trim = _helpers.map_true "-p:PublishTrimmed=true" trim
+  let single = _helpers.map_true "--self-contained" single
+  let args = _helpers.with_args args
 
   let create_command project_file =
     ""
-    |> append_part "publish"
-    |> append_part project_file
-    |> append_part no_restore
-    |> append_part no_build
-    |> append_part $"--configuration {configuration}"
-    |> append_part runtime
-    |> append_part trim
-    |> append_part single
-    |> append_part args
+    |> _helpers.append_part "publish"
+    |> _helpers.append_part project_file
+    |> _helpers.append_part no_restore
+    |> _helpers.append_part no_build
+    |> _helpers.append_part $"--configuration {configuration}"
+    |> _helpers.append_part runtime
+    |> _helpers.append_part trim
+    |> _helpers.append_part single
+    |> _helpers.append_part args
     |> command_op
 
   with_batch_projects context create_command
@@ -172,34 +172,34 @@ let command_op arguments =
 /// <param name="build" required="false" example="&quot;true&quot;">Build before testing (omit to add `--no-build`).</param>
 /// <param name="filter" required="false" example="&quot;TestCategory!=integration&quot;">Test filter expression (`--filter`).</param>
 /// <param name="args" required="false" example="&quot;--blame-hang&quot;">Additional arguments for `dotnet test`.</param>
-[<export>] let test (context: {| Batch: BatchContext option |}) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
-  let configuration = with_configuration configuration
-  let no_restore = map_false "--no-restore" restore
-  let no_build = map_false "--no-build" build
-  let filter = map_value (fun value -> $"--filter \"{value}\"") filter
-  let args = with_args args
+[<export>] let test (context: _protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
+  let configuration = _helpers.with_configuration configuration
+  let no_restore = _helpers.map_false "--no-restore" restore
+  let no_build = _helpers.map_false "--no-build" build
+  let filter = _helpers.map_value (fun value -> $"--filter \"{value}\"") filter
+  let args = _helpers.with_args args
 
   let create_command project_file =
     ""
-    |> append_part "test"
-    |> append_part project_file
-    |> append_part no_restore
-    |> append_part no_build
-    |> append_part $"--configuration {configuration}"
-    |> append_part filter
-    |> append_part args
+    |> _helpers.append_part "test"
+    |> _helpers.append_part project_file
+    |> _helpers.append_part no_restore
+    |> _helpers.append_part no_build
+    |> _helpers.append_part $"--configuration {configuration}"
+    |> _helpers.append_part filter
+    |> _helpers.append_part args
     |> command_op
 
   with_batch_projects context create_command
 
 // Exported functions and Terrabuild execution flags.
 {
-  [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof tool] = [Local]
-  [nameof restore] = [Local; Batchable]
-  [nameof build] = [Remote; Batchable]
-  [nameof pack] = [Remote]
-  [nameof publish] = [Remote; Batchable]
-  [nameof test] = [Remote; Batchable]
+  [nameof defaults] = [_protocol.Default]
+  [nameof dispatch] = [_protocol.Dispatch; _protocol.Never]
+  [nameof tool] = [_protocol.Local]
+  [nameof restore] = [_protocol.Local; _protocol.Batchable]
+  [nameof build] = [_protocol.Remote; _protocol.Batchable]
+  [nameof pack] = [_protocol.Remote]
+  [nameof publish] = [_protocol.Remote; _protocol.Batchable]
+  [nameof test] = [_protocol.Remote; _protocol.Batchable]
 }

@@ -1,5 +1,5 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Generates API clients using **OpenAPI Generator**. Requires the `openapitools/openapi-generator-cli` container in the extension configuration so the `docker-entrypoint.sh` is available.</summary>
 let append_comma acc value =
@@ -23,18 +23,18 @@ let format_properties properties =
 /// <param name="output" required="true" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
 /// <param name="properties" required="false" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
 /// <param name="args" required="false" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
-[<export>] let generate (context: {| Command: string |}) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
+[<export>] let generate (context: ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
   let properties = format_properties properties
   let args = args |> Option.defaultValue ""
 
   let command =
     ""
-    |> append_part "generate"
-    |> append_part $"-i {input}"
-    |> append_part $"-g {generator}"
-    |> append_part $"-o {output}"
-    |> append_part properties
-    |> append_part args
+    |> _helpers.append_part "generate"
+    |> _helpers.append_part $"-i {input}"
+    |> _helpers.append_part $"-g {generator}"
+    |> _helpers.append_part $"-o {output}"
+    |> _helpers.append_part properties
+    |> _helpers.append_part args
 
   [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
 

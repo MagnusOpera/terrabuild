@@ -1,5 +1,5 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Invokes GNU Make targets, passing variables and extra arguments through Terrabuild. Assumes a `Makefile` in the project directory.</summary>
 let append_variable acc key value =
@@ -14,7 +14,7 @@ let format_variables vars =
 /// <summary>Invokes the Terrabuild action name as the make target.</summary>
 /// <param name="variables" required="false" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` variables injected before the target.</param>
 /// <param name="args" required="false" example="&quot;-d&quot;">Additional arguments passed to `make`.</param>
-[<export>] let dispatch (context: {| Command: string |}) (variables: string map option) (args: string option) =
+[<export>] let dispatch (context: ActionContext) (variables: string map option) (args: string option) =
   let variables =
     variables
     |> Option.map format_variables

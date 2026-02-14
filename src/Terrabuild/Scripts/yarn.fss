@@ -1,5 +1,5 @@
-#include "_protocol.fss"
-#include "_helpers.fss"
+import "_protocol.fss"
+import "_helpers.fss"
 
 /// <summary>Provides build/test helpers for projects using **yarn** and a `package.json`. Defaults outputs to `dist/**` and infers dependencies from `package.json` to link Terrabuild graphs.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
@@ -34,7 +34,7 @@ let dependencies_from (package: Package) =
 /// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
 /// <param name="ignores" required="false" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" required="false" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: {| Directory: string |}) =
+[<export>] let defaults (context: ActionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -45,12 +45,12 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).</summary>
 /// <param name="args" required="false" example="&quot;--port=1337&quot;">Additional arguments appended after the yarn command.</param>
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
+[<export>] let dispatch (context: ActionContext) (args: string option) =
   let command =
     ""
-    |> append_part context.Command
-    |> append_part "--"
-    |> append_part (with_args args)
+    |> _helpers.append_part context.Command
+    |> _helpers.append_part "--"
+    |> _helpers.append_part (_helpers.with_args args)
 
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
@@ -58,49 +58,49 @@ let dependencies_from (package: Package) =
 /// <param name="update" required="false" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param>
 /// <param name="ignore-engines" required="false" example="true">Adds `--ignore-engines`.</param>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param>
-[<export>] let install (context: {| Command: string |}) (update: bool option) (ignoreEngines: bool option) (args: string option) =
-  let update = update |> map_false "--frozen-lockfile"
-  let ignore_engines = ignoreEngines |> map_true "--ignore-engines"
-  let args = with_args args
+[<export>] let install (context: ActionContext) (update: bool option) (ignoreEngines: bool option) (args: string option) =
+  let update = update |> _helpers.map_false "--frozen-lockfile"
+  let ignore_engines = ignoreEngines |> _helpers.map_true "--ignore-engines"
+  let args = _helpers.with_args args
 
   let command =
     ""
-    |> append_part "install"
-    |> append_part update
-    |> append_part ignore_engines
-    |> append_part args
+    |> _helpers.append_part "install"
+    |> _helpers.append_part update
+    |> _helpers.append_part ignore_engines
+    |> _helpers.append_part args
 
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let build (context: {| Command: string |}) (args: string option) =
+[<export>] let build (context: ActionContext) (args: string option) =
   let command =
     ""
-    |> append_part "build --"
-    |> append_part (with_args args)
+    |> _helpers.append_part "build --"
+    |> _helpers.append_part (_helpers.with_args args)
 
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
 /// <param name="args" required="false" example="&quot;--verbose&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let test (context: {| Command: string |}) (args: string option) =
+[<export>] let test (context: ActionContext) (args: string option) =
   let command =
     ""
-    |> append_part "test --"
-    |> append_part (with_args args)
+    |> _helpers.append_part "test --"
+    |> _helpers.append_part (_helpers.with_args args)
 
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
 /// <param name="command" required="false" example="&quot;build-prod&quot;">Command to run.</param>
 /// <param name="args" required="false" example="&quot;build-prod&quot;">Additional arguments forwarded after `--`.</param>
-[<export>] let run (context: {| Command: string |}) (command: string) (args: string option) =
+[<export>] let run (context: ActionContext) (command: string) (args: string option) =
   let operation =
     ""
-    |> append_part command
-    |> append_part "--"
-    |> append_part (with_args args)
+    |> _helpers.append_part command
+    |> _helpers.append_part "--"
+    |> _helpers.append_part (_helpers.with_args args)
 
   [{ Command = "yarn"; Arguments = operation; ErrorLevel = 0 }]
 

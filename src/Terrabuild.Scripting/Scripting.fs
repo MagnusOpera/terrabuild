@@ -505,6 +505,7 @@ and private Conversions =
 
 let private checker = FSharpChecker.Create()
 let mutable private cache = Map.empty<string, Script>
+let private loadLock = obj ()
 
 let private loadLegacyScript (references: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
@@ -555,17 +556,18 @@ let loadScript (rootDirectory: string) (references: string list) (scriptFile: st
     let fullScriptPath = Path.GetFullPath(scriptFile)
     let fullRootDirectory = Path.GetFullPath(rootDirectory)
     let cacheKey = $"{fullRootDirectory}::{fullScriptPath}"
-    match cache |> Map.tryFind cacheKey with
-    | Some script -> script
-    | None ->
-        let extension =
-            match Path.GetExtension(fullScriptPath) with
-            | null
-            | "" -> ""
-            | value -> value.ToLowerInvariant()
-        let script =
-            match extension with
-            | ".fss" -> loadFScript fullRootDirectory fullScriptPath
-            | _ -> loadLegacyScript references fullScriptPath
-        cache <- cache |> Map.add cacheKey script
-        script
+    lock loadLock (fun () ->
+        match cache |> Map.tryFind cacheKey with
+        | Some script -> script
+        | None ->
+            let extension =
+                match Path.GetExtension(fullScriptPath) with
+                | null
+                | "" -> ""
+                | value -> value.ToLowerInvariant()
+            let script =
+                match extension with
+                | ".fss" -> loadFScript fullRootDirectory fullScriptPath
+                | _ -> loadLegacyScript references fullScriptPath
+            cache <- cache |> Map.add cacheKey script
+            script)
