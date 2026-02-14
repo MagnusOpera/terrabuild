@@ -212,7 +212,8 @@ Template usage rules:
 Parameter XML documentation attributes:
 
 1. `<param name="...">` **MUST** define a parameter name.
-2. `required="true|false"` **MAY** be used to explicitly control argument requiredness in generated docs.
-3. `default="..."` **MAY** be used to declare the default value used when omitted.
-4. When `required` is omitted, DocGen marks the parameter as required if `default` is absent, otherwise optional.
-5. When `default` is set, DocGen appends `Default value is <value>.` to the generated argument description.
+2. `default` controls requiredness in generated docs:
+   - not provided: parameter is required
+   - `default=""`: parameter is optional
+   - `default="..."`: parameter is optional with a documented default value
+3. When `default` is set to a non-empty value, DocGen appends `Default value is <value>.` to the generated argument description.

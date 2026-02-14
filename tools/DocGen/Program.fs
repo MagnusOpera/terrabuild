@@ -74,18 +74,16 @@ let private collapseText (value: string) =
 let private normalizeParamNameForCompare (name: string) =
     name.ToLowerInvariant().Replace("-", "").Replace("_", "")
 
-let private parseRequiredAttribute (raw: string option) (defaultValue: string option) =
-    match raw |> Option.map (fun v -> v.Trim().ToLowerInvariant()) with
-    | Some "true"
-    | Some "required" -> true
-    | Some "false"
-    | Some "optional" -> false
-    | _ -> defaultValue |> Option.isNone
-
-let private parseDefaultAttribute (raw: string option) =
-    raw
-    |> Option.map (fun v -> v.Trim())
-    |> Option.filter (fun v -> v <> "")
+let private parseDefaultAttribute (raw: XAttribute option) =
+    match raw with
+    | None ->
+        // No default metadata means the argument is required.
+        true, None
+    | Some value ->
+        let trimmed = value.Value.Trim()
+        // default="" => optional without explicit default value text.
+        if trimmed = "" then false, None
+        else false, Some trimmed
 
 let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
     if List.isEmpty docLines then
@@ -121,16 +119,10 @@ let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
                         |> Option.ofObj
                         |> Option.map (fun x -> x.Value.Trim())
                         |> Option.defaultValue ""
-                    let defaultValue =
+                    let required, defaultValue =
                         e.Attribute(XName.Get "default")
                         |> Option.ofObj
-                        |> Option.map (fun x -> x.Value)
                         |> parseDefaultAttribute
-                    let required =
-                        e.Attribute(XName.Get "required")
-                        |> Option.ofObj
-                        |> Option.map (fun x -> x.Value)
-                        |> fun raw -> parseRequiredAttribute raw defaultValue
                     let summary = collapseText e.Value
                     { Name = name; Required = required; Summary = summary; Example = example; DefaultValue = defaultValue })
                 |> List.ofSeq
