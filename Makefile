@@ -5,6 +5,7 @@ terrabuild ?= dotnet run --project $(ROOT_DIR)src/Terrabuild -c $(config) --
 refresh ?= false
 version ?= 0.0.0
 engine ?= docker
+dryrun ?= false
 
 current_dir = $(shell pwd)
 
@@ -195,3 +196,6 @@ smoke-indirect-target:
 	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --engine docker --local-only)
 
 smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target
+
+release:
+	./.github/scripts/release.sh "$(version)" "$(dryrun)"

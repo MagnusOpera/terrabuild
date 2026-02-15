@@ -106,16 +106,21 @@ For broad/core changes:
 
 Terrabuild uses a draft-based release flow:
 
-1. Move `## [Unreleased]` entries to `## [X.Y.Z]` in `CHANGELOG.md`.
-2. Add/verify a compare link in that version section:
-   `**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/<previous-tag>...<new-tag>`
-3. Commit changelog updates.
-4. Create and push tag `X.Y.Z`.
-5. Wait for CI (`on-push-tag.yml`) to create the GitHub release as draft and upload artifacts.
-6. Publish that existing draft release (do not create/publish manually before CI draft creation).
+1. Run `make release version=X.Y.Z` (stable) or `make release version=X.Y.Z-next` (preview).
+   - Optional preview mode: `make release version=X.Y.Z[-next] dryrun=true`
+2. The command updates `CHANGELOG.md`, commits changelog changes, and creates a local tag.
+3. Push commit and tag:
+   - `git push origin main`
+   - `git push origin X.Y.Z` (or `X.Y.Z-next`)
+4. Wait for CI (`on-push-tag.yml`) to create the GitHub release as draft and upload artifacts.
+5. Publish that existing draft release (do not create/publish manually before CI draft creation).
 
 Rules:
 
 - Tag workflow sources draft release notes from `CHANGELOG.md` section `## [X.Y.Z]`.
 - Tag workflow fails if version section is missing/empty, has no bullet, or has no compare link.
 - `on-release-published.yml` consumes release artifacts from the published release, signs macOS binaries, and publishes NuGet/Homebrew.
+- `make release` supports `X.Y.Z` and `X.Y.Z-next` only.
+- Compare link policy:
+  - stable release compares against previous stable tag.
+  - preview release compares against previous `-next` tag.
