@@ -27,27 +27,44 @@ You'll want to install the following on your machine:
 
 - [.net SDK](https://dotnet.microsoft.com/download)
 - [GNU Make](https://www.gnu.org/software/make/)
+- [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/)
 - [Docker](https://www.docker.com/products/docker-desktop/) or [OrbStack](https://orbstack.dev/)
 
-### Build
+### Build and validation
 
 We use `make` as shortcuts to run commands.
 
-We develop mainly on macOS and Ubuntu - with limited support for doing development on Windows. Feel free to pitch in if you can to improve situation.
+We develop mainly on macOS and Ubuntu, with limited support for doing development on Windows. Feel free to pitch in if you can help improve that.
 
-`Makefile` contains several targets. The ones you care are:
+`Makefile` contains several targets. The most useful day-to-day targets are:
 1. `build`: build Terrabuild. This is the default target.
-1. `parser`: rebuild parser and start build.
-1. `test`: build and run tests.
-1. `publish`: build and publish.
-1. `self`: publish and self buid/test/publish again.
-1. `smoke-tests`: use published version to run smoke tests.
-1. `dist`: publish as standalone tool.
-1. `terrabuild`: build/test/publish Terrabuild using locally installed Terrabuild.
+2. `parser`: rebuild parser and start build.
+3. `test`: build and run tests.
+4. `publish`: build and publish.
+5. `self`: publish and run Terrabuild against itself (`build test dist`).
+6. `smoke-tests`: run integration scenarios under `tests/` and compare debug output snapshots.
+7. `try-docs`: run DocGen in dry-run mode and validate extension docs metadata parsing.
+8. `terrabuild`: run `build test dist` using the globally installed Terrabuild.
 
 You probably also want to install current Terrabuild distribution: `dotnet tool install --global terrabuild`
 
 Use `dotnet tool install --global --prerelease terrabuild` if you want pre-release version instead.
+
+### Recommended validation order
+
+For extension/script protocol changes:
+1. `make try-docs`
+2. `make test`
+3. `make smoke-tests`
+4. `make self`
+
+For broad/core runtime changes:
+1. `make test`
+2. `make self`
+3. `make smoke-tests`
+4. `make try-docs`
+
+If `make smoke-tests` produces diffs in `tests/*/results`, investigate and explain the root cause before merging.
 
 ## Submitting a Pull Request
 
@@ -69,6 +86,17 @@ Here's some examples of what we're trying to avoid:
 ### Magnus Opera employees
 
 Magnus Opera employees have write access to Magnus Opera repositories and must push directly to branches rather than forking the repository. Tests can run directly without approval for PRs based on branches rather than forks.
+
+## Release process
+
+Terrabuild uses a draft-based release flow:
+
+1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
+2. Push commit and tag with `git push origin main --follow-tags`.
+3. Wait for CI to create a draft GitHub release and upload artifacts.
+4. Publish that existing draft release.
+
+`make release-prepare` supports `X.Y.Z` and `X.Y.Z-next` only. Use `dryrun=true` to validate release preparation without writing changes.
 
 ## Getting Help
 
