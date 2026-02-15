@@ -8,7 +8,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
-      "targetHash": "55BDABDB075049FE11C3C908D7D7CF16466C4295B360F4D205AC879F7F6716D8",
+      "targetHash": "CB27F390BC97788020588770CE8CE10E426E73117502ECE1BDE55675A30243D5",
       "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
@@ -20,7 +20,7 @@
           },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib install --link-workspace-packages",
+          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib install --frozen-lockfile --link-workspace-packages --force",
           "errorLevel": 0
         },
         {
@@ -50,7 +50,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
-      "targetHash": "D6E0E3BBDD5E4DC0F25D710D2A83B7D21E0DBD61DDBEB46090FC8CBD1C91BE24",
+      "targetHash": "8B1C04B1E79A8E0319E399607E4382BB24644496435600CCCB3F2361E215F037",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -61,7 +61,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore libraries/dotnet-lib/dotnet-lib.csproj",
+          "arguments": "restore libraries/dotnet-lib/dotnet-lib.csproj --locked-mode",
           "errorLevel": 0
         },
         {
@@ -72,7 +72,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore projects/dotnet-app/dotnet-app.csproj",
+          "arguments": "restore projects/dotnet-app/dotnet-app.csproj --locked-mode",
           "errorLevel": 0
         },
         {
@@ -83,7 +83,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build libraries/dotnet-lib/dotnet-lib.csproj --no-restore --configuration Debug",
+          "arguments": "build libraries/dotnet-lib/dotnet-lib.csproj --configuration Debug",
           "errorLevel": 0
         },
         {
@@ -94,7 +94,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build projects/dotnet-app/dotnet-app.csproj --no-restore --configuration Debug",
+          "arguments": "build projects/dotnet-app/dotnet-app.csproj --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -117,7 +117,7 @@
         "dist/**"
       ],
       "projectHash": "EAB473A56DD89FA08C4CB2353A95B5D95C131D85E542000CA7122F5292E0405B",
-      "targetHash": "55BDABDB075049FE11C3C908D7D7CF16466C4295B360F4D205AC879F7F6716D8",
+      "targetHash": "CB27F390BC97788020588770CE8CE10E426E73117502ECE1BDE55675A30243D5",
       "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
@@ -129,7 +129,7 @@
           },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "install --link-workspace-packages",
+          "arguments": "install --frozen-lockfile --link-workspace-packages --force",
           "errorLevel": 0
         },
         {
@@ -162,7 +162,7 @@
         "dist/**"
       ],
       "projectHash": "4CDC6FD930A04805A691628A1D970254872AE6E4402F42D3B9590D0D25FF5E64",
-      "targetHash": "2F44EC0F33BC5561060DF6225970BAB6F850E896E90A72501E31C819003EF332",
+      "targetHash": "9F7016C8D487F8056BF77C6F89BCC8645216D9FA0B38D19A3DCE6AB3CC951C5B",
       "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
       "operations": [
         {
@@ -174,7 +174,7 @@
           },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "install --link-workspace-packages",
+          "arguments": "install --frozen-lockfile --link-workspace-packages --force",
           "errorLevel": 0
         },
         {
@@ -209,7 +209,7 @@
         "*.planfile"
       ],
       "projectHash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
-      "targetHash": "20F7736171F21BD88DB91D033BBE64B85F412FC40144CEE90C59FA0BA1B34019",
+      "targetHash": "E8CAC85AC19FEA1A6BF36D1CCF834649F4634A372987F0950E24468A42DCF7FE",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -250,7 +250,7 @@
         "obj/"
       ],
       "projectHash": "D02C02379E7CC347375CBBB5F8390EDDE12A6CEE726182486C0CD099AEDA6603",
-      "targetHash": "D6E0E3BBDD5E4DC0F25D710D2A83B7D21E0DBD61DDBEB46090FC8CBD1C91BE24",
+      "targetHash": "8B1C04B1E79A8E0319E399607E4382BB24644496435600CCCB3F2361E215F037",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -261,7 +261,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -272,7 +272,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -323,7 +323,7 @@
         "obj/"
       ],
       "projectHash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
-      "targetHash": "1B6A51CF299C17E493F670BE32A86FE8413DA03BB11FBBAE884A6D5D3CDBC27F",
+      "targetHash": "1BAD2CCAD4007C60C15E30E35A7DBBA9444D2F742B39BB012F505CE89F7955A4",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -334,7 +334,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -345,7 +345,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -458,14 +458,14 @@
         "dist/**"
       ],
       "projectHash": "8B9321FD78C28D557C146AA9C923FE590C0C47A0EBB035A51F88B53F692229E7",
-      "targetHash": "8345D2921AF222E67000DE10C9426FD91C9D5AD6F5167268DB92887BEE0D87B9",
+      "targetHash": "C83B1C18C68FFA1F2D9DB2A96F2B8CD88CB61C65136D44DE12F5D84E09493A74",
       "operations": [
         {
           "variables": [],
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": "clean-install",
           "errorLevel": 0
         },
         {

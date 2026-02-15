@@ -7,21 +7,26 @@ let append_part part acc =
 let with_args args =
   args |> Option.defaultValue ""
 
-let with_configuration configuration =
-  configuration |> Option.defaultValue "Debug"
+let with_optional mapper value =
+  value |> Option.map mapper |> Option.defaultValue ""
+
+let with_optional_default default_value mapper value =
+  value |> Option.map mapper |> Option.defaultValue default_value
 
 let map_true flag value =
-  match value with
-  | Some true -> flag
-  | _ -> ""
+  if Option.defaultValue false value then flag else ""
 
 let map_false flag value =
-  match value with
-  | Some true -> ""
-  | _ -> flag
+  if Option.defaultValue true value then "" else flag
+
+let map_true_default default_value flag value =
+  if Option.defaultValue default_value value then flag else ""
+
+let map_false_default default_value flag value =
+  if Option.defaultValue default_value value then "" else flag
 
 let map_value mapper value =
-  value |> Option.map mapper |> Option.defaultValue ""
+  with_optional mapper value
 
 let with_flag flag value =
   value |> Option.map (fun current -> $"{flag} {current}") |> Option.defaultValue ""

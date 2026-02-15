@@ -7,6 +7,9 @@ import "_helpers.fss" as Helpers
 [<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["build/classes/"]; Dependencies = [] }
 
+let with_configuration configuration =
+  configuration |> Option.defaultValue "Release"
+
 /// <summary>Runs an arbitrary Gradle command (action name is forwarded to `gradle`).</summary>
 /// <param name="args" default="" example="&quot;clean --info&quot;">Arguments appended after the Gradle command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
@@ -14,14 +17,16 @@ import "_helpers.fss" as Helpers
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
-/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Configuration to invoke `assemble`. Default is `Debug`.</param>
+/// <param name="configuration" default="Release" example="&quot;Debug&quot;">Configuration to invoke `assemble`.</param>
 /// <param name="args" default="" example="&quot;--scan&quot;">Additional arguments passed to `gradle assemble`.</param>
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) =
+  let configuration = configuration |> with_configuration
+  let args = args |> Helpers.with_args
   let command =
     ""
     |> Helpers.append_part "assemble"
-    |> Helpers.append_part (Helpers.with_configuration configuration)
-    |> Helpers.append_part (Helpers.with_args args)
+    |> Helpers.append_part configuration
+    |> Helpers.append_part args
   [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
 
 // Exported functions and Terrabuild execution flags.

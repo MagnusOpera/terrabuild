@@ -55,12 +55,12 @@ let dependencies_from (package: Package) =
   [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Installs packages with `yarn install`, optionally updating the lockfile or ignoring engines.</summary>
-/// <param name="update" default="false" example="true">Allow lockfile updates (omit to enforce frozen lockfile).</param>
-/// <param name="ignore-engines" default="false" example="true">Adds `--ignore-engines`.</param>
-/// <param name="args" default="" example="&quot;--verbose&quot;">Additional arguments for `yarn install`.</param>
-[<export>] let install (context: Protocol.ActionContext) (update: bool option) (ignoreEngines: bool option) (args: string option) =
+/// <param name="update" default="false" example="true">Allow lockfile updates (see `--frozen-lockfile`).</param>
+/// <param name="ignore_engines" default="false" example="true">Ignore engines (see `--ignore-engines`).</param>
+/// <param name="args" default="" example="&quot;--verbose&quot;">Additional arguments.</param>
+[<export>] let install (context: Protocol.ActionContext) (update: bool option) (ignore_engines: bool option) (args: string option) =
   let update = update |> Helpers.map_false "--frozen-lockfile"
-  let ignore_engines = ignoreEngines |> Helpers.map_true "--ignore-engines"
+  let ignore_engines = ignore_engines |> Helpers.map_true "--ignore-engines"
   let args = Helpers.with_args args
 
   let command =

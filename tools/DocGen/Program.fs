@@ -50,7 +50,13 @@ type private ScriptDocs = {
 
 type private FunctionMeta = {
     Name: string
-    Parameters: string list
+    Parameters: FunctionParameterMeta list
+}
+
+and private FunctionParameterMeta = {
+    Name: string
+    TypeAnnotation: string
+    IsOption: bool
 }
 
 let (|Regex|_|) pattern input =
@@ -172,7 +178,7 @@ let private parseScriptDocs (scriptPath: string) (extensionName: string) : Scrip
             ()
         else
             match line with
-            | Regex "^(?:\\[\\s*<\\s*export\\s*>\\s*\\]\\s*)?let\\s+([A-Za-z_][A-Za-z0-9_]*)\\b.*$" [commandName] ->
+            | Regex "^\\[\\s*<\\s*export\\s*>\\s*\\]\\s*let\\s+([A-Za-z_][A-Za-z0-9_]*)\\b.*$" [commandName] ->
                 applyAsCommandDoc commandName
                 seenCode <- true
             | _ ->
@@ -193,13 +199,18 @@ let private parseExportedFunctionParameters (scriptContent: string) =
     let matches =
         Regex.Matches(
             scriptContent,
-            @"(?:\[\s*<\s*export\s*>\s*\]\s*)?let\s+([A-Za-z_][A-Za-z0-9_]*)\s+((?:\([^\)]*\)\s*)+)=",
+            @"\[\s*<\s*export\s*>\s*\]\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\s+((?:\([^\)]*\)\s*)+)=",
             RegexOptions.Multiline)
     [ for m in matches do
         let name = m.Groups[1].Value
         let argsGroup = m.Groups[2].Value
-        let argsMatches = Regex.Matches(argsGroup, @"\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*:")
-        let parameters = [ for a in argsMatches -> a.Groups[1].Value ]
+        let argsMatches = Regex.Matches(argsGroup, @"\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([^\)]*?)\s*\)")
+        let parameters =
+            [ for a in argsMatches ->
+                let typeAnnotation = a.Groups[2].Value.Trim()
+                { Name = a.Groups[1].Value
+                  TypeAnnotation = typeAnnotation
+                  IsOption = typeAnnotation.EndsWith(" option", StringComparison.Ordinal) } ]
         yield name, { Name = name; Parameters = parameters } ]
     |> Map.ofList
 
@@ -286,7 +297,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                 | Some value -> value
                 | None -> failwith $"Missing XML doc comment block for exported function '{functionName}' in {scriptPath}"
 
-            let functionArgs = functionMeta.Parameters |> List.filter (fun p -> p <> "context")
+            let functionArgs = functionMeta.Parameters |> List.filter (fun p -> p.Name <> "context")
 
             let docArgs =
                 commandDoc.Args
@@ -296,6 +307,21 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                 docArgs
                 |> List.fold (fun acc arg -> acc |> Map.add arg.Name arg) Map.empty
 
+            let findFunctionArg (docArgName: string) =
+                functionArgs
+                |> List.tryFind (fun arg -> normalizeParamNameForCompare arg.Name = normalizeParamNameForCompare docArgName)
+
+            if commandName <> "__defaults__" then
+                for docArg in docArgs do
+                    match findFunctionArg docArg.Name with
+                    | None ->
+                        failwith $"Parameter '{docArg.Name}' is documented on '{functionName}' in {scriptPath} but does not exist in the function signature."
+                    | Some functionArg ->
+                        if docArg.Required && functionArg.IsOption then
+                            failwith $"Parameter '{docArg.Name}' on '{functionName}' in {scriptPath} is required in XML docs (missing default) but declared as optional type '{functionArg.TypeAnnotation}'."
+                        if not docArg.Required && not functionArg.IsOption then
+                            failwith $"Parameter '{docArg.Name}' on '{functionName}' in {scriptPath} is optional in XML docs (default provided) but declared as required type '{functionArg.TypeAnnotation}'."
+
             let fromDocOrder =
                 docArgs
                 |> List.filter (fun arg -> arg.Name <> "__dispatch__")
@@ -304,9 +330,9 @@ let private buildScriptExtension (scriptPath: string) : Extension =
             let fromFunctionOrder =
                 functionArgs
                 |> List.map (fun name ->
-                    match mergedArgs |> Map.tryFind name with
+                    match mergedArgs |> Map.tryFind name.Name with
                     | Some arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example; DefaultValue = arg.DefaultValue } : Parameter)
-                    | None -> ({ Name = name; Required = false; Summary = ""; Example = ""; DefaultValue = None } : Parameter))
+                    | None -> ({ Name = name.Name; Required = false; Summary = ""; Example = ""; DefaultValue = None } : Parameter))
 
             let commandParameters: Parameter list =
                 if commandName = "__defaults__" then

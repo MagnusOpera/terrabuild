@@ -11,7 +11,7 @@ let with_project project =
 /// </summary>
 /// <title>Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.</title>
 /// <param name="project" default="" example="&quot;insights&quot;">Project slug.</param>
-/// <param name="path" default="dist" example="&quot;dist&quot;">Sourcemaps path. Default value is dist.</param>
+/// <param name="path" default="dist" example="&quot;dist&quot;">Sourcemaps path.</param>
 [<export>] let sourcemaps (context: Protocol.ActionContext) (project: string option) (path: string option) =
   let project = with_project project
   let path = path |> Option.defaultValue "dist"

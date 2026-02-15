@@ -10,7 +10,7 @@
       ],
       "outputs": [],
       "projectHash": "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A",
-      "targetHash": "0CB4D0AC1A01A4611F4571758BED45B95E767FF38ED460DEB59421E3020815F9",
+      "targetHash": "94C146E69F9FD4D12CFE8B68EAA5D28DCC0E16A8D6536DF4CC65D7654764475A",
       "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
       "operations": [
         {
@@ -19,7 +19,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore D/D.csproj",
+          "arguments": "restore D/D.csproj --locked-mode",
           "errorLevel": 0
         },
         {
@@ -28,7 +28,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore E/E.csproj",
+          "arguments": "restore E/E.csproj --locked-mode",
           "errorLevel": 0
         },
         {
@@ -37,7 +37,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build D/D.csproj --no-restore --configuration Debug",
+          "arguments": "build D/D.csproj --configuration Release",
           "errorLevel": 0
         },
         {
@@ -46,7 +46,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build E/E.csproj --no-restore --configuration Debug",
+          "arguments": "build E/E.csproj --configuration Release",
           "errorLevel": 0
         }
       ],
@@ -69,7 +69,7 @@
         "obj/"
       ],
       "projectHash": "3D4E1625F44A301ADFA27F5C907BCD08AC0EA8A6D5DF26BD11EE80FC58607D72",
-      "targetHash": "134048D25CB7E8F1CAB7DFA62F50731543E06E0D2AC4F29DAED523F9F8D1763C",
+      "targetHash": "1AAA2DE505F4522F5869D0DFA1DF66F0D95F4DAFC9835447BB0489C0367C13ED",
       "operations": [
         {
           "variables": [],
@@ -85,7 +85,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -94,7 +94,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Release",
           "errorLevel": 0
         }
       ],
@@ -117,7 +117,7 @@
         "obj/"
       ],
       "projectHash": "B07CC5FCC23450D26D14530A49A2AC06399A6679B81DF5BC463661ABE9ABE18F",
-      "targetHash": "7A09048A39236A066C791DEFB3166A9C87E24FDABDADD7C2F4A602C44D12506C",
+      "targetHash": "9E1090C94E0C79052A9FB6694952D446CD2886D5476F6231CE6963C5DD669842",
       "operations": [
         {
           "variables": [],
@@ -133,7 +133,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -142,7 +142,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Release",
           "errorLevel": 0
         }
       ],
@@ -166,7 +166,7 @@
         "dist/**"
       ],
       "projectHash": "20CD5575FC22FB1CD88E85AF43B8B71DA856B9AAE5BDAF39995EED9285AD9D37",
-      "targetHash": "F48C012DAD27A4577160A69E83069B4811DA5288DB1368CA4E075433BEAE847F",
+      "targetHash": "A1FA734E1F8E7AC8AD9F54C77588B4338F7B42E70C32E8EC8C0CD727A17EADB5",
       "operations": [
         {
           "variables": [],
@@ -182,7 +182,7 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": "clean-install",
           "errorLevel": 0
         },
         {
@@ -216,7 +216,7 @@
         "obj/"
       ],
       "projectHash": "1BC8101E9DAB99D24F2F69C94A6161F2C67044525327DF774CE47E1F63D88FB6",
-      "targetHash": "0CB4D0AC1A01A4611F4571758BED45B95E767FF38ED460DEB59421E3020815F9",
+      "targetHash": "94C146E69F9FD4D12CFE8B68EAA5D28DCC0E16A8D6536DF4CC65D7654764475A",
       "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
       "operations": [
         {
@@ -225,7 +225,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -234,7 +234,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Release",
           "errorLevel": 0
         }
       ],
@@ -259,7 +259,7 @@
         "obj/"
       ],
       "projectHash": "5FF41A19298D37388CC3AA06D0715E60DF1F012167981A5A93C2A67F2E11D08F",
-      "targetHash": "2B338F5224971011B41241437B43D4BA430A02779C11CE224BB17ABCFE261D54",
+      "targetHash": "090A2710D8A8F38C37673B76603B4795B994547C08B42F311F31CEF3512C0E26",
       "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
       "operations": [
         {
@@ -268,7 +268,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -277,7 +277,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --no-restore --configuration Debug",
+          "arguments": "build --configuration Release",
           "errorLevel": 0
         }
       ],
@@ -301,7 +301,7 @@
         "dist/**"
       ],
       "projectHash": "7B43AC792E4AEEB282F2F2BEDD32194C6BACCEA3EEA7AB96243A4906DA734322",
-      "targetHash": "5FD619403DD979B032907271EEF9225E4D2E04A9A425B77FA4208FF5F1FAACFC",
+      "targetHash": "D71F3E7C12492026C1948FA08EEA618061F4A176F60B63AFD85EDC1FD4E9B8C0",
       "operations": [
         {
           "image": "node:20",
@@ -309,7 +309,7 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": "clean-install",
           "errorLevel": 0
         },
         {
@@ -341,7 +341,7 @@
         "dist/**"
       ],
       "projectHash": "BC8BD4B8CC94CEC919A91E3C740D6F7E388A14D4702A9E45EAD67436ABDA14A8",
-      "targetHash": "E1EACBE7E53088351E484CC3EA7F6F34603B8591358B14C43282C012CCC8E5A7",
+      "targetHash": "03B47D3FFDE27318C0D135BF9CFB0BC6A473BB9C737CBF9D9FB33F245281CA60",
       "operations": [
         {
           "image": "node:20",
@@ -349,7 +349,7 @@
           "envs": {},
           "metaCommand": "@npm install",
           "command": "npm",
-          "arguments": "install",
+          "arguments": "clean-install",
           "errorLevel": 0
         },
         {

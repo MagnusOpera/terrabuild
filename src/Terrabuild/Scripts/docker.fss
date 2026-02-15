@@ -20,15 +20,15 @@ let format_build_args build_args =
   Map.fold append_build_arg "" build_args
 
 /// <summary>Runs an arbitrary Docker CLI command (action name is forwarded to `docker`).</summary>
-/// <param name="args" example="&quot;image prune -f&quot;">Arguments appended after the Docker subcommand.</param>
+/// <param name="args" default="" example="&quot;image prune -f&quot;">Arguments appended after the Docker subcommand.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Builds a Docker image and tags it with the Terrabuild hash; pushes automatically when running in CI.</summary>
 /// <param name="image" example="&quot;ghcr.io/example/project&quot;">Docker image to build.</param>
-/// <param name="dockerfile" default="Dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile. Default is Dockerfile.</param>
-/// <param name="platforms" default="" example="&quot;linux/amd64&quot;">Target platform. Default is host.</param>
+/// <param name="dockerfile" default="Dockerfile" example="&quot;Dockerfile&quot;">Use alternative Dockerfile.</param>
+/// <param name="platforms" default="host" example="&quot;linux/amd64&quot;">Target platform.</param>
 /// <param name="build_args" default="" example="{ configuration: &quot;Release&quot; }">Named arguments to build image (see Dockerfile [ARG](https://docs.docker.com/reference/dockerfile/#arg)).</param>
 /// <param name="args" default="" example="&quot;--debug&quot;">Additional arguments passed to `docker build`.</param>
 [<export>] let build (context: Protocol.ActionContext) (image: string) (dockerfile: string option) (platforms: string list option) (build_args: string map option) (args: string option) =
