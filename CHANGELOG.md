@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 - Rename release helper target to `make release-prepare` to avoid implying remote push/publish
+- Revert entitlements changes.
 
 ## [0.189.2-next]
 
