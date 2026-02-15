@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Initialize changelog-driven draft release notes for tag workflows
+- Load built-in extension scripts from embedded resources only and remove filesystem fallback/copy
 
 ## [0.189.1-next]
 
@@ -2159,4 +2160,3 @@ Check [documentation](https://terrabuild.io) !
 ## [0.1.0]
 
 First stable release with HCL syntax and graph optimization.
-
