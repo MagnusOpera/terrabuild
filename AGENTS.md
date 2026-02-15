@@ -108,10 +108,9 @@ Terrabuild uses a draft-based release flow:
 
 1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
    - Optional preview mode: `make release-prepare version=X.Y.Z[-next] dryrun=true`
-2. The command updates `CHANGELOG.md`, commits changelog changes, and creates a local tag.
+2. The command updates `CHANGELOG.md`, commits changelog changes, and creates a local annotated tag.
 3. Push commit and tag:
-   - `git push origin main`
-   - `git push origin X.Y.Z` (or `X.Y.Z-next`)
+   - `git push origin main --follow-tags`
 4. Wait for CI (`on-push-tag.yml`) to create the GitHub release as draft and upload artifacts.
 5. Publish that existing draft release (do not create/publish manually before CI draft creation).
 

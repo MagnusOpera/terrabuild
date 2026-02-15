@@ -3,6 +3,7 @@
 All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
+- Create annotated release tags in `release-prepare` so `git push --follow-tags` pushes releases
 
 ## [0.189.3-next]
 

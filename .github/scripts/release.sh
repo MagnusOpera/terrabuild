@@ -154,7 +154,7 @@ if ! grep -q "^## \[${version}\]$" "$updated_changelog"; then
 fi
 
 if [[ "$dryrun" == "true" ]]; then
-  echo "[DRY RUN] Would update CHANGELOG.md, commit and create tag '${version}'."
+  echo "[DRY RUN] Would update CHANGELOG.md, commit and create annotated tag '${version}'."
   echo "[DRY RUN] Previous tag: ${previous_tag}"
   echo "[DRY RUN] Compare link: ${compare_link}"
   exit 0
@@ -164,9 +164,8 @@ cp "$updated_changelog" CHANGELOG.md
 
 git add CHANGELOG.md
 git commit -m "chore(release): ${version}"
-git tag "${version}"
+git tag -a "${version}" -m "Release ${version}"
 
 echo "Release prepared successfully."
 echo "Next steps:"
-echo "  git push origin main"
-echo "  git push origin ${version}"
+echo "  git push origin main --follow-tags"
