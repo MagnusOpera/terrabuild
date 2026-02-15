@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Provides build, test, pack, and publish helpers for .NET SDK projects (`*.csproj`/`*.fsproj`). Infers project references to wire Terrabuild dependencies and defaults outputs to `bin/`, `obj/`, and build logs.</summary>
+/// <summary>.NET SDK extension for restore, build, test, pack, and publish workflows.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
 let first_project_file directory =
@@ -35,7 +35,7 @@ let command_op arguments =
 let with_configuration configuration =
   configuration |> Option.defaultValue "Release"
 
-/// <summary>Infers project metadata from the nearest SDK project file (dependencies and default outputs).</summary>
+/// <summary>Computes default outputs and project-reference dependencies.</summary>
 /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
@@ -48,13 +48,13 @@ let with_configuration configuration =
   { Id = None; Outputs = ["bin/"; "obj/"; "**/*.binlog"]; Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).</summary>
-/// <param name="args" default="" example="&quot;run -- -v&quot;">Arguments appended after the dotnet command.</param>
+/// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   [command_op command]
 
 /// <summary>Executes `dotnet tool ...` commands.</summary>
-/// <param name="args" default="" example="&quot;install MagnusOpera.OpenApiGen&quot;">Arguments appended after `dotnet tool`.</param>
+/// <param name="args" default="" example="&quot;install MagnusOpera.OpenApiGen&quot;">Extra arguments for `dotnet tool`.</param>
 [<export>] let tool (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
@@ -62,10 +62,10 @@ let with_configuration configuration =
     |> Helpers.append_part (Helpers.with_args args)
   [command_op command]
 
-/// <summary>Restores NuGet packages, optionally frozen, forcing evaluation, or batching workspace projects into a temporary solution.</summary>
-/// <param name="locked" default="true" example="&quot;true&quot;">Enable locked versions; set `true` to add `--locked-mode`.</param>
-/// <param name="evaluate" default="false" example="&quot;true&quot;">Add `--force-evaluate` to refresh resolved packages.</param>
-/// <param name="args" default="" example="&quot;--no-dependencies&quot;">Additional arguments for `dotnet restore`.</param>
+/// <summary>Restores NuGet packages for one project or a batch solution.</summary>
+/// <param name="locked" default="true" example="&quot;true&quot;">Adds `--locked-mode`.</param>
+/// <param name="evaluate" default="false" example="&quot;true&quot;">Adds `--force-evaluate`.</param>
+/// <param name="args" default="" example="&quot;--no-dependencies&quot;">Extra `dotnet restore` arguments.</param>
 [<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (args: string option) =
   let locked = locked |> Helpers.map_true_default true "--locked-mode"
   let force_evaluate = evaluate |> Helpers.map_true "--force-evaluate"
@@ -85,11 +85,11 @@ let with_configuration configuration =
 /// <summary>Builds the project or batch solution via `dotnet build`.</summary>
 /// <title>Build project.</title>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
-/// <param name="parallel" default="" example="1">Max worker processes (see `-maxcpucount`).</param>
-/// <param name="log" default="false" example="true">Emit a binary log (see `-bl`).</param>
-/// <param name="restore" default="true" example="&quot;true&quot;">Perform restore (see `--no-restore`).</param>
-/// <param name="version" default="" example="&quot;1.2.3&quot;">Set `Version` MSBuild property.</param>
-/// <param name="args" default="" example="&quot;--no-incremental&quot;">Additional arguments for `dotnet build`.</param>
+/// <param name="parallel" default="" example="1">Max CPU count (`-maxcpucount`).</param>
+/// <param name="log" default="false" example="true">Adds `-bl`.</param>
+/// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before build.</param>
+/// <param name="version" default="" example="&quot;1.2.3&quot;">Sets MSBuild `Version`.</param>
+/// <param name="args" default="" example="&quot;--no-incremental&quot;">Extra `dotnet build` arguments.</param>
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (version: string option) (args: string option) =
   let configuration = configuration |> with_configuration
   let log = log |> Helpers.map_true "-bl"
@@ -114,10 +114,10 @@ let with_configuration configuration =
 
 /// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
-/// <param name="restore" default="true" example="&quot;true&quot;">Perform restore (see `--no-restore`).</param>
-/// <param name="build" default="true" example="&quot;true&quot;">Build before packing (see `--no-build`).</param>
-/// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (see `/p:Version`).</param>
-/// <param name="args" default="" example="&quot;--include-symbols&quot;">Additional arguments for `dotnet pack`.</param>
+/// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before pack.</param>
+/// <param name="build" default="true" example="&quot;true&quot;">Runs build before pack.</param>
+/// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
+/// <param name="args" default="" example="&quot;--include-symbols&quot;">Extra `dotnet pack` arguments.</param>
 [<export>] let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (args: string option) =
   let configuration = configuration |> with_configuration
   let version = version |> Helpers.map_value (fun value -> $"/p:Version={value}")
@@ -137,14 +137,14 @@ let with_configuration configuration =
 
   [command_op command]
 
-/// <summary>Publishes binaries via `dotnet publish`, optionally self-contained/trimmed and batched via a generated solution.</summary>
+/// <summary>Publishes binaries via `dotnet publish` for one project or a batch solution.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
-/// <param name="restore" default="true" example="&quot;true&quot;">Perform restore (see `--no-restore`).</param>
-/// <param name="build" default="true" example="&quot;true&quot;">Build before publish (see `--no-build`).</param>
-/// <param name="runtime" default="" example="&quot;linux-x64&quot;">Runtime identifier (see `--runtime`).</param>
-/// <param name="trim" default="false" example="true">Enable trimmed binary (see `-p:PublishTrimmed=true`).</param>
-/// <param name="single" default="false" example="true">Publishes self-contained (see `--self-contained`).</param>
-/// <param name="args" default="" example="&quot;--version-suffix beta&quot;">Additional arguments for `dotnet publish`.</param>
+/// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before publish.</param>
+/// <param name="build" default="true" example="&quot;true&quot;">Runs build before publish.</param>
+/// <param name="runtime" default="" example="&quot;linux-x64&quot;">Runtime identifier (`--runtime`).</param>
+/// <param name="trim" default="false" example="true">Enables trimming.</param>
+/// <param name="single" default="false" example="true">Enables self-contained publish.</param>
+/// <param name="args" default="" example="&quot;--version-suffix beta&quot;">Extra `dotnet publish` arguments.</param>
 [<export>] let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"
@@ -171,10 +171,10 @@ let with_configuration configuration =
 
 /// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
-/// <param name="restore" default="true" example="&quot;true&quot;">Perform restore (see `--no-restore`).</param>
-/// <param name="build" default="true" example="&quot;true&quot;">Build before testing (see `--no-build`).</param>
-/// <param name="filter" default="" example="&quot;TestCategory!=integration&quot;">Test filter expression (`--filter`).</param>
-/// <param name="args" default="" example="&quot;--blame-hang&quot;">Additional arguments for `dotnet test`.</param>
+/// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before tests.</param>
+/// <param name="build" default="true" example="&quot;true&quot;">Runs build before tests.</param>
+/// <param name="filter" default="" example="&quot;TestCategory!=integration&quot;">Filter expression (`--filter`).</param>
+/// <param name="args" default="" example="&quot;--blame-hang&quot;">Extra `dotnet test` arguments.</param>
 [<export>] let test (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"

@@ -1,11 +1,11 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Runs Playwright end-to-end tests via `npx playwright`.</summary>
+/// <summary>Playwright extension for end-to-end tests.</summary>
 /// <summary>Executes `playwright test` with optional browser/project selection.</summary>
-/// <param name="browser" default="" example="&quot;webkit&quot;">Browser to use.</param>
-/// <param name="project" default="" example="&quot;ci&quot;">Project to use.</param>
-/// <param name="args" default="" example="&quot;--debug&quot;">Additional arguments passed to `playwright test`.</param>
+/// <param name="browser" default="" example="&quot;webkit&quot;">Browser name.</param>
+/// <param name="project" default="" example="&quot;ci&quot;">Project name.</param>
+/// <param name="args" default="" example="&quot;--grep @smoke&quot;">Extra `playwright test` arguments.</param>
 [<export>] let test (context: Protocol.ActionContext) (browser: string option) (project: string option) (args: string option) =
   let browser = Helpers.with_flag "--browser" browser
   let project = Helpers.with_flag "--project" project

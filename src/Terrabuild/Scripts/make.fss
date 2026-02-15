@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Invokes GNU Make targets, passing variables and extra arguments through Terrabuild. Assumes a `Makefile` in the project directory.</summary>
+/// <summary>GNU Make extension for target execution.</summary>
 let append_variable acc key value =
   let item = $"{key}=\"{value}\""
   match (acc, item) with
@@ -12,8 +12,8 @@ let format_variables vars =
   Map.fold append_variable "" vars
 
 /// <summary>Invokes the Terrabuild action name as the make target.</summary>
-/// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` variables injected before the target.</param>
-/// <param name="args" default="" example="&quot;-d&quot;">Additional arguments passed to `make`.</param>
+/// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` pairs before the target.</param>
+/// <param name="args" default="" example="&quot;-d&quot;">Extra `make` arguments.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let variables =
     variables

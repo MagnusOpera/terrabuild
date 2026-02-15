@@ -1,20 +1,20 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Provides wrappers around the Terraform CLI (init/plan/apply/destroy) for projects that manage their own state.</summary>
+/// <summary>Terraform extension for init, plan, apply, and destroy workflows.</summary>
 let format_vars variables =
   variables
   |> Option.map (Map.fold (fun acc key value -> acc |> Helpers.append_part $"-var=\"{key}={value}\"") "")
   |> Option.defaultValue ""
 
-/// <summary>Declares default outputs for Terraform runs.</summary>
+/// <summary>Declares default outputs for Terraform actions.</summary>
 /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;*.planfile&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = ["*.planfile"]; Dependencies = [] }
 
 /// <summary>Runs an arbitrary Terraform command (action name is forwarded to `terraform`).</summary>
-/// <param name="args" default="" example="&quot;fmt -write=false&quot;">Arguments appended after the Terraform subcommand.</param>
+/// <param name="args" default="" example="&quot;fmt -write=false&quot;">Extra arguments for the Terraform subcommand.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -24,8 +24,8 @@ let format_vars variables =
   [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Initializes Terraform providers and backend.</summary>
-/// <param name="config" default="" example="&quot;backend.prod.config&quot;">Backend config file passed to `terraform init -backend-config`.</param>
-/// <param name="args" default="" example="&quot;-upgrade&quot;">Additional arguments for `terraform init`.</param>
+/// <param name="config" default="" example="&quot;backend.prod.config&quot;">Backend config file.</param>
+/// <param name="args" default="" example="&quot;-upgrade&quot;">Extra `terraform init` arguments.</param>
 [<export>] let init (context: Protocol.ActionContext) (config: string option) (args: string option) =
   let config = config |> Helpers.map_value (fun value -> $"-backend-config={value}")
   let args = args |> Helpers.with_args
@@ -39,7 +39,7 @@ let format_vars variables =
 
 /// <summary>Validates configuration before planning/applying.</summary>
 /// <title>Generate plan file.</title>
-/// <param name="args" default="" example="&quot;-no-color&quot;">Additional arguments for `terraform validate`.</param>
+/// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform validate` arguments.</param>
 [<export>] let validate (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -50,9 +50,9 @@ let format_vars variables =
 
 /// <summary>Selects or creates a Terraform workspace before planning/applying.</summary>
 /// <title>Select workspace.</title>
-/// <param name="workspace" default="" example="&quot;dev&quot;">Workspace to use. Use `default` if not provided.</param>
-/// <param name="create" default="true" example="true">Create the workspace when it does not exist.</param>
-/// <param name="args" default="" example="&quot;-no-color&quot;">Additional arguments for `terraform workspace select`.</param>
+/// <param name="workspace" default="" example="&quot;dev&quot;">Workspace name (`default` when omitted).</param>
+/// <param name="create" default="true" example="true">Adds `-or-create`.</param>
+/// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform workspace select` arguments.</param>
 [<export>] let select (context: Protocol.ActionContext) (workspace: string option) (create: bool option) (args: string option) =
   let workspace = workspace |> Option.defaultValue "default"
   let create = create |> Helpers.map_true_default true "-or-create"
@@ -68,7 +68,7 @@ let format_vars variables =
 /// <summary>Generates a plan file for review/apply.</summary>
 /// <title>Generate plan file.</title>
 /// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
-/// <param name="args" default="" example="&quot;-no-color&quot;">Additional arguments for `terraform plan`.</param>
+/// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform plan` arguments.</param>
 [<export>] let plan (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = args |> Helpers.with_args
@@ -82,8 +82,8 @@ let format_vars variables =
 
 /// <summary>Applies the generated plan (or runs `apply` without a plan when requested).</summary>
 /// <title>Apply plan file.</title>
-/// <param name="plan" default="false" example="true">Run `apply` without `-out` plan file.</param>
-/// <param name="args" default="" example="&quot;-no-color&quot;">Additional arguments for `terraform apply`.</param>
+/// <param name="plan" default="false" example="true">Skips the generated plan file when true.</param>
+/// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform apply` arguments.</param>
 [<export>] let apply (context: Protocol.ActionContext) (plan: bool option) (args: string option) =
   let planfile = plan |> Helpers.map_false "terrabuild.planfile"
   let args = args |> Helpers.with_args
@@ -98,7 +98,7 @@ let format_vars variables =
 /// <summary>Destroys all managed resources for the current workspace.</summary>
 /// <title>Destroy the deployment.</title>
 /// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
-/// <param name="args" default="" example="&quot;&quot;">Additional arguments for `terraform destroy`.</param>
+/// <param name="args" default="" example="&quot;&quot;">Extra `terraform destroy` arguments.</param>
 [<export>] let destroy (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = args |> Helpers.with_args

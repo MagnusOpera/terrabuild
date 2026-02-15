@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Generates API clients using **OpenAPI Generator**. Requires the `openapitools/openapi-generator-cli` container in the extension configuration so the `docker-entrypoint.sh` is available.</summary>
+/// <summary>OpenAPI Generator extension for client code generation.</summary>
 let append_comma acc value =
   match (acc, value) with
   | (_, "") -> acc
@@ -18,11 +18,11 @@ let format_properties properties =
   | None -> ""
 
 /// <summary>Generates an API client via `openapi-generator-cli generate`.</summary>
-/// <param name="generator" example="&quot;typescript-axios&quot;">Use provided generator.</param>
-/// <param name="input" example="&quot;src/api.json&quot;">Relative path to the OpenAPI/Swagger definition.</param>
-/// <param name="output" example="&quot;src/api/client&quot;">Relative output path for generated sources.</param>
-/// <param name="properties" default="" example="{ withoutPrefixEnums: &quot;true&quot; }">Additional generator properties (comma-joined into `--additional-properties`).</param>
-/// <param name="args" default="" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra arguments forwarded to `openapi-generator`.</param>
+/// <param name="generator" example="&quot;typescript-axios&quot;">Generator name.</param>
+/// <param name="input" example="&quot;src/api.json&quot;">Input OpenAPI file.</param>
+/// <param name="output" example="&quot;src/api/client&quot;">Output directory.</param>
+/// <param name="properties" default="" example="{ withoutPrefixEnums: &quot;true&quot; }">Generator properties (`--additional-properties`).</param>
+/// <param name="args" default="" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra generator arguments.</param>
 [<export>] let generate (context: Protocol.ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
   let properties = format_properties properties
   let args = args |> Option.defaultValue ""

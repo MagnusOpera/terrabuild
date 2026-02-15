@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Provides build/install/test helpers for projects using **pnpm** and a `package.json`. Supports batch (cascade) builds when `pnpm-workspace.yaml` and a root `package.json` exist at the Terrabuild workspace root.</summary>
+/// <summary>pnpm extension for install, build, and test workflows.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
 let load_package directory =
@@ -38,7 +38,7 @@ let batch_filters (context: Protocol.ActionContext) =
       |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
   | _ -> ""
 
-/// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
+/// <summary>Computes default outputs and dependencies from `package.json`.</summary>
 /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
@@ -56,7 +56,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Id = id; Outputs = ["dist/**"]; Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).</summary>
-/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments appended after the pnpm command.</param>
+/// <param name="args" default="" example="&quot;store status&quot;">Extra arguments for the pnpm command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -67,9 +67,9 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.</summary>
-/// <param name="force" default="true" example="true">Force packages install when checks fail (see `--force`).</param>
-/// <param name="frozen" default="true" example="true">Enable frozen versions (see `--frozen-lockfile`).</param>
-/// <param name="args" default="" example="&quot;--no-color&quot;">Additional arguments for `pnpm install`.</param>
+/// <param name="force" default="true" example="true">Adds `--force`.</param>
+/// <param name="frozen" default="true" example="true">Adds `--frozen-lockfile`.</param>
+/// <param name="args" default="" example="&quot;--no-color&quot;">Extra `pnpm install` arguments.</param>
 [<export>] let install (context: Protocol.ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
   let filters = batch_filters context
   let frozen = frozen |> Helpers.map_true_default true "--frozen-lockfile"
@@ -88,7 +88,7 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script (`pnpm run build`) across targeted workspaces.</summary>
-/// <param name="args" default="" example="&quot;--no-color&quot;">Additional arguments for the script.</param>
+/// <param name="args" default="" example="&quot;--no-color&quot;">Extra script arguments.</param>
 [<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
   let args = args |> Helpers.with_args
@@ -102,7 +102,7 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script (`pnpm run test`) across targeted workspaces.</summary>
-/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments for the script.</param>
+/// <param name="args" default="" example="&quot;--runInBand&quot;">Extra script arguments.</param>
 [<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let filters = batch_filters context
   let args = args |> Helpers.with_args
@@ -116,9 +116,9 @@ let batch_filters (context: Protocol.ActionContext) =
   [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary pnpm script (`pnpm run &lt;target&gt;`).</summary>
-/// <param name="target" example="&quot;build-prod&quot;">Target to invoke.</param>
-/// <param name="args" default="" example="&quot;build-prod&quot;">Additional arguments forwarded to the script.</param>
-/// <param name="recursive" default="true" example="true">Enable recursive execution (see `--recursive`).</param>
+/// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
+/// <param name="args" default="" example="&quot;--watch&quot;">Extra script arguments.</param>
+/// <param name="recursive" default="true" example="true">Adds `--recursive`.</param>
 [<export>] let run (context: Protocol.ActionContext) (target: string) (recursive: bool option) (args: string option) =
   let recursive = recursive |> Helpers.map_true_default true "--recursive"
   let args = args |> Helpers.with_args

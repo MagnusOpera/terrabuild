@@ -1,17 +1,14 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Uploads source maps and assets with **sentry-cli**, using Debug IDs for mapping.</summary>
+/// <summary>Sentry extension for sourcemap injection and upload.</summary>
 let with_project project =
   project |> Option.map (fun current -> $"--project {current}") |> Option.defaultValue ""
 
-/// <summary>
-/// Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.
-/// Note sourcemaps upload is strict for CI mode.
-/// </summary>
+/// <summary>Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.</summary>
 /// <title>Injects and uploads sourcemaps for JavaScript bundles using Debug IDs.</title>
-/// <param name="project" default="" example="&quot;insights&quot;">Project slug.</param>
-/// <param name="path" default="dist" example="&quot;dist&quot;">Sourcemaps path.</param>
+/// <param name="project" default="" example="&quot;insights&quot;">Sentry project slug.</param>
+/// <param name="path" default="dist" example="&quot;dist&quot;">Directory with sourcemaps.</param>
 [<export>] let sourcemaps (context: Protocol.ActionContext) (project: string option) (path: string option) =
   let project = with_project project
   let path = path |> Option.defaultValue "dist"

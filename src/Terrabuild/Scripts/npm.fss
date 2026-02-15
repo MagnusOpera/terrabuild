@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-/// <summary>Provides build, test, and exec helpers for projects that use **npm** and a `package.json` at the project root. Infers dependencies from `package.json` to wire Terrabuild graphs and defaults outputs to `dist/**`.</summary>
+/// <summary>npm extension for install, build, test, and exec workflows.</summary>
 type Package = { name: string; dependencies: string map option; devDependencies: string map option }
 
 let load_package directory =
@@ -31,7 +31,7 @@ let dependencies_from (package: Package) =
   List.append dependencies dev_dependencies
   |> List.distinct
 
-/// <summary>Infers project metadata from `package.json` (dependencies and default outputs).</summary>
+/// <summary>Computes default outputs and dependencies from `package.json`.</summary>
 /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
@@ -44,7 +44,7 @@ let dependencies_from (package: Package) =
   { Id = None; Outputs = ["dist/**"]; Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).</summary>
-/// <param name="args" default="" example="&quot;--port=1337&quot;">Additional arguments appended to the npm command.</param>
+/// <param name="args" default="" example="&quot;cache verify&quot;">Extra arguments for the npm command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -55,9 +55,9 @@ let dependencies_from (package: Package) =
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Installs packages with `npm ci`, honoring the lock file.</summary>
-/// <param name="force" default="false" example="true">Force install to bypass failed checks (see`--force`).</param>
-/// <param name="clean" default="true" example="true">Enable clean install (see `clean-install`).</param>
-/// <param name="args" default="" example="&quot;--install-strategy hoisted&quot;">Additional arguments passed to `npm ci`.</param>
+/// <param name="force" default="false" example="true">Adds `--force`.</param>
+/// <param name="clean" default="true" example="true">Uses `clean-install` when true.</param>
+/// <param name="args" default="" example="&quot;--install-strategy hoisted&quot;">Extra `npm ci` arguments.</param>
 [<export>] let install (context: Protocol.ActionContext) (force: bool option) (clean: bool option) (args: string option) =
   let force = force |> Helpers.map_true "--force"
   let clean = clean |> Helpers.map_true_default true "clean-"
@@ -72,7 +72,7 @@ let dependencies_from (package: Package) =
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `build` script via `npm run build`.</summary>
-/// <param name="args" default="" example="&quot;--workspaces&quot;">Extra arguments forwarded after `--`.</param>
+/// <param name="args" default="" example="&quot;--workspaces&quot;">Extra arguments after `--`.</param>
 [<export>] let build (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -83,7 +83,7 @@ let dependencies_from (package: Package) =
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs the `test` script via `npm run test`.</summary>
-/// <param name="args" default="" example="&quot;--port=1337&quot;">Extra arguments forwarded after `--`.</param>
+/// <param name="args" default="" example="&quot;--runInBand&quot;">Extra arguments after `--`.</param>
 [<export>] let test (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -94,8 +94,8 @@ let dependencies_from (package: Package) =
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Runs an arbitrary npm script via `npm run &lt;target&gt;`.</summary>
-/// <param name="target" example="&quot;build-prod&quot;">Script target to invoke.</param>
-/// <param name="args" default="" example="&quot;build-prod&quot;">Extra arguments forwarded after `--`.</param>
+/// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
+/// <param name="args" default="" example="&quot;--watch&quot;">Extra arguments after `--`.</param>
 [<export>] let run (context: Protocol.ActionContext) (target: string) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
@@ -106,8 +106,8 @@ let dependencies_from (package: Package) =
   [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
 
 /// <summary>Executes a package binary via `npm exec`.</summary>
-/// <param name="package" example="&quot;hello-world-npm&quot;">Package to run with `npm exec`.</param>
-/// <param name="args" default="" example="&quot;build-prod&quot;">Arguments passed to the package command.</param>
+/// <param name="package" example="&quot;openapi-generator-cli&quot;">Package to execute.</param>
+/// <param name="args" default="" example="&quot;version-manager list&quot;">Arguments for the package command.</param>
 [<export>] let exec (context: Protocol.ActionContext) (package: string) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
