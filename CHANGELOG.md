@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 - Create annotated release tags in `release-prepare` so `git push --follow-tags` pushes releases
 - Update contributor workflow docs and add local architecture docs index
+- Add a usage skill guide for day-to-day Terrabuild workflows
 
 ## [0.189.3-next]
 

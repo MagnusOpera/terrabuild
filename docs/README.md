@@ -5,3 +5,7 @@ This directory contains repository-local documentation for internal architecture
 ## Architecture
 
 - [Graph pipeline](architecture/graph-pipeline.md)
+
+## Guides
+
+- [Terrabuild usage skill](guides/SKILL.md)
