@@ -557,15 +557,16 @@ let private loadFScript (rootDirectory: string) (scriptFile: string) =
     toFScriptScript loaded
 
 let private loadFScriptFromSourceWithIncludes
-    (rootDirectory: string)
+    (hostRootDirectory: string)
+    (includeRootDirectory: string)
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
+    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = hostRootDirectory }
     let loaded =
         FScript.Runtime.ScriptHost.loadSourceWithIncludes
             externs
-            rootDirectory
+            includeRootDirectory
             entryFile
             entrySource
             resolveImportedSource
@@ -592,18 +593,26 @@ let loadScript (rootDirectory: string) (references: string list) (scriptFile: st
             script)
 
 let loadScriptFromSourceWithIncludes
-    (rootDirectory: string)
+    (hostRootDirectory: string)
+    (includeRootDirectory: string)
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let fullRootDirectory = Path.GetFullPath(rootDirectory)
+    let fullHostRootDirectory = Path.GetFullPath(hostRootDirectory)
+    let fullIncludeRootDirectory = Path.GetFullPath(includeRootDirectory)
     let fullEntryFile = Path.GetFullPath(entryFile)
-    let cacheKey = $"{fullRootDirectory}::embedded::{fullEntryFile}"
+    let cacheKey = $"{fullHostRootDirectory}::embedded::{fullIncludeRootDirectory}::{fullEntryFile}"
 
     lock loadLock (fun () ->
         match cache |> Map.tryFind cacheKey with
         | Some script -> script
         | None ->
-            let script = loadFScriptFromSourceWithIncludes fullRootDirectory fullEntryFile entrySource resolveImportedSource
+            let script =
+                loadFScriptFromSourceWithIncludes
+                    fullHostRootDirectory
+                    fullIncludeRootDirectory
+                    fullEntryFile
+                    entrySource
+                    resolveImportedSource
             cache <- cache |> Map.add cacheKey script
             script)

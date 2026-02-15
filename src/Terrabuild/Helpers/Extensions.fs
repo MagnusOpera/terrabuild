@@ -170,7 +170,7 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 | Some entrySource ->
                     let resolveImportedSource (path: string) =
                         sourceMap |> Map.tryFind (Path.GetFullPath(path))
-                    loadScriptFromSourceWithIncludes embeddedScriptsVirtualRoot entryPath entrySource resolveImportedSource
+                    loadScriptFromSourceWithIncludes workspaceRoot embeddedScriptsVirtualRoot entryPath entrySource resolveImportedSource
                 | None ->
                     raiseSymbolError $"Embedded script is not defined for extension '{name}'"
             | _ ->
