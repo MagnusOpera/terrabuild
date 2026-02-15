@@ -9,4 +9,8 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />
+  </ItemGroup>
+
 </Project>

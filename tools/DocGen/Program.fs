@@ -337,7 +337,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
           Commands = commands }
     extension
 
-let private buildExtensions () : Map<string, Extension> =
+let private getExtensionScriptPaths () =
     let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild/Scripts"))
     Directory.EnumerateFiles(scriptsDir, "*.fss")
     |> Seq.filter (fun path ->
@@ -345,6 +345,18 @@ let private buildExtensions () : Map<string, Extension> =
         match fileName with
         | null -> false
         | name -> name <> "null.fss" && not (name.StartsWith("_")))
+    |> Seq.toList
+
+let private validateExtensionScripts () =
+    let rootDirectory = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../.."))
+    for scriptPath in getExtensionScriptPaths () do
+        try
+            Terrabuild.Scripting.loadScript rootDirectory [] scriptPath |> ignore
+        with ex ->
+            failwith $"Extension script validation failed for '{scriptPath}': {ex.Message}"
+
+let private buildExtensions () : Map<string, Extension> =
+    getExtensionScriptPaths ()
     |> Seq.map buildScriptExtension
     |> Seq.map (fun ext -> ext.Name, ext)
     |> Map.ofSeq
@@ -422,9 +434,9 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
             let summary = parameter.Summary.Trim()
             match parameter.DefaultValue with
             | Some defaultValue when summary = "" ->
-                $"Default value is {defaultValue}."
+                $"Default value is `{defaultValue}`."
             | Some defaultValue ->
-                $"{summary} Default value is {defaultValue}."
+                $"{summary} Default value is `{defaultValue}`."
             | None ->
                 summary
         let commandContent = [
@@ -580,6 +592,7 @@ let main args =
         | [| outputDir; "--write" |] -> outputDir, true
         | _ -> failwith "Usage: DocGen <output-dir> [<--write>]"
 
+    validateExtensionScripts ()
     let extensions = buildExtensions ()
 
     // generate files
