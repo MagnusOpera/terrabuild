@@ -197,5 +197,5 @@ smoke-indirect-target:
 
 smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target
 
-release:
+release-prepare:
 	./.github/scripts/release.sh "$(version)" "$(dryrun)"

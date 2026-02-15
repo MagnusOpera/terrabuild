@@ -106,8 +106,8 @@ For broad/core changes:
 
 Terrabuild uses a draft-based release flow:
 
-1. Run `make release version=X.Y.Z` (stable) or `make release version=X.Y.Z-next` (preview).
-   - Optional preview mode: `make release version=X.Y.Z[-next] dryrun=true`
+1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
+   - Optional preview mode: `make release-prepare version=X.Y.Z[-next] dryrun=true`
 2. The command updates `CHANGELOG.md`, commits changelog changes, and creates a local tag.
 3. Push commit and tag:
    - `git push origin main`
@@ -120,7 +120,7 @@ Rules:
 - Tag workflow sources draft release notes from `CHANGELOG.md` section `## [X.Y.Z]`.
 - Tag workflow fails if version section is missing/empty, has no bullet, or has no compare link.
 - `on-release-published.yml` consumes release artifacts from the published release, signs macOS binaries, and publishes NuGet/Homebrew.
-- `make release` supports `X.Y.Z` and `X.Y.Z-next` only.
+- `make release-prepare` supports `X.Y.Z` and `X.Y.Z-next` only.
 - Compare link policy:
   - stable release compares against previous stable tag.
   - preview release compares against previous `-next` tag.

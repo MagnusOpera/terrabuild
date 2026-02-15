@@ -3,6 +3,7 @@
 All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
+- Rename release helper target to `make release-prepare` to avoid implying remote push/publish
 
 ## [0.189.2-next]
 
@@ -10,7 +11,7 @@ All notable changes to Terrabuild are documented in this file.
 - Initialize changelog-driven draft release notes for tag workflows
 - Load built-in extension scripts from embedded resources only and remove filesystem fallback/copy
 - Fix embedded extension loading to preserve workspace host context in smoke-test scenarios
-- Add `make release` to automate changelog versioning, compare link, commit, and local tag creation
+- Add `make release-prepare` to automate changelog versioning, compare link, commit, and local tag creation
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.1-next...0.189.2-next
 
