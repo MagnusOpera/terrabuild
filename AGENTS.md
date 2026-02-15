@@ -101,3 +101,21 @@ For broad/core changes:
 - If `make self` fails due environment/toolchain issues, still run `make smoke-tests` and `make try-docs` to isolate regressions from infrastructure noise.
 - If `make smoke-tests` produces diffs, they **MUST** be investigated before accepting changes.
   The diff analysis should explain the root cause clearly (for example: file/content change, configuration change, or variable/input change).
+
+## Release Process (Tags and GitHub Draft)
+
+Terrabuild uses a draft-based release flow:
+
+1. Move `## [Unreleased]` entries to `## [X.Y.Z]` in `CHANGELOG.md`.
+2. Add/verify a compare link in that version section:
+   `**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/<previous-tag>...<new-tag>`
+3. Commit changelog updates.
+4. Create and push tag `X.Y.Z`.
+5. Wait for CI (`on-push-tag.yml`) to create the GitHub release as draft and upload artifacts.
+6. Publish that existing draft release (do not create/publish manually before CI draft creation).
+
+Rules:
+
+- Tag workflow sources draft release notes from `CHANGELOG.md` section `## [X.Y.Z]`.
+- Tag workflow fails if version section is missing/empty, has no bullet, or has no compare link.
+- `on-release-published.yml` consumes release artifacts from the published release, signs macOS binaries, and publishes NuGet/Homebrew.

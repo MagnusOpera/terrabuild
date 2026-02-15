@@ -61,12 +61,17 @@ jobs:
           echo "BUILD_VERSION_SUFFIX=$BUILD_VERSION_SUFFIX" >> $GITHUB_ENV
           echo "BUILD_VERSION_SUFFIX: $BUILD_VERSION_SUFFIX"
 
+      - name: Extract release notes from changelog
+        shell: bash
+        run: |
+          ./.github/scripts/extract-release-notes.sh "${GITHUB_REF_NAME}" > "${RUNNER_TEMP}/release-notes.md"
+
       - name: GitHub Release
         uses: softprops/action-gh-release@v2.0.6
         with:
           draft: true
           prerelease: ${{ env.BUILD_VERSION_SUFFIX != '' }}
-          generate_release_notes: true
+          body_path: ${{ runner.temp }}/release-notes.md
           files: |
             .out/*.zip
             .out/*.nupkg
