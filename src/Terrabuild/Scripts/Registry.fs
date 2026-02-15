@@ -21,6 +21,20 @@ let BuiltInScriptFiles =
         "@yarn", "Scripts/yarn.fss"
     ]
 
+let private internalScriptFiles =
+    [ "Scripts/_helpers.fss"
+      "Scripts/_protocol.fss" ]
+
+let EmbeddedScriptFiles =
+    let builtIns =
+        BuiltInScriptFiles
+        |> Map.toList
+        |> List.map snd
+
+    builtIns @ internalScriptFiles
+    |> Set.ofList
+    |> Set.toList
+
 let private builtInDefaults name =
     match name with
     | "@shell"

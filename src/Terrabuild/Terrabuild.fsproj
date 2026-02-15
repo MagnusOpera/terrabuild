@@ -75,10 +75,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
-    <Content Include="Scripts\*.fss" Pack="true" PackagePath="tools\scripts\">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-    </Content>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="Terrabuild.png" Pack="true" PackagePath="\" />
   </ItemGroup>
@@ -86,6 +82,9 @@
   <ItemGroup>
     <EmbeddedResource Include="..\Terrabuild.UI\dist\**\*">
       <LogicalName>ui\%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Scripts\*.fss">
+      <LogicalName>scripts\%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

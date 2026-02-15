@@ -4,6 +4,7 @@ open System.IO
 open System.Net.Http
 open System.Security.Cryptography
 open System.Text
+open System.Reflection
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
@@ -21,6 +22,58 @@ let private extensionCandidates (name: string) =
     if String.IsNullOrWhiteSpace name then [ name ]
     elif name.StartsWith("@") then [ name; name.Substring(1) ]
     else [ name; $"@{name}" ]
+
+let private embeddedScriptsVirtualRoot =
+    Path.Combine(AppContext.BaseDirectory, "__terrabuild_embedded__", "Scripts")
+    |> Path.GetFullPath
+
+let private normalizeRelativeScriptPath (path: string) =
+    path.Replace('\\', '/')
+
+let private toEmbeddedScriptVirtualPath (relativeScriptPath: string) =
+    let relative = normalizeRelativeScriptPath relativeScriptPath
+    let prefix = "Scripts/"
+    if relative.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) then
+        let localRelative = relative.Substring(prefix.Length)
+        Path.Combine(embeddedScriptsVirtualRoot, localRelative) |> Path.GetFullPath
+    else
+        Path.Combine(embeddedScriptsVirtualRoot, relative) |> Path.GetFullPath
+
+let private tryReadEmbeddedScript (assembly: Assembly) (relativeScriptPath: string) =
+    let normalized = normalizeRelativeScriptPath relativeScriptPath
+    let localRelative =
+        if normalized.StartsWith("Scripts/", StringComparison.OrdinalIgnoreCase) then normalized.Substring("Scripts/".Length)
+        else normalized
+
+    let expectedSlashSuffix = ("scripts/" + localRelative).ToLowerInvariant()
+    let expectedDotSuffix = ("scripts." + localRelative.Replace("/", ".")).ToLowerInvariant()
+    let resourceName =
+        assembly.GetManifestResourceNames()
+        |> Array.tryFind (fun name ->
+            let normalizedName = name.Replace('\\', '/').ToLowerInvariant()
+            normalizedName.EndsWith(expectedSlashSuffix, StringComparison.Ordinal)
+            || normalizedName.EndsWith(expectedDotSuffix, StringComparison.Ordinal))
+
+    match resourceName with
+    | Some resource ->
+        match assembly.GetManifestResourceStream(resource) with
+        | null -> None
+        | stream ->
+            use reader = new StreamReader(stream)
+            reader.ReadToEnd() |> Some
+    | None ->
+        None
+
+let private embeddedScriptSources =
+    lazy
+        (let assembly = Assembly.GetExecutingAssembly()
+         ScriptRegistry.EmbeddedScriptFiles
+         |> List.choose (fun relativeScriptPath ->
+             let virtualPath = toEmbeddedScriptVirtualPath relativeScriptPath
+             match tryReadEmbeddedScript assembly relativeScriptPath with
+             | Some source -> Some (virtualPath, source)
+             | None -> None)
+         |> Map.ofList)
 
 // NOTE: when app in package as a single file, Terrabuild.Assembly can't be found...
 //       this means native deployments are not supported ¯\_(ツ)_/¯
@@ -106,14 +159,20 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 let localScript = resolveLocalScriptPath workspaceRoot script
                 loadScript workspaceRoot [ terrabuildScripting ] localScript
         | _ ->
-            let SystemScriptPath =
+            let systemScriptPath =
                 extensionCandidates name
                 |> List.tryPick (fun candidate -> ScriptRegistry.BuiltInScriptFiles |> Map.tryFind candidate)
-                |> Option.map (FS.combinePath terrabuildDir)
-
-            match SystemScriptPath with
-            | Some scriptPath when System.IO.File.Exists scriptPath ->
-                loadScript workspaceRoot [ terrabuildScripting ] scriptPath
+            match systemScriptPath with
+            | Some relativePath ->
+                let entryPath = toEmbeddedScriptVirtualPath relativePath
+                let sourceMap = embeddedScriptSources.Value
+                match sourceMap |> Map.tryFind entryPath with
+                | Some entrySource ->
+                    let resolveImportedSource (path: string) =
+                        sourceMap |> Map.tryFind (Path.GetFullPath(path))
+                    loadScriptFromSourceWithIncludes embeddedScriptsVirtualRoot entryPath entrySource resolveImportedSource
+                | None ->
+                    raiseSymbolError $"Embedded script is not defined for extension '{name}'"
             | _ ->
                 raiseSymbolError $"Script is not defined for extension '{name}'"
 

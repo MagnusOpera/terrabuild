@@ -535,10 +535,7 @@ let private loadLegacyScript (references: string list) (scriptFile: string) =
 
     Script(mainType)
 
-let private loadFScript (rootDirectory: string) (scriptFile: string) =
-    let fullPath = Path.GetFullPath(scriptFile)
-    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
-    let loaded = FScript.Runtime.ScriptHost.loadFile externs fullPath
+let private toFScriptScript (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     loaded.ExportedFunctionNames
     |> List.iter (fun functionName ->
         match loaded.ExportedFunctionSignatures |> Map.tryFind functionName with
@@ -551,6 +548,28 @@ let private loadFScript (rootDirectory: string) (scriptFile: string) =
     let descriptor = Descriptor.Parse(loaded.ExportedFunctionNames, loaded.LastValue)
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     Script(FScript(loaded, descriptor, dispatchMethod, defaultMethod))
+
+let private loadFScript (rootDirectory: string) (scriptFile: string) =
+
+    let fullPath = Path.GetFullPath(scriptFile)
+    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
+    let loaded = FScript.Runtime.ScriptHost.loadFile externs fullPath
+    toFScriptScript loaded
+
+let private loadFScriptFromSourceWithIncludes
+    (rootDirectory: string)
+    (entryFile: string)
+    (entrySource: string)
+    (resolveImportedSource: string -> string option) =
+    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
+    let loaded =
+        FScript.Runtime.ScriptHost.loadSourceWithIncludes
+            externs
+            rootDirectory
+            entryFile
+            entrySource
+            resolveImportedSource
+    toFScriptScript loaded
 
 let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
@@ -569,5 +588,22 @@ let loadScript (rootDirectory: string) (references: string list) (scriptFile: st
                 match extension with
                 | ".fss" -> loadFScript fullRootDirectory fullScriptPath
                 | _ -> loadLegacyScript references fullScriptPath
+            cache <- cache |> Map.add cacheKey script
+            script)
+
+let loadScriptFromSourceWithIncludes
+    (rootDirectory: string)
+    (entryFile: string)
+    (entrySource: string)
+    (resolveImportedSource: string -> string option) =
+    let fullRootDirectory = Path.GetFullPath(rootDirectory)
+    let fullEntryFile = Path.GetFullPath(entryFile)
+    let cacheKey = $"{fullRootDirectory}::embedded::{fullEntryFile}"
+
+    lock loadLock (fun () ->
+        match cache |> Map.tryFind cacheKey with
+        | Some script -> script
+        | None ->
+            let script = loadFScriptFromSourceWithIncludes fullRootDirectory fullEntryFile entrySource resolveImportedSource
             cache <- cache |> Map.add cacheKey script
             script)
