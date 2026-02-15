@@ -3,8 +3,13 @@
 All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
+
+## [0.189.3-next]
+
 - Rename release helper target to `make release-prepare` to avoid implying remote push/publish
 - Revert entitlements changes.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.2-next...0.189.3-next
 
 ## [0.189.2-next]
 
