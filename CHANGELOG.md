@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.5-next]
+
+
 - Upgrade Terrabuild FScript runtime to 0.40.0 and initialize `Env` (`ScriptName`, `Arguments`) when loading `.fss` extension scripts.
 - Fix FScript `Env` prelude injection to preserve leading `import` directives in embedded scripts.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.4-next...0.189.5-next
 
 ## [0.189.4-next]
 
