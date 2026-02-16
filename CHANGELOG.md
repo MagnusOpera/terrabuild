@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade Terrabuild FScript runtime to 0.40.0 and initialize `Env` (`ScriptName`, `Arguments`) when loading `.fss` extension scripts.
+
 ## [0.189.4-next]
 
 - Create annotated release tags in `release-prepare` so `git push --follow-tags` pushes releases

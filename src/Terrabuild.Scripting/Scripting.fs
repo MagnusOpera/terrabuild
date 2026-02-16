@@ -549,11 +549,50 @@ let private toFScriptScript (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     Script(FScript(loaded, descriptor, dispatchMethod, defaultMethod))
 
+let private toFScriptStringLiteral (value: string) =
+    let escaped =
+        value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal)
+    $"\"{escaped}\""
+
+let private prependEnvironmentBinding (scriptName: string option) (arguments: string list) (source: string) =
+    let scriptNameLiteral =
+        match scriptName with
+        | Some value -> $"Some {toFScriptStringLiteral value}"
+        | None -> "None"
+
+    let argumentsLiteral =
+        match arguments with
+        | [] -> "[]"
+        | values ->
+            values
+            |> List.map toFScriptStringLiteral
+            |> String.concat "; "
+            |> sprintf "[%s]"
+
+    let prelude =
+        String.concat
+            "\n"
+            [ "let asEnvironment (value: Environment) = value"
+              $"let Env = asEnvironment {{ ScriptName = {scriptNameLiteral}; Arguments = {argumentsLiteral} }}"
+              "" ]
+
+    prelude + source
+
 let private loadFScript (rootDirectory: string) (scriptFile: string) =
 
     let fullPath = Path.GetFullPath(scriptFile)
     let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
-    let loaded = FScript.Runtime.ScriptHost.loadFile externs fullPath
+    let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
+    let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
+    let loaded =
+        FScript.Runtime.ScriptHost.loadSourceWithIncludes
+            externs
+            rootDirectory
+            fullPath
+            entrySource
+            (fun resolvedPath -> File.ReadAllText(resolvedPath) |> Some)
     toFScriptScript loaded
 
 let private loadFScriptFromSourceWithIncludes
@@ -563,6 +602,8 @@ let private loadFScriptFromSourceWithIncludes
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
     let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = hostRootDirectory }
+    let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
+    let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =
         FScript.Runtime.ScriptHost.loadSourceWithIncludes
             externs

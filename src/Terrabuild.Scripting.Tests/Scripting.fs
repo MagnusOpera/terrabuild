@@ -123,6 +123,21 @@ let invokeFScriptMethodWithStructuredArgumentsDefaults() =
     res |> should equal "build|0|<none>"
 
 [<Test>]
+let invokeFScriptMethodHasEnvInitialized() =
+    let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
+    let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Env.fss"
+    let invocable = script.GetMethod("run")
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "run"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Directory = "TestFiles"
+                    ActionContext.Batch = None }
+    let args = Value.Map (Map [ "context", Value.Object context ])
+    let res = invocable.Value.Invoke<string> args
+    res |> should equal "Env.fss|0"
+
+[<Test>]
 let invokeFScriptMethodMissingContextFails() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     let script = Terrabuild.Scripting.loadScript root [] "TestFiles/PascalCaseDispatch.fss"
