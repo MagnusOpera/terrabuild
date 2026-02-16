@@ -578,7 +578,44 @@ let private prependEnvironmentBinding (scriptName: string option) (arguments: st
               $"let Env = asEnvironment {{ ScriptName = {scriptNameLiteral}; Arguments = {argumentsLiteral} }}"
               "" ]
 
-    prelude + source
+    let newline =
+        if source.Contains("\r\n", StringComparison.Ordinal) then "\r\n"
+        else "\n"
+
+    let lines =
+        source.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n')
+
+    let isCommentOrBlank (line: string) =
+        let trimmed = line.Trim()
+        String.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith("//", StringComparison.Ordinal)
+
+    let isImport (line: string) =
+        line.TrimStart().StartsWith("import ", StringComparison.Ordinal)
+
+    let mutable index = 0
+    let mutable seenImport = false
+    let mutable keepScanning = true
+
+    while index < lines.Length && keepScanning do
+        let line = lines[index]
+        if isImport line then
+            seenImport <- true
+            index <- index + 1
+        elif isCommentOrBlank line then
+            index <- index + 1
+        else
+            keepScanning <- false
+
+    let insertionIndex = if seenImport then index else 0
+    let before = lines |> Array.take insertionIndex |> String.concat newline
+    let after = lines |> Array.skip insertionIndex |> String.concat newline
+
+    if insertionIndex = 0 then
+        prelude + source
+    elif String.IsNullOrEmpty(after) then
+        before + newline + prelude
+    else
+        before + newline + prelude + after
 
 let private loadFScript (rootDirectory: string) (scriptFile: string) =
 
