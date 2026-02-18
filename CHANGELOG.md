@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Make extension batch support dynamic per command by requiring command handlers to return `{ Batchable; Operations }`.
+- Remove static `Batchable` descriptor/attribute semantics and update built-in extensions, protocol docs, and scripting tests accordingly.
+
 ## [0.189.6-next]
 
 
