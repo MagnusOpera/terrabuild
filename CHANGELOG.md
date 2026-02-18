@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade Terrabuild FScript runtime/language to `0.41.0`.
+
 ## [0.189.5-next]
 
 
