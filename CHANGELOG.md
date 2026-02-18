@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.6-next]
+
+
 - Upgrade Terrabuild FScript runtime/language to `0.41.0`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.5-next...0.189.6-next
 
 ## [0.189.5-next]
 
