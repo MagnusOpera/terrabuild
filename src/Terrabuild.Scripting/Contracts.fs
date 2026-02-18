@@ -50,6 +50,12 @@ module ScriptingContracts =
     type ShellOperations = ShellOperation list
 
     [<RequireQualifiedAccess>]
+    type CommandResult = {
+        Batchable: bool
+        Operations: ShellOperations
+    }
+
+    [<RequireQualifiedAccess>]
     type Cacheability =
         | Never
         | Local
@@ -60,14 +66,9 @@ module ScriptingContracts =
     type ExportFlag =
         | Dispatch
         | Default
-        | Batchable
         | Cache of Cacheability
 
     type ScriptDescriptor = Map<string, ExportFlag list>
-
-    [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]
-    type BatchableAttribute() =
-        inherit Attribute()
 
     [<AbstractClass>]
     [<AttributeUsage(AttributeTargets.Method, AllowMultiple = false)>]

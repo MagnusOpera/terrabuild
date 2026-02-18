@@ -230,10 +230,7 @@ type Script internal (runtime: ScriptRuntime) =
             | Null -> None
             | NonNull methodInfo ->
                 let flags =
-                    [ match methodInfo.GetCustomAttribute(typeof<BatchableAttribute>) with
-                      | :? BatchableAttribute -> ExportFlag.Batchable
-                      | _ -> ()
-                      match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
+                    [ match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
                       | :? CacheableAttribute as cacheable -> ExportFlag.Cache cacheable.Cacheability
                       | _ -> () ]
                 Some flags
@@ -272,7 +269,6 @@ and private Descriptor =
             match Descriptor.normalizeCase caseName, payload with
             | "dispatch", None -> Some ExportFlag.Dispatch
             | "default", None -> Some ExportFlag.Default
-            | "batchable", None -> Some ExportFlag.Batchable
             | "cache", Some (FScript.Language.VUnionCase(_, cacheCase, None)) ->
                 Descriptor.parseCacheabilityName cacheCase |> Option.map ExportFlag.Cache
             | "cache", Some (FScript.Language.VString cacheName) ->

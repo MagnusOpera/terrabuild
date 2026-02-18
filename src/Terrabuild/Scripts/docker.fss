@@ -23,7 +23,7 @@ let format_build_args build_args =
 /// <param name="args" default="" example="&quot;image prune -f&quot;">Extra arguments for the Docker subcommand.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Builds an image tagged with the Terrabuild hash, and pushes it in CI.</summary>
 /// <param name="image" example="&quot;ghcr.io/example/project&quot;">Image repository.</param>
@@ -48,10 +48,13 @@ let format_build_args build_args =
     |> Helpers.append_part "."
 
   let ops = [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
-  if context.CI then
-    ops @ [{ Command = "docker"; Arguments = $"push {image}:{context.Hash}"; ErrorLevel = 0 }]
-  else
-    ops
+  let operations =
+    if context.CI then
+      ops @ [{ Command = "docker"; Arguments = $"push {image}:{context.Hash}"; ErrorLevel = 0 }]
+    else
+      ops
+
+  { Batchable = false; Operations = operations }
 
 /// <summary>Pushes the built image to the registry with a specific tag.</summary>
 /// <param name="image" example="&quot;ghcr.io/example/project&quot;">Image repository.</param>
@@ -72,7 +75,7 @@ let format_build_args build_args =
       |> Helpers.append_part $"{image}:{context.Hash}"
       |> Helpers.append_part $"{image}:{tag}"
       |> Helpers.append_part args
-  [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "docker"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
 {

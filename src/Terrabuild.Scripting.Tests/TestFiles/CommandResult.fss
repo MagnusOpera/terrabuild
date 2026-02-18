@@ -1,0 +1,18 @@
+type ShellOperation = { Command: string; Arguments: string; ErrorLevel: int }
+type CommandResult = { Batchable: bool; Operations: ShellOperation list }
+
+[<export>] let run (context: {| Command: string |}) =
+  { Batchable = true
+    Operations = [{ Command = context.Command; Arguments = "--flag"; ErrorLevel = 0 }] }
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{
+  [nameof run] = [Local]
+}

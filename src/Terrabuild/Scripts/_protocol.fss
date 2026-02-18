@@ -5,11 +5,11 @@ type ActionContext = { Debug: bool; CI: bool; Command: string; Hash: string; Dir
 type ProjectInfo = { Id: string option; Outputs: string list; Dependencies: string list }
 
 type ShellOperation = { Command: string; Arguments: string; ErrorLevel: int }
+type CommandResult = { Batchable: bool; Operations: ShellOperation list }
 
 type ExportFlag =
   | Dispatch
   | Default
-  | Batchable
   | Never
   | Local
   | External

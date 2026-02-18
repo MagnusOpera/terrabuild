@@ -222,8 +222,3 @@ let getScriptCacheability (method: string) (script: Script option) =
         getScriptFlags method script
         |> Option.bind (List.tryPick (function | ExportFlag.Cache cacheability -> Some cacheability | _ -> None))
     cacheFlag
-
-let isScriptBatchable (method: string) (script: Script option) =
-    getScriptFlags method script
-    |> Option.map (List.contains ExportFlag.Batchable)
-    |> Option.defaultValue false

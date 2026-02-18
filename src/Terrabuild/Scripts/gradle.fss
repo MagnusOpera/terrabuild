@@ -14,7 +14,7 @@ let with_configuration configuration =
 /// <param name="args" default="" example="&quot;clean --info&quot;">Extra arguments for the Gradle command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
 /// <param name="configuration" default="Release" example="&quot;Debug&quot;">Build configuration.</param>
@@ -27,7 +27,7 @@ let with_configuration configuration =
     |> Helpers.append_part "assemble"
     |> Helpers.append_part configuration
     |> Helpers.append_part args
-  [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "gradle"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
 {

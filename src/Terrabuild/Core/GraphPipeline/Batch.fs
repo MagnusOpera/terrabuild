@@ -161,9 +161,9 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                             |> Terrabuild.Expressions.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
-                    match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.ShellOperations> optContext.Command parameters (Some operation.Script) with
+                    match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some operation.Script) with
                     | Extensions.InvocationResult.Success executionRequest ->
-                        executionRequest |> List.map (fun shellOperation -> {
+                        executionRequest.Operations |> List.map (fun shellOperation -> {
                             ContaineredShellOperation.Image = operation.Image
                             ContaineredShellOperation.Platform = operation.Platform
                             ContaineredShellOperation.Cpus = operation.Cpus

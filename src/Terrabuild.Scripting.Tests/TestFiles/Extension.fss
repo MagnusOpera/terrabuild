@@ -8,14 +8,13 @@ let hidden _ = "hidden"
 type ExportFlag =
   | Dispatch
   | Default
-  | Batchable
   | Never
   | Local
   | External
   | Remote
 
 {
-  [nameof run] = [Batchable; Local]
+  [nameof run] = [Local]
   [nameof dispatch] = [Dispatch]
   [nameof defaults] = [Default]
 }

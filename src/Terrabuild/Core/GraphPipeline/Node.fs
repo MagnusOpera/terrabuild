@@ -100,14 +100,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             | Terrabuild.ScriptingContracts.Cacheability.External -> ArtifactMode.External
                         | _ -> raiseInvalidArg $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
 
-                    let shellOperations =
-                        match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.ShellOperations> optContext.Command parameters (Some operation.Script) with
+                    let executionResult =
+                        match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some operation.Script) with
                         | Extensions.InvocationResult.Success executionRequest -> executionRequest
                         | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
                         | _ -> raiseInvalidArg $"{hash}: Failed to get shell operation (extension error)"
 
                     let newops =
-                        shellOperations |> List.map (fun shellOperation -> {
+                        executionResult.Operations |> List.map (fun shellOperation -> {
                             ContaineredShellOperation.Image = operation.Image
                             ContaineredShellOperation.Platform = operation.Platform
                             ContaineredShellOperation.Cpus = operation.Cpus
@@ -118,10 +118,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                             ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
                             ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
 
-                    let batchable = 
-                        match Extensions.isScriptBatchable optContext.Command (Some operation.Script) with
-                        | true -> batchable
-                        | _ -> false
+                    let batchable = batchable && executionResult.Batchable
 
                     cacheability, batchable, ops @ newops
                 ) (ArtifactMode.Managed, true, [])

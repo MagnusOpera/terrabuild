@@ -80,7 +80,6 @@ Canonical form:
 type ExportFlag =
   | Dispatch
   | Default
-  | Batchable
   | Never
   | Local
   | External
@@ -95,7 +94,6 @@ Supported flags:
 
 - `Dispatch`
 - `Default`
-- `Batchable`
 - cacheability: `Never`, `Local`, `External`, `Remote`
 
 ## 6. Method Resolution
@@ -106,7 +104,7 @@ Supported flags:
 
 ## 7. Return Contract
 
-1. Command handlers **MUST** return a list of shell operations.
+1. Command handlers **MUST** return a command result record with `Batchable` and `Operations`.
 2. Default handlers **MUST** return a project information record.
 
 Expected extension-facing shapes:
@@ -119,6 +117,11 @@ type ShellOperation = {
 }
 
 type ShellOperations = ShellOperation list
+
+type CommandResult = {
+  Batchable: bool
+  Operations: ShellOperations
+}
 
 type ProjectInfo = {
   Id: string option
@@ -133,7 +136,8 @@ Extensions **SHOULD** avoid duplicates.
 Command handler example:
 
 ```fsharp
-[{ Command = "make"; Arguments = "build"; ErrorLevel = 0 }]
+{ Batchable = false
+  Operations = [{ Command = "make"; Arguments = "build"; ErrorLevel = 0 }] }
 ```
 
 Default handler example:
@@ -173,16 +177,17 @@ import "_helpers.fss" as Helpers
   { Id = None; Outputs = []; Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
-[<export>] let dispatch (context: ActionContext) (args: string option) : ShellOperations =
+[<export>] let dispatch (context: ActionContext) (args: string option) : CommandResult =
   let command =
     ""
     |> append_part context.Command
     |> append_part (with_args args)
 
-  [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false
+    Operations = [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }] }
 
 // Specific command entrypoint example
-[<export>] let build (context: ActionContext) (configuration: string option) (args: string option) : ShellOperations =
+[<export>] let build (context: ActionContext) (configuration: string option) (args: string option) : CommandResult =
   let configuration = configuration |> Option.defaultValue "Debug"
   let command =
     ""
@@ -190,7 +195,8 @@ import "_helpers.fss" as Helpers
     |> append_part $"--configuration {configuration}"
     |> append_part (with_args args)
 
-  [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false
+    Operations = [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }] }
 
 // Script descriptor: exported function name -> flag list
 {
@@ -207,7 +213,7 @@ Template usage rules:
 3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** import them as `Protocol` and `Helpers`.
 4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
-6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Batchable`, `Never`, `Local`, `External`, `Remote`.
+6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Never`, `Local`, `External`, `Remote`.
 
 Parameter XML documentation attributes:
 

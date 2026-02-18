@@ -36,7 +36,7 @@ let format_properties properties =
     |> Helpers.append_part properties
     |> Helpers.append_part args
 
-  [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "docker-entrypoint.sh"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
 {

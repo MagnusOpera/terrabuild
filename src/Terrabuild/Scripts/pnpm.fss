@@ -64,7 +64,7 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
 
-  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.</summary>
 /// <param name="force" default="true" example="true">Adds `--force`.</param>
@@ -85,7 +85,7 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part force
     |> Helpers.append_part args
 
-  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = true; Operations = [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `build` script (`pnpm run build`) across targeted workspaces.</summary>
 /// <param name="args" default="" example="&quot;--no-color&quot;">Extra script arguments.</param>
@@ -99,7 +99,7 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part "run build"
     |> Helpers.append_part args
 
-  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = true; Operations = [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `test` script (`pnpm run test`) across targeted workspaces.</summary>
 /// <param name="args" default="" example="&quot;--runInBand&quot;">Extra script arguments.</param>
@@ -113,7 +113,7 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part "run test"
     |> Helpers.append_part args
 
-  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = true; Operations = [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs an arbitrary pnpm script (`pnpm run &lt;target&gt;`).</summary>
 /// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
@@ -129,14 +129,14 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part $"run {target}"  
     |> Helpers.append_part args
 
-  [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }]
+  { Batchable = false; Operations = [{ Command = "pnpm"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
 {
   [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
-  [nameof install] = [Local; Batchable]
-  [nameof build] = [Remote; Batchable]
-  [nameof test] = [Remote; Batchable]
+  [nameof install] = [Local]
+  [nameof build] = [Remote]
+  [nameof test] = [Remote]
   [nameof run] = [Local]
 }

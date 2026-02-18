@@ -57,13 +57,19 @@ let loadFScriptFlags() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Extension.fss"
     let flags = script.TryGetFunctionFlags("run")
-    flags |> should equal (Some [ ExportFlag.Batchable; ExportFlag.Cache Cacheability.Local ])
+    flags |> should equal (Some [ ExportFlag.Cache Cacheability.Local ])
 
 [<Test>]
 let loadFScriptStringFlagsFails() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     (fun () -> Terrabuild.Scripting.loadScript root [] "TestFiles/StringFlagsDescriptor.fss" |> ignore)
     |> should (throwWithMessage "Unsupported export flag for function 'dispatch'. Flags must be discriminated union cases") typeof<TerrabuildException>
+
+[<Test>]
+let loadFScriptBatchableFlagFails() =
+    let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
+    (fun () -> Terrabuild.Scripting.loadScript root [] "TestFiles/BatchableFlagDescriptor.fss" |> ignore)
+    |> should (throwWithMessage "Unsupported export flag for function 'run'. Flags must be discriminated union cases") typeof<TerrabuildException>
 
 [<Test>]
 let invokeFScriptMethod() =
@@ -79,6 +85,23 @@ let invokeFScriptMethod() =
     let args = Value.Map (Map [ "context", Value.Object context ])
     let res = invocable.Value.Invoke<string> args
     res |> should equal "run"
+
+[<Test>]
+let invokeFScriptMethodCommandResult() =
+    let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
+    let script = Terrabuild.Scripting.loadScript root [] "TestFiles/CommandResult.fss"
+    let invocable = script.GetMethod("run")
+    let context = { ActionContext.Debug = false
+                    ActionContext.CI = false
+                    ActionContext.Command = "run"
+                    ActionContext.Hash = "abc"
+                    ActionContext.Directory = "TestFiles"
+                    ActionContext.Batch = None }
+    let args = Value.Map (Map [ "context", Value.Object context ])
+    let res = invocable.Value.Invoke<CommandResult> args
+    res.Batchable |> should equal true
+    res.Operations.Length |> should equal 1
+    res.Operations.Head.Command |> should equal "run"
 
 [<Test>]
 let invokeFScriptMethodWithStructuredArguments() =
