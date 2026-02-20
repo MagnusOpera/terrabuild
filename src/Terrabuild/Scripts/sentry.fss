@@ -14,9 +14,8 @@ let with_project project =
   let path = path |> Option.defaultValue "dist"
   let errorLevel = if context.CI then 0 else 1
 
-  { Batchable = false; Operations = [ { Command = "sentry-cli"; Arguments = $"sourcemaps inject {path}"; ErrorLevel = 0 }; { Command = "sentry-cli"; Arguments = $"sourcemaps upload {project} {path}"; ErrorLevel = errorLevel } ] }
+  { Batchable = false
+    Operations = [ { Command = "sentry-cli"; Arguments = $"sourcemaps inject {path}"; ErrorLevel = 0 }; { Command = "sentry-cli"; Arguments = $"sourcemaps upload {project} {path}"; ErrorLevel = errorLevel } ] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof sourcemaps] = [External]
-}
+{ [nameof sourcemaps] = [External] }

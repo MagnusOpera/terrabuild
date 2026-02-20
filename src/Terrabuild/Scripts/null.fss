@@ -3,12 +3,14 @@ import "_helpers.fss" as Helpers
 
 [<export>] let defaults (context: Protocol.ActionContext) =
   { Id = None; Outputs = []; Dependencies = [] }
-[<export>] let dispatch (context: Protocol.ActionContext) = { Batchable = false; Operations = [] }
-[<export>] let fake (context: Protocol.ActionContext) = { Batchable = false; Operations = [] }
+[<export>] let dispatch (context: Protocol.ActionContext) =
+  { Batchable = false
+    Operations = [] }
+[<export>] let fake (context: Protocol.ActionContext) =
+  { Batchable = false
+    Operations = [] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
-  [nameof fake] = [Never]
-}
+  [nameof fake] = [Never] }

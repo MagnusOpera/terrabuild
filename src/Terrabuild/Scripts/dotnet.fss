@@ -51,7 +51,8 @@ let with_configuration configuration =
 /// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { Batchable = false; Operations = [command_op command] }
+  { Batchable = false
+    Operations = [command_op command] }
 
 /// <summary>Executes `dotnet tool ...` commands.</summary>
 /// <param name="args" default="" example="&quot;install MagnusOpera.OpenApiGen&quot;">Extra arguments for `dotnet tool`.</param>
@@ -60,7 +61,8 @@ let with_configuration configuration =
     ""
     |> Helpers.append_part "tool"
     |> Helpers.append_part (Helpers.with_args args)
-  { Batchable = false; Operations = [command_op command] }
+  { Batchable = false
+    Operations = [command_op command] }
 
 /// <summary>Restores NuGet packages for one project or a batch solution.</summary>
 /// <param name="locked" default="true" example="&quot;true&quot;">Adds `--locked-mode`.</param>
@@ -80,7 +82,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true; Operations = with_batch_projects context create_command }
+  { Batchable = true
+    Operations = with_batch_projects context create_command }
 
 /// <summary>Builds the project or batch solution via `dotnet build`.</summary>
 /// <title>Build project.</title>
@@ -110,7 +113,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true; Operations = with_batch_projects context create_command }
+  { Batchable = true
+    Operations = with_batch_projects context create_command }
 
 /// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
@@ -135,7 +139,8 @@ let with_configuration configuration =
     |> Helpers.append_part "/p:TargetsForTfmSpecificContentInPackage="
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [command_op command] }
+  { Batchable = false
+    Operations = [command_op command] }
 
 /// <summary>Publishes binaries via `dotnet publish` for one project or a batch solution.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
@@ -167,7 +172,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true; Operations = with_batch_projects context create_command }
+  { Batchable = true
+    Operations = with_batch_projects context create_command }
 
 /// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
@@ -193,16 +199,15 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true; Operations = with_batch_projects context create_command }
+  { Batchable = true
+    Operations = with_batch_projects context create_command }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
   [nameof tool] = [Local]
   [nameof restore] = [Local]
   [nameof build] = [Remote]
   [nameof pack] = [Remote]
   [nameof publish] = [Remote]
-  [nameof test] = [Remote]
-}
+  [nameof test] = [Remote] }

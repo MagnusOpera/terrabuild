@@ -2,7 +2,10 @@ import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>yarn extension for install, build, and test workflows.</summary>
-type Package = { name: string; dependencies: string map option; devDependencies: string map option }
+type Package =
+    { name: string
+      dependencies: string map option
+      devDependencies: string map option }
 
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
@@ -52,7 +55,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "--"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false; Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Installs packages with `yarn install`, optionally updating the lockfile or ignoring engines.</summary>
 /// <param name="update" default="false" example="true">Allows lockfile updates.</param>
@@ -70,7 +74,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part ignore_engines
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
@@ -80,7 +85,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "build --"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false; Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
@@ -90,7 +96,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "test --"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false; Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "yarn"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
 /// <param name="command" example="&quot;build:prod&quot;">Script name.</param>
@@ -102,14 +109,13 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "--"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false; Operations = [{ Command = "yarn"; Arguments = operation; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "yarn"; Arguments = operation; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
   [nameof install] = [Local]
   [nameof build] = [Remote]
   [nameof test] = [Remote]
-  [nameof run] = [Local]
-}
+  [nameof run] = [Local] }

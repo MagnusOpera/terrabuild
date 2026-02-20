@@ -2,7 +2,10 @@ import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>npm extension for install, build, test, and exec workflows.</summary>
-type Package = { name: string; dependencies: string map option; devDependencies: string map option }
+type Package =
+    { name: string
+      dependencies: string map option
+      devDependencies: string map option }
 
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
@@ -52,7 +55,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Installs packages with `npm ci`, honoring the lock file.</summary>
 /// <param name="force" default="false" example="true">Adds `--force`.</param>
@@ -69,7 +73,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part force
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `build` script via `npm run build`.</summary>
 /// <param name="args" default="" example="&quot;--workspaces&quot;">Extra arguments after `--`.</param>
@@ -80,7 +85,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "run build --"
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs the `test` script via `npm run test`.</summary>
 /// <param name="args" default="" example="&quot;--runInBand&quot;">Extra arguments after `--`.</param>
@@ -91,7 +97,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "run test --"
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Runs an arbitrary npm script via `npm run &lt;target&gt;`.</summary>
 /// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
@@ -103,7 +110,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part $"run {target} --"
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Executes a package binary via `npm exec`.</summary>
 /// <param name="package" example="&quot;openapi-generator-cli&quot;">Package to execute.</param>
@@ -116,15 +124,14 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part package
     |> Helpers.append_part args
 
-  { Batchable = false; Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
   [nameof install] = [Local]
   [nameof build] = [Remote]
   [nameof test] = [Remote]
   [nameof run] = [Local]
-  [nameof exec] = [Local]
-}
+  [nameof exec] = [Local] }

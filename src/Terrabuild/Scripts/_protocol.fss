@@ -1,11 +1,29 @@
-type BatchContext = { Hash: string; TempDir: string; ProjectPaths: string list }
+type BatchContext =
+    { Hash: string
+      TempDir: string
+      ProjectPaths: string list }
 
-type ActionContext = { Debug: bool; CI: bool; Command: string; Hash: string; Directory: string; Batch: BatchContext option }
+type ActionContext =
+    { Debug: bool
+      CI: bool
+      Command: string
+      Hash: string
+      Directory: string
+      Batch: BatchContext option }
 
-type ProjectInfo = { Id: string option; Outputs: string list; Dependencies: string list }
+type ProjectInfo =
+    { Id: string option
+      Outputs: string list
+      Dependencies: string list }
 
-type ShellOperation = { Command: string; Arguments: string; ErrorLevel: int }
-type CommandResult = { Batchable: bool; Operations: ShellOperation list }
+type ShellOperation =
+    { Command: string
+      Arguments: string
+      ErrorLevel: int }
+
+type CommandResult =
+    { Batchable: bool
+      Operations: ShellOperation list }
 
 type ExportFlag =
   | Dispatch

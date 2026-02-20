@@ -20,6 +20,7 @@ For every exported extension function:
 2. The first parameter **MUST** represent the action context shape.
 3. Remaining parameters **MUST** use exact target argument names (case-sensitive).
 4. Parameter name matching **MUST NOT** perform case conversion, aliasing, or fallback names.
+5. Exported functions **MAY** declare a return annotation (`let f ... : Type = ...`) when using FScript `0.44.0+`.
 
 Example:
 
@@ -45,20 +46,18 @@ Example:
 Canonical host shape:
 
 ```fsharp
-type BatchContext = {
-  Hash: string
-  TempDir: string
-  ProjectPaths: string list
-}
+type BatchContext =
+    { Hash: string
+      TempDir: string
+      ProjectPaths: string list }
 
-type ActionContext = {
-  Debug: bool
-  CI: bool
-  Command: string
-  Hash: string
-  Directory: string
-  Batch: BatchContext option
-}
+type ActionContext =
+    { Debug: bool
+      CI: bool
+      Command: string
+      Hash: string
+      Directory: string
+      Batch: BatchContext option }
 ```
 
 Partial annotation is valid and preferred when only a subset is needed:
@@ -68,6 +67,14 @@ Partial annotation is valid and preferred when only a subset is needed:
 ```
 
 4. FScript filesystem externs are sandboxed to the workspace root directory.
+
+### Layout and indentation rules
+
+Examples in this document follow parser-safe FScript layout:
+
+1. If record/map fields start on the next line, `{` **MUST** be on its own line.
+2. If list items start on the next line, `[` **MUST** be on its own line.
+3. Multiline record/map/list entries **SHOULD** align at a consistent indentation level.
 
 ## 5. Descriptor Contract
 
@@ -110,24 +117,21 @@ Supported flags:
 Expected extension-facing shapes:
 
 ```fsharp
-type ShellOperation = {
-  Command: string
-  Arguments: string
-  ErrorLevel: int
-}
+type ShellOperation =
+    { Command: string
+      Arguments: string
+      ErrorLevel: int }
 
 type ShellOperations = ShellOperation list
 
-type CommandResult = {
-  Batchable: bool
-  Operations: ShellOperations
-}
+type CommandResult =
+    { Batchable: bool
+      Operations: ShellOperations }
 
-type ProjectInfo = {
-  Id: string option
-  Outputs: string list
-  Dependencies: string list
-}
+type ProjectInfo =
+    { Id: string option
+      Outputs: string list
+      Dependencies: string list }
 ```
 
 `Outputs` and `Dependencies` represent unique path sets semantically.
@@ -136,8 +140,12 @@ Extensions **SHOULD** avoid duplicates.
 Command handler example:
 
 ```fsharp
-{ Batchable = false
-  Operations = [{ Command = "make"; Arguments = "build"; ErrorLevel = 0 }] }
+{
+    Batchable = false
+    Operations = [
+        { Command = "make"; Arguments = "build"; ErrorLevel = 0 }
+    ]
+}
 ```
 
 Default handler example:
@@ -173,30 +181,36 @@ import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
-[<export>] let defaults (context: ActionContext) : ProjectInfo =
-  { Id = None; Outputs = []; Dependencies = [] }
+[<export>] let defaults (context: Protocol.ActionContext) : Protocol.ProjectInfo =
+    { Id = None
+      Outputs = []
+      Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
-[<export>] let dispatch (context: ActionContext) (args: string option) : CommandResult =
-  let command =
-    ""
-    |> append_part context.Command
-    |> append_part (with_args args)
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) : Protocol.CommandResult =
+    let command =
+        ""
+        |> Helpers.append_part context.Command
+        |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
-    Operations = [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }] }
+    { Batchable = false
+      Operations = [
+          { Command = "your-tool"; Arguments = command; ErrorLevel = 0 }
+      ] }
 
 // Specific command entrypoint example
-[<export>] let build (context: ActionContext) (configuration: string option) (args: string option) : CommandResult =
-  let configuration = configuration |> Option.defaultValue "Debug"
-  let command =
-    ""
-    |> append_part "build"
-    |> append_part $"--configuration {configuration}"
-    |> append_part (with_args args)
+[<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) : Protocol.CommandResult =
+    let configuration = configuration |> Option.defaultValue "Debug"
+    let command =
+        ""
+        |> Helpers.append_part "build"
+        |> Helpers.append_part $"--configuration {configuration}"
+        |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
-    Operations = [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }] }
+    { Batchable = false
+      Operations = [
+          { Command = "your-tool"; Arguments = command; ErrorLevel = 0 }
+      ] }
 
 // Script descriptor: exported function name -> flag list
 {
@@ -211,9 +225,10 @@ Template usage rules:
 1. `context` **MUST** be the first parameter of every exported function.
 2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
 3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** import them as `Protocol` and `Helpers`.
-4. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
-5. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
-6. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Never`, `Local`, `External`, `Remote`.
+4. Imported symbols are available through aliases only, so scripts **MUST** use `Protocol.*` and `Helpers.*` when those aliases are chosen.
+5. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
+6. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
+7. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Never`, `Local`, `External`, `Remote`.
 
 Parameter XML documentation attributes:
 

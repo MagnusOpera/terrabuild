@@ -5,9 +5,8 @@ import "_helpers.fss" as Helpers
 /// <param name="args" default="" example="&quot;Hello Terrabuild&quot;">Arguments passed to the command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Option.defaultValue ""
-  { Batchable = false; Operations = [{ Command = context.Command; Arguments = args; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = context.Command; Arguments = args; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof dispatch] = [Dispatch; Never]
-}
+{ [nameof dispatch] = [Dispatch; Never] }

@@ -21,7 +21,8 @@ let format_vars variables =
     ""
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Initializes Terraform providers and backend.</summary>
 /// <param name="config" default="" example="&quot;backend.prod.config&quot;">Backend config file.</param>
@@ -35,7 +36,8 @@ let format_vars variables =
     |> Helpers.append_part "-reconfigure"
     |> Helpers.append_part config
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Validates configuration before planning/applying.</summary>
 /// <title>Generate plan file.</title>
@@ -46,7 +48,8 @@ let format_vars variables =
     ""
     |> Helpers.append_part "validate"
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Selects or creates a Terraform workspace before planning/applying.</summary>
 /// <title>Select workspace.</title>
@@ -63,7 +66,8 @@ let format_vars variables =
     |> Helpers.append_part create
     |> Helpers.append_part workspace
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Generates a plan file for review/apply.</summary>
 /// <title>Generate plan file.</title>
@@ -78,7 +82,8 @@ let format_vars variables =
     |> Helpers.append_part "-out=terrabuild.planfile"
     |> Helpers.append_part vars
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Applies the generated plan (or runs `apply` without a plan when requested).</summary>
 /// <title>Apply plan file.</title>
@@ -93,7 +98,8 @@ let format_vars variables =
     |> Helpers.append_part "-input=false"
     |> Helpers.append_part planfile
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 /// <summary>Destroys all managed resources for the current workspace.</summary>
 /// <title>Destroy the deployment.</title>
@@ -108,16 +114,15 @@ let format_vars variables =
     |> Helpers.append_part "-input=false"
     |> Helpers.append_part vars
     |> Helpers.append_part args
-  { Batchable = false; Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
+  { Batchable = false
+    Operations = [{ Command = "terraform"; Arguments = command; ErrorLevel = 0 }] }
 
 // Exported functions and Terrabuild execution flags.
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
   [nameof init] = [Local]
   [nameof validate] = [Remote]
   [nameof select] = [Never]
   [nameof plan] = [Remote]
   [nameof apply] = [Remote]
-  [nameof destroy] = [Remote]
-}
+  [nameof destroy] = [Remote] }
