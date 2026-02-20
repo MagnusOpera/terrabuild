@@ -9,6 +9,4 @@ type ExportFlag =
   | External
   | Remote
 
-{
-  [nameof run] = [Batchable; Local]
-}
+{ [nameof run] = [Batchable; Local] }

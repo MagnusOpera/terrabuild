@@ -13,6 +13,4 @@ type ExportFlag =
   | External
   | Remote
 
-{
-  [nameof run] = [Local]
-}
+{ [nameof run] = [Local] }

@@ -1,6 +1,4 @@
 [<export>] let dispatch (context: {| Command: string |}) =
   context.Command
 
-{
-  [nameof dispatch] = ["dispatch"]
-}
+{ [nameof dispatch] = ["dispatch"] }
