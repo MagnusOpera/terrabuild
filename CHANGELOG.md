@@ -12,6 +12,7 @@ All notable changes to Terrabuild are documented in this file.
 - Upgrade Terrabuild FScript runtime/language to `0.41.0`.
 - Make extension batch support dynamic per command by requiring command handlers to return `{ Batchable; Operations }`.
 - Remove static `Batchable` descriptor/attribute semantics and update built-in extensions, protocol docs, and scripting tests accordingly.
+- Document and align extension protocol/type definitions on compact multiline record indentation style.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.5-next...0.189.6-next
 
