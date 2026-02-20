@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.7-next]
+
+
 - Upgrade Terrabuild FScript runtime/language to `0.50.0`.
 - Align extension script/docs literal formatting to FScript compact multiline compatibility rules.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.6-next...0.189.7-next
 
 ## [0.189.6-next]
 
