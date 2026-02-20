@@ -16,7 +16,9 @@ let with_profile profile =
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   { Batchable = false
-    Operations = [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }] }
+    Operations = [ { Command = "cargo"
+                     Arguments = command
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Builds the project with `cargo build`.</summary>
 /// <title>Build project.</title>
@@ -29,7 +31,9 @@ let with_profile profile =
     |> Helpers.append_part (with_profile profile)
     |> Helpers.append_part (Helpers.with_args args)
   { Batchable = false
-    Operations = [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }] }
+    Operations = [ { Command = "cargo"
+                     Arguments = command
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Runs tests with `cargo test`.</summary>
 /// <param name="profile" default="" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
@@ -41,7 +45,9 @@ let with_profile profile =
     |> Helpers.append_part (with_profile profile)
     |> Helpers.append_part (Helpers.with_args args)
   { Batchable = false
-    Operations = [{ Command = "cargo"; Arguments = command; ErrorLevel = 0 }] }
+    Operations = [ { Command = "cargo"
+                     Arguments = command
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

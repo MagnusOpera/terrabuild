@@ -92,9 +92,7 @@ type ExportFlag =
   | External
   | Remote
 
-{
-  [nameof dispatch] = [Dispatch; Never]
-}
+{ [nameof dispatch] = [Dispatch; Never] }
 ```
 
 Supported flags:
@@ -140,12 +138,8 @@ Extensions **SHOULD** avoid duplicates.
 Command handler example:
 
 ```fsharp
-{
-    Batchable = false
-    Operations = [
-        { Command = "make"; Arguments = "build"; ErrorLevel = 0 }
-    ]
-}
+{ Batchable = false
+  Operations = [ { Command = "make"; Arguments = "build"; ErrorLevel = 0 } ] }
 ```
 
 Default handler example:
@@ -182,9 +176,7 @@ import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
 [<export>] let defaults (context: Protocol.ActionContext) : Protocol.ProjectInfo =
-    { Id = None
-      Outputs = []
-      Dependencies = [] }
+    { Id = None; Outputs = []; Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) : Protocol.CommandResult =
@@ -194,9 +186,7 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
-      Operations = [
-          { Command = "your-tool"; Arguments = command; ErrorLevel = 0 }
-      ] }
+      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Specific command entrypoint example
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) : Protocol.CommandResult =
@@ -208,16 +198,12 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
-      Operations = [
-          { Command = "your-tool"; Arguments = command; ErrorLevel = 0 }
-      ] }
+      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Script descriptor: exported function name -> flag list
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Remote]
-}
+  [nameof build] = [Remote] }
 ```
 
 Template usage rules:

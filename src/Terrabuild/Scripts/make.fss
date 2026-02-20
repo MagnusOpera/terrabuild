@@ -30,7 +30,9 @@ let format_variables vars =
     | _ -> $"{context.Command} {variables} {args}"
 
   { Batchable = false
-    Operations = [{ Command = "make"; Arguments = command; ErrorLevel = 0 }] }
+    Operations = [ { Command = "make"
+                     Arguments = command
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof dispatch] = [Dispatch; Never] }

@@ -19,7 +19,9 @@ import "_helpers.fss" as Helpers
     |> Helpers.append_part args
 
   { Batchable = false
-    Operations = [{ Command = "npx"; Arguments = command; ErrorLevel = 0 }] }
+    Operations = [ { Command = "npx"
+                     Arguments = command
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof test] = [Remote] }

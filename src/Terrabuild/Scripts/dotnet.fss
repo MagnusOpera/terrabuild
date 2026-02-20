@@ -30,7 +30,9 @@ let with_batch_projects (context: Protocol.ActionContext) create_command =
       [create_command ""]
 
 let command_op arguments =
-  { Command = "dotnet"; Arguments = arguments; ErrorLevel = 0 }
+  { Command = "dotnet"
+    Arguments = arguments
+    ErrorLevel = 0 }
 
 let with_configuration configuration =
   configuration |> Option.defaultValue "Release"

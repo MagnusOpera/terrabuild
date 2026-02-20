@@ -7,7 +7,9 @@ import "_helpers.fss" as Helpers
 [<export>] let run (context: Protocol.ActionContext) (package: string) (args: string option) =
   let args = args |> Option.defaultValue ""
   { Batchable = false
-    Operations = [{ Command = "npx"; Arguments = $"--yes -- {package} {args}"; ErrorLevel = 0 }] }
+    Operations = [ { Command = "npx"
+                     Arguments = $"--yes -- {package} {args}"
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof run] = [Local] }
