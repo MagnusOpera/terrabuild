@@ -4,10 +4,15 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.9-next]
+
+
 - Upgrade Terrabuild FScript runtime/language to `0.54.2`.
 - Use FScript `HostContext.DeniedPathGlobs` and pass workspace script sandbox deny patterns from `workspace.deny`.
 - Default script sandbox deny list to `[ ".git" ]` when `workspace.deny` is not specified.
 - Add scripting tests for denied-path traversal bypass attempts and custom deny glob behavior.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.8-next...0.189.9-next
 
 ## [0.189.8-next]
 
