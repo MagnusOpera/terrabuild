@@ -50,7 +50,6 @@ workspace/path#deployments/terraform-deploy:build --> workspace/path#projects/do
 class workspace/path#deployments/terraform-deploy:build ignore
 class workspace/path#libraries/dotnet-lib:build ignore
 class workspace/path#libraries/shell-lib:build ignore
-workspace/path#projects/dotnet-app:build --> workspace/path#libraries/dotnet-lib:build
 class workspace/path#projects/dotnet-app:build ignore
 workspace/path#projects/make-app:build --> workspace/path#libraries/shell-lib:build
 class workspace/path#projects/make-app:build ignore

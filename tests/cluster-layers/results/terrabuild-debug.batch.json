@@ -19,25 +19,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "new sln --force -o \u0022.terrabuild\u0022 -n \u0022E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A\u0022",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "sln \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.sln\u0022 add \u0022D\u0022 \u0022E\u0022",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.sln\u0022 --locked-mode",
+          "arguments": "restore \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.slnx\u0022 --locked-mode",
           "errorLevel": 0
         },
         {
@@ -46,7 +28,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.sln\u0022 --configuration Release",
+          "arguments": "build \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.slnx\u0022 --configuration Release",
           "errorLevel": 0
         }
       ],

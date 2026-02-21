@@ -61,29 +61,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "new sln --force -o \u0022.terrabuild\u0022 -n \u00225FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B\u0022",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "sln \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 add \u0022libraries/dotnet-lib\u0022 \u0022projects/dotnet-app\u0022",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 --locked-mode",
+          "arguments": "restore \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.slnx\u0022 --locked-mode",
           "errorLevel": 0
         },
         {
@@ -94,7 +72,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 --configuration Debug",
+          "arguments": "build \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.slnx\u0022 --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -208,8 +186,8 @@
       "outputs": [
         "*.planfile"
       ],
-      "projectHash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
-      "targetHash": "6CA4C1734978FBA18EEFF37E1C9951C32D1D610EC008742C327AB7B5275DC0E3",
+      "projectHash": "C5AB480577288AA89DADB413B17C77F944B41E42BD09D64B17F464DA12185C4D",
+      "targetHash": "76ACABC5A650BE1DE688AFF0A882C2981ED22D31C5B308E80C928C0980E6D8F5",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -228,7 +206,7 @@
           "envs": {},
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A\u0022 -var=\u0022npm_app_version=EAB473A56DD89FA08C4CB2353A95B5D95C131D85E542000CA7122F5292E0405B\u0022",
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09\u0022 -var=\u0022npm_app_version=EAB473A56DD89FA08C4CB2353A95B5D95C131D85E542000CA7122F5292E0405B\u0022",
           "errorLevel": 0
         }
       ],
@@ -314,16 +292,14 @@
       "projectName": "dotnet_app",
       "projectDir": "projects/dotnet-app",
       "target": "build",
-      "dependencies": [
-        "workspace/path#libraries/dotnet-lib:build"
-      ],
+      "dependencies": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
         "obj/"
       ],
-      "projectHash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
-      "targetHash": "C50EB70D19E9F88E0BA4A79801D394A365CA7DFFAF57DC5D2B218B976CA7DC43",
+      "projectHash": "6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09",
+      "targetHash": "2196A56A6F95C3629D461E380B0E263E4D8E0BB2B4AA7EFCA108B7369218BBEE",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -487,6 +463,7 @@
   },
   "rootNodes": [
     "workspace/path#deployments/terraform-deploy:build",
+    "workspace/path#libraries/dotnet-lib:build",
     "workspace/path#projects/make-app:build",
     "workspace/path#projects/open-api:build",
     "workspace/path#projects/rust-app:build",

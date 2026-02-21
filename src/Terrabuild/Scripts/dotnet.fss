@@ -4,32 +4,38 @@ import "_helpers.fss" as Helpers
 /// <summary>.NET SDK extension for restore, build, test, pack, and publish workflows.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
-let normalize_path path =
-  path
-  |> String.replace "\\" "/"
-  |> String.replace "/./" "/"
-
-let is_direct_child_file directory file =
-  let directory = directory |> normalize_path
-  let file_parent = file |> Fs.parentDirectory |> Option.defaultValue "" |> normalize_path
-  file_parent = directory
-
 let first_project_file directory =
   project_extensions
   |> List.collect (fun ext ->
       Fs.enumerateFiles directory $"*{ext}"
-      |> Option.defaultValue []
-      |> List.filter (is_direct_child_file directory))
+      |> Option.defaultValue [])
   |> List.tryHead
+
+let project_ref_from_fragment fragment =
+  match String.split "Include=\"" fragment with
+  | _ :: include_parts ->
+      match include_parts with
+      | include_part :: _ ->
+          match String.split "\"" include_part with
+          | project_ref :: _ ->
+              if project_ref = "" then None
+              else Some project_ref
+          | _ -> None
+      | _ -> None
+  | _ -> None
 
 let project_refs_from project_file =
   let content = Fs.readText project_file |> Option.defaultValue ""
-  match Regex.matchGroups "<ProjectReference[^>]*Include=\"([^\"]+)\"" content with
-  | Some [value] -> [value]
+  match String.split "<ProjectReference" content with
+  | _ :: reference_fragments ->
+      reference_fragments
+      |> List.choose project_ref_from_fragment
+      |> List.distinct
   | _ -> []
 
 let dependency_dirs refs =
   refs
+  |> List.map (String.replace "\\" "/")
   |> List.choose Fs.parentDirectory
   |> List.distinct
 
@@ -40,46 +46,46 @@ let command_op arguments =
     Arguments = arguments
     ErrorLevel = 0 }
 
+let xml_escape value =
+  value
+  |> String.replace "&" "&amp;"
+  |> String.replace "<" "&lt;"
+  |> String.replace ">" "&gt;"
+  |> String.replace "\"" "&quot;"
+  |> String.replace "'" "&apos;"
+
+let join_lines lines =
+  lines
+  |> List.fold (fun current line ->
+      if current = "" then line
+      else $"{current}\n{line}") ""
+
 let with_batch_solution_with_configuration (context: Protocol.ActionContext) configuration create_command =
   match context.Batch with
   | Some batch ->
       let project_files =
         batch.ProjectPaths
+        |> List.choose first_project_file
 
       match project_files with
       | [] ->
-          [ create_command "." ]
+          [ create_command "" ]
       | _ ->
-          let solution_file = Fs.combinePath batch.TempDir $"{batch.Hash}.sln"
-          let solution_dir = Fs.parentDirectory solution_file |> Option.defaultValue "."
-          let solution_name = Fs.fileNameWithoutExtension solution_file
-          let has_restore_command = batch.BatchCommands |> List.contains "restore"
-          let should_bootstrap = context.Command = "restore" || (has_restore_command = false)
-          let project_files_args =
+          let solution_file = Fs.combinePath batch.TempDir $"{batch.Hash}.slnx"
+          let project_entries =
             project_files
-            |> List.map quote
-            |> List.fold (fun current project_file -> current |> Helpers.append_part project_file) ""
+            |> List.map (fun project_file ->
+                let escaped = project_file |> xml_escape
+                $"  <Project Path=\"../{escaped}\" />")
+            |> join_lines
 
-          let create_solution_args =
-            ""
-            |> Helpers.append_part "new sln"
-            |> Helpers.append_part "--force"
-            |> Helpers.append_part $"-o {quote solution_dir}"
-            |> Helpers.append_part $"-n {quote solution_name}"
+          let solution_content =
+            $"<Solution>\n{project_entries}\n</Solution>"
 
-          let add_projects_args =
-            ""
-            |> Helpers.append_part "sln"
-            |> Helpers.append_part (quote solution_file)
-            |> Helpers.append_part "add"
-            |> Helpers.append_part project_files_args
-
-          if should_bootstrap then
-            [ command_op create_solution_args; command_op add_projects_args; create_command (quote solution_file) ]
-          else
-            [ create_command (quote solution_file) ]
+          Fs.writeText solution_file solution_content |> ignore
+          [ create_command (quote solution_file) ]
   | _ ->
-      [ create_command "." ]
+      [ create_command "" ]
 
 let with_batch_solution (context: Protocol.ActionContext) create_command =
   with_batch_solution_with_configuration context "Release" create_command
