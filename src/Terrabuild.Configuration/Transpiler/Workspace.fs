@@ -28,7 +28,7 @@ let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
 
 let toWorkspace (block: Block) =
     block
-    |> checkAllowedAttributes ["id"; "ignores"; "version"; "engine"; "configuration"; "environment"]
+    |> checkAllowedAttributes ["id"; "ignores"; "deny"; "version"; "engine"; "configuration"; "environment"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -40,6 +40,9 @@ let toWorkspace (block: Block) =
         |> Option.bind (Eval.asStringOption << simpleEval)
     let ignores =
         block |> tryFindAttribute "ignores"
+        |> Option.bind (Eval.asStringSetOption << simpleEval)
+    let deny =
+        block |> tryFindAttribute "deny"
         |> Option.bind (Eval.asStringSetOption << simpleEval)
     let engine =
         match block |> tryFindAttribute "engine" with
@@ -57,6 +60,7 @@ let toWorkspace (block: Block) =
 
     { WorkspaceBlock.Id = id
       WorkspaceBlock.Ignores = ignores
+      WorkspaceBlock.Deny = deny
       WorkspaceBlock.Version = version
       WorkspaceBlock.Engine = engine
       WorkspaceBlock.Configuration = configuration
@@ -120,6 +124,7 @@ let transpile (blocks: Block list) =
                 | None -> { WorkspaceBlock.Id = None
                             WorkspaceBlock.Version = None
                             WorkspaceBlock.Ignores = None
+                            WorkspaceBlock.Deny = None
                             WorkspaceBlock.Engine = None
                             WorkspaceBlock.Configuration = None
                             WorkspaceBlock.Environment = None }
@@ -169,4 +174,3 @@ let transpile (blocks: Block list) =
           Locals = Map.empty
           Extensions = Map.empty }
     buildWorkspace blocks builder
-

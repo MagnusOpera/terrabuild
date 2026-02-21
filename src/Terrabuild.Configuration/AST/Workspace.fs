@@ -8,6 +8,7 @@ open Terrabuild.Expressions
 type WorkspaceBlock =
     { Id: string option
       Ignores: Set<string> option
+      Deny: Set<string> option
       Version: string option
       Engine: string option
       Configuration: string option

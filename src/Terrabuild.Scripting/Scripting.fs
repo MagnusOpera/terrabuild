@@ -613,18 +613,30 @@ let private prependEnvironmentBinding (scriptName: string option) (arguments: st
     else
         before + newline + prelude + after
 
-let private createFScriptHostContext (rootDirectory: string) =
+let private normalizeDeniedPathGlobs (deniedPathGlobs: string list) =
+    deniedPathGlobs
+    |> List.map (fun glob -> glob.Trim().Replace("\\", "/", StringComparison.Ordinal))
+    |> List.filter (String.IsNullOrWhiteSpace >> not)
+    |> List.distinct
+
+let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
+    deniedPathGlobs
+    |> normalizeDeniedPathGlobs
+    |> List.sort
+    |> String.concat "|"
+
+let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: string list) =
     let fullRoot = Path.GetFullPath(rootDirectory)
-    let excludedPaths = [ Path.Combine(fullRoot, ".git") |> Path.GetFullPath ]
+    let deniedPathGlobs = normalizeDeniedPathGlobs deniedPathGlobs
     let context: FScript.Runtime.HostContext =
         { RootDirectory = fullRoot
-          ExcludedPaths = excludedPaths }
+          DeniedPathGlobs = deniedPathGlobs }
     context
 
-let private loadFScript (rootDirectory: string) (scriptFile: string) =
+let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (scriptFile: string) =
 
     let fullPath = Path.GetFullPath(scriptFile)
-    let externs = FScript.Runtime.Registry.all (createFScriptHostContext rootDirectory)
+    let externs = FScript.Runtime.Registry.all (createFScriptHostContext rootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
     let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
     let loaded =
@@ -638,11 +650,12 @@ let private loadFScript (rootDirectory: string) (scriptFile: string) =
 
 let private loadFScriptFromSourceWithIncludes
     (hostRootDirectory: string)
+    (deniedPathGlobs: string list)
     (includeRootDirectory: string)
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let externs = FScript.Runtime.Registry.all (createFScriptHostContext hostRootDirectory)
+    let externs = FScript.Runtime.Registry.all (createFScriptHostContext hostRootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
     let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =
@@ -654,10 +667,11 @@ let private loadFScriptFromSourceWithIncludes
             resolveImportedSource
     toFScriptScript loaded
 
-let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
+let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string list) (deniedPathGlobs: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
     let fullRootDirectory = Path.GetFullPath(rootDirectory)
-    let cacheKey = $"{fullRootDirectory}::{fullScriptPath}"
+    let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
+    let cacheKey = $"{fullRootDirectory}::{deniedToken}::{fullScriptPath}"
     lock loadLock (fun () ->
         match cache |> Map.tryFind cacheKey with
         | Some script -> script
@@ -669,8 +683,39 @@ let loadScript (rootDirectory: string) (references: string list) (scriptFile: st
                 | value -> value.ToLowerInvariant()
             let script =
                 match extension with
-                | ".fss" -> loadFScript fullRootDirectory fullScriptPath
+                | ".fss" -> loadFScript fullRootDirectory deniedPathGlobs fullScriptPath
                 | _ -> loadLegacyScript references fullScriptPath
+            cache <- cache |> Map.add cacheKey script
+            script)
+
+let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
+    loadScriptWithDeniedPathGlobs rootDirectory references [ ".git" ] scriptFile
+
+let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+    (hostRootDirectory: string)
+    (deniedPathGlobs: string list)
+    (includeRootDirectory: string)
+    (entryFile: string)
+    (entrySource: string)
+    (resolveImportedSource: string -> string option) =
+    let fullHostRootDirectory = Path.GetFullPath(hostRootDirectory)
+    let fullIncludeRootDirectory = Path.GetFullPath(includeRootDirectory)
+    let fullEntryFile = Path.GetFullPath(entryFile)
+    let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
+    let cacheKey = $"{fullHostRootDirectory}::{deniedToken}::embedded::{fullIncludeRootDirectory}::{fullEntryFile}"
+
+    lock loadLock (fun () ->
+        match cache |> Map.tryFind cacheKey with
+        | Some script -> script
+        | None ->
+            let script =
+                loadFScriptFromSourceWithIncludes
+                    fullHostRootDirectory
+                    deniedPathGlobs
+                    fullIncludeRootDirectory
+                    fullEntryFile
+                    entrySource
+                    resolveImportedSource
             cache <- cache |> Map.add cacheKey script
             script)
 
@@ -680,21 +725,10 @@ let loadScriptFromSourceWithIncludes
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let fullHostRootDirectory = Path.GetFullPath(hostRootDirectory)
-    let fullIncludeRootDirectory = Path.GetFullPath(includeRootDirectory)
-    let fullEntryFile = Path.GetFullPath(entryFile)
-    let cacheKey = $"{fullHostRootDirectory}::embedded::{fullIncludeRootDirectory}::{fullEntryFile}"
-
-    lock loadLock (fun () ->
-        match cache |> Map.tryFind cacheKey with
-        | Some script -> script
-        | None ->
-            let script =
-                loadFScriptFromSourceWithIncludes
-                    fullHostRootDirectory
-                    fullIncludeRootDirectory
-                    fullEntryFile
-                    entrySource
-                    resolveImportedSource
-            cache <- cache |> Map.add cacheKey script
-            script)
+    loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+        hostRootDirectory
+        [ ".git" ]
+        includeRootDirectory
+        entryFile
+        entrySource
+        resolveImportedSource

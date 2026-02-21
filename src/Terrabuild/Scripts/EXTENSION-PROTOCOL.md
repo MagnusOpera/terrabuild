@@ -67,7 +67,8 @@ Partial annotation is valid and preferred when only a subset is needed:
 ```
 
 4. FScript filesystem externs are sandboxed to the workspace root directory.
-5. Terrabuild configures the FScript sandbox to exclude `<workspace-root>/.git/**` from extension filesystem access.
+5. Terrabuild configures FScript denied-path globs from `workspace.deny` when specified.
+6. If `workspace.deny` is not specified, Terrabuild uses the default deny list: `[ ".git" ]`.
 
 ### Layout and indentation rules
 

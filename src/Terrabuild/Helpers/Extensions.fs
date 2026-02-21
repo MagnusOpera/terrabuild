@@ -145,7 +145,7 @@ let private downloadScript (workspaceRoot: string) (uri: Uri) =
     File.WriteAllText(localFile, content)
     localFile
 
-let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option) =
+let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name: string) (script: string option) =
     let initScript () =
         match script with
         | Some script ->
@@ -154,10 +154,10 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 if uri.Scheme <> Uri.UriSchemeHttps then
                     raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{name}'"
                 let downloadedFile = downloadScript workspaceRoot uri
-                loadScript workspaceRoot [ terrabuildScripting ] downloadedFile
+                loadScriptWithDeniedPathGlobs workspaceRoot [ terrabuildScripting ] deniedPathGlobs downloadedFile
             | _ ->
                 let localScript = resolveLocalScriptPath workspaceRoot script
-                loadScript workspaceRoot [ terrabuildScripting ] localScript
+                loadScriptWithDeniedPathGlobs workspaceRoot [ terrabuildScripting ] deniedPathGlobs localScript
         | _ ->
             let systemScriptPath =
                 extensionCandidates name
@@ -170,7 +170,13 @@ let lazyLoadScript (workspaceRoot: string) (name: string) (script: string option
                 | Some entrySource ->
                     let resolveImportedSource (path: string) =
                         sourceMap |> Map.tryFind (Path.GetFullPath(path))
-                    loadScriptFromSourceWithIncludes workspaceRoot embeddedScriptsVirtualRoot entryPath entrySource resolveImportedSource
+                    loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+                        workspaceRoot
+                        deniedPathGlobs
+                        embeddedScriptsVirtualRoot
+                        entryPath
+                        entrySource
+                        resolveImportedSource
                 | None ->
                     raiseSymbolError $"Embedded script is not defined for extension '{name}'"
             | _ ->

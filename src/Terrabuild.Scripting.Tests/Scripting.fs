@@ -289,3 +289,103 @@ type ExportFlag =
 
         (fun () -> invocable.Value.Invoke<string option> args |> ignore)
         |> should throw typeof<FScript.Language.EvalException>)
+
+[<Test>]
+let fscriptSandboxDeniesTraversalBypassToRootGit() =
+    withTemporaryWorkspace (fun root ->
+        let gitDirectory = Path.Combine(root, ".git")
+        Directory.CreateDirectory(gitDirectory) |> ignore
+        File.WriteAllText(Path.Combine(gitDirectory, "config"), "test")
+
+        let entryFile = Path.Combine(root, "SandboxTraversal.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  Fs.readText ".git/../.git/config"
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                source
+                (fun _ -> None)
+
+        let invocable = script.GetMethod("inspect")
+        let context =
+            { ActionContext.Debug = false
+              ActionContext.CI = false
+              ActionContext.Command = "inspect"
+              ActionContext.Hash = "abc"
+              ActionContext.Directory = root
+              ActionContext.Batch = None }
+        let args = Value.Map (Map [ "context", Value.Object context ])
+
+        try
+            invocable.Value.Invoke<string option> args |> ignore
+            Assert.Fail("Expected denied path access error")
+        with
+        | :? FScript.Language.EvalException as exn ->
+            exn.Message.Contains("denied path") |> should equal true)
+
+[<Test>]
+let fscriptSandboxSupportsCustomDeniedPathGlobs() =
+    withTemporaryWorkspace (fun root ->
+        let gitDirectory = Path.Combine(root, ".git")
+        Directory.CreateDirectory(gitDirectory) |> ignore
+        File.WriteAllText(Path.Combine(gitDirectory, "config"), "test")
+
+        let modulesDirectory = Path.Combine(root, "project", "node_modules")
+        Directory.CreateDirectory(modulesDirectory) |> ignore
+        File.WriteAllText(Path.Combine(modulesDirectory, "pkg.json"), "{}")
+
+        let entryFile = Path.Combine(root, "SandboxCustomDeny.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  let gitExists = Fs.exists ".git/config"
+  let modulesExists = Fs.exists "project/node_modules/pkg.json"
+  $"{gitExists}|{modulesExists}"
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+                root
+                [ "**/node_modules" ]
+                root
+                entryFile
+                source
+                (fun _ -> None)
+
+        let invocable = script.GetMethod("inspect")
+        let context =
+            { ActionContext.Debug = false
+              ActionContext.CI = false
+              ActionContext.Command = "inspect"
+              ActionContext.Hash = "abc"
+              ActionContext.Directory = root
+              ActionContext.Batch = None }
+        let args = Value.Map (Map [ "context", Value.Object context ])
+        let result = invocable.Value.Invoke<string> args
+        result |> should equal "true|false")

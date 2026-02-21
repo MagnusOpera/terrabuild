@@ -121,6 +121,8 @@ let default_ignores = Set [
     "dist"
 ]
 
+let default_script_deny_globs = [ ".git" ]
+
 [<Literal>]
 let private SCOPE_PATH = "workspace/path"
 
@@ -234,7 +236,11 @@ let private isHttpScriptUrl (script: string) =
     | :? System.UriFormatException -> false
 
 
-let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) evaluationContext =
+let private buildScripts
+    (options: ConfigOptions.Options)
+    (workspaceConfig: AST.Workspace.WorkspaceFile)
+    (scriptDeniedPathGlobs: string list)
+    evaluationContext =
     let normalizeScriptPath currentDir script =
         if isHttpScriptUrl script then script
         else script |> FS.workspaceRelative options.Workspace currentDir
@@ -243,7 +249,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
     let sysScripts =
         Extensions.SystemExtensions
         |> Map.map (fun _ _ -> None)
-        |> Map.map (Extensions.lazyLoadScript options.Workspace)
+        |> Map.map (Extensions.lazyLoadScript options.Workspace scriptDeniedPathGlobs)
 
     // load user extension
     let userScripts =
@@ -255,7 +261,7 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
             match script with
             | Some script -> script |> normalizeScriptPath "" |> Some
             | _ -> None)
-        |> Map.map (Extensions.lazyLoadScript options.Workspace)
+        |> Map.map (Extensions.lazyLoadScript options.Workspace scriptDeniedPathGlobs)
 
     let scripts = sysScripts |> Map.addMap userScripts
     scripts
@@ -265,7 +271,14 @@ let private buildScripts (options: ConfigOptions.Options) (workspaceConfig: AST.
 
 
 // this is the first stage: load project and get dependencies references
-let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) evaluationContext extensions scripts projectId =
+let private loadProjectDef
+    (options: ConfigOptions.Options)
+    (workspaceConfig: AST.Workspace.WorkspaceFile)
+    (scriptDeniedPathGlobs: string list)
+    evaluationContext
+    extensions
+    scripts
+    projectId =
     let projectDir = FS.combinePath options.Workspace projectId
     let projectFile = FS.combinePath projectDir "PROJECT"
 
@@ -292,7 +305,7 @@ let private loadProjectDef (options: ConfigOptions.Options) (workspaceConfig: AS
 
     let scripts =
         scripts
-        |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace))
+        |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace scriptDeniedPathGlobs))
 
     let evalAsStringSet expr =
         expr
@@ -751,7 +764,12 @@ let read (options: ConfigOptions.Options) =
 
     let evaluationContext = buildEvaluationContext engine options workspaceConfig
 
-    let scripts = buildScripts options workspaceConfig evaluationContext
+    let scriptDeniedPathGlobs =
+        workspaceConfig.Workspace.Deny
+        |> Option.map Set.toList
+        |> Option.defaultValue default_script_deny_globs
+
+    let scripts = buildScripts options workspaceConfig scriptDeniedPathGlobs evaluationContext
 
     let extensions = Extensions.SystemExtensions |> Map.addMap workspaceConfig.Extensions
 
@@ -771,7 +789,15 @@ let read (options: ConfigOptions.Options) =
                     let loadedProject =
                         try
                             // load project and force loading all dependencies as well
-                            let loadedProject = loadProjectDef options workspaceConfig evaluationContext extensions scripts projectDir
+                            let loadedProject =
+                                loadProjectDef
+                                    options
+                                    workspaceConfig
+                                    scriptDeniedPathGlobs
+                                    evaluationContext
+                                    extensions
+                                    scripts
+                                    projectDir
                             match loadedProject.Name with
                             | Some projectId ->
                                 if projectIds.TryAdd(projectId, projectDir) |> not then
