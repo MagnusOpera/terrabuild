@@ -20,7 +20,7 @@
           },
           "metaCommand": "@pnpm install",
           "command": "pnpm",
-          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib install --frozen-lockfile --link-workspace-packages --force",
+          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app install --frozen-lockfile --link-workspace-packages --force",
           "errorLevel": 0
         },
         {
@@ -32,7 +32,7 @@
           },
           "metaCommand": "@pnpm build",
           "command": "pnpm",
-          "arguments": "--recursive --filter ./projects/npm-app --filter ./libraries/npm-lib run build",
+          "arguments": "--recursive --filter ./libraries/npm-lib --filter ./projects/npm-app run build",
           "errorLevel": 0
         }
       ],
@@ -50,7 +50,7 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
-      "targetHash": "8B1C04B1E79A8E0319E399607E4382BB24644496435600CCCB3F2361E215F037",
+      "targetHash": "E9E8E72D4B576158D4805B9D500D105D410297DF7A8D3716AF9E072A0604D5A6",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -61,7 +61,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore libraries/dotnet-lib/dotnet-lib.csproj --locked-mode",
+          "arguments": "new sln --force -o \u0022.terrabuild\u0022 -n \u00225FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B\u0022",
           "errorLevel": 0
         },
         {
@@ -72,7 +72,18 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore projects/dotnet-app/dotnet-app.csproj --locked-mode",
+          "arguments": "sln \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 add \u0022libraries/dotnet-lib\u0022 \u0022projects/dotnet-app\u0022",
+          "errorLevel": 0
+        },
+        {
+          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "arguments": "restore \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 --locked-mode",
           "errorLevel": 0
         },
         {
@@ -83,18 +94,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build libraries/dotnet-lib/dotnet-lib.csproj --configuration Debug",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build projects/dotnet-app/dotnet-app.csproj --configuration Debug",
+          "arguments": "build \u0022.terrabuild/5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B.sln\u0022 --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -209,7 +209,7 @@
         "*.planfile"
       ],
       "projectHash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
-      "targetHash": "E8CAC85AC19FEA1A6BF36D1CCF834649F4634A372987F0950E24468A42DCF7FE",
+      "targetHash": "6CA4C1734978FBA18EEFF37E1C9951C32D1D610EC008742C327AB7B5275DC0E3",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -250,7 +250,7 @@
         "obj/"
       ],
       "projectHash": "D02C02379E7CC347375CBBB5F8390EDDE12A6CEE726182486C0CD099AEDA6603",
-      "targetHash": "8B1C04B1E79A8E0319E399607E4382BB24644496435600CCCB3F2361E215F037",
+      "targetHash": "E9E8E72D4B576158D4805B9D500D105D410297DF7A8D3716AF9E072A0604D5A6",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -261,7 +261,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore . --locked-mode",
           "errorLevel": 0
         },
         {
@@ -272,7 +272,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Debug",
+          "arguments": "build . --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -323,7 +323,7 @@
         "obj/"
       ],
       "projectHash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
-      "targetHash": "1BAD2CCAD4007C60C15E30E35A7DBBA9444D2F742B39BB012F505CE89F7955A4",
+      "targetHash": "C50EB70D19E9F88E0BA4A79801D394A365CA7DFFAF57DC5D2B218B976CA7DC43",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -334,7 +334,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore --locked-mode",
+          "arguments": "restore . --locked-mode",
           "errorLevel": 0
         },
         {
@@ -345,7 +345,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Debug",
+          "arguments": "build . --configuration Debug",
           "errorLevel": 0
         }
       ],

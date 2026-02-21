@@ -1,6 +1,7 @@
 namespace Terrabuild
 
 open System
+open Collections
 
 module ScriptingContracts =
     [<RequireQualifiedAccess>]
@@ -27,7 +28,8 @@ module ScriptingContracts =
     type BatchContext = {
         Hash: string
         TempDir: string
-        ProjectPaths: string list
+        ProjectPaths: string set
+        BatchCommands: string list
     }
 
     [<RequireQualifiedAccess>]

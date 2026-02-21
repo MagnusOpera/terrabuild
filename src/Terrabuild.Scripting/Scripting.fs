@@ -387,6 +387,15 @@ and private Conversions =
                         |> Seq.map convertObject
                         |> Seq.toList
                     FScript.Language.VList items
+                elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<Set<_>> then
+                    let items =
+                        match objValue with
+                        | :? System.Collections.IEnumerable as enumerable -> enumerable
+                        | _ -> raiseTypeError $"Unsupported set source type '{valueType.FullName}'"
+                        |> Seq.cast<obj>
+                        |> Seq.map convertObject
+                        |> Seq.toList
+                    FScript.Language.VList items
                 else
                     raiseTypeError $"Unsupported object parameter type '{valueType.FullName}'"
         convertObject value

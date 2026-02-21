@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix dotnet extension batching to build through one generated per-batch solution (`dotnet new sln` + single `dotnet sln add ...`) and ensure build-only batches still bootstrap solution creation.
+
 ## [0.189.9-next]
 
 

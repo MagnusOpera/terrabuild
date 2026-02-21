@@ -1,7 +1,8 @@
 type BatchContext =
     { Hash: string
       TempDir: string
-      ProjectPaths: string list }
+      ProjectPaths: string list
+      BatchCommands: string list }
 
 type ActionContext =
     { Debug: bool

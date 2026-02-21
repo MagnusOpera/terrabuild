@@ -128,19 +128,25 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let projectDirs =
                 nodeIds
                 |> List.choose (fun nid -> graph.Nodes |> Map.tryFind nid |> Option.map (fun n -> n.ProjectDir))
-
-            let batchContext =
-                Some {
-                    Terrabuild.ScriptingContracts.BatchContext.Hash = batch.BatchId
-                    Terrabuild.ScriptingContracts.BatchContext.TempDir = options.SharedDir
-                    Terrabuild.ScriptingContracts.BatchContext.ProjectPaths = projectDirs
-                }
+                |> Set.ofList
 
             // reuse the same project/target operations definition as head node
             // NOTE: this assumes batching is only meaningful for nodes with same target (as your previous code)
             let projectId = headNode.ProjectId
             let projectConfig = configuration.Projects[projectId]
             let targetConfig = projectConfig.Targets[headNode.Target]
+            let batchCommands =
+                targetConfig.Operations
+                |> List.map (fun operation -> operation.Command)
+                |> List.distinct
+
+            let batchContext =
+                Some {
+                    Terrabuild.ScriptingContracts.BatchContext.Hash = batch.BatchId
+                    Terrabuild.ScriptingContracts.BatchContext.TempDir = options.SharedDir
+                    Terrabuild.ScriptingContracts.BatchContext.ProjectPaths = projectDirs
+                    Terrabuild.ScriptingContracts.BatchContext.BatchCommands = batchCommands
+                }
 
             let ops =
                 targetConfig.Operations

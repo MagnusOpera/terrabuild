@@ -4,9 +4,22 @@ import "_helpers.fss" as Helpers
 /// <summary>.NET SDK extension for restore, build, test, pack, and publish workflows.</summary>
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
+let normalize_path path =
+  path
+  |> String.replace "\\" "/"
+  |> String.replace "/./" "/"
+
+let is_direct_child_file directory file =
+  let directory = directory |> normalize_path
+  let file_parent = file |> Fs.parentDirectory |> Option.defaultValue "" |> normalize_path
+  file_parent = directory
+
 let first_project_file directory =
   project_extensions
-  |> List.collect (fun ext -> Fs.enumerateFiles directory $"*{ext}" |> Option.defaultValue [])
+  |> List.collect (fun ext ->
+      Fs.enumerateFiles directory $"*{ext}"
+      |> Option.defaultValue []
+      |> List.filter (is_direct_child_file directory))
   |> List.tryHead
 
 let project_refs_from project_file =
@@ -20,19 +33,56 @@ let dependency_dirs refs =
   |> List.choose Fs.parentDirectory
   |> List.distinct
 
-let with_batch_projects (context: Protocol.ActionContext) create_command =
-  match context.Batch with
-  | Some batch ->
-      batch.ProjectPaths
-      |> List.choose first_project_file
-      |> List.map create_command
-  | _ ->
-      [create_command ""]
+let quote value = $"\"{value}\""
 
 let command_op arguments =
   { Command = "dotnet"
     Arguments = arguments
     ErrorLevel = 0 }
+
+let with_batch_solution_with_configuration (context: Protocol.ActionContext) configuration create_command =
+  match context.Batch with
+  | Some batch ->
+      let project_files =
+        batch.ProjectPaths
+
+      match project_files with
+      | [] ->
+          [ create_command "." ]
+      | _ ->
+          let solution_file = Fs.combinePath batch.TempDir $"{batch.Hash}.sln"
+          let solution_dir = Fs.parentDirectory solution_file |> Option.defaultValue "."
+          let solution_name = Fs.fileNameWithoutExtension solution_file
+          let has_restore_command = batch.BatchCommands |> List.contains "restore"
+          let should_bootstrap = context.Command = "restore" || (has_restore_command = false)
+          let project_files_args =
+            project_files
+            |> List.map quote
+            |> List.fold (fun current project_file -> current |> Helpers.append_part project_file) ""
+
+          let create_solution_args =
+            ""
+            |> Helpers.append_part "new sln"
+            |> Helpers.append_part "--force"
+            |> Helpers.append_part $"-o {quote solution_dir}"
+            |> Helpers.append_part $"-n {quote solution_name}"
+
+          let add_projects_args =
+            ""
+            |> Helpers.append_part "sln"
+            |> Helpers.append_part (quote solution_file)
+            |> Helpers.append_part "add"
+            |> Helpers.append_part project_files_args
+
+          if should_bootstrap then
+            [ command_op create_solution_args; command_op add_projects_args; create_command (quote solution_file) ]
+          else
+            [ create_command (quote solution_file) ]
+  | _ ->
+      [ create_command "." ]
+
+let with_batch_solution (context: Protocol.ActionContext) create_command =
+  with_batch_solution_with_configuration context "Release" create_command
 
 let with_configuration configuration =
   configuration |> Option.defaultValue "Release"
@@ -85,7 +135,7 @@ let with_configuration configuration =
     |> command_op
 
   { Batchable = true
-    Operations = with_batch_projects context create_command }
+    Operations = with_batch_solution context create_command }
 
 /// <summary>Builds the project or batch solution via `dotnet build`.</summary>
 /// <title>Build project.</title>
@@ -116,7 +166,7 @@ let with_configuration configuration =
     |> command_op
 
   { Batchable = true
-    Operations = with_batch_projects context create_command }
+    Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
@@ -175,7 +225,7 @@ let with_configuration configuration =
     |> command_op
 
   { Batchable = true
-    Operations = with_batch_projects context create_command }
+    Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
 /// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
@@ -202,7 +252,7 @@ let with_configuration configuration =
     |> command_op
 
   { Batchable = true
-    Operations = with_batch_projects context create_command }
+    Operations = with_batch_solution context create_command }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
