@@ -1,7 +1,14 @@
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 config ?= Debug
-terrabuild ?= dotnet run --project $(ROOT_DIR)src/Terrabuild -c $(config) --
+flags ?=
+comma := ,
+
+flags_tokens := $(subst $(comma), ,$(flags))
+use_local_fscript := $(filter fscript,$(flags_tokens))
+dotnet_props := $(if $(use_local_fscript),/p:UseLocalFScript=true,)
+
+terrabuild ?= dotnet run --project $(ROOT_DIR)src/Terrabuild -c $(config) $(dotnet_props) --
 refresh ?= false
 version ?= 0.0.0
 engine ?= docker
@@ -22,24 +29,24 @@ current_dir = $(shell pwd)
 #
 
 build: webui
-	dotnet build -c $(config) terrabuild.slnx
+	dotnet build -c $(config) $(dotnet_props) terrabuild.slnx
 
 webui:
 	cd src/Terrabuild.UI && pnpm install --force
 	cd src/Terrabuild.UI && pnpm build
 
 test:
-	dotnet test -c $(config) terrabuild.slnx
+	dotnet test -c $(config) $(dotnet_props) terrabuild.slnx
 
 parser:
-	dotnet build -c $(config) /p:DefineConstants="GENERATE_PARSER"
+	dotnet build -c $(config) $(dotnet_props) /p:DefineConstants="GENERATE_PARSER"
 
 clean:
 	-rm terrabuild-debug.*
 	-rm -rf $(PWD)/.out
 
 upgrade:
-	dotnet restore --force-evaluate
+	dotnet restore $(dotnet_props) --force-evaluate
 
 usage:
 	$(terrabuild) --help
@@ -57,28 +64,28 @@ usage:
 #
 
 publish: webui
-	dotnet publish -c $(config) -p:Version=$(version) -o $(PWD)/.out/dotnet src/Terrabuild
-	dotnet pack -c $(config) -p:Version=$(version) -o .out
+	dotnet publish -c $(config) $(dotnet_props) -p:Version=$(version) -o $(PWD)/.out/dotnet src/Terrabuild
+	dotnet pack -c $(config) $(dotnet_props) -p:Version=$(version) -o .out
 
 publish-darwin: webui
-	dotnet publish -c $(config) -r osx-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/x64 src/Terrabuild
-	dotnet publish -c $(config) -r osx-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/arm64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r osx-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/x64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r osx-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/arm64 src/Terrabuild
 
 publish-linux: webui
-	dotnet publish -c $(config) -r linux-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/x64 src/Terrabuild
-	dotnet publish -c $(config) -r linux-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/arm64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r linux-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/x64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r linux-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/linux/arm64 src/Terrabuild
 
 publish-windows: webui
-	dotnet publish -c $(config) -r win-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/x64 src/Terrabuild
-	dotnet publish -c $(config) -r win-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/arm64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r win-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/x64 src/Terrabuild
+	dotnet publish -c $(config) $(dotnet_props) -r win-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/windows/arm64 src/Terrabuild
 
 publish-all: clean publish publish-darwin publish-linux publish-windows
 
 docs:
-	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.io/content/docs/extensions --write
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- ../terrabuild.io/content/docs/extensions --write
 
 try-docs:
-	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true -- ../terrabuild.tagada
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- ../terrabuild.tagada
 
 self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only

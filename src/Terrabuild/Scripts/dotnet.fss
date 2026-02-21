@@ -11,32 +11,21 @@ let first_project_file directory =
       |> Option.defaultValue [])
   |> List.tryHead
 
-let project_ref_from_fragment fragment =
-  match String.split "Include=\"" fragment with
-  | _ :: include_parts ->
-      match include_parts with
-      | include_part :: _ ->
-          match String.split "\"" include_part with
-          | project_ref :: _ ->
-              if project_ref = "" then None
-              else Some project_ref
-          | _ -> None
-      | _ -> None
-  | _ -> None
-
 let project_refs_from project_file =
   let content = Fs.readText project_file |> Option.defaultValue ""
-  match String.split "<ProjectReference" content with
-  | _ :: reference_fragments ->
-      reference_fragments
-      |> List.choose project_ref_from_fragment
-      |> List.distinct
-  | _ -> []
+  content
+  |> Xml.queryValues "//ProjectReference/@Include"
+  |> Option.defaultValue []
+  |> List.distinct
 
-let dependency_dirs refs =
+let dependency_dirs context_directory refs =
   refs
   |> List.map (String.replace "\\" "/")
   |> List.choose Fs.parentDirectory
+  |> List.filter (fun dep ->
+      match Fs.combinePath context_directory dep |> Fs.kind with
+      | FsKind.Directory _ -> true
+      | _ -> false)
   |> List.distinct
 
 let quote value = $"\"{value}\""
@@ -100,7 +89,7 @@ let with_configuration configuration =
   let dependencies =
     context.Directory
     |> first_project_file
-    |> Option.map (fun project_file -> dependency_dirs (project_refs_from project_file))
+    |> Option.map (fun project_file -> dependency_dirs context.Directory (project_refs_from project_file))
     |> Option.defaultValue []
 
   { Id = None; Outputs = ["bin/"; "obj/"; "**/*.binlog"]; Dependencies = dependencies }

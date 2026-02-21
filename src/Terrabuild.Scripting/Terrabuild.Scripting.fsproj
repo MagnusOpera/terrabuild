@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,10 +10,16 @@
     <Compile Include="Scripting.fs" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(UseLocalFScript)' != 'true'">
     <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
-    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.56.0" />
-    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.56.0" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.57.0" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.57.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseLocalFScript)' == 'true'">
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
+    <ProjectReference Include="../../../FScript/src/FScript.Language/FScript.Language.fsproj" />
+    <ProjectReference Include="../../../FScript/src/FScript.Runtime/FScript.Runtime.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

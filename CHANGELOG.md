@@ -5,11 +5,13 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Fix dotnet extension batching by generating one per-batch `.slnx` file in-script and using it for batched `dotnet` commands.
-- Fix dotnet local dependency discovery to collect all `<ProjectReference ...>` entries (including Windows-style paths) so graph dependencies and batching match GA behavior.
+- Fix dotnet local dependency discovery by querying `//ProjectReference/@Include` from XML and normalizing Windows-style separators, so graph dependencies and batching match GA behavior.
 - Remove trailing `.` in single-project dotnet command invocation to reduce debug/action log noise.
 - Deduplicate batch reporting logs so batched nodes link/report under a single batch log entry in terminal, markdown, and GitHub Actions outputs.
-- Upgrade Terrabuild FScript runtime/language to `0.56.0`.
+- Upgrade Terrabuild FScript runtime/language to `0.57.0`.
 - Remove dotnet extension string interpolation workaround (`dq`) and rely on fixed `String.*` pipeline semantics in FScript `0.56.0`.
+- Add opt-in `UseLocalFScript=true` build switch to resolve FScript via local `../FScript` project references instead of NuGet for faster integration loops.
+- Add Makefile `flags=fscript` support to propagate `/p:UseLocalFScript=true` across `dotnet` build/test/publish/doc flows.
 
 ## [0.189.9-next]
 
