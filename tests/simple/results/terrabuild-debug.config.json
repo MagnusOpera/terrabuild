@@ -181,7 +181,7 @@
     "workspace/path#deployments/terraform-deploy": {
       "id": "workspace/path#deployments/terraform-deploy",
       "directory": "deployments/terraform-deploy",
-      "hash": "C5AB480577288AA89DADB413B17C77F944B41E42BD09D64B17F464DA12185C4D",
+      "hash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
       "dependencies": [
         "@pnpm#npm-app",
         "workspace/path#projects/dotnet-app"
@@ -241,7 +241,7 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09"
+                        "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A"
                       ],
                       "npm_app_version": [
                         "string",
@@ -436,8 +436,10 @@
       "id": "workspace/path#projects/dotnet-app",
       "name": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09",
-      "dependencies": [],
+      "hash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
+      "dependencies": [
+        "workspace/path#libraries/dotnet-lib"
+      ],
       "files": [
         "../shared-folder/Terminal.cs",
         "Dockerfile",

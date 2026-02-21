@@ -104,8 +104,8 @@
       "outputs": [
         "*.planfile"
       ],
-      "projectHash": "C5AB480577288AA89DADB413B17C77F944B41E42BD09D64B17F464DA12185C4D",
-      "targetHash": "76ACABC5A650BE1DE688AFF0A882C2981ED22D31C5B308E80C928C0980E6D8F5",
+      "projectHash": "1C423EE357AB4104F1A54E2CD44DC423D316C9A553E829CA9CD4FB871C7C9943",
+      "targetHash": "E8CAC85AC19FEA1A6BF36D1CCF834649F4634A372987F0950E24468A42DCF7FE",
       "operations": [
         {
           "image": "hashicorp/terraform:1.10",
@@ -124,7 +124,7 @@
           "envs": {},
           "metaCommand": "@terraform plan",
           "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09\u0022 -var=\u0022npm_app_version=EAB473A56DD89FA08C4CB2353A95B5D95C131D85E542000CA7122F5292E0405B\u0022",
+          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A\u0022 -var=\u0022npm_app_version=EAB473A56DD89FA08C4CB2353A95B5D95C131D85E542000CA7122F5292E0405B\u0022",
           "errorLevel": 0
         }
       ],
@@ -146,7 +146,7 @@
         "obj/"
       ],
       "projectHash": "D02C02379E7CC347375CBBB5F8390EDDE12A6CEE726182486C0CD099AEDA6603",
-      "targetHash": "E9E8E72D4B576158D4805B9D500D105D410297DF7A8D3716AF9E072A0604D5A6",
+      "targetHash": "8B1C04B1E79A8E0319E399607E4382BB24644496435600CCCB3F2361E215F037",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -157,7 +157,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore . --locked-mode",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -168,7 +168,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build . --configuration Debug",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -210,14 +210,16 @@
       "projectName": "dotnet_app",
       "projectDir": "projects/dotnet-app",
       "target": "build",
-      "dependencies": [],
+      "dependencies": [
+        "workspace/path#libraries/dotnet-lib:build"
+      ],
       "outputs": [
         "**/*.binlog",
         "bin/",
         "obj/"
       ],
-      "projectHash": "6ACE676D8F0B45F8BC78647761A82BC88D4C7CD99967D59AA4C009D81746BC09",
-      "targetHash": "2196A56A6F95C3629D461E380B0E263E4D8E0BB2B4AA7EFCA108B7369218BBEE",
+      "projectHash": "6B92198A157632F246D1AA012BF66A2A7A666EF6DE103754E09516DE5B890B0A",
+      "targetHash": "1BAD2CCAD4007C60C15E30E35A7DBBA9444D2F742B39BB012F505CE89F7955A4",
       "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
@@ -228,7 +230,7 @@
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore . --locked-mode",
+          "arguments": "restore --locked-mode",
           "errorLevel": 0
         },
         {
@@ -239,7 +241,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build . --configuration Debug",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -381,7 +383,6 @@
   },
   "rootNodes": [
     "workspace/path#deployments/terraform-deploy:build",
-    "workspace/path#libraries/dotnet-lib:build",
     "workspace/path#projects/make-app:build",
     "workspace/path#projects/open-api:build",
     "workspace/path#projects/rust-app:build",
