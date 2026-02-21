@@ -67,6 +67,7 @@ Partial annotation is valid and preferred when only a subset is needed:
 ```
 
 4. FScript filesystem externs are sandboxed to the workspace root directory.
+5. Terrabuild configures the FScript sandbox to exclude `<workspace-root>/.git/**` from extension filesystem access.
 
 ### Layout and indentation rules
 

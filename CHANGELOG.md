@@ -4,6 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade Terrabuild FScript runtime/language to `0.52.0`.
+- Exclude `<workspace-root>/.git/**` from FScript extension filesystem extern access.
+- Adopt FScript `String.*` helpers in built-in extension scripts where behavior is preserved.
+
 ## [0.189.7-next]
 
 

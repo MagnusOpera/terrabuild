@@ -613,10 +613,18 @@ let private prependEnvironmentBinding (scriptName: string option) (arguments: st
     else
         before + newline + prelude + after
 
+let private createFScriptHostContext (rootDirectory: string) =
+    let fullRoot = Path.GetFullPath(rootDirectory)
+    let excludedPaths = [ Path.Combine(fullRoot, ".git") |> Path.GetFullPath ]
+    let context: FScript.Runtime.HostContext =
+        { RootDirectory = fullRoot
+          ExcludedPaths = excludedPaths }
+    context
+
 let private loadFScript (rootDirectory: string) (scriptFile: string) =
 
     let fullPath = Path.GetFullPath(scriptFile)
-    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = rootDirectory }
+    let externs = FScript.Runtime.Registry.all (createFScriptHostContext rootDirectory)
     let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
     let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
     let loaded =
@@ -634,7 +642,7 @@ let private loadFScriptFromSourceWithIncludes
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let externs = FScript.Runtime.Registry.all { FScript.Runtime.HostContext.RootDirectory = hostRootDirectory }
+    let externs = FScript.Runtime.Registry.all (createFScriptHostContext hostRootDirectory)
     let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
     let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =

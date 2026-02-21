@@ -6,6 +6,8 @@ open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expressions
 open Errors
+open System
+open System.IO
 
 
 [<Test>]
@@ -183,3 +185,107 @@ let invokeFScriptMethodMissingRequiredParameterFails() =
     let args = Value.Map (Map [ "context", Value.Object context ])
     (fun () -> invocable.Value.Invoke<string> args |> ignore)
     |> should (throwWithMessage "Missing required argument 'requiredArg' for function 'dispatch'") typeof<TerrabuildException>
+
+let private withTemporaryWorkspace (test: string -> unit) =
+    let tempRoot = Path.Combine(Path.GetTempPath(), $"terrabuild-scripting-tests-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(tempRoot) |> ignore
+    try
+        test tempRoot
+    finally
+        if Directory.Exists(tempRoot) then
+            Directory.Delete(tempRoot, true)
+
+[<Test>]
+let fscriptSandboxExcludesRootGitForExistsAndKind() =
+    withTemporaryWorkspace (fun root ->
+        let gitDirectory = Path.Combine(root, ".git")
+        Directory.CreateDirectory(gitDirectory) |> ignore
+        File.WriteAllText(Path.Combine(gitDirectory, "config"), "test")
+
+        let entryFile = Path.Combine(root, "Sandbox.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  let exists = Fs.exists ".git/config"
+  let kind =
+    match Fs.kind ".git/config" with
+    | FsKind.Missing -> "missing"
+    | FsKind.File _ -> "file"
+    | FsKind.Directory _ -> "directory"
+  $"{exists}|{kind}"
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                source
+                (fun _ -> None)
+
+        let invocable = script.GetMethod("inspect")
+        let context =
+            { ActionContext.Debug = false
+              ActionContext.CI = false
+              ActionContext.Command = "inspect"
+              ActionContext.Hash = "abc"
+              ActionContext.Directory = root
+              ActionContext.Batch = None }
+        let args = Value.Map (Map [ "context", Value.Object context ])
+        let result = invocable.Value.Invoke<string> args
+        result |> should equal "false|missing")
+
+[<Test>]
+let fscriptSandboxExcludesRootGitForReadText() =
+    withTemporaryWorkspace (fun root ->
+        let gitDirectory = Path.Combine(root, ".git")
+        Directory.CreateDirectory(gitDirectory) |> ignore
+        File.WriteAllText(Path.Combine(gitDirectory, "config"), "test")
+
+        let entryFile = Path.Combine(root, "SandboxRead.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  Fs.readText ".git/config"
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                source
+                (fun _ -> None)
+
+        let invocable = script.GetMethod("inspect")
+        let context =
+            { ActionContext.Debug = false
+              ActionContext.CI = false
+              ActionContext.Command = "inspect"
+              ActionContext.Hash = "abc"
+              ActionContext.Directory = root
+              ActionContext.Batch = None }
+        let args = Value.Map (Map [ "context", Value.Object context ])
+
+        (fun () -> invocable.Value.Invoke<string option> args |> ignore)
+        |> should throw typeof<FScript.Language.EvalException>)

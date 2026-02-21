@@ -37,8 +37,11 @@ let dependencies_from (package: Package) =
 let batch_filters (context: Protocol.ActionContext) =
   match context.Batch with
   | Some batch ->
-      batch.ProjectPaths
-      |> List.fold (fun acc project -> $"{acc} --filter ./{project}") "--recursive"
+      let filters =
+        batch.ProjectPaths
+        |> List.map (fun project -> $"--filter ./{project}")
+
+      String.concat " " ("--recursive" :: filters)
   | _ -> ""
 
 /// <summary>Computes default outputs and dependencies from `package.json`.</summary>
