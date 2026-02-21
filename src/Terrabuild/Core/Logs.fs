@@ -17,14 +17,56 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
     let stableRandomId (id: string) =
         $"{logId} {id}" |> Hash.md5 |> String.toLower
 
+    let memberToBatch =
+        graph.Batches
+        |> Seq.collect (fun (KeyValue(batchId, members)) ->
+            members |> Seq.map (fun nodeId -> nodeId, batchId))
+        |> Map.ofSeq
+
+    let reportId (nodeId: string) =
+        memberToBatch |> Map.tryFind nodeId |> Option.defaultValue nodeId
+
+    let isBatchReport (id: string) =
+        graph.Batches |> Map.containsKey id
+
+    let sortedNodes =
+        summary.Nodes
+        |> Seq.filter (fun (KeyValue(nodeId, _)) ->
+            if graph.Batches |> Map.containsKey nodeId then false
+            else summary.Nodes |> Map.containsKey nodeId)
+        |> Seq.map (fun (KeyValue(nodeId, _)) -> graph.Nodes[nodeId])
+        |> Seq.sortBy (fun node ->
+            match summary.Nodes |> Map.tryFind node.Id with
+            | Some nodeInfo ->
+                match nodeInfo.Status with
+                | Runner.TaskStatus.Success completionDate -> completionDate
+                | Runner.TaskStatus.Failure (completionDate, _) -> completionDate
+            | _ -> DateTime.MaxValue)
+        |> List.ofSeq
+
 
     let dumpMarkdown filename (nodes: GraphDef.Node seq) =
+        let nodes = nodes |> List.ofSeq
         let originSummaries =
             nodes
             |> Seq.map (fun node ->
                 let cacheEntryId = GraphDef.buildCacheKey node
                 node.Id, cache.TryGetSummaryOnly false cacheEntryId)
             |> Map.ofSeq
+
+        let reportGroups =
+            nodes
+            |> List.groupBy (fun node -> reportId node.Id)
+            |> List.map (fun (id, groupNodes) ->
+                let representative =
+                    let sorted = groupNodes |> List.sortBy (fun n -> n.Id)
+                    sorted
+                    |> List.tryFind (fun node ->
+                        match originSummaries |> Map.tryFind node.Id with
+                        | Some (Some _) -> true
+                        | _ -> false)
+                    |> Option.defaultValue sorted.Head
+                id, groupNodes, representative)
 
         let successful = summary.IsSuccess
         let appendLines lines = IO.appendLinesFile filename lines 
@@ -40,14 +82,17 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | Runner.TaskRequest.Exec, Runner.TaskStatus.Failure _ -> Iconography.build_ko
             | _ -> Iconography.task_status
 
-        let dumpMarkdown (node: GraphDef.Node) =
+        let dumpMarkdown (reportId: string, groupedNodes: GraphDef.Node list, representative: GraphDef.Node) =
             let header =
-                let statusEmoji = statusEmoji node
-                let uniqueId = stableRandomId node.Id
-                $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {node.Target} {node.ProjectDir}"
+                let statusEmoji = statusEmoji representative
+                let uniqueId = stableRandomId reportId
+                let label =
+                    if isBatchReport reportId then $"{representative.Target} [batch:{reportId}]"
+                    else $"{representative.Target} {representative.ProjectDir}"
+                $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {label}"
 
             let dumpLogs =
-                let originSummary = originSummaries[node.Id]
+                let originSummary = originSummaries[representative.Id]
                 match originSummary with
                 | Some (_, summary) -> 
                     let dumpLogs () =
@@ -69,6 +114,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     dumpNoLog
 
             header |> append
+            if isBatchReport reportId then
+                let members = groupedNodes |> List.map (fun node -> node.ProjectDir) |> List.sort |> String.join ", "
+                $"*Members:* {members}" |> append
             dumpLogs ()
 
         let targets = options.Targets |> String.join " "
@@ -86,22 +134,28 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         "| Target | Duration |" |> append
         "|--------|---------:|" |> append
 
-        nodes
-        |> Seq.map (fun node ->
-            let originSummary = originSummaries[node.Id]
+        reportGroups
+        |> Seq.map (fun (id, _, representative) ->
+            let originSummary = originSummaries[representative.Id]
             let duration =
                 match originSummary with
                 | Some (_, summary) -> summary.Duration
                 | _ -> TimeSpan.Zero
-            node, duration)
-        |> Seq.sortByDescending snd
-        |> Seq.iter (fun (node, duration) ->
-            let statusEmoji = statusEmoji node
-            let uniqueId = stableRandomId node.Id
-            $"| {statusEmoji} [{node.Target} {node.ProjectDir}](#user-content-{uniqueId}) | {duration.HumanizeAbbreviated()} |" |> append
+
+            let label =
+                if isBatchReport id then $"{representative.Target} [batch:{id}]"
+                else $"{representative.Target} {representative.ProjectDir}"
+            id, representative, label, duration)
+        |> Seq.sortByDescending (fun (_, _, _, duration) -> duration)
+        |> Seq.iter (fun (id, representative, label, duration) ->
+            let statusEmoji = statusEmoji representative
+            let uniqueId = stableRandomId id
+            $"| {statusEmoji} [{label}](#user-content-{uniqueId}) | {duration.HumanizeAbbreviated()} |" |> append
         )
         let (cost, gain) =
-            originSummaries |> Map.fold (fun (cost, gain) _ originSummary ->
+            reportGroups
+            |> List.fold (fun (cost, gain) (_, _, representative) ->
+                let originSummary = originSummaries[representative.Id]
                 match originSummary with
                 | Some (origin, summary) ->
                     let duration = summary.Duration
@@ -134,8 +188,8 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
         "" |> append
         "# Details" |> append
-        nodes
-        |> Seq.filter (fun node -> summary.Nodes |> Map.containsKey node.Id)
+        reportGroups
+        |> Seq.filter (fun (_, _, representative) -> summary.Nodes |> Map.containsKey representative.Id)
         |> Seq.iter dumpMarkdown
         "" |> append
 
@@ -145,8 +199,24 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
 
     let dumpTerminal (nodes: GraphDef.Node seq) =
-        let dumpTerminal (node: GraphDef.Node) =
-            let label = $"{node.Target} {node.ProjectDir}"
+        let nodes = nodes |> List.ofSeq
+        let reportGroups =
+            nodes
+            |> List.groupBy (fun node -> reportId node.Id)
+            |> List.map (fun (id, groupNodes) ->
+                let representative =
+                    groupNodes
+                    |> List.sortBy (fun n -> n.Id)
+                    |> List.tryFind (fun node ->
+                        let cacheEntryId = GraphDef.buildCacheKey node
+                        cache.TryGetSummaryOnly false cacheEntryId |> Option.isSome)
+                    |> Option.defaultValue (groupNodes |> List.minBy (fun n -> n.Id))
+                id, representative)
+
+        let dumpTerminal (id: string, node: GraphDef.Node) =
+            let label =
+                if isBatchReport id then $"{node.Target} [batch:{id}]"
+                else $"{node.Target} {node.ProjectDir}"
             let formatEndedAt (value: System.DateTime) =
                 value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
 
@@ -183,13 +253,29 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             dumpLogs ()
             logEnd |> Terminal.writeLine
 
-        nodes
+        reportGroups
         |> Seq.iter dumpTerminal
 
 
     let dumpGitHubActions (nodes: GraphDef.Node seq) =
-        let dumpTerminal (node: GraphDef.Node) =
-            let label = $"{node.Target} {node.ProjectDir}"
+        let nodes = nodes |> List.ofSeq
+        let reportGroups =
+            nodes
+            |> List.groupBy (fun node -> reportId node.Id)
+            |> List.map (fun (id, groupNodes) ->
+                let representative =
+                    groupNodes
+                    |> List.sortBy (fun n -> n.Id)
+                    |> List.tryFind (fun node ->
+                        let cacheEntryId = GraphDef.buildCacheKey node
+                        cache.TryGetSummaryOnly false cacheEntryId |> Option.isSome)
+                    |> Option.defaultValue (groupNodes |> List.minBy (fun n -> n.Id))
+                id, representative)
+
+        let dumpTerminal (id: string, node: GraphDef.Node) =
+            let label =
+                if isBatchReport id then $"{node.Target} [batch:{id}]"
+                else $"{node.Target} {node.ProjectDir}"
             let cacheEntryId = GraphDef.buildCacheKey node
             let summary = cache.TryGetSummaryOnly false cacheEntryId
             let formatEndedAt (value: System.DateTime) =
@@ -212,7 +298,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                     | _ -> ()
             | None -> ()
 
-        nodes
+        reportGroups
         |> Seq.iter dumpTerminal
 
 
@@ -223,21 +309,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             | Contracts.Terminal -> dumpTerminal nodes
             | Contracts.GitHubActions -> dumpGitHubActions nodes
         fun nodes -> options.LogTypes |> List.iter (dump nodes)
-
-    let sortedNodes =
-        summary.Nodes
-        |> Seq.filter (fun (KeyValue(nodeId, _)) -> 
-            if graph.Batches |> Map.containsKey nodeId then false
-            else summary.Nodes |> Map.containsKey nodeId)
-        |> Seq.map (fun (KeyValue(nodeId, _)) -> graph.Nodes[nodeId])
-        |> Seq.sortBy (fun node ->
-            match summary.Nodes |> Map.tryFind node.Id with
-            | Some nodeInfo ->
-                match nodeInfo.Status with
-                | Runner.TaskStatus.Success completionDate -> completionDate
-                | Runner.TaskStatus.Failure (completionDate, _) -> completionDate
-            | _ -> DateTime.MaxValue)
-        |> List.ofSeq
 
     $"{Ansi.Emojis.eyes} Logs" |> Terminal.writeLine
     sortedNodes |> logger
