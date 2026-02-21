@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.8-next]
+
+
 - Upgrade Terrabuild FScript runtime/language to `0.52.0`.
 - Exclude `<workspace-root>/.git/**` from FScript extension filesystem extern access.
 - Adopt FScript `String.*` helpers in built-in extension scripts where behavior is preserved.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.7-next...0.189.8-next
 
 ## [0.189.7-next]
 
