@@ -40,6 +40,11 @@ let private buildOptions (markdownFile: string) =
       ConfigOptions.Options.CommitLog = []
       ConfigOptions.Options.Run = None }
 
+let private buildTerminalOptions () =
+    let markdownFile = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}.md")
+    { buildOptions markdownFile with
+        ConfigOptions.Options.LogTypes = [ Contracts.LogType.Terminal ] }
+
 let private buildNode id projectDir projectHash targetHash =
     { GraphDef.Node.Id = id
       GraphDef.Node.ProjectId = id
@@ -96,6 +101,16 @@ type private FakeCache(summaries: Map<string, Origin * TargetSummary>) =
 
 let private markdownAnchorCount (content: string) =
     Regex.Matches(content, "## <a name=\"user-content-").Count
+
+let private captureConsoleOutput (run: unit -> unit) =
+    let previousOut = Console.Out
+    use writer = new StringWriter()
+    Console.SetOut(writer)
+    try
+        run ()
+        writer.ToString()
+    finally
+        Console.SetOut(previousOut)
 
 [<Test>]
 let ``Markdown links batch members to single batch anchor`` () =
@@ -197,5 +212,96 @@ let ``Markdown keeps separate anchors for non batched nodes`` () =
         markdown.Contains($"## <a name=\"user-content-{nodeAAnchor}\"></a>") |> should equal true
         markdown.Contains($"## <a name=\"user-content-{nodeBAnchor}\"></a>") |> should equal true
         markdownAnchorCount markdown |> should equal 2
+    finally
+        if Directory.Exists(root) then Directory.Delete(root, true)
+
+[<Test>]
+let ``Terminal renders batch label with hash and members`` () =
+    let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(root) |> ignore
+    let logFile = Path.Combine(root, "batch.log")
+    File.WriteAllText(logFile, "batch log")
+
+    try
+        let nodeA = buildNode "node-a" "src/apidefs/artapi" "project-a" "target-a"
+        let nodeB = buildNode "node-b" "src/apidefs/investapi" "project-b" "target-b"
+        let batchId = "978E73C1F15716974171313CD1EEEEA652866E985D0592BF3FF0C387F2EF6366"
+        let graph =
+            { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB ] |> Map.ofList
+              GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id ]
+              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id ] ] }
+
+        let summaries =
+            [ nodeA; nodeB ]
+            |> List.map (fun node ->
+                let key = GraphDef.buildCacheKey node
+                key, (Origin.Local, buildTargetSummary logFile))
+            |> Map.ofList
+
+        let runnerSummary =
+            { Runner.Summary.Commit = "c"
+              Runner.Summary.BranchOrTag = "main"
+              Runner.Summary.StartedAt = DateTime.UtcNow.AddMinutes(-2.0)
+              Runner.Summary.EndedAt = DateTime.UtcNow
+              Runner.Summary.IsSuccess = true
+              Runner.Summary.Targets = Set [ "build" ]
+              Runner.Summary.Nodes = [ nodeA.Id, buildSummaryInfo (); nodeB.Id, buildSummaryInfo () ] |> Map.ofList }
+
+        let output =
+            captureConsoleOutput (fun () ->
+                let options = buildTerminalOptions ()
+                let cache = FakeCache(summaries) :> ICache
+                Logs.dumpLogs (Guid.NewGuid()) options cache graph runnerSummary)
+
+        output.Contains($"build {batchId} [src/apidefs/artapi src/apidefs/investapi]") |> should equal true
+    finally
+        if Directory.Exists(root) then Directory.Delete(root, true)
+
+[<Test>]
+let ``Terminal truncates batch members after five projects`` () =
+    let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(root) |> ignore
+    let logFile = Path.Combine(root, "batch.log")
+    File.WriteAllText(logFile, "batch log")
+
+    try
+        let nodes =
+            [ "node-1", "src/a1", "project-1", "target-1"
+              "node-2", "src/a2", "project-2", "target-2"
+              "node-3", "src/a3", "project-3", "target-3"
+              "node-4", "src/a4", "project-4", "target-4"
+              "node-5", "src/a5", "project-5", "target-5"
+              "node-6", "src/a6", "project-6", "target-6"
+              "node-7", "src/a7", "project-7", "target-7" ]
+            |> List.map (fun (id, projectDir, projectHash, targetHash) -> buildNode id projectDir projectHash targetHash)
+        let batchId = "ABCDEF"
+        let graph =
+            { GraphDef.Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
+              GraphDef.Graph.RootNodes = nodes |> List.map (fun node -> node.Id) |> Set.ofList
+              GraphDef.Graph.Batches = Map [ batchId, nodes |> List.map (fun node -> node.Id) |> Set.ofList ] }
+
+        let summaries =
+            nodes
+            |> List.map (fun node ->
+                let key = GraphDef.buildCacheKey node
+                key, (Origin.Local, buildTargetSummary logFile))
+            |> Map.ofList
+
+        let runnerSummary =
+            { Runner.Summary.Commit = "c"
+              Runner.Summary.BranchOrTag = "main"
+              Runner.Summary.StartedAt = DateTime.UtcNow.AddMinutes(-2.0)
+              Runner.Summary.EndedAt = DateTime.UtcNow
+              Runner.Summary.IsSuccess = true
+              Runner.Summary.Targets = Set [ "build" ]
+              Runner.Summary.Nodes = nodes |> List.map (fun node -> node.Id, buildSummaryInfo ()) |> Map.ofList }
+
+        let output =
+            captureConsoleOutput (fun () ->
+                let options = buildTerminalOptions ()
+                let cache = FakeCache(summaries) :> ICache
+                Logs.dumpLogs (Guid.NewGuid()) options cache graph runnerSummary)
+
+        output.Contains("build ABCDEF [src/a1 src/a2 src/a3 src/a4 src/a5 ... +2]") |> should equal true
     finally
         if Directory.Exists(root) then Directory.Delete(root, true)

@@ -44,6 +44,33 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             | _ -> DateTime.MaxValue)
         |> List.ofSeq
 
+    let buildBatchMemberLabel (projectDirs: string list) =
+        let maxMembers = 5
+        let members =
+            projectDirs
+            |> List.distinct
+            |> List.sort
+        let displayed = members |> List.truncate maxMembers
+        let hiddenCount = members.Length - displayed.Length
+        let displayedLabel =
+            match displayed with
+            | [] -> ""
+            | _ -> displayed |> String.join " "
+        if hiddenCount > 0 then
+            $"{displayedLabel} ... +{hiddenCount}"
+        else
+            displayedLabel
+
+    let buildTerminalLabel (id: string) (node: GraphDef.Node) (groupedNodes: GraphDef.Node list) =
+        if isBatchReport id then
+            let members =
+                groupedNodes
+                |> List.map (fun groupedNode -> groupedNode.ProjectDir)
+                |> buildBatchMemberLabel
+            $"{node.Target} {id} [{members}]"
+        else
+            $"{node.Target} {node.ProjectDir}"
+
 
     let dumpMarkdown filename (nodes: GraphDef.Node seq) =
         let nodes = nodes |> List.ofSeq
@@ -211,12 +238,10 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                         let cacheEntryId = GraphDef.buildCacheKey node
                         cache.TryGetSummaryOnly false cacheEntryId |> Option.isSome)
                     |> Option.defaultValue (groupNodes |> List.minBy (fun n -> n.Id))
-                id, representative)
+                id, groupNodes, representative)
 
-        let dumpTerminal (id: string, node: GraphDef.Node) =
-            let label =
-                if isBatchReport id then $"{node.Target} [batch:{id}]"
-                else $"{node.Target} {node.ProjectDir}"
+        let dumpTerminal (id: string, groupedNodes: GraphDef.Node list, node: GraphDef.Node) =
+            let label = buildTerminalLabel id node groupedNodes
             let formatEndedAt (value: System.DateTime) =
                 value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
 
