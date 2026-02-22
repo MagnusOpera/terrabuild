@@ -1,6 +1,6 @@
 namespace Terrabuild.Configuration.AST.Project
 open Terrabuild.Configuration.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 
 [<RequireQualifiedAccess>]

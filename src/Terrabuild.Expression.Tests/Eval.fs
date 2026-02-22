@@ -1,8 +1,8 @@
-module Terrabuild.Expressions.Eval.Tests
+module Terrabuild.Expression.Eval.Tests
 
 open NUnit.Framework
 open FsUnit
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 let private evaluationContext = {
     Eval.EvaluationContext.WorkspaceDir = Some TestContext.CurrentContext.WorkDirectory
@@ -99,10 +99,30 @@ let subNumber() =
     result |> should equal expected
 
 [<Test>]
+let multNumber() =
+    let expected = Value.Number 42
+    let result = eval evaluationContext (Expr.Function (Function.Mult, [Expr.Number 6; Expr.Number 7]))
+    result |> should equal expected
+
+[<Test>]
+let divNumber() =
+    let expected = Value.Number 3
+    let result = eval evaluationContext (Expr.Function (Function.Div, [Expr.Number 21; Expr.Number 7]))
+    result |> should equal expected
+
+[<Test>]
 let coalesce() =
     let expected = Value.Number 42
     let result = eval evaluationContext (Expr.Function (Function.Coalesce, [Expr.Nothing; Expr.Number 42]))
     result |> should equal expected
+
+[<Test>]
+let ternary() =
+    let whenTrue = eval evaluationContext (Expr.Function (Function.Ternary, [Expr.Bool true; Expr.String "left"; Expr.String "right"]))
+    let whenFalse = eval evaluationContext (Expr.Function (Function.Ternary, [Expr.Bool false; Expr.String "left"; Expr.String "right"]))
+
+    whenTrue |> should equal (Value.String "left")
+    whenFalse |> should equal (Value.String "right")
 
 [<Test>]
 let trimString() =
@@ -192,6 +212,22 @@ let notEqualValue() =
     result |> should equal expected
 
 [<Test>]
+let notEqualFunctionValue() =
+    let expected = Value.Bool true
+    let result = eval evaluationContext (Expr.Function (Function.NotEqual, [Expr.String "toto"; Expr.Number 42]))
+    result |> should equal expected
+
+[<Test>]
+let toStringValue() =
+    let numberValue = eval evaluationContext (Expr.Function (Function.ToString, [Expr.Number 42]))
+    let boolValue = eval evaluationContext (Expr.Function (Function.ToString, [Expr.Bool true]))
+    let nothingValue = eval evaluationContext (Expr.Function (Function.ToString, [Expr.Nothing]))
+
+    numberValue |> should equal (Value.String "42")
+    boolValue |> should equal (Value.String "true")
+    nothingValue |> should equal (Value.String "")
+
+[<Test>]
 let replaceString() =
     let expected = Value.String "titi titi"
     let result = eval evaluationContext (Expr.Function (Function.Replace, [Expr.String "toto titi"; Expr.String "toto"; Expr.String "titi"]))
@@ -269,3 +305,27 @@ let orBool() =
     let expected = Value.Bool true
     let result = eval evaluationContext (Expr.Function (Function.Or, [Expr.Nothing; Expr.Bool true]))
     result |> should equal expected
+
+[<Test>]
+let conversionFunctions() =
+    asStringOption (Value.String "hello") |> should equal (Some "hello")
+    asStringOption Value.Nothing |> should equal None
+    asString (Value.String "hello") |> should equal "hello"
+    match asEnum (Value.Enum "single") with
+    | Ok value -> value |> should equal "single"
+    | Error _ -> Assert.Fail("Expected enum conversion to succeed")
+
+    match asEnum (Value.String "single") with
+    | Error value -> value |> should equal "Failed to convert 'String \"single\"' to enum"
+    | Ok _ -> Assert.Fail("Expected enum conversion to fail")
+    asBoolOption (Value.Bool true) |> should equal (Some true)
+    asBoolOption Value.Nothing |> should equal None
+    asStringSetOption (Value.List [ Value.String "a"; Value.String "b" ]) |> should equal (Some (Set [ "a"; "b" ]))
+
+[<Test>]
+let mapHelpers() =
+    let oldMap = Value.Map (Map [ "left", Value.Number 1 ])
+    let newMap = Value.Map (Map [ "right", Value.Number 2 ])
+
+    mapAdd newMap oldMap |> should equal (Value.Map (Map [ "left", Value.Number 1; "right", Value.Number 2 ]))
+    asMap oldMap |> should equal (Map [ "left", Value.Number 1 ])

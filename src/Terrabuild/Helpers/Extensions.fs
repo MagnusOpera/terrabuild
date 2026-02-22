@@ -7,7 +7,7 @@ open System.Text
 open System.Reflection
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Errors
 
 type InvocationResult<'t> =

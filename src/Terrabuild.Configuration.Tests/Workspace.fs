@@ -5,7 +5,7 @@ open FsUnit
 
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Workspace
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 
 [<Test>]

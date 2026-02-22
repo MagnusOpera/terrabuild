@@ -1,5 +1,5 @@
 namespace Terrabuild.Lang.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 
 type [<RequireQualifiedAccess>] Attribute =

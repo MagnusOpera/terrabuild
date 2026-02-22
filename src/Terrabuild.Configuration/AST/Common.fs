@@ -1,5 +1,5 @@
 namespace Terrabuild.Configuration.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 type ExtensionBlock =
     { Image: Expr option

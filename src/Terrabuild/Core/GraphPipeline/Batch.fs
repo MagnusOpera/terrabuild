@@ -161,10 +161,10 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
 
                     let parameters =
                         match operation.Context with
-                        | Terrabuild.Expressions.Value.Map map ->
+                        | Terrabuild.Expression.Value.Map map ->
                             map
-                            |> Map.add "context" (Terrabuild.Expressions.Value.Object optContext)
-                            |> Terrabuild.Expressions.Value.Map
+                            |> Map.add "context" (Terrabuild.Expression.Value.Object optContext)
+                            |> Terrabuild.Expression.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
                     match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some operation.Script) with

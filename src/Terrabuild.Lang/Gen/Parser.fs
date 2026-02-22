@@ -7,7 +7,7 @@ open FSharp.Text.Parsing.ParseHelpers
  
 open Terrabuild.Lang.AST
 open Helpers
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open System
 
 

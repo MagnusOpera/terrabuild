@@ -84,10 +84,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
                     let parameters = 
                         match operation.Context with
-                        | Terrabuild.Expressions.Value.Map map ->
+                        | Terrabuild.Expression.Value.Map map ->
                             map
-                            |> Map.add "context" (Terrabuild.Expressions.Value.Object optContext)
-                            |> Terrabuild.Expressions.Value.Map
+                            |> Map.add "context" (Terrabuild.Expression.Value.Object optContext)
+                            |> Terrabuild.Expression.Value.Map
                         | _ -> raiseBugError "Failed to get context (internal error)"
 
                     let cacheability =

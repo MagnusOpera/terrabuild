@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Terrabuild.Lang/Terrabuild.Lang.fsproj" />
-    <ProjectReference Include="../Terrabuild.Expressions/Terrabuild.Expressions.fsproj" />
+    <ProjectReference Include="../Terrabuild.Expression/Terrabuild.Expression.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ open System
 open System.Collections.Concurrent
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Errors
 open Terrabuild.PubSub
 open Microsoft.Extensions.FileSystemGlobbing

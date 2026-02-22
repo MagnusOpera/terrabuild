@@ -1,6 +1,6 @@
 namespace Terrabuild.Configuration.AST.Workspace
 open Terrabuild.Configuration.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 
 

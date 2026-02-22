@@ -10,10 +10,10 @@ open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Diagnostics
 open Microsoft.FSharp.Reflection
 open Terrabuild.ScriptingContracts
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Errors
 
-type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> objnull
+type private RuntimeInvoker = Terrabuild.Expression.Value -> System.Type -> objnull
 
 type PerformanceSnapshot =
     { RuntimeInvokeCount: int64
@@ -145,33 +145,33 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
         let someCase = FSharpType.GetUnionCases(genericType) |> Array.find (fun unionCase -> unionCase.Name = "Some")
         FSharpValue.MakeUnion(someCase, [| value |])
 
-    let rec mapParameter (value: Terrabuild.Expressions.Value) (name: string) (parameterType: System.Type) =
+    let rec mapParameter (value: Terrabuild.Expression.Value) (name: string) (parameterType: System.Type) =
         match value with
-        | Terrabuild.Expressions.Value.Nothing ->
+        | Terrabuild.Expression.Value.Nothing ->
             if parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToNone parameterType
             elif parameterType.IsGenericType && parameterType = typeof<Map<string, string>> then
                 let emptyMap: Map<string, string> = Map.empty
                 box emptyMap
             else
                 raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expressions.Value.Bool boolValue ->
+        | Terrabuild.Expression.Value.Bool boolValue ->
             if boolValue.GetType().IsAssignableTo(parameterType) then box boolValue
             elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType boolValue
             else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expressions.Value.String stringValue ->
+        | Terrabuild.Expression.Value.String stringValue ->
             if stringValue.GetType().IsAssignableTo(parameterType) then box stringValue
             elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType stringValue
             else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expressions.Value.Number numberValue ->
+        | Terrabuild.Expression.Value.Number numberValue ->
             if numberValue.GetType().IsAssignableTo(parameterType) then box numberValue
             elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType numberValue
             else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expressions.Value.Enum enumValue ->
+        | Terrabuild.Expression.Value.Enum enumValue ->
             if enumValue.GetType().IsAssignableTo(parameterType) then box enumValue
             elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType enumValue
             else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expressions.Value.Object objectValue -> objectValue
-        | Terrabuild.Expressions.Value.Map mapValue ->
+        | Terrabuild.Expression.Value.Object objectValue -> objectValue
+        | Terrabuild.Expression.Value.Map mapValue ->
             match TypeHelpers.getKind parameterType with
             | TypeHelpers.TypeKind.FsRecord ->
                 let ctor = FSharpValue.PreComputeRecordConstructor(parameterType)
@@ -193,7 +193,7 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
                         if initialized then itemValue
                         else
                             let field = fields[index]
-                            mapParameter Terrabuild.Expressions.Value.Nothing field.Name field.PropertyType)
+                            mapParameter Terrabuild.Expression.Value.Nothing field.Name field.PropertyType)
                 ctor ctorValues
             | TypeHelpers.TypeKind.FsMap ->
                 let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> |> expectString itemName)
@@ -203,7 +203,7 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
                 convertToSome parameterType mapped
             | typeKind ->
                 raiseTypeError $"Can't assign map to parameter '{name}' of type '{typeKind}'"
-        | Terrabuild.Expressions.Value.List listValue ->
+        | Terrabuild.Expression.Value.List listValue ->
             match TypeHelpers.getKind parameterType with
             | TypeHelpers.TypeKind.FsList ->
                 let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> |> expectString name)
@@ -214,23 +214,23 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
             | typeKind ->
                 raiseTypeError $"Can't assign list to parameter '{name}' of type '{typeKind}'"
 
-    let mapParameters (map: Map<string, Terrabuild.Expressions.Value>) (parameters: ParameterInfo array) =
+    let mapParameters (map: Map<string, Terrabuild.Expression.Value>) (parameters: ParameterInfo array) =
         parameters
         |> Array.map (fun parameterInfo ->
             let parameterName = parameterInfo.Name |> nonNull
             match map |> Map.tryFind parameterName with
-            | None -> mapParameter Terrabuild.Expressions.Value.Nothing parameterName parameterInfo.ParameterType
+            | None -> mapParameter Terrabuild.Expression.Value.Nothing parameterName parameterInfo.ParameterType
             | Some parameterValue -> mapParameter parameterValue parameterName parameterInfo.ParameterType)
 
-    let buildArgs (value: Terrabuild.Expressions.Value) (methodInfo: MethodInfo) =
+    let buildArgs (value: Terrabuild.Expression.Value) (methodInfo: MethodInfo) =
         match value with
-        | Terrabuild.Expressions.Value.Map map ->
+        | Terrabuild.Expression.Value.Map map ->
             let parameters = methodInfo.GetParameters()
             mapParameters map parameters
         | _ ->
             raiseTypeError "Expecting a map for build arguments"
 
-    member _.Invoke<'t>(value: Terrabuild.Expressions.Value) =
+    member _.Invoke<'t>(value: Terrabuild.Expression.Value) =
         match runtimeInvoker, methodOpt with
         | Some invokeRuntime, _ ->
             invokeRuntime value typeof<'t> :?> 't
@@ -283,11 +283,11 @@ type Script internal (runtime: ScriptRuntime) =
                                 | _ ->
                                     raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
 
-                            let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expressions.Value) =
+                            let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expression.Value) =
                                 match parameterType with
                                 | FScript.Language.TOption _ ->
                                     match value with
-                                    | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
+                                    | Terrabuild.Expression.Value.Nothing -> FScript.Language.VOption None
                                     | _ ->
                                         match Conversions.ToFScriptValue value with
                                         | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
@@ -295,11 +295,11 @@ type Script internal (runtime: ScriptRuntime) =
                                 | _ ->
                                     Conversions.ToFScriptValue value
 
-                            let runtimeInvoke (args: Terrabuild.Expressions.Value) (targetType: System.Type) =
+                            let runtimeInvoke (args: Terrabuild.Expression.Value) (targetType: System.Type) =
                                 let invokeStartedAt = Stopwatch.GetTimestamp()
                                 let inputMap =
                                     match args with
-                                    | Terrabuild.Expressions.Value.Map map -> map
+                                    | Terrabuild.Expression.Value.Map map -> map
                                     | _ -> raiseTypeError $"FScript function '{methodName}' expects map-based arguments"
 
                                 let contextType, remainingPlan = parameterPlan
@@ -478,22 +478,22 @@ and private Conversions =
     static let objectConverters = ConcurrentDictionary<System.Type, objnull -> FScript.Language.Value>()
     static let returnDecoders = ConcurrentDictionary<System.Type, FScript.Language.Value -> objnull>()
 
-    static member private toFScriptCoreValue(value: Terrabuild.Expressions.Value) =
+    static member private toFScriptCoreValue(value: Terrabuild.Expression.Value) =
         let rec convert value =
             match value with
-            | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
-            | Terrabuild.Expressions.Value.Bool boolValue -> FScript.Language.VBool boolValue
-            | Terrabuild.Expressions.Value.String stringValue -> FScript.Language.VString stringValue
-            | Terrabuild.Expressions.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
-            | Terrabuild.Expressions.Value.Enum enumValue -> FScript.Language.VString enumValue
-            | Terrabuild.Expressions.Value.Map mapValue ->
+            | Terrabuild.Expression.Value.Nothing -> FScript.Language.VOption None
+            | Terrabuild.Expression.Value.Bool boolValue -> FScript.Language.VBool boolValue
+            | Terrabuild.Expression.Value.String stringValue -> FScript.Language.VString stringValue
+            | Terrabuild.Expression.Value.Number numberValue -> FScript.Language.VInt (int64 numberValue)
+            | Terrabuild.Expression.Value.Enum enumValue -> FScript.Language.VString enumValue
+            | Terrabuild.Expression.Value.Map mapValue ->
                 mapValue
                 |> Map.toList
                 |> List.map (fun (key, itemValue) -> FScript.Language.MKString key, convert itemValue)
                 |> Map.ofList
                 |> FScript.Language.VMap
-            | Terrabuild.Expressions.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
-            | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
+            | Terrabuild.Expression.Value.List listValue -> listValue |> List.map convert |> FScript.Language.VList
+            | Terrabuild.Expression.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
         convert value
 
     static member private buildObjectConverter(valueType: System.Type) =
@@ -570,7 +570,7 @@ and private Conversions =
             let converter = value.GetType() |> Conversions.getObjectConverter
             converter value
 
-    static member ToFScriptValue(value: Terrabuild.Expressions.Value) =
+    static member ToFScriptValue(value: Terrabuild.Expression.Value) =
         let startedAt = Stopwatch.GetTimestamp()
         let converted = Conversions.toFScriptCoreValue value
         Performance.trackToFScriptConversion(Stopwatch.GetTimestamp() - startedAt)
@@ -579,12 +579,12 @@ and private Conversions =
     static member private toTerrabuildValue(value: FScript.Language.Value) =
         let rec convert (currentValue: FScript.Language.Value) =
             match currentValue with
-            | FScript.Language.VUnit -> Terrabuild.Expressions.Value.Nothing
-            | FScript.Language.VBool boolValue -> Terrabuild.Expressions.Value.Bool boolValue
-            | FScript.Language.VInt intValue -> Terrabuild.Expressions.Value.Number (int intValue)
-            | FScript.Language.VString stringValue -> Terrabuild.Expressions.Value.String stringValue
-            | FScript.Language.VList listValue -> listValue |> List.map convert |> Terrabuild.Expressions.Value.List
-            | FScript.Language.VRecord mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> Terrabuild.Expressions.Value.Map
+            | FScript.Language.VUnit -> Terrabuild.Expression.Value.Nothing
+            | FScript.Language.VBool boolValue -> Terrabuild.Expression.Value.Bool boolValue
+            | FScript.Language.VInt intValue -> Terrabuild.Expression.Value.Number (int intValue)
+            | FScript.Language.VString stringValue -> Terrabuild.Expression.Value.String stringValue
+            | FScript.Language.VList listValue -> listValue |> List.map convert |> Terrabuild.Expression.Value.List
+            | FScript.Language.VRecord mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> Terrabuild.Expression.Value.Map
             | FScript.Language.VMap mapValue ->
                 mapValue
                 |> Map.toList
@@ -593,10 +593,10 @@ and private Conversions =
                     | FScript.Language.MKString name -> name, convert itemValue
                     | FScript.Language.MKInt _ -> raiseTypeError "Terrabuild map values expect string keys")
                 |> Map.ofList
-                |> Terrabuild.Expressions.Value.Map
-            | FScript.Language.VOption None -> Terrabuild.Expressions.Value.Nothing
+                |> Terrabuild.Expression.Value.Map
+            | FScript.Language.VOption None -> Terrabuild.Expression.Value.Nothing
             | FScript.Language.VOption (Some optionValue) -> convert optionValue
-            | _ -> raiseTypeError $"Unsupported FScript value '{currentValue}' for Terrabuild.Expressions.Value"
+            | _ -> raiseTypeError $"Unsupported FScript value '{currentValue}' for Terrabuild.Expression.Value"
         convert value
 
     static member private buildFScriptDecoder(targetType: System.Type) =
@@ -687,7 +687,7 @@ and private Conversions =
                         | Some fieldValue -> fieldDecoder fieldValue
                         | None -> raiseTypeError $"Missing field '{fieldName}' in script result")
                 FSharpValue.MakeRecord(targetType, fieldValues)
-        elif targetType = typeof<Terrabuild.Expressions.Value> then
+        elif targetType = typeof<Terrabuild.Expression.Value> then
             fun value -> box (Conversions.toTerrabuildValue value)
         else
             raiseTypeError $"Unsupported script return type '{targetType.FullName}'"

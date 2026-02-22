@@ -7,7 +7,7 @@ open FsUnit
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Project
 
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 [<Test>]
 let parseProject() =

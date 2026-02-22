@@ -4,7 +4,7 @@ open NUnit.Framework
 open FsUnit
 
 open Terrabuild.Scripting
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 
 type Arguments = {

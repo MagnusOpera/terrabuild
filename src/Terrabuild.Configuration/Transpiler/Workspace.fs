@@ -1,6 +1,6 @@
 module Terrabuild.Configuration.Transpiler.Workspace
 open Errors
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Common
 open Terrabuild.Lang.AST
 open Terrabuild.Configuration.AST

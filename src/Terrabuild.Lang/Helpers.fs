@@ -1,5 +1,5 @@
 module private Terrabuild.Lang.Helpers
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Errors
 
 let parseFunction expr = function

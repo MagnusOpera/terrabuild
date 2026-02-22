@@ -16,6 +16,8 @@ All notable changes to Terrabuild are documented in this file.
 - Improve FScript runtime integration performance with cached method resolution and cached object/return type converters; optimize batch `.slnx` project resolution in `dotnet.fss` to avoid unnecessary file scans.
 - Remove TargetsForTfmSpecificContentInPackage on dotnet pack.
 - Add unit tests for full configuration/graph pipeline validation covering batch and non-batch scenarios.
+- Rename `Terrabuild.Expressions` project/module to `Terrabuild.Expression` and update all solution/project references.
+- Extend expression unit tests to cover all evaluation functions and dependency extraction helpers.
 
 ## [0.189.9-next]
 

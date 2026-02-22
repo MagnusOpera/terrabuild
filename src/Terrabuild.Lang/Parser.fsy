@@ -1,7 +1,7 @@
 %{ 
 open Terrabuild.Lang.AST
 open Helpers
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open System
 
 

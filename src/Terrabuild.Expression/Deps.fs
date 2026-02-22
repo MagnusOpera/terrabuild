@@ -1,6 +1,6 @@
-module Terrabuild.Expressions.Dependencies
+module Terrabuild.Expression.Dependencies
 open System.Collections.Generic
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open FSharp.Reflection
 
 

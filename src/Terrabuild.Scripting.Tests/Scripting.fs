@@ -4,7 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Errors
 open System
 open System.IO

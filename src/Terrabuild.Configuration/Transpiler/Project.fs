@@ -3,7 +3,7 @@ open Terrabuild.Lang.AST
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Project
 open Errors
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open Common
 open Collections
 open Helpers

@@ -1,8 +1,8 @@
-module Terrabuild.Expressions.Dependencies.Tests
+module Terrabuild.Expression.Dependencies.Tests
 
 open NUnit.Framework
 open FsUnitTyped
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 [<Test>]
 let ``Scalar dependencies``() =
@@ -92,4 +92,13 @@ let ``reflection find dependencies`` () =
 
     value
     |> reflectionFind
+    |> shouldEqual expected
+
+[<Test>]
+let ``array dependencies`` () =
+    let expr = Expr.List [ Expr.Variable "project.a"; Expr.Variable "project.b" ]
+    let expected = Set [ "project.a"; "project.b" ]
+
+    expr
+    |> findArrayOfDependencies
     |> shouldEqual expected

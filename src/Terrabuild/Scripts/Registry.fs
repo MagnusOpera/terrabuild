@@ -1,6 +1,6 @@
 module ScriptRegistry
 open Terrabuild.Configuration.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 
 let BuiltInScriptFiles =
     Map [

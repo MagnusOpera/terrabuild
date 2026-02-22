@@ -1,4 +1,4 @@
-namespace Terrabuild.Expressions
+namespace Terrabuild.Expression
 open System
 
 [<RequireQualifiedAccessAttribute>]

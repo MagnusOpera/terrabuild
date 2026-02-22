@@ -1,5 +1,5 @@
-﻿module Terrabuild.Expressions.Eval
-open Terrabuild.Expressions
+﻿module Terrabuild.Expression.Eval
+open Terrabuild.Expression
 open Errors
 open Collections
 open System.Text.RegularExpressions

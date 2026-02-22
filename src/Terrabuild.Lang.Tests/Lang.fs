@@ -1,6 +1,6 @@
 module Terrabuild.Lang.Tests
 open Terrabuild.Lang.AST
-open Terrabuild.Expressions
+open Terrabuild.Expression
 open System.IO
 open NUnit.Framework
 open FsUnit
