@@ -76,6 +76,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         System.Environment.CurrentDirectory <- options.Workspace
         Log.Debug("Changing current directory to {directory}", options.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
+        Terrabuild.Scripting.resetPerformanceMetrics()
 
         let homeDir = Cache.createHome()
         let tmpDir = Cache.createTmp()
@@ -113,8 +114,16 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Run = sourceControl.Run
         }
 
+        let runPhase phaseName run =
+            let startedAt = DateTime.UtcNow
+            let result = run ()
+            let duration = DateTime.UtcNow - startedAt
+            if options.Debug then
+                Log.Debug("Phase '{PhaseName}' duration: {DurationMs}ms", phaseName, Math.Round(duration.TotalMilliseconds, 2))
+            result
+
         Log.Debug("====[ Configuration ]========================================================")
-        let options, config = Configuration.read options
+        let options, config = runPhase "configuration" (fun () -> Configuration.read options)
 
         if options.Debug then
             let jsonOptions = Json.Serialize options
@@ -140,19 +149,19 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
-        let graph = GraphPipeline.Node.build options config
+        let graph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
-        let graph = GraphPipeline.Action.build options cache graph
+        let graph = runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph)
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action.json")
 
         Log.Debug("====[ GraphPipeline Cascade ]========================================================")
-        let graph = GraphPipeline.Cascade.build graph
+        let graph = runPhase "graph-cascade" (fun () -> GraphPipeline.Cascade.build graph)
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cascade.json")
 
         Log.Debug("====[ GraphPipeline Batch ]========================================================")
-        let graph = GraphPipeline.Batch.build options config graph
+        let graph = runPhase "graph-batch" (fun () -> GraphPipeline.Batch.build options config graph)
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"batch.json")
 
         if options.Debug then
@@ -190,7 +199,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             if options.WhatIf then 0
             else
                 Log.Debug("====[ Runner ]========================================================")
-                let summary = Runner.run options cache api graph
+                let summary = runPhase "runner" (fun () -> Runner.run options cache api graph)
 
                 Log.Debug("====[ Report ]========================================================")
                 if options.Debug then
@@ -208,6 +217,21 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | 0 ->  Ansi.Emojis.happy
             | _ -> Ansi.Emojis.sad
         let duration = DateTime.UtcNow - options.StartedAt
+        if options.Debug then
+            let snapshot = Terrabuild.Scripting.getPerformanceSnapshot()
+            Log.Debug(
+                "FScript performance: script loads={LoadCount} ({LoadMs}ms), script cache hits={CacheHits}, invocations={InvokeCount} ({InvokeMs}ms), to-fscript conversions={ToCount} ({ToMs}ms), from-fscript conversions={FromCount} ({FromMs}ms), method resolutions={ResolutionCount} ({ResolutionMs}ms)",
+                snapshot.ScriptLoadCount,
+                Math.Round(snapshot.ScriptLoadDurationMs, 2),
+                snapshot.ScriptCacheHitCount,
+                snapshot.RuntimeInvokeCount,
+                Math.Round(snapshot.RuntimeInvokeDurationMs, 2),
+                snapshot.ToFScriptConversionCount,
+                Math.Round(snapshot.ToFScriptConversionDurationMs, 2),
+                snapshot.FromFScriptConversionCount,
+                Math.Round(snapshot.FromFScriptConversionDurationMs, 2),
+                snapshot.MethodResolutionCount,
+                Math.Round(snapshot.MethodResolutionDurationMs, 2))
         $"{emoji} Completed in {duration.HumanizeAbbreviated()}" |> Terminal.writeLine
         errCode
 

@@ -5,11 +5,17 @@ import "_helpers.fss" as Helpers
 let project_extensions = [".csproj"; ".fsproj"; ".vbproj"; ".pssproj"; ".sqlproj"; ".dcproj"]
 
 let first_project_file directory =
-  project_extensions
-  |> List.collect (fun ext ->
-      Fs.enumerateFiles directory $"*{ext}"
-      |> Option.defaultValue [])
-  |> List.tryHead
+  let rec try_extensions extensions =
+    match extensions with
+    | [] -> None
+    | ext :: next ->
+        match Fs.enumerateFiles directory $"*{ext}" with
+        | Some files ->
+            match files with
+            | file :: _ -> Some file
+            | _ -> try_extensions next
+        | _ -> try_extensions next
+  try_extensions project_extensions
 
 let project_refs_from project_file =
   let content = Fs.readText project_file |> Option.defaultValue ""

@@ -3,6 +3,9 @@ module Terrabuild.Scripting
 open System
 open System.IO
 open System.Reflection
+open System.Diagnostics
+open System.Threading
+open System.Collections.Concurrent
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Diagnostics
 open Microsoft.FSharp.Reflection
@@ -11,6 +14,87 @@ open Terrabuild.Expressions
 open Errors
 
 type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> objnull
+
+type PerformanceSnapshot =
+    { RuntimeInvokeCount: int64
+      RuntimeInvokeDurationMs: float
+      ToFScriptConversionCount: int64
+      ToFScriptConversionDurationMs: float
+      FromFScriptConversionCount: int64
+      FromFScriptConversionDurationMs: float
+      MethodResolutionCount: int64
+      MethodResolutionDurationMs: float
+      ScriptLoadCount: int64
+      ScriptLoadDurationMs: float
+      ScriptCacheHitCount: int64 }
+
+module private Performance =
+    let mutable private runtimeInvokeCount = 0L
+    let mutable private runtimeInvokeTicks = 0L
+    let mutable private toFScriptCount = 0L
+    let mutable private toFScriptTicks = 0L
+    let mutable private fromFScriptCount = 0L
+    let mutable private fromFScriptTicks = 0L
+    let mutable private methodResolutionCount = 0L
+    let mutable private methodResolutionTicks = 0L
+    let mutable private scriptLoadCount = 0L
+    let mutable private scriptLoadTicks = 0L
+    let mutable private scriptCacheHitCount = 0L
+
+    let inline private toMs (ticks: int64) =
+        (float ticks * 1000.0) / float Stopwatch.Frequency
+
+    let reset () =
+        runtimeInvokeCount <- 0L
+        runtimeInvokeTicks <- 0L
+        toFScriptCount <- 0L
+        toFScriptTicks <- 0L
+        fromFScriptCount <- 0L
+        fromFScriptTicks <- 0L
+        methodResolutionCount <- 0L
+        methodResolutionTicks <- 0L
+        scriptLoadCount <- 0L
+        scriptLoadTicks <- 0L
+        scriptCacheHitCount <- 0L
+
+    let trackRuntimeInvoke (ticks: int64) =
+        Interlocked.Increment(&runtimeInvokeCount) |> ignore
+        Interlocked.Add(&runtimeInvokeTicks, ticks) |> ignore
+
+    let trackToFScriptConversion (ticks: int64) =
+        Interlocked.Increment(&toFScriptCount) |> ignore
+        Interlocked.Add(&toFScriptTicks, ticks) |> ignore
+
+    let trackFromFScriptConversion (ticks: int64) =
+        Interlocked.Increment(&fromFScriptCount) |> ignore
+        Interlocked.Add(&fromFScriptTicks, ticks) |> ignore
+
+    let trackMethodResolution (ticks: int64) =
+        Interlocked.Increment(&methodResolutionCount) |> ignore
+        Interlocked.Add(&methodResolutionTicks, ticks) |> ignore
+
+    let trackScriptLoad (ticks: int64) =
+        Interlocked.Increment(&scriptLoadCount) |> ignore
+        Interlocked.Add(&scriptLoadTicks, ticks) |> ignore
+
+    let trackScriptCacheHit () =
+        Interlocked.Increment(&scriptCacheHitCount) |> ignore
+
+    let snapshot () =
+        { RuntimeInvokeCount = Interlocked.Read(&runtimeInvokeCount)
+          RuntimeInvokeDurationMs = Interlocked.Read(&runtimeInvokeTicks) |> toMs
+          ToFScriptConversionCount = Interlocked.Read(&toFScriptCount)
+          ToFScriptConversionDurationMs = Interlocked.Read(&toFScriptTicks) |> toMs
+          FromFScriptConversionCount = Interlocked.Read(&fromFScriptCount)
+          FromFScriptConversionDurationMs = Interlocked.Read(&fromFScriptTicks) |> toMs
+          MethodResolutionCount = Interlocked.Read(&methodResolutionCount)
+          MethodResolutionDurationMs = Interlocked.Read(&methodResolutionTicks) |> toMs
+          ScriptLoadCount = Interlocked.Read(&scriptLoadCount)
+          ScriptLoadDurationMs = Interlocked.Read(&scriptLoadTicks) |> toMs
+          ScriptCacheHitCount = Interlocked.Read(&scriptCacheHitCount) }
+
+let resetPerformanceMetrics () = Performance.reset()
+let getPerformanceSnapshot () = Performance.snapshot()
 
 type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInvoker option) =
     let expectString (name: string) (value: objnull) =
@@ -132,96 +216,123 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
 
 type ScriptRuntime =
     | Legacy of System.Type
-    | FScript of FScript.Runtime.ScriptHost.LoadedScript * ScriptDescriptor * string option * string option
+    | FScript of FScript.Runtime.ScriptHost.LoadedScript * Set<string> * ScriptDescriptor * string option * string option
 
 type Script internal (runtime: ScriptRuntime) =
+    let methodCache = ConcurrentDictionary<string, Invocable option>(StringComparer.Ordinal)
+    let commandResolutionCache = ConcurrentDictionary<string, string option>(StringComparer.Ordinal)
+    let mutable defaultResolutionCache: string option option = None
+
     new(mainType: System.Type) = Script(Legacy mainType)
 
     member _.GetMethod(name: string) =
-        match runtime with
-        | Legacy mainType ->
-            match mainType.GetMethod(name, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
-            | Null -> None
-            | NonNull methodInfo -> Invocable(methodInfo) |> Some
-        | FScript(loaded, _, _, _) ->
-            if loaded.ExportedFunctionNames |> List.contains name then
-                let runtimeInvoke (args: Terrabuild.Expressions.Value) (targetType: System.Type) =
-                    let inputMap =
-                        match args with
-                        | Terrabuild.Expressions.Value.Map map -> map
-                        | _ -> raiseTypeError $"FScript function '{name}' expects map-based arguments"
+        methodCache.GetOrAdd(
+            name,
+            Func<_, _>(fun methodName ->
+                let startedAt = Stopwatch.GetTimestamp()
+                let resolved =
+                    match runtime with
+                    | Legacy mainType ->
+                        match mainType.GetMethod(methodName, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
+                        | Null -> None
+                        | NonNull methodInfo -> Invocable(methodInfo) |> Some
+                    | FScript(loaded, exportedFunctions, _, _, _) ->
+                        if exportedFunctions |> Set.contains methodName then
+                            let signature =
+                                match loaded.ExportedFunctionSignatures |> Map.tryFind methodName with
+                                | Some value -> value
+                                | None -> raiseInvalidArg $"Missing signature metadata for exported function '{methodName}'"
 
-                    let signature =
-                        match loaded.ExportedFunctionSignatures |> Map.tryFind name with
-                        | Some value -> value
-                        | None -> raiseInvalidArg $"Missing signature metadata for exported function '{name}'"
+                            let parameterPlan =
+                                match signature.ParameterNames, signature.ParameterTypes with
+                                | contextParam :: remainingParams, contextType :: remainingTypes ->
+                                    if contextParam <> "context" then
+                                        raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
+                                    contextType, List.zip remainingParams remainingTypes
+                                | _ ->
+                                    raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
 
-                    let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expressions.Value) =
-                        match parameterType with
-                        | FScript.Language.TOption _ ->
-                            match value with
-                            | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
-                            | _ ->
-                                match Conversions.ToFScriptValue value with
-                                | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
-                                | converted -> FScript.Language.VOption (Some converted)
-                        | _ ->
-                            Conversions.ToFScriptValue value
+                            let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expressions.Value) =
+                                match parameterType with
+                                | FScript.Language.TOption _ ->
+                                    match value with
+                                    | Terrabuild.Expressions.Value.Nothing -> FScript.Language.VOption None
+                                    | _ ->
+                                        match Conversions.ToFScriptValue value with
+                                        | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
+                                        | converted -> FScript.Language.VOption (Some converted)
+                                | _ ->
+                                    Conversions.ToFScriptValue value
 
-                    let invocationArgs =
-                        match signature.ParameterNames, signature.ParameterTypes with
-                        | contextParam :: remainingParams, contextType :: remainingTypes ->
-                            if contextParam <> "context" then
-                                raiseInvalidArg $"Exported function '{name}' must declare 'context' as first parameter"
+                            let runtimeInvoke (args: Terrabuild.Expressions.Value) (targetType: System.Type) =
+                                let invokeStartedAt = Stopwatch.GetTimestamp()
+                                let inputMap =
+                                    match args with
+                                    | Terrabuild.Expressions.Value.Map map -> map
+                                    | _ -> raiseTypeError $"FScript function '{methodName}' expects map-based arguments"
 
-                            let contextArg =
-                                match inputMap |> Map.tryFind "context" with
-                                | Some value -> toFScriptArgument contextType value
-                                | None -> raiseTypeError $"Missing required argument 'context' for function '{name}'"
+                                let contextType, remainingPlan = parameterPlan
+                                let contextArg =
+                                    match inputMap |> Map.tryFind "context" with
+                                    | Some value -> toFScriptArgument contextType value
+                                    | None -> raiseTypeError $"Missing required argument 'context' for function '{methodName}'"
 
-                            let remainingArgs =
-                                (remainingParams, remainingTypes)
-                                ||> List.map2 (fun parameterName parameterType ->
-                                    match inputMap |> Map.tryFind parameterName with
-                                    | Some value ->
-                                        toFScriptArgument parameterType value
-                                    | None ->
-                                        match parameterType with
-                                        | FScript.Language.TOption _ -> FScript.Language.VOption None
-                                        | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{name}'")
+                                let remainingArgs =
+                                    remainingPlan
+                                    |> List.map (fun (parameterName, parameterType) ->
+                                        match inputMap |> Map.tryFind parameterName with
+                                        | Some value -> toFScriptArgument parameterType value
+                                        | None ->
+                                            match parameterType with
+                                            | FScript.Language.TOption _ -> FScript.Language.VOption None
+                                            | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{methodName}'")
 
-                            contextArg :: remainingArgs
-                        | _ ->
-                            raiseInvalidArg $"Exported function '{name}' must declare 'context' as first parameter"
+                                let result = FScript.Runtime.ScriptHost.invoke loaded methodName (contextArg :: remainingArgs)
+                                let mappedResult = Conversions.FromFScriptValue(targetType, result)
+                                Performance.trackRuntimeInvoke(Stopwatch.GetTimestamp() - invokeStartedAt)
+                                mappedResult
 
-                    let result = FScript.Runtime.ScriptHost.invoke loaded name invocationArgs
-                    Conversions.FromFScriptValue(targetType, result)
-                Invocable.FromRuntime(runtimeInvoke) |> Some
-            else
-                None
+                            Invocable.FromRuntime(runtimeInvoke) |> Some
+                        else
+                            None
+                Performance.trackMethodResolution(Stopwatch.GetTimestamp() - startedAt)
+                resolved
+            )
+        )
 
     member _.ResolveCommandMethod(command: string) =
-        match runtime with
-        | Legacy mainType ->
-            if mainType.GetMethod(command, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                Some command
-            elif mainType.GetMethod("__dispatch__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                Some "__dispatch__"
-            else
-                None
-        | FScript(loaded, _, dispatchMethod, _) ->
-            if loaded.ExportedFunctionNames |> List.contains command then Some command
-            else dispatchMethod
+        commandResolutionCache.GetOrAdd(
+            command,
+            Func<_, _>(fun commandName ->
+                match runtime with
+                | Legacy mainType ->
+                    if mainType.GetMethod(commandName, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
+                        Some commandName
+                    elif mainType.GetMethod("__dispatch__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
+                        Some "__dispatch__"
+                    else
+                        None
+                | FScript(_, exportedFunctions, _, dispatchMethod, _) ->
+                    if exportedFunctions |> Set.contains commandName then Some commandName
+                    else dispatchMethod
+            )
+        )
 
     member _.ResolveDefaultMethod() =
-        match runtime with
-        | Legacy mainType ->
-            if mainType.GetMethod("__defaults__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                Some "__defaults__"
-            else
-                None
-        | FScript(_, _, _, defaultMethod) ->
-            defaultMethod
+        match defaultResolutionCache with
+        | Some methodName -> methodName
+        | None ->
+            let resolved =
+                match runtime with
+                | Legacy mainType ->
+                    if mainType.GetMethod("__defaults__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
+                        Some "__defaults__"
+                    else
+                        None
+                | FScript(_, _, _, _, defaultMethod) ->
+                    defaultMethod
+            defaultResolutionCache <- Some resolved
+            resolved
 
     member _.TryGetFunctionFlags(name: string) =
         match runtime with
@@ -234,8 +345,8 @@ type Script internal (runtime: ScriptRuntime) =
                       | :? CacheableAttribute as cacheable -> ExportFlag.Cache cacheable.Cacheability
                       | _ -> () ]
                 Some flags
-        | FScript(loaded, descriptor, _, _) ->
-            if loaded.ExportedFunctionNames |> List.contains name then
+        | FScript(_, exportedFunctions, descriptor, _, _) ->
+            if exportedFunctions |> Set.contains name then
                 descriptor |> Map.tryFind name |> Option.defaultValue [] |> Some
             else
                 None
@@ -331,6 +442,9 @@ and private Descriptor =
         dispatchMethods |> List.tryHead, defaultMethods |> List.tryHead
 
 and private Conversions =
+    static let objectConverters = ConcurrentDictionary<System.Type, objnull -> FScript.Language.Value>()
+    static let returnDecoders = ConcurrentDictionary<System.Type, FScript.Language.Value -> objnull>()
+
     static member private toFScriptCoreValue(value: Terrabuild.Expressions.Value) =
         let rec convert value =
             match value with
@@ -349,118 +463,178 @@ and private Conversions =
             | Terrabuild.Expressions.Value.Object objectValue -> Conversions.toFScriptValueFromObject objectValue
         convert value
 
-    static member private toFScriptValueFromObject (value: objnull) =
-        let rec convertObject (objValue: objnull) =
-            if isNull objValue then
-                FScript.Language.VOption None
-            else
-                let valueType = objValue.GetType()
-                if valueType = typeof<string> then
-                    match objValue with
-                    | :? string as str -> FScript.Language.VString str
-                    | _ -> raiseTypeError "Expected string object value"
-                elif valueType = typeof<bool> then FScript.Language.VBool (objValue :?> bool)
-                elif valueType = typeof<int> then FScript.Language.VInt (int64 (objValue :?> int))
-                elif valueType = typeof<int64> then FScript.Language.VInt (objValue :?> int64)
-                elif valueType = typeof<float> then FScript.Language.VFloat (objValue :?> float)
-                elif valueType = typeof<double> then FScript.Language.VFloat (objValue :?> double)
-                elif FSharpType.IsRecord(valueType, true) then
-                    let fields = FSharpType.GetRecordFields(valueType)
-                    let values = FSharpValue.GetRecordFields(nonNull objValue)
-                    let mapped =
-                        Array.zip fields values
-                        |> Array.map (fun (fieldInfo, fieldValue) -> fieldInfo.Name, convertObject fieldValue)
-                        |> Map.ofArray
-                    FScript.Language.VRecord mapped
-                elif FSharpType.IsUnion(valueType, true) && valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<option<_>> then
+    static member private buildObjectConverter(valueType: System.Type) =
+        if valueType = typeof<string> then
+            fun (objValue: objnull) ->
+                match objValue with
+                | :? string as str -> FScript.Language.VString str
+                | _ -> raiseTypeError "Expected string object value"
+        elif valueType = typeof<bool> then
+            fun (objValue: objnull) -> FScript.Language.VBool (objValue :?> bool)
+        elif valueType = typeof<int> then
+            fun (objValue: objnull) -> FScript.Language.VInt (int64 (objValue :?> int))
+        elif valueType = typeof<int64> then
+            fun (objValue: objnull) -> FScript.Language.VInt (objValue :?> int64)
+        elif valueType = typeof<float> then
+            fun (objValue: objnull) -> FScript.Language.VFloat (objValue :?> float)
+        elif valueType = typeof<double> then
+            fun (objValue: objnull) -> FScript.Language.VFloat (objValue :?> double)
+        elif FSharpType.IsRecord(valueType, true) then
+            let fields = FSharpType.GetRecordFields(valueType)
+            let fieldConverters = fields |> Array.map (fun fieldInfo -> fieldInfo.Name, Conversions.getObjectConverter fieldInfo.PropertyType)
+            fun (objValue: objnull) ->
+                let values = FSharpValue.GetRecordFields(nonNull objValue)
+                let mapped =
+                    Array.zip fieldConverters values
+                    |> Array.map (fun ((fieldName, fieldConverter), fieldValue) -> fieldName, fieldConverter fieldValue)
+                    |> Map.ofArray
+                FScript.Language.VRecord mapped
+        elif FSharpType.IsUnion(valueType, true) && valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<option<_>> then
+            let valueConverter = valueType.GetGenericArguments()[0] |> Conversions.getObjectConverter
+            fun (objValue: objnull) ->
+                if isNull objValue then
+                    FScript.Language.VOption None
+                else
                     let unionCase, fields = FSharpValue.GetUnionFields(nonNull objValue, valueType)
                     match unionCase.Name, fields with
                     | "None", _ -> FScript.Language.VOption None
-                    | "Some", [| item |] -> FScript.Language.VOption (Some (convertObject item))
+                    | "Some", [| item |] -> FScript.Language.VOption (Some (valueConverter item))
                     | _ -> raiseTypeError $"Unsupported option value '{unionCase.Name}'"
-                elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<list<_>> then
-                    let items =
-                        match objValue with
-                        | :? System.Collections.IEnumerable as enumerable -> enumerable
-                        | _ -> raiseTypeError $"Unsupported list source type '{valueType.FullName}'"
+        elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<list<_>> then
+            let elementConverter = valueType.GetGenericArguments()[0] |> Conversions.getObjectConverter
+            fun (objValue: objnull) ->
+                let items =
+                    match objValue with
+                    | :? System.Collections.IEnumerable as enumerable ->
+                        enumerable
                         |> Seq.cast<obj>
-                        |> Seq.map convertObject
+                        |> Seq.map elementConverter
                         |> Seq.toList
-                    FScript.Language.VList items
-                elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<Set<_>> then
-                    let items =
-                        match objValue with
-                        | :? System.Collections.IEnumerable as enumerable -> enumerable
-                        | _ -> raiseTypeError $"Unsupported set source type '{valueType.FullName}'"
+                    | _ -> raiseTypeError $"Unsupported list source type '{valueType.FullName}'"
+                FScript.Language.VList items
+        elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<Set<_>> then
+            let elementConverter = valueType.GetGenericArguments()[0] |> Conversions.getObjectConverter
+            fun (objValue: objnull) ->
+                let items =
+                    match objValue with
+                    | :? System.Collections.IEnumerable as enumerable ->
+                        enumerable
                         |> Seq.cast<obj>
-                        |> Seq.map convertObject
+                        |> Seq.map elementConverter
                         |> Seq.toList
-                    FScript.Language.VList items
-                else
-                    raiseTypeError $"Unsupported object parameter type '{valueType.FullName}'"
-        convertObject value
+                    | _ -> raiseTypeError $"Unsupported set source type '{valueType.FullName}'"
+                FScript.Language.VList items
+        else
+            raiseTypeError $"Unsupported object parameter type '{valueType.FullName}'"
+
+    static member private getObjectConverter(valueType: System.Type) =
+        objectConverters.GetOrAdd(valueType, Func<_, _>(fun currentType -> Conversions.buildObjectConverter currentType))
+
+    static member private toFScriptValueFromObject (value: objnull) =
+        if isNull value then
+            FScript.Language.VOption None
+        else
+            let converter = value.GetType() |> Conversions.getObjectConverter
+            converter value
 
     static member ToFScriptValue(value: Terrabuild.Expressions.Value) =
-        Conversions.toFScriptCoreValue value
+        let startedAt = Stopwatch.GetTimestamp()
+        let converted = Conversions.toFScriptCoreValue value
+        Performance.trackToFScriptConversion(Stopwatch.GetTimestamp() - startedAt)
+        converted
 
-    static member FromFScriptValue(targetType: System.Type, value: FScript.Language.Value) =
-        let rec decode (target: System.Type) (value: FScript.Language.Value) : objnull =
-            if target = typeof<string> then
+    static member private toTerrabuildValue(value: FScript.Language.Value) =
+        let rec convert (currentValue: FScript.Language.Value) =
+            match currentValue with
+            | FScript.Language.VUnit -> Terrabuild.Expressions.Value.Nothing
+            | FScript.Language.VBool boolValue -> Terrabuild.Expressions.Value.Bool boolValue
+            | FScript.Language.VInt intValue -> Terrabuild.Expressions.Value.Number (int intValue)
+            | FScript.Language.VString stringValue -> Terrabuild.Expressions.Value.String stringValue
+            | FScript.Language.VList listValue -> listValue |> List.map convert |> Terrabuild.Expressions.Value.List
+            | FScript.Language.VRecord mapValue -> mapValue |> Map.map (fun _ itemValue -> convert itemValue) |> Terrabuild.Expressions.Value.Map
+            | FScript.Language.VMap mapValue ->
+                mapValue
+                |> Map.toList
+                |> List.map (fun (key, itemValue) ->
+                    match key with
+                    | FScript.Language.MKString name -> name, convert itemValue
+                    | FScript.Language.MKInt _ -> raiseTypeError "Terrabuild map values expect string keys")
+                |> Map.ofList
+                |> Terrabuild.Expressions.Value.Map
+            | FScript.Language.VOption None -> Terrabuild.Expressions.Value.Nothing
+            | FScript.Language.VOption (Some optionValue) -> convert optionValue
+            | _ -> raiseTypeError $"Unsupported FScript value '{currentValue}' for Terrabuild.Expressions.Value"
+        convert value
+
+    static member private buildFScriptDecoder(targetType: System.Type) =
+        if targetType = typeof<string> then
+            fun value ->
                 match value with
                 | FScript.Language.VString stringValue -> box stringValue
                 | _ -> raiseTypeError $"Expected string return type, got {value}"
-            elif target = typeof<int> then
+        elif targetType = typeof<int> then
+            fun value ->
                 match value with
                 | FScript.Language.VInt intValue -> box (int intValue)
                 | _ -> raiseTypeError $"Expected int return type, got {value}"
-            elif target = typeof<bool> then
+        elif targetType = typeof<bool> then
+            fun value ->
                 match value with
                 | FScript.Language.VBool boolValue -> box boolValue
                 | _ -> raiseTypeError $"Expected bool return type, got {value}"
-            elif target = typeof<float> || target = typeof<double> then
+        elif targetType = typeof<float> || targetType = typeof<double> then
+            fun value ->
                 match value with
                 | FScript.Language.VFloat floatValue -> box floatValue
                 | _ -> raiseTypeError $"Expected float return type, got {value}"
-            elif target.IsGenericType && target.GetGenericTypeDefinition() = typedefof<option<_>> then
-                let innerType = target.GetGenericArguments()[0]
-                let unionCases = FSharpType.GetUnionCases(target)
-                let noneCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "None")
-                let someCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Some")
+        elif targetType.IsGenericType && targetType.GetGenericTypeDefinition() = typedefof<option<_>> then
+            let innerType = targetType.GetGenericArguments()[0]
+            let innerDecoder = Conversions.getFScriptDecoder innerType
+            let unionCases = FSharpType.GetUnionCases(targetType)
+            let noneCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "None")
+            let someCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Some")
+            fun value ->
                 match value with
                 | FScript.Language.VOption None -> FSharpValue.MakeUnion(noneCase, [| |])
-                | FScript.Language.VOption (Some item) -> FSharpValue.MakeUnion(someCase, [| decode innerType item |])
+                | FScript.Language.VOption (Some item) -> FSharpValue.MakeUnion(someCase, [| innerDecoder item |])
                 | _ -> raiseTypeError $"Expected option return type, got {value}"
-            elif target.IsGenericType && target.GetGenericTypeDefinition() = typedefof<list<_>> then
-                let innerType = target.GetGenericArguments()[0]
-                let unionCases = FSharpType.GetUnionCases(target)
-                let nilCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Empty")
-                let consCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Cons")
-                let empty = FSharpValue.MakeUnion(nilCase, [| |])
+        elif targetType.IsGenericType && targetType.GetGenericTypeDefinition() = typedefof<list<_>> then
+            let innerType = targetType.GetGenericArguments()[0]
+            let innerDecoder = Conversions.getFScriptDecoder innerType
+            let unionCases = FSharpType.GetUnionCases(targetType)
+            let nilCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Empty")
+            let consCase = unionCases |> Array.find (fun unionCase -> unionCase.Name = "Cons")
+            let empty = FSharpValue.MakeUnion(nilCase, [| |])
+            fun value ->
                 match value with
                 | FScript.Language.VList items ->
                     items
-                    |> List.map (decode innerType)
+                    |> List.map innerDecoder
                     |> List.rev
                     |> List.fold (fun state item -> FSharpValue.MakeUnion(consCase, [| item; state |])) empty
                 | _ -> raiseTypeError $"Expected list return type, got {value}"
-            elif target.IsGenericType && target.GetGenericTypeDefinition() = typedefof<Set<_>> then
-                let innerType = target.GetGenericArguments()[0]
-                let setModuleType =
-                    match typeof<Set<string>>.Assembly.GetType("Microsoft.FSharp.Collections.SetModule") with
-                    | null -> raiseBugError "Cannot resolve FSharp SetModule type"
-                    | value -> value
-                let ofSeqMethod = setModuleType.GetMethods() |> Array.find (fun methodInfo -> methodInfo.Name = "OfSeq")
-                let genericOfSeq = ofSeqMethod.MakeGenericMethod([| innerType |])
+        elif targetType.IsGenericType && targetType.GetGenericTypeDefinition() = typedefof<Set<_>> then
+            let innerType = targetType.GetGenericArguments()[0]
+            let innerDecoder = Conversions.getFScriptDecoder innerType
+            let setModuleType =
+                match typeof<Set<string>>.Assembly.GetType("Microsoft.FSharp.Collections.SetModule") with
+                | null -> raiseBugError "Cannot resolve FSharp SetModule type"
+                | value -> value
+            let ofSeqMethod = setModuleType.GetMethods() |> Array.find (fun methodInfo -> methodInfo.Name = "OfSeq")
+            let genericOfSeq = ofSeqMethod.MakeGenericMethod([| innerType |])
+            fun value ->
                 let values: obj =
                     match value with
                     | FScript.Language.VList items ->
                         let array = System.Array.CreateInstance(innerType, items.Length)
-                        items
-                        |> List.iteri (fun index item -> array.SetValue(decode innerType item, index))
+                        items |> List.iteri (fun index item -> array.SetValue(innerDecoder item, index))
                         array
                     | _ -> raiseTypeError $"Expected list return type to decode set, got {value}"
                 genericOfSeq.Invoke(null, [| values |])
-            elif FSharpType.IsRecord(target, true) then
+        elif FSharpType.IsRecord(targetType, true) then
+            let fields = FSharpType.GetRecordFields(targetType)
+            let fieldDecoders = fields |> Array.map (fun fieldInfo -> fieldInfo.Name, Conversions.getFScriptDecoder fieldInfo.PropertyType)
+            fun value ->
                 let sourceMap =
                     match value with
                     | FScript.Language.VRecord map -> map
@@ -473,40 +647,26 @@ and private Conversions =
                             | FScript.Language.MKInt _ -> raiseTypeError "Record decoding expects string map keys")
                         |> Map.ofList
                     | _ -> raiseTypeError $"Expected record return type, got {value}"
-
-                let fields = FSharpType.GetRecordFields(target)
                 let fieldValues =
-                    fields
-                    |> Array.map (fun fieldInfo ->
-                        match sourceMap |> Map.tryFind fieldInfo.Name with
-                        | Some fieldValue -> decode fieldInfo.PropertyType fieldValue
-                        | None -> raiseTypeError $"Missing field '{fieldInfo.Name}' in script result")
-                FSharpValue.MakeRecord(target, fieldValues)
-            elif target = typeof<Terrabuild.Expressions.Value> then
-                let rec toTerrabuildValue (value: FScript.Language.Value) =
-                    match value with
-                    | FScript.Language.VUnit -> Terrabuild.Expressions.Value.Nothing
-                    | FScript.Language.VBool boolValue -> Terrabuild.Expressions.Value.Bool boolValue
-                    | FScript.Language.VInt intValue -> Terrabuild.Expressions.Value.Number (int intValue)
-                    | FScript.Language.VString stringValue -> Terrabuild.Expressions.Value.String stringValue
-                    | FScript.Language.VList listValue -> listValue |> List.map toTerrabuildValue |> Terrabuild.Expressions.Value.List
-                    | FScript.Language.VRecord mapValue -> mapValue |> Map.map (fun _ itemValue -> toTerrabuildValue itemValue) |> Terrabuild.Expressions.Value.Map
-                    | FScript.Language.VMap mapValue ->
-                        mapValue
-                        |> Map.toList
-                        |> List.map (fun (key, itemValue) ->
-                            match key with
-                            | FScript.Language.MKString name -> name, toTerrabuildValue itemValue
-                            | FScript.Language.MKInt _ -> raiseTypeError "Terrabuild map values expect string keys")
-                        |> Map.ofList
-                        |> Terrabuild.Expressions.Value.Map
-                    | FScript.Language.VOption None -> Terrabuild.Expressions.Value.Nothing
-                    | FScript.Language.VOption (Some optionValue) -> toTerrabuildValue optionValue
-                    | _ -> raiseTypeError $"Unsupported FScript value '{value}' for Terrabuild.Expressions.Value"
-                box (toTerrabuildValue value)
-            else
-                raiseTypeError $"Unsupported script return type '{target.FullName}'"
-        decode targetType value
+                    fieldDecoders
+                    |> Array.map (fun (fieldName, fieldDecoder) ->
+                        match sourceMap |> Map.tryFind fieldName with
+                        | Some fieldValue -> fieldDecoder fieldValue
+                        | None -> raiseTypeError $"Missing field '{fieldName}' in script result")
+                FSharpValue.MakeRecord(targetType, fieldValues)
+        elif targetType = typeof<Terrabuild.Expressions.Value> then
+            fun value -> box (Conversions.toTerrabuildValue value)
+        else
+            raiseTypeError $"Unsupported script return type '{targetType.FullName}'"
+
+    static member private getFScriptDecoder(targetType: System.Type) =
+        returnDecoders.GetOrAdd(targetType, Func<_, _>(fun currentType -> Conversions.buildFScriptDecoder currentType))
+
+    static member FromFScriptValue(targetType: System.Type, value: FScript.Language.Value) =
+        let startedAt = Stopwatch.GetTimestamp()
+        let decoded = (Conversions.getFScriptDecoder targetType) value
+        Performance.trackFromFScriptConversion(Stopwatch.GetTimestamp() - startedAt)
+        decoded
 
 let private checker = FSharpChecker.Create()
 let mutable private cache = Map.empty<string, Script>
@@ -552,7 +712,8 @@ let private toFScriptScript (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
             raiseInvalidArg $"Missing signature metadata for exported function '{functionName}'")
     let descriptor = Descriptor.Parse(loaded.ExportedFunctionNames, loaded.LastValue)
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
-    Script(FScript(loaded, descriptor, dispatchMethod, defaultMethod))
+    let exportedFunctions = loaded.ExportedFunctionNames |> Set.ofList
+    Script(FScript(loaded, exportedFunctions, descriptor, dispatchMethod, defaultMethod))
 
 let private toFScriptStringLiteral (value: string) =
     let escaped =
@@ -683,8 +844,11 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string li
     let cacheKey = $"{fullRootDirectory}::{deniedToken}::{fullScriptPath}"
     lock loadLock (fun () ->
         match cache |> Map.tryFind cacheKey with
-        | Some script -> script
+        | Some script ->
+            Performance.trackScriptCacheHit()
+            script
         | None ->
+            let startedAt = Stopwatch.GetTimestamp()
             let extension =
                 match Path.GetExtension(fullScriptPath) with
                 | null
@@ -695,6 +859,7 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string li
                 | ".fss" -> loadFScript fullRootDirectory deniedPathGlobs fullScriptPath
                 | _ -> loadLegacyScript references fullScriptPath
             cache <- cache |> Map.add cacheKey script
+            Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
             script)
 
 let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
@@ -715,8 +880,11 @@ let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
 
     lock loadLock (fun () ->
         match cache |> Map.tryFind cacheKey with
-        | Some script -> script
+        | Some script ->
+            Performance.trackScriptCacheHit()
+            script
         | None ->
+            let startedAt = Stopwatch.GetTimestamp()
             let script =
                 loadFScriptFromSourceWithIncludes
                     fullHostRootDirectory
@@ -726,6 +894,7 @@ let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
                     entrySource
                     resolveImportedSource
             cache <- cache |> Map.add cacheKey script
+            Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
             script)
 
 let loadScriptFromSourceWithIncludes

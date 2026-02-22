@@ -12,6 +12,8 @@ All notable changes to Terrabuild are documented in this file.
 - Remove dotnet extension string interpolation workaround (`dq`) and rely on fixed `String.*` pipeline semantics in FScript `0.56.0`.
 - Add opt-in `UseLocalFScript=true` build switch to resolve FScript via local `../FScript` project references instead of NuGet for faster integration loops.
 - Add Makefile `flags=fscript` support to propagate `/p:UseLocalFScript=true` across `dotnet` build/test/publish/doc flows.
+- Add debug-time FScript performance profiling (phase durations, script load/cache counters, invocation/conversion totals) to diagnose configuration and graph overhead.
+- Improve FScript runtime integration performance with cached method resolution and cached object/return type converters; optimize batch `.slnx` project resolution in `dotnet.fss` to avoid unnecessary file scans.
 
 ## [0.189.9-next]
 
