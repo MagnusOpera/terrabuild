@@ -2,21 +2,18 @@
 
   <PropertyGroup>
     <Nullable>disable</Nullable>
+    <FsYaccOutputFolder>Gen/</FsYaccOutputFolder>
+    <FsLexOutputFolder>Gen/</FsLexOutputFolder>
   </PropertyGroup>
 
-    <Choose>
-        <When Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(
-                         $(DefineConstants), '^(.*;)*GENERATE_PARSER(;.*)*$'))">
-            <ItemGroup>
-                <FsYacc Include="Parser.fsy">
-                    <OtherFlags>-v --internal --module Terrabuild.Lang.Parser -o Gen/Parser.fs</OtherFlags>
-                </FsYacc>
-                <FsLex Include="Lexer.fsl">
-                    <OtherFlags>--internal --module Terrabuild.Lang.Lexer --unicode -o Gen/Lexer.fs</OtherFlags>
-                </FsLex>
-            </ItemGroup>
-        </When>
-    </Choose>
+  <ItemGroup>
+    <FsYacc Include="Parser.fsy">
+      <OtherFlags>-v --internal --module Terrabuild.Lang.Parser</OtherFlags>
+    </FsYacc>
+    <FsLex Include="Lexer.fsl">
+      <OtherFlags>--internal --module Terrabuild.Lang.Lexer --unicode</OtherFlags>
+    </FsLex>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Helpers.fs" />

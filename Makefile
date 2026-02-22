@@ -38,9 +38,6 @@ webui:
 test:
 	dotnet test -c $(config) $(dotnet_props) terrabuild.slnx
 
-parser:
-	dotnet build -c $(config) $(dotnet_props) /p:DefineConstants="GENERATE_PARSER"
-
 clean:
 	-rm terrabuild-debug.*
 	-rm -rf $(PWD)/.out

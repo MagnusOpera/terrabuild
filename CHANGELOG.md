@@ -18,6 +18,7 @@ All notable changes to Terrabuild are documented in this file.
 - Add unit tests for full configuration/graph pipeline validation covering batch and non-batch scenarios.
 - Rename `Terrabuild.Expressions` project/module to `Terrabuild.Expression` and update all solution/project references.
 - Extend expression unit tests to cover all evaluation functions and dependency extraction helpers.
+- Switch `Terrabuild.Lang` FsLexYacc generation to standard incremental build workflow (always-on `FsLex`/`FsYacc`) and remove the `make parser`/`GENERATE_PARSER` workaround.
 
 ## [0.189.9-next]
 
