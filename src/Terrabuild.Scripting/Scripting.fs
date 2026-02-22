@@ -18,6 +18,8 @@ type private RuntimeInvoker = Terrabuild.Expressions.Value -> System.Type -> obj
 type PerformanceSnapshot =
     { RuntimeInvokeCount: int64
       RuntimeInvokeDurationMs: float
+      ScriptInvokeCount: int64
+      ScriptInvokeDurationMs: float
       ToFScriptConversionCount: int64
       ToFScriptConversionDurationMs: float
       FromFScriptConversionCount: int64
@@ -26,7 +28,8 @@ type PerformanceSnapshot =
       MethodResolutionDurationMs: float
       ScriptLoadCount: int64
       ScriptLoadDurationMs: float
-      ScriptCacheHitCount: int64 }
+      ScriptCacheHitCount: int64
+      ScriptFunctionBreakdown: (string * int64 * float) list }
 
 module private Performance =
     let mutable private runtimeInvokeCount = 0L
@@ -35,11 +38,14 @@ module private Performance =
     let mutable private toFScriptTicks = 0L
     let mutable private fromFScriptCount = 0L
     let mutable private fromFScriptTicks = 0L
+    let mutable private scriptInvokeCount = 0L
+    let mutable private scriptInvokeTicks = 0L
     let mutable private methodResolutionCount = 0L
     let mutable private methodResolutionTicks = 0L
     let mutable private scriptLoadCount = 0L
     let mutable private scriptLoadTicks = 0L
     let mutable private scriptCacheHitCount = 0L
+    let private scriptFunctionStats = ConcurrentDictionary<string, struct(int64 * int64)>()
 
     let inline private toMs (ticks: int64) =
         (float ticks * 1000.0) / float Stopwatch.Frequency
@@ -51,11 +57,14 @@ module private Performance =
         toFScriptTicks <- 0L
         fromFScriptCount <- 0L
         fromFScriptTicks <- 0L
+        scriptInvokeCount <- 0L
+        scriptInvokeTicks <- 0L
         methodResolutionCount <- 0L
         methodResolutionTicks <- 0L
         scriptLoadCount <- 0L
         scriptLoadTicks <- 0L
         scriptCacheHitCount <- 0L
+        scriptFunctionStats.Clear()
 
     let trackRuntimeInvoke (ticks: int64) =
         Interlocked.Increment(&runtimeInvokeCount) |> ignore
@@ -69,6 +78,15 @@ module private Performance =
         Interlocked.Increment(&fromFScriptCount) |> ignore
         Interlocked.Add(&fromFScriptTicks, ticks) |> ignore
 
+    let trackScriptInvoke (functionId: string) (ticks: int64) =
+        Interlocked.Increment(&scriptInvokeCount) |> ignore
+        Interlocked.Add(&scriptInvokeTicks, ticks) |> ignore
+        scriptFunctionStats.AddOrUpdate(
+            functionId,
+            struct (1L, ticks),
+            Func<_, _, _>(fun _ (struct (count, totalTicks)) -> struct (count + 1L, totalTicks + ticks)))
+        |> ignore
+
     let trackMethodResolution (ticks: int64) =
         Interlocked.Increment(&methodResolutionCount) |> ignore
         Interlocked.Add(&methodResolutionTicks, ticks) |> ignore
@@ -81,8 +99,20 @@ module private Performance =
         Interlocked.Increment(&scriptCacheHitCount) |> ignore
 
     let snapshot () =
+        let functionBreakdown =
+            scriptFunctionStats
+            |> Seq.map (fun pair ->
+                let name = pair.Key
+                let struct (count, ticks) = pair.Value
+                name, count, toMs ticks)
+            |> Seq.sortByDescending (fun (_, _, ms) -> ms)
+            |> Seq.truncate 20
+            |> List.ofSeq
+
         { RuntimeInvokeCount = Interlocked.Read(&runtimeInvokeCount)
           RuntimeInvokeDurationMs = Interlocked.Read(&runtimeInvokeTicks) |> toMs
+          ScriptInvokeCount = Interlocked.Read(&scriptInvokeCount)
+          ScriptInvokeDurationMs = Interlocked.Read(&scriptInvokeTicks) |> toMs
           ToFScriptConversionCount = Interlocked.Read(&toFScriptCount)
           ToFScriptConversionDurationMs = Interlocked.Read(&toFScriptTicks) |> toMs
           FromFScriptConversionCount = Interlocked.Read(&fromFScriptCount)
@@ -91,7 +121,8 @@ module private Performance =
           MethodResolutionDurationMs = Interlocked.Read(&methodResolutionTicks) |> toMs
           ScriptLoadCount = Interlocked.Read(&scriptLoadCount)
           ScriptLoadDurationMs = Interlocked.Read(&scriptLoadTicks) |> toMs
-          ScriptCacheHitCount = Interlocked.Read(&scriptCacheHitCount) }
+          ScriptCacheHitCount = Interlocked.Read(&scriptCacheHitCount)
+          ScriptFunctionBreakdown = functionBreakdown }
 
 let resetPerformanceMetrics () = Performance.reset()
 let getPerformanceSnapshot () = Performance.snapshot()
@@ -216,7 +247,7 @@ type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInv
 
 type ScriptRuntime =
     | Legacy of System.Type
-    | FScript of FScript.Runtime.ScriptHost.LoadedScript * Set<string> * ScriptDescriptor * string option * string option
+    | FScript of string * FScript.Runtime.ScriptHost.LoadedScript * Set<string> * ScriptDescriptor * string option * string option
 
 type Script internal (runtime: ScriptRuntime) =
     let methodCache = ConcurrentDictionary<string, Invocable option>(StringComparer.Ordinal)
@@ -236,7 +267,7 @@ type Script internal (runtime: ScriptRuntime) =
                         match mainType.GetMethod(methodName, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
                         | Null -> None
                         | NonNull methodInfo -> Invocable(methodInfo) |> Some
-                    | FScript(loaded, exportedFunctions, _, _, _) ->
+                    | FScript(scriptId, loaded, exportedFunctions, _, _, _) ->
                         if exportedFunctions |> Set.contains methodName then
                             let signature =
                                 match loaded.ExportedFunctionSignatures |> Map.tryFind methodName with
@@ -287,7 +318,9 @@ type Script internal (runtime: ScriptRuntime) =
                                             | FScript.Language.TOption _ -> FScript.Language.VOption None
                                             | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{methodName}'")
 
+                                let scriptInvokeStartedAt = Stopwatch.GetTimestamp()
                                 let result = FScript.Runtime.ScriptHost.invoke loaded methodName (contextArg :: remainingArgs)
+                                Performance.trackScriptInvoke $"{scriptId}:{methodName}" (Stopwatch.GetTimestamp() - scriptInvokeStartedAt)
                                 let mappedResult = Conversions.FromFScriptValue(targetType, result)
                                 Performance.trackRuntimeInvoke(Stopwatch.GetTimestamp() - invokeStartedAt)
                                 mappedResult
@@ -312,7 +345,7 @@ type Script internal (runtime: ScriptRuntime) =
                         Some "__dispatch__"
                     else
                         None
-                | FScript(_, exportedFunctions, _, dispatchMethod, _) ->
+                | FScript(_, _, exportedFunctions, _, dispatchMethod, _) ->
                     if exportedFunctions |> Set.contains commandName then Some commandName
                     else dispatchMethod
             )
@@ -329,7 +362,7 @@ type Script internal (runtime: ScriptRuntime) =
                         Some "__defaults__"
                     else
                         None
-                | FScript(_, _, _, _, defaultMethod) ->
+                | FScript(_, _, _, _, _, defaultMethod) ->
                     defaultMethod
             defaultResolutionCache <- Some resolved
             resolved
@@ -345,7 +378,7 @@ type Script internal (runtime: ScriptRuntime) =
                       | :? CacheableAttribute as cacheable -> ExportFlag.Cache cacheable.Cacheability
                       | _ -> () ]
                 Some flags
-        | FScript(_, exportedFunctions, descriptor, _, _) ->
+        | FScript(_, _, exportedFunctions, descriptor, _, _) ->
             if exportedFunctions |> Set.contains name then
                 descriptor |> Map.tryFind name |> Option.defaultValue [] |> Some
             else
@@ -700,7 +733,7 @@ let private loadLegacyScript (references: string list) (scriptFile: string) =
 
     Script(mainType)
 
-let private toFScriptScript (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
+let private toFScriptScript (scriptIdentity: string) (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     loaded.ExportedFunctionNames
     |> List.iter (fun functionName ->
         match loaded.ExportedFunctionSignatures |> Map.tryFind functionName with
@@ -713,7 +746,7 @@ let private toFScriptScript (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     let descriptor = Descriptor.Parse(loaded.ExportedFunctionNames, loaded.LastValue)
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     let exportedFunctions = loaded.ExportedFunctionNames |> Set.ofList
-    Script(FScript(loaded, exportedFunctions, descriptor, dispatchMethod, defaultMethod))
+    Script(FScript(scriptIdentity, loaded, exportedFunctions, descriptor, dispatchMethod, defaultMethod))
 
 let private toFScriptStringLiteral (value: string) =
     let escaped =
@@ -816,7 +849,7 @@ let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (
             fullPath
             entrySource
             (fun resolvedPath -> File.ReadAllText(resolvedPath) |> Some)
-    toFScriptScript loaded
+    toFScriptScript fullPath loaded
 
 let private loadFScriptFromSourceWithIncludes
     (hostRootDirectory: string)
@@ -835,7 +868,7 @@ let private loadFScriptFromSourceWithIncludes
             entryFile
             entrySource
             resolveImportedSource
-    toFScriptScript loaded
+    toFScriptScript entryFile loaded
 
 let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string list) (deniedPathGlobs: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)

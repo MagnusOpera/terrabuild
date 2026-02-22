@@ -318,9 +318,11 @@ let private loadProjectDef
                         Terrabuild.ScriptingContracts.ExtensionContext.CI = options.Run.IsSome }
         Value.Map (Map [ "context", Value.Object context ])
 
-    let projectId, projectType, realProjectType =
-        match projectConfig.Project.Type with
-        | None -> projectId |> String.toLower, SCOPE_PATH, None
+    let declaredProjectType = projectConfig.Project.Type
+
+    let projectId, projectType =
+        match declaredProjectType with
+        | None -> projectId |> String.toLower, SCOPE_PATH
         | Some projectType ->
             let result =
                 Extensions.getScript projectType scripts
@@ -332,11 +334,21 @@ let private loadProjectDef
                 | Extensions.TargetNotFound -> None
                 | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
             match canonicalId with
-            | Some canonicalId -> canonicalId, $"{projectType}", Some projectType
-            | _ -> projectId |> String.toLower, SCOPE_PATH, None
+            | Some canonicalId -> canonicalId, $"{projectType}"
+            | _ -> projectId |> String.toLower, SCOPE_PATH
+
+    let initializersForDefaults =
+        match declaredProjectType with
+        | Some projectType -> projectConfig.Project.Initializers |> Set.remove projectType
+        | None -> projectConfig.Project.Initializers
+
+    let dependencyProjectType =
+        match declaredProjectType with
+        | Some declaredType when projectType <> SCOPE_PATH -> Some declaredType
+        | _ -> None
 
     let initProjectInfo =
-        projectConfig.Project.Initializers |> Set.fold (fun projectInfo init ->
+        initializersForDefaults |> Set.fold (fun projectInfo init ->
             let result =
                 Extensions.getScript init scripts
                 |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
@@ -404,7 +416,7 @@ let private loadProjectDef
     let projectDependencies =
         initProjectInfo.Dependencies
         |> Set.map (fun dep ->
-            match realProjectType with
+            match dependencyProjectType with
             | Some projectType -> format_project_id projectType dep
             | None ->
                 let relativeWks = FS.workspaceRelative options.Workspace projectDir dep |> String.toLower

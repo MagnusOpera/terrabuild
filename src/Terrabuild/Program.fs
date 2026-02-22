@@ -220,18 +220,31 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         if options.Debug then
             let snapshot = Terrabuild.Scripting.getPerformanceSnapshot()
             Log.Debug(
-                "FScript performance: script loads={LoadCount} ({LoadMs}ms), script cache hits={CacheHits}, invocations={InvokeCount} ({InvokeMs}ms), to-fscript conversions={ToCount} ({ToMs}ms), from-fscript conversions={FromCount} ({FromMs}ms), method resolutions={ResolutionCount} ({ResolutionMs}ms)",
+                "FScript performance: script loads={LoadCount} ({LoadMs}ms), script cache hits={CacheHits}, invocations={InvokeCount} ({InvokeMs}ms), script evals={ScriptInvokeCount} ({ScriptInvokeMs}ms), to-fscript conversions={ToCount} ({ToMs}ms), from-fscript conversions={FromCount} ({FromMs}ms), method resolutions={ResolutionCount} ({ResolutionMs}ms)",
                 snapshot.ScriptLoadCount,
                 Math.Round(snapshot.ScriptLoadDurationMs, 2),
                 snapshot.ScriptCacheHitCount,
                 snapshot.RuntimeInvokeCount,
                 Math.Round(snapshot.RuntimeInvokeDurationMs, 2),
+                snapshot.ScriptInvokeCount,
+                Math.Round(snapshot.ScriptInvokeDurationMs, 2),
                 snapshot.ToFScriptConversionCount,
                 Math.Round(snapshot.ToFScriptConversionDurationMs, 2),
                 snapshot.FromFScriptConversionCount,
                 Math.Round(snapshot.FromFScriptConversionDurationMs, 2),
                 snapshot.MethodResolutionCount,
                 Math.Round(snapshot.MethodResolutionDurationMs, 2))
+            snapshot.ScriptFunctionBreakdown
+            |> List.iter (fun (functionId, count, totalMs) ->
+                let avgMs =
+                    if count = 0L then 0.0
+                    else totalMs / float count
+                Log.Debug(
+                    "FScript invoke detail: {FunctionId} count={Count} total={TotalMs}ms avg={AvgMs}ms",
+                    functionId,
+                    count,
+                    Math.Round(totalMs, 2),
+                    Math.Round(avgMs, 2)))
         $"{emoji} Completed in {duration.HumanizeAbbreviated()}" |> Terminal.writeLine
         errCode
 
