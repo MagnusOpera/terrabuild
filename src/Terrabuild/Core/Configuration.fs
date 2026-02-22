@@ -320,22 +320,22 @@ let private loadProjectDef
 
     let declaredProjectType = projectConfig.Project.Type
 
-    let projectId, projectType =
+    let projectTypeDefaults, projectId, projectType =
         match declaredProjectType with
-        | None -> projectId |> String.toLower, SCOPE_PATH
+        | None -> ProjectInfo.Default, projectId |> String.toLower, SCOPE_PATH
         | Some projectType ->
             let result =
                 Extensions.getScript projectType scripts
                 |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
-            let canonicalId =
+            let defaults =
                 match result with
-                | Extensions.Success result -> result.Id
+                | Extensions.Success result -> result
                 | Extensions.ScriptNotFound -> raiseSymbolError $"Script {projectType} was not found"
-                | Extensions.TargetNotFound -> None
+                | Extensions.TargetNotFound -> ProjectInfo.Default
                 | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
-            match canonicalId with
-            | Some canonicalId -> canonicalId, $"{projectType}"
-            | _ -> projectId |> String.toLower, SCOPE_PATH
+            match defaults.Id with
+            | Some canonicalId -> defaults, canonicalId, $"{projectType}"
+            | _ -> defaults, projectId |> String.toLower, SCOPE_PATH
 
     let initializersForDefaults =
         match declaredProjectType with
@@ -363,6 +363,11 @@ let private loadProjectDef
             { projectInfo with
                 ProjectInfo.Outputs = projectInfo.Outputs + initProjectInfo.Outputs
                 ProjectInfo.Dependencies = projectInfo.Dependencies + initProjectInfo.Dependencies }) ProjectInfo.Default
+
+    let defaultsProjectInfo =
+        { ProjectInfo.Default with
+            ProjectInfo.Outputs = projectTypeDefaults.Outputs + initProjectInfo.Outputs
+            ProjectInfo.Dependencies = projectTypeDefaults.Dependencies + initProjectInfo.Dependencies }
 
     let dependsOn =
         // collect dependencies for all the project
@@ -414,7 +419,7 @@ let private loadProjectDef
 
     // convert relative dependencies to absolute dependencies respective to workspaceDirectory
     let projectDependencies =
-        initProjectInfo.Dependencies
+        defaultsProjectInfo.Dependencies
         |> Set.map (fun dep ->
             match dependencyProjectType with
             | Some projectType -> format_project_id projectType dep
@@ -429,7 +434,7 @@ let private loadProjectDef
         |> Set.union (projectConfig.Project.Includes |> evalAsStringSet)
 
     let projectIgnores = projectConfig.Project.Ignores |> evalAsStringSet
-    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSet |> Set.union initProjectInfo.Outputs
+    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSet |> Set.union defaultsProjectInfo.Outputs
 
     // enrich workspace locals with project locals
     // NOTE we are checking for duplicated fields as this is an error
