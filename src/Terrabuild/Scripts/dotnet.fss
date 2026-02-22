@@ -189,7 +189,6 @@ let with_configuration configuration =
     |> Helpers.append_part build
     |> Helpers.append_part $"--configuration {configuration}"
     |> Helpers.append_part version
-    |> Helpers.append_part "/p:TargetsForTfmSpecificContentInPackage="
     |> Helpers.append_part args
 
   { Batchable = false
