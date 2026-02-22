@@ -12,8 +12,8 @@
 
   <ItemGroup Condition="'$(UseLocalFScript)' != 'true'">
     <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
-    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.57.0" />
-    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.57.0" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.58.0" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.58.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' == 'true'">
