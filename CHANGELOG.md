@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.10-next]
+
+
 - Fix dotnet extension batching by generating one per-batch `.slnx` file in-script and using it for batched `dotnet` commands.
 - Fix dotnet local dependency discovery by querying `//ProjectReference/@Include` from XML and normalizing Windows-style separators, so graph dependencies and batching match GA behavior.
 - Remove trailing `.` in single-project dotnet command invocation to reduce debug/action log noise.
@@ -20,6 +23,8 @@ All notable changes to Terrabuild are documented in this file.
 - Extend expression unit tests to cover all evaluation functions and dependency extraction helpers.
 - Switch `Terrabuild.Lang` FsLexYacc generation to standard incremental build workflow (always-on `FsLex`/`FsYacc`) and remove the `make parser`/`GENERATE_PARSER` workaround.
 - Upgrade FScript runtime/language packages to `0.59.0`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.9-next...0.189.10-next
 
 ## [0.189.9-next]
 
