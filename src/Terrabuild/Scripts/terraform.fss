@@ -100,7 +100,7 @@ let format_vars variables =
 /// <param name="plan" default="false" example="true">Skips the generated plan file when true.</param>
 /// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform apply` arguments.</param>
 [<export>] let apply (context: Protocol.ActionContext) (plan: bool option) (args: string option) =
-  let planfile = plan |> Helpers.map_false "terrabuild.planfile"
+  let planfile = plan |> Helpers.map_false_default false "terrabuild.planfile"
   let args = args |> Helpers.with_args
   let command =
     ""

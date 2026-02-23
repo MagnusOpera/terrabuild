@@ -11,6 +11,7 @@ All notable changes to Terrabuild are documented in this file.
 - Preserve legacy parser shape for existing consumers while using source-aware parsing in WORKSPACE/PROJECT loading paths.
 - Render configuration expression error anchors with workspace-relative file paths for clearer diagnostics in multi-project workspaces.
 - Improve local-evaluation diagnostics by including failing local names in error chaining.
+- Fix Terraform `@terraform apply` default behavior to pass `terrabuild.planfile` when `plan` is omitted.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.10-next...0.189.11-next
 
