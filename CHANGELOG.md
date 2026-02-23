@@ -4,10 +4,15 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.11-next]
+
+
 - Add expression source-location tracking (`file:line:column`) through parsing and evaluation so configuration errors report exact anchors.
 - Preserve legacy parser shape for existing consumers while using source-aware parsing in WORKSPACE/PROJECT loading paths.
 - Render configuration expression error anchors with workspace-relative file paths for clearer diagnostics in multi-project workspaces.
 - Improve local-evaluation diagnostics by including failing local names in error chaining.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.10-next...0.189.11-next
 
 ## [0.189.10-next]
 
