@@ -9,6 +9,7 @@ type Parameter = {
     Summary: string
     Example: string
     DefaultValue: string option
+    TypeAnnotation: string option
 }
 
 type Command = {
@@ -79,6 +80,52 @@ let private collapseText (value: string) =
 
 let private normalizeParamNameForCompare (name: string) =
     name.ToLowerInvariant().Replace("-", "").Replace("_", "")
+
+let private trimOptionSuffix (typeAnnotation: string) =
+    let trimmed = typeAnnotation.Trim()
+    if trimmed.EndsWith(" option", StringComparison.Ordinal) then
+        trimmed.Substring(0, trimmed.Length - " option".Length).Trim()
+    else
+        trimmed
+
+let private tryFormatTerrabuildLiteral (typeAnnotation: string option) (raw: string) =
+    let value = raw.Trim()
+    let startsWithAndEndsWith quote =
+        value.Length >= 2 && value.StartsWith(quote, StringComparison.Ordinal) && value.EndsWith(quote, StringComparison.Ordinal)
+
+    let isNumberLiteral =
+        Regex.IsMatch(value, @"^-?\d+(\.\d+)?$")
+
+    let isStructuredLiteral =
+        value.StartsWith("{", StringComparison.Ordinal)
+        || value.StartsWith("[", StringComparison.Ordinal)
+
+    let isBoolLiteral =
+        String.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
+        || String.Equals(value, "false", StringComparison.OrdinalIgnoreCase)
+
+    if value = "" then Some "\"\""
+    elif startsWithAndEndsWith "\"" || startsWithAndEndsWith "'" then Some value
+    elif value.StartsWith("~", StringComparison.Ordinal) then Some value
+    elif isNumberLiteral || isBoolLiteral || isStructuredLiteral then Some value
+    else
+        match typeAnnotation |> Option.map trimOptionSuffix with
+        | Some "string" -> Some $"\"{value}\""
+        | Some "int"
+        | Some "int64"
+        | Some "float"
+        | Some "double" when isNumberLiteral -> Some value
+        | Some "bool" when isBoolLiteral -> Some value
+        | Some "int"
+        | Some "int64"
+        | Some "float"
+        | Some "double"
+        | Some "bool" -> None
+        | Some t when t.EndsWith(" map", StringComparison.Ordinal) || t.EndsWith(" list", StringComparison.Ordinal) ->
+            if isStructuredLiteral then Some value else None
+        // Unknown scalar-like type: render as Terrabuild enum literal.
+        | Some _ -> Some $"~{value}"
+        | None -> Some value
 
 let private parseDefaultAttribute (raw: XAttribute option) =
     match raw with
@@ -365,14 +412,35 @@ let private buildScriptExtension (scriptPath: string) : Extension =
             let fromDocOrder =
                 docArgs
                 |> List.filter (fun arg -> arg.Name <> "__dispatch__")
-                |> List.map (fun arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example; DefaultValue = arg.DefaultValue } : Parameter))
+                |> List.map (fun arg ->
+                    let annotation =
+                        findFunctionArg arg.Name
+                        |> Option.map (fun functionArg -> functionArg.TypeAnnotation)
+                    ({ Name = arg.Name
+                       Required = arg.Required
+                       Summary = arg.Summary
+                       Example = arg.Example
+                       DefaultValue = arg.DefaultValue
+                       TypeAnnotation = annotation } : Parameter))
 
             let fromFunctionOrder =
                 functionArgs
                 |> List.map (fun name ->
                     match mergedArgs |> Map.tryFind name.Name with
-                    | Some arg -> ({ Name = arg.Name; Required = arg.Required; Summary = arg.Summary; Example = arg.Example; DefaultValue = arg.DefaultValue } : Parameter)
-                    | None -> ({ Name = name.Name; Required = false; Summary = ""; Example = ""; DefaultValue = None } : Parameter))
+                    | Some arg ->
+                        ({ Name = arg.Name
+                           Required = arg.Required
+                           Summary = arg.Summary
+                           Example = arg.Example
+                           DefaultValue = arg.DefaultValue
+                           TypeAnnotation = Some name.TypeAnnotation } : Parameter)
+                    | None ->
+                        ({ Name = name.Name
+                           Required = false
+                           Summary = ""
+                           Example = ""
+                           DefaultValue = None
+                           TypeAnnotation = Some name.TypeAnnotation } : Parameter))
 
             let commandParameters: Parameter list =
                 if commandName = "__defaults__" then
@@ -483,6 +551,18 @@ let private reorderParameters (command: Command) (commandFile: string) =
 
 let writeCommand extensionDir (command: Command) (batchCommand: Command option) (extension: Extension) =
 
+    let sampleValue (parameter: Parameter) =
+        match parameter.DefaultValue with
+        | Some defaultValue ->
+            match tryFormatTerrabuildLiteral parameter.TypeAnnotation defaultValue with
+            | Some value -> value
+            | None ->
+                tryFormatTerrabuildLiteral parameter.TypeAnnotation parameter.Example
+                |> Option.defaultValue parameter.Example
+        | None ->
+            tryFormatTerrabuildLiteral parameter.TypeAnnotation parameter.Example
+            |> Option.defaultValue parameter.Example
+
     let cacheInfo =
         match command.Cacheability with
         | None -> "never"
@@ -539,7 +619,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                     | "context" -> ()
                     | _ ->
                         if prm.Name <> "__dispatch__" then
-                            $"    {prm.Name} = {prm.Example}"
+                            $"    {prm.Name} = {sampleValue prm}"
                 "}"
             "```"
 
@@ -579,7 +659,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                     for prm in prms do
                         match prm.Name with
                         | "context" -> ()
-                        | _ -> $"    {prm.Name} = {prm.Example}"
+                        | _ -> $"    {prm.Name} = {sampleValue prm}"
                     "}"
                 "```"
 
