@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.13-next]
+
+
 - Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
 - Fix `make docs` generation target by declaring it as `.PHONY` to avoid collisions with the `docs/` directory.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.12-next...0.189.13-next
 
 ## [0.189.12-next]
 
