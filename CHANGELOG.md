@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.12-next]
+
+
 - Fix Terraform `@terraform apply` default behavior to pass `terrabuild.planfile` when `plan` is omitted.
 - Restore extension-focused unit tests in `Terrabuild.Tests/Scripts` with one file per built-in FScript extension (`cargo`, `docker`, `dotnet`, `gradle`, `make`, `npm`, `npx`, `null`, `openapi`, `playwright`, `pnpm`, `sentry`, `shell`, `terraform`, `yarn`) covering defaults, cacheability, command rendering, and batch regressions.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.11-next...0.189.12-next
 
 ## [0.189.11-next]
 
