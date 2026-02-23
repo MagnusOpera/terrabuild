@@ -13,7 +13,7 @@
         "obj/"
       ],
       "projectHash": "3D4E1625F44A301ADFA27F5C907BCD08AC0EA8A6D5DF26BD11EE80FC58607D72",
-      "targetHash": "1AAA2DE505F4522F5869D0DFA1DF66F0D95F4DAFC9835447BB0489C0367C13ED",
+      "targetHash": "084A0BD0BED7FD897A12D15ABD9FCBF1DBDFC837F607BC4E4C0F69BD44AF48BD",
       "operations": [
         {
           "variables": [],
@@ -38,7 +38,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Release",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -61,7 +61,7 @@
         "obj/"
       ],
       "projectHash": "B07CC5FCC23450D26D14530A49A2AC06399A6679B81DF5BC463661ABE9ABE18F",
-      "targetHash": "9E1090C94E0C79052A9FB6694952D446CD2886D5476F6231CE6963C5DD669842",
+      "targetHash": "0BCE60BB3D82014B01DE17F155B8FBC4BB2AE0A4F91DD8725E932D815680DCED",
       "operations": [
         {
           "variables": [],
@@ -86,7 +86,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Release",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -110,7 +110,7 @@
         "dist/**"
       ],
       "projectHash": "20CD5575FC22FB1CD88E85AF43B8B71DA856B9AAE5BDAF39995EED9285AD9D37",
-      "targetHash": "A1FA734E1F8E7AC8AD9F54C77588B4338F7B42E70C32E8EC8C0CD727A17EADB5",
+      "targetHash": "30A68823F6B2A3155249E3778CD1FAF24AF50270B556D9A524B0C895F4DEAFB7",
       "operations": [
         {
           "variables": [],
@@ -160,7 +160,7 @@
         "obj/"
       ],
       "projectHash": "1BC8101E9DAB99D24F2F69C94A6161F2C67044525327DF774CE47E1F63D88FB6",
-      "targetHash": "94C146E69F9FD4D12CFE8B68EAA5D28DCC0E16A8D6536DF4CC65D7654764475A",
+      "targetHash": "1DCB176D0A4A33E9475DC8006A7203C74CD82D7C93109ABF4B43DC840B74228B",
       "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
       "operations": [
         {
@@ -178,7 +178,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Release",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -203,7 +203,7 @@
         "obj/"
       ],
       "projectHash": "5FF41A19298D37388CC3AA06D0715E60DF1F012167981A5A93C2A67F2E11D08F",
-      "targetHash": "090A2710D8A8F38C37673B76603B4795B994547C08B42F311F31CEF3512C0E26",
+      "targetHash": "2AA158071A32759C6D2AE48695D16546DB6097E68FF80E66474897B36B898F4B",
       "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
       "operations": [
         {
@@ -221,7 +221,7 @@
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build --configuration Release",
+          "arguments": "build --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -245,7 +245,7 @@
         "dist/**"
       ],
       "projectHash": "7B43AC792E4AEEB282F2F2BEDD32194C6BACCEA3EEA7AB96243A4906DA734322",
-      "targetHash": "D71F3E7C12492026C1948FA08EEA618061F4A176F60B63AFD85EDC1FD4E9B8C0",
+      "targetHash": "D376B9FC580BB3B81B2120C33AC092C4F72DA2373FED4445FE794B8852C61863",
       "operations": [
         {
           "image": "node:20",
@@ -285,7 +285,7 @@
         "dist/**"
       ],
       "projectHash": "BC8BD4B8CC94CEC919A91E3C740D6F7E388A14D4702A9E45EAD67436ABDA14A8",
-      "targetHash": "03B47D3FFDE27318C0D135BF9CFB0BC6A473BB9C737CBF9D9FB33F245281CA60",
+      "targetHash": "3FF6B67D1CDE1582124A32AC4972185DA95AF92E8134BA98EDF3A33B63B36C9D",
       "operations": [
         {
           "image": "node:20",

@@ -83,10 +83,10 @@ let with_batch_solution_with_configuration (context: Protocol.ActionContext) con
       [ create_command "" ]
 
 let with_batch_solution (context: Protocol.ActionContext) create_command =
-  with_batch_solution_with_configuration context "Release" create_command
+  with_batch_solution_with_configuration context "Debug" create_command
 
 let with_configuration configuration =
-  configuration |> Option.defaultValue "Release"
+  configuration |> Option.defaultValue "Debug"
 
 /// <summary>Computes default outputs and project-reference dependencies.</summary>
 /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]"></param>
@@ -140,7 +140,7 @@ let with_configuration configuration =
 
 /// <summary>Builds the project or batch solution via `dotnet build`.</summary>
 /// <title>Build project.</title>
-/// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
+/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="parallel" default="" example="1">Max CPU count (`-maxcpucount`).</param>
 /// <param name="log" default="false" example="true">Adds `-bl`.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before build.</param>
@@ -170,7 +170,7 @@ let with_configuration configuration =
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
-/// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
+/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before pack.</param>
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before pack.</param>
 /// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
@@ -195,7 +195,7 @@ let with_configuration configuration =
     Operations = [command_op command] }
 
 /// <summary>Publishes binaries via `dotnet publish` for one project or a batch solution.</summary>
-/// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
+/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before publish.</param>
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before publish.</param>
 /// <param name="runtime" default="" example="&quot;linux-x64&quot;">Runtime identifier (`--runtime`).</param>
@@ -228,7 +228,7 @@ let with_configuration configuration =
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
-/// <param name="configuration" default="Release" example="&quot;Release&quot;">Build configuration.</param>
+/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before tests.</param>
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before tests.</param>
 /// <param name="filter" default="" example="&quot;TestCategory!=integration&quot;">Filter expression (`--filter`).</param>

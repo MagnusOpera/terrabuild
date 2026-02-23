@@ -324,7 +324,7 @@
         "target/release/"
       ],
       "projectHash": "A5779EB2FC8FB073F4A04D99FD4E6360B4AD6F69F29152ED8B150808087B77BA",
-      "targetHash": "E2E3946834B340682400692F36C3407091FA38DECC8356591737A5DBF27CAD1B",
+      "targetHash": "8C7F1F2EA6960498B4C8C1EF91EE7DC3B318004E1FD132E3331F5F521567B00E",
       "operations": [
         {
           "image": "rust:1.81.0-slim",
@@ -333,7 +333,7 @@
           "envs": {},
           "metaCommand": "@cargo build",
           "command": "cargo",
-          "arguments": "build",
+          "arguments": "build --profile dev",
           "errorLevel": 0
         }
       ],

@@ -8,7 +8,7 @@ import "_helpers.fss" as Helpers
   { Id = None; Outputs = ["build/classes/"]; Dependencies = [] }
 
 let with_configuration configuration =
-  configuration |> Option.defaultValue "Release"
+  configuration |> Option.defaultValue "Debug"
 
 /// <summary>Runs an arbitrary Gradle command (action name is forwarded to `gradle`).</summary>
 /// <param name="args" default="" example="&quot;clean --info&quot;">Extra arguments for the Gradle command.</param>
@@ -20,7 +20,7 @@ let with_configuration configuration =
                      ErrorLevel = 0 } ] }
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
-/// <param name="configuration" default="Release" example="&quot;Debug&quot;">Build configuration.</param>
+/// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="args" default="" example="&quot;--scan&quot;">Extra `gradle assemble` arguments.</param>
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) =
   let configuration = configuration |> with_configuration

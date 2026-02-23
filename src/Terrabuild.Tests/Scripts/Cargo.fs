@@ -17,7 +17,7 @@ let ``cargo dispatch forwards command and args`` () =
     let context = localContext "build" (fixtureDir "cargo-app")
     let result = invokeResult "@cargo" "build" context (Map.ofList [ "args", str "--release" ])
 
-    result.Operations |> normalizeOps |> should equal [ op "cargo" "build --release" 0 ]
+    result.Operations |> normalizeOps |> should equal [ op "cargo" "build --profile dev --release" 0 ]
 
 [<Test>]
 let ``cargo build cacheability is remote`` () =

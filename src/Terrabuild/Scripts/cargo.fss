@@ -3,7 +3,7 @@ import "_helpers.fss" as Helpers
 
 /// <summary>Cargo extension for Rust build and test workflows.</summary>
 let with_profile profile =
-  profile |> Option.map (fun value -> $"--profile {value}") |> Option.defaultValue ""
+  profile |> Option.defaultValue "dev" |> fun value -> $"--profile {value}"
 
 /// <summary>Computes default outputs and dependencies from `Cargo.toml`.</summary>
 /// <param name="ignores" example="[ ]"></param>
@@ -22,7 +22,7 @@ let with_profile profile =
 
 /// <summary>Builds the project with `cargo build`.</summary>
 /// <title>Build project.</title>
-/// <param name="profile" default="" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
+/// <param name="profile" default="dev" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
 /// <param name="args" default="" example="&quot;--keep-going&quot;">Extra `cargo build` arguments.</param>
 [<export>] let build (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
@@ -36,7 +36,7 @@ let with_profile profile =
                      ErrorLevel = 0 } ] }
 
 /// <summary>Runs tests with `cargo test`.</summary>
-/// <param name="profile" default="" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
+/// <param name="profile" default="dev" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
 /// <param name="args" default="" example="&quot;--blame-hang&quot;">Extra `cargo test` arguments.</param>
 [<export>] let test (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
