@@ -214,6 +214,45 @@ let private parseExportedFunctionParameters (scriptContent: string) =
         yield name, { Name = name; Parameters = parameters } ]
     |> Map.ofList
 
+let private parseExportedFunctionBatchability (scriptContent: string) =
+    let functionMatches =
+        Regex.Matches(
+            scriptContent,
+            @"\[\s*<\s*export\s*>\s*\]\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\b",
+            RegexOptions.Multiline)
+        |> Seq.cast<Match>
+        |> Seq.toList
+
+    let getBody (index: int) =
+        let current = functionMatches[index]
+        let startPos = current.Index
+        let endPos =
+            if index + 1 < functionMatches.Length then
+                functionMatches[index + 1].Index
+            else
+                scriptContent.Length
+        scriptContent.Substring(startPos, endPos - startPos)
+
+    functionMatches
+    |> List.mapi (fun index m ->
+        let name = m.Groups[1].Value
+        let body = getBody index
+        let matches =
+            Regex.Matches(body, @"\bBatchable\s*=\s*(true|false)\b", RegexOptions.IgnoreCase)
+            |> Seq.cast<Match>
+            |> Seq.map (fun batchMatch -> batchMatch.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
+            |> Seq.distinct
+            |> List.ofSeq
+
+        let value =
+            match matches with
+            | [] -> None
+            | [single] -> Some single
+            // If multiple assignments are present, consider batchable if any path enables it.
+            | many -> Some (many |> List.exists id)
+        name, value)
+    |> Map.ofList
+
 let private parseDescriptorFlags (scriptContent: string) =
     let normalizeFlag (raw: string) =
         match raw.Trim().ToLowerInvariant() with
@@ -275,6 +314,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
 
     let directives = parseScriptDocs scriptPath extensionName
     let functionParams = parseExportedFunctionParameters content
+    let functionBatchability = parseExportedFunctionBatchability content
     let descriptor = parseDescriptorFlags content
 
     let commandDocs = directives.Commands
@@ -353,7 +393,10 @@ let private buildScriptExtension (scriptPath: string) : Extension =
               Weight = None
               Title = commandDoc.Title
               Cacheability = toCacheability flags
-              Batchability = flags |> List.contains "batchable"
+              Batchability =
+                match functionBatchability |> Map.tryFind functionName with
+                | Some (Some value) -> value
+                | _ -> flags |> List.contains "batchable"
               Summary = commandDoc.Summary |> Option.defaultValue ""
               Parameters = commandParameters })
 
