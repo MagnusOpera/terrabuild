@@ -7,6 +7,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Scripts/Helpers.fs" />
+    <Compile Include="Scripts/Cargo.fs" />
+    <Compile Include="Scripts/Docker.fs" />
+    <Compile Include="Scripts/Dotnet.fs" />
+    <Compile Include="Scripts/Gradle.fs" />
+    <Compile Include="Scripts/Make.fs" />
+    <Compile Include="Scripts/Npm.fs" />
+    <Compile Include="Scripts/Npx.fs" />
+    <Compile Include="Scripts/Null.fs" />
+    <Compile Include="Scripts/OpenApi.fs" />
+    <Compile Include="Scripts/Playwright.fs" />
+    <Compile Include="Scripts/Pnpm.fs" />
+    <Compile Include="Scripts/Sentry.fs" />
+    <Compile Include="Scripts/Shell.fs" />
+    <Compile Include="Scripts/Terraform.fs" />
+    <Compile Include="Scripts/Yarn.fs" />
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/ConfigurationGraph.fs" />
