@@ -8,6 +8,7 @@ All notable changes to Terrabuild are documented in this file.
 
 
 - Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
+- Revert default extension build configs to debug profiles (`dotnet=Debug`, `gradle=Debug`, `cargo=dev`).
 - Fix `make docs` generation target by declaring it as `.PHONY` to avoid collisions with the `docs/` directory.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.12-next...0.189.13-next
