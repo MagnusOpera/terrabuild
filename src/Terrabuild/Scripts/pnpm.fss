@@ -76,13 +76,13 @@ let batch_filters (context: Protocol.ActionContext) =
                      ErrorLevel = 0 } ] }
 
 /// <summary>Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.</summary>
-/// <param name="force" default="true" example="true">Adds `--force`.</param>
+/// <param name="force" default="false" example="true">Adds `--force`.</param>
 /// <param name="frozen" default="true" example="true">Adds `--frozen-lockfile`.</param>
 /// <param name="args" default="" example="&quot;--no-color&quot;">Extra `pnpm install` arguments.</param>
 [<export>] let install (context: Protocol.ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
   let filters = batch_filters context
   let frozen = frozen |> Helpers.map_true_default true "--frozen-lockfile"
-  let force = force |> Helpers.map_true_default true "--force"
+  let force = force |> Helpers.map_true_default false "--force"
   let args = args |> Helpers.with_args
 
   let command =

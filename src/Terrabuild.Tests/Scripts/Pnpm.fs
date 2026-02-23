@@ -24,7 +24,16 @@ let ``pnpm install batched uses recursive filters`` () =
     result.Batchable |> should equal true
     result.Operations
     |> normalizeOps
-    |> should equal [ op "pnpm" "--recursive --filter ./TestFiles/Scripts/npm-app --filter ./TestFiles/Scripts/npm-lib install --frozen-lockfile --link-workspace-packages --force" 0 ]
+    |> should equal [ op "pnpm" "--recursive --filter ./TestFiles/Scripts/npm-app --filter ./TestFiles/Scripts/npm-lib install --frozen-lockfile --link-workspace-packages" 0 ]
+
+[<Test>]
+let ``pnpm install force=true adds force flag`` () =
+    let context = localContext "install" (fixtureDir "npm-app")
+    let result = invokeResult "@pnpm" "install" context (Map.ofList [ "force", bool true ])
+
+    result.Operations
+    |> normalizeOps
+    |> should equal [ op "pnpm" "install --frozen-lockfile --link-workspace-packages --force" 0 ]
 
 [<Test>]
 let ``pnpm install cacheability is local`` () =

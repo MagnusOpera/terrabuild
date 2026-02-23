@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
+
 ## [0.189.12-next]
 
 
