@@ -140,3 +140,15 @@ let invalidScopeIdentifier() =
 let invalidScopedIdentifier() =
     let content = File.ReadAllText("TestFiles/Error_InvalidScopedIdentifier")
     (fun () -> FrontEnd.parse content |> ignore) |> should (throwWithMessage "Parse error at (2,21): invalid resource identifier '@value'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let parseWithSourceTracksExpressionLocation() =
+    let content = File.ReadAllText("TestFiles/Success_Syntax")
+    let file = FrontEnd.parseWithSource "TestFiles/Success_Syntax" content
+
+    let firstAttribute = file.Blocks.Head.Attributes.Head
+    match Expr.TryGetLocation firstAttribute.Value with
+    | Some location ->
+        location.File |> should equal (Some "TestFiles/Success_Syntax")
+        location.StartLine |> should equal 5
+    | None -> Assert.Fail("Expected expression location")

@@ -208,7 +208,7 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
                 | None -> None
                 | Some expr ->
                     let deps = Dependencies.find expr
-                    if deps <> Set.empty then raiseInvalidArg "Default value for variable '{name}' must have no dependencies"
+                    if deps <> Set.empty then raiseInvalidArg $"Default value for variable '{name}' must have no dependencies"
                     expr |> Eval.eval evaluationContext |> Some
 
             let value =
@@ -288,7 +288,7 @@ let private loadProjectDef
         match projectFile with
         | FS.File projectFile ->
             let projectContent = File.ReadAllText projectFile
-            Terrabuild.Configuration.FrontEnd.Project.parse projectContent
+            Terrabuild.Configuration.FrontEnd.Project.parseWithSource projectFile projectContent
         | _ ->
             raiseInvalidArg $"No PROJECT found in directory '{projectFile}'"
 
@@ -533,10 +533,13 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                         |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep)
                         |> List.ofSeq
                     localsHub.Subscribe localName signalDeps (fun () ->
-                        let localValue = Eval.eval evaluationContext localExpr
-                        evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
-                        let localSignal = localsHub.GetSignal<Value> localName
-                        localSignal.Set(localValue))
+                        try
+                            let localValue = Eval.eval evaluationContext localExpr
+                            evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
+                            let localSignal = localsHub.GetSignal<Value> localName
+                            localSignal.Set(localValue)
+                        with exn ->
+                            forwardExternalError($"Failed to evaluate '{localName}'", exn))
 
                 match localsHub.WaitCompletion() with
                 | Status.Ok -> evaluationContext
@@ -728,7 +731,7 @@ let read (options: ConfigOptions.Options) =
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
         try
-            FrontEnd.Workspace.parse workspaceContent
+            FrontEnd.Workspace.parseWithSource (FS.combinePath options.Workspace "WORKSPACE") workspaceContent
         with exn ->
             forwardParseError("Failed to read WORKSPACE configuration file", exn)
 

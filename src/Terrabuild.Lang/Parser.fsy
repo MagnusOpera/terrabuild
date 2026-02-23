@@ -3,6 +3,8 @@ open Terrabuild.Lang.AST
 open Helpers
 open Terrabuild.Expression
 open System
+open FSharp.Text.Lexing
+open FSharp.Text.Parsing
 
 
 #if DEBUG
@@ -10,6 +12,22 @@ let debugPrint s = printfn "### %s" s
 #else
 let debugPrint s = ignore s
 #endif
+
+let private toSourceLocation (startPos: Position) (endPos: Position) =
+    let file =
+        if String.IsNullOrWhiteSpace(startPos.pos_fname) then None
+        else Some startPos.pos_fname
+    { Errors.SourceLocation.File = file
+      Errors.SourceLocation.StartLine = startPos.Line + 1
+      Errors.SourceLocation.StartColumn = startPos.Column + 1
+      Errors.SourceLocation.EndLine = endPos.Line + 1
+      Errors.SourceLocation.EndColumn = endPos.Column + 1 }
+
+let private withLocation (startPos: Position) (endPos: Position) (expr: Expr) =
+    Expr.WithLocation (toSourceLocation startPos endPos) expr
+
+let private withRuleLocation (parseState: IParseState) firstToken lastToken (expr: Expr) =
+    withLocation (parseState.InputStartPosition firstToken) (parseState.InputEndPosition lastToken) expr
 
 %}
  
@@ -89,19 +107,19 @@ ExprSource:
     | ExprLiteral { $1 }
 
 Expr:
-    | ExprSource { $1 }
-    | Expr REGEX_MATCH Expr { Expr.Function (Function.RegexMatch, [$3; $1]) }
-    | Expr DOUBLE_EQUAL Expr { Expr.Function (Function.Equal, [$1; $3]) }
-    | Expr NOT_EQUAL Expr { Expr.Function (Function.NotEqual, [$1; $3]) }
-    | Expr PLUS Expr { Expr.Function (Function.Plus, [$1; $3]) }
-    | Expr MINUS Expr { Expr.Function (Function.Minus, [$1; $3]) }
-    | Expr MULT Expr { Expr.Function (Function.Mult, [$1; $3]) }
-    | Expr DIV Expr { Expr.Function (Function.Div, [$1; $3]) }
-    | Expr AND Expr { Expr.Function (Function.And, [$1; $3]) }
-    | Expr OR Expr { Expr.Function (Function.Or, [$1; $3]) }
-    | Expr DOUBLE_QUESTION Expr { Expr.Function (Function.Coalesce, [$1; $3]) }
-    | Expr QUESTION Expr COLON Expr { Expr.Function (Function.Ternary, [$1; $3; $5] ) }
-    | BANG ExprSource { Expr.Function (Function.Not, [$2]) }
+    | ExprSource { withRuleLocation parseState 1 1 $1 }
+    | Expr REGEX_MATCH Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.RegexMatch, [$3; $1])) }
+    | Expr DOUBLE_EQUAL Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Equal, [$1; $3])) }
+    | Expr NOT_EQUAL Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.NotEqual, [$1; $3])) }
+    | Expr PLUS Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Plus, [$1; $3])) }
+    | Expr MINUS Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Minus, [$1; $3])) }
+    | Expr MULT Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Mult, [$1; $3])) }
+    | Expr DIV Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Div, [$1; $3])) }
+    | Expr AND Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.And, [$1; $3])) }
+    | Expr OR Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Or, [$1; $3])) }
+    | Expr DOUBLE_QUESTION Expr { withRuleLocation parseState 1 3 (Expr.Function (Function.Coalesce, [$1; $3])) }
+    | Expr QUESTION Expr COLON Expr { withRuleLocation parseState 1 5 (Expr.Function (Function.Ternary, [$1; $3; $5])) }
+    | BANG ExprSource { withRuleLocation parseState 1 2 (Expr.Function (Function.Not, [$2])) }
 
 Variable:
     | IDENTIFIER DOT IDENTIFIER { 

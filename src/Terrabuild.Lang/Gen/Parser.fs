@@ -9,6 +9,8 @@ open Terrabuild.Lang.AST
 open Helpers
 open Terrabuild.Expression
 open System
+open FSharp.Text.Lexing
+open FSharp.Text.Parsing
 
 
 #if DEBUG
@@ -17,8 +19,24 @@ let debugPrint s = printfn "### %s" s
 let debugPrint s = ignore s
 #endif
 
+let private toSourceLocation (startPos: Position) (endPos: Position) =
+    let file =
+        if String.IsNullOrWhiteSpace(startPos.pos_fname) then None
+        else Some startPos.pos_fname
+    { Errors.SourceLocation.File = file
+      Errors.SourceLocation.StartLine = startPos.Line + 1
+      Errors.SourceLocation.StartColumn = startPos.Column + 1
+      Errors.SourceLocation.EndLine = endPos.Line + 1
+      Errors.SourceLocation.EndColumn = endPos.Column + 1 }
 
-# 21 "Gen/Parser.fs"
+let private withLocation (startPos: Position) (endPos: Position) (expr: Expr) =
+    Expr.WithLocation (toSourceLocation startPos endPos) expr
+
+let private withRuleLocation (parseState: IParseState) firstToken lastToken (expr: Expr) =
+    withLocation (parseState.InputStartPosition firstToken) (parseState.InputEndPosition lastToken) expr
+
+
+# 39 "Gen/Parser.fs"
 // This type is the type of tokens accepted by the parser
 type token = 
   | EOF
@@ -350,7 +368,7 @@ let _fsyacc_reductionSymbolCounts = [|1us;1us;2us;1us;2us;3us;1us;2us;4us;5us;0u
 let _fsyacc_productionToNonTerminalTable = [|0us;1us;1us;2us;2us;3us;4us;4us;5us;5us;6us;6us;6us;6us;7us;7us;7us;7us;7us;7us;7us;7us;8us;8us;8us;8us;8us;8us;8us;8us;8us;8us;8us;8us;8us;9us;9us;9us;10us;11us;12us;13us;14us;14us;15us;16us;17us;17us;18us;18us;19us;20us;20us;20us;21us;22us;22us;22us;23us;24us;24us;24us;|]
 let _fsyacc_immediateActions = [|65535us;49152us;16385us;65535us;16386us;16387us;65535us;16388us;65535us;65535us;65535us;16390us;65535us;65535us;16391us;65535us;65535us;65535us;16392us;65535us;65535us;65535us;16393us;16398us;16399us;65535us;16401us;16402us;16403us;16404us;16405us;16406us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;65535us;16418us;65535us;65535us;16419us;65535us;16420us;65535us;16421us;16422us;16423us;65535us;16424us;16426us;16427us;65535us;16429us;16430us;65535us;16431us;65535us;16432us;65535us;16433us;65535us;65535us;16434us;65535us;65535us;65535us;16438us;65535us;65535us;65535us;16442us;65535us;65535us;65535us;|]
 let _fsyacc_reductions = lazy [|
-# 353 "Gen/Parser.fs"
+# 371 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> Terrabuild.Lang.AST.File in
             Microsoft.FSharp.Core.Operators.box
@@ -359,98 +377,98 @@ let _fsyacc_reductions = lazy [|
                       raise (FSharp.Text.Parsing.Accept(Microsoft.FSharp.Core.Operators.box _1))
                    )
                  : 'gentype__startFile));
-# 362 "Gen/Parser.fs"
+# 380 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 57 "Parser.fsy"
+# 75 "Parser.fsy"
                                  File.Build [] 
                    )
-# 57 "Parser.fsy"
+# 75 "Parser.fsy"
                  : Terrabuild.Lang.AST.File));
-# 372 "Gen/Parser.fs"
+# 390 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Blocks in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 58 "Parser.fsy"
+# 76 "Parser.fsy"
                                         File.Build _1 
                    )
-# 58 "Parser.fsy"
+# 76 "Parser.fsy"
                  : Terrabuild.Lang.AST.File));
-# 383 "Gen/Parser.fs"
+# 401 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Attribute in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 61 "Parser.fsy"
+# 79 "Parser.fsy"
                                        [_1] 
                    )
-# 61 "Parser.fsy"
+# 79 "Parser.fsy"
                  : 'gentype_Attributes));
-# 394 "Gen/Parser.fs"
+# 412 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Attributes in
             let _2 = parseState.GetInput(2) :?> 'gentype_Attribute in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 62 "Parser.fsy"
+# 80 "Parser.fsy"
                                                   Attribute.Append _1 _2 
                    )
-# 62 "Parser.fsy"
+# 80 "Parser.fsy"
                  : 'gentype_Attributes));
-# 406 "Gen/Parser.fs"
+# 424 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_AttributeName in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 65 "Parser.fsy"
+# 83 "Parser.fsy"
                                                       Attribute.Build _1 _3 
                    )
-# 65 "Parser.fsy"
+# 83 "Parser.fsy"
                  : 'gentype_Attribute));
-# 418 "Gen/Parser.fs"
+# 436 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Block in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 68 "Parser.fsy"
+# 86 "Parser.fsy"
                                    [_1] 
                    )
-# 68 "Parser.fsy"
+# 86 "Parser.fsy"
                  : 'gentype_Blocks));
-# 429 "Gen/Parser.fs"
+# 447 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Blocks in
             let _2 = parseState.GetInput(2) :?> 'gentype_Block in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 69 "Parser.fsy"
+# 87 "Parser.fsy"
                                           _1 @ [_2] 
                    )
-# 69 "Parser.fsy"
+# 87 "Parser.fsy"
                  : 'gentype_Blocks));
-# 441 "Gen/Parser.fs"
+# 459 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ResourceName in
             let _3 = parseState.GetInput(3) :?> 'gentype_BlockContent in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 72 "Parser.fsy"
+# 90 "Parser.fsy"
                                                                      Block.Build _1 None _3 
                    )
-# 72 "Parser.fsy"
+# 90 "Parser.fsy"
                  : 'gentype_Block));
-# 453 "Gen/Parser.fs"
+# 471 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ResourceName in
             let _2 = parseState.GetInput(2) :?> 'gentype_ResourceIdentifier in
@@ -458,275 +476,275 @@ let _fsyacc_reductions = lazy [|
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 73 "Parser.fsy"
+# 91 "Parser.fsy"
                                                                                         Block.Build _1 (Some _2) _4 
                    )
-# 73 "Parser.fsy"
+# 91 "Parser.fsy"
                  : 'gentype_Block));
-# 466 "Gen/Parser.fs"
+# 484 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 76 "Parser.fsy"
+# 94 "Parser.fsy"
                                          ([], []) 
                    )
-# 76 "Parser.fsy"
+# 94 "Parser.fsy"
                  : 'gentype_BlockContent));
-# 476 "Gen/Parser.fs"
+# 494 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Attributes in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 77 "Parser.fsy"
+# 95 "Parser.fsy"
                                         (_1, []) 
                    )
-# 77 "Parser.fsy"
+# 95 "Parser.fsy"
                  : 'gentype_BlockContent));
-# 487 "Gen/Parser.fs"
+# 505 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Blocks in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 78 "Parser.fsy"
+# 96 "Parser.fsy"
                                     ([], _1) 
                    )
-# 78 "Parser.fsy"
+# 96 "Parser.fsy"
                  : 'gentype_BlockContent));
-# 498 "Gen/Parser.fs"
+# 516 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Attributes in
             let _2 = parseState.GetInput(2) :?> 'gentype_Blocks in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 79 "Parser.fsy"
+# 97 "Parser.fsy"
                                                (_1, _2) 
                    )
-# 79 "Parser.fsy"
+# 97 "Parser.fsy"
                  : 'gentype_BlockContent));
-# 510 "Gen/Parser.fs"
+# 528 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprList in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 82 "Parser.fsy"
+# 100 "Parser.fsy"
                                       Expr.List _1 
                    )
-# 82 "Parser.fsy"
+# 100 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 521 "Gen/Parser.fs"
+# 539 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprMap in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 83 "Parser.fsy"
+# 101 "Parser.fsy"
                                      Expr.Map _1 
                    )
-# 83 "Parser.fsy"
+# 101 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 532 "Gen/Parser.fs"
+# 550 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Variable in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 84 "Parser.fsy"
+# 102 "Parser.fsy"
                                       _1 
                    )
-# 84 "Parser.fsy"
+# 102 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 543 "Gen/Parser.fs"
+# 561 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Function in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 85 "Parser.fsy"
+# 103 "Parser.fsy"
                                       _1 
                    )
-# 85 "Parser.fsy"
+# 103 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 554 "Gen/Parser.fs"
+# 572 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> int in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 86 "Parser.fsy"
+# 104 "Parser.fsy"
                                     Expr.Number _1 
                    )
-# 86 "Parser.fsy"
+# 104 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 565 "Gen/Parser.fs"
+# 583 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 87 "Parser.fsy"
+# 105 "Parser.fsy"
                                   Expr.Enum _1 
                    )
-# 87 "Parser.fsy"
+# 105 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 576 "Gen/Parser.fs"
+# 594 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_InterpolatedString in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 88 "Parser.fsy"
+# 106 "Parser.fsy"
                                                 _1 
                    )
-# 88 "Parser.fsy"
+# 106 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 587 "Gen/Parser.fs"
+# 605 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprLiteral in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 89 "Parser.fsy"
+# 107 "Parser.fsy"
                                          _1 
                    )
-# 89 "Parser.fsy"
+# 107 "Parser.fsy"
                  : 'gentype_ExprSource));
-# 598 "Gen/Parser.fs"
+# 616 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprSource in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 92 "Parser.fsy"
-                                        _1 
+# 110 "Parser.fsy"
+                                        withRuleLocation parseState 1 1 _1 
                    )
-# 92 "Parser.fsy"
+# 110 "Parser.fsy"
                  : 'gentype_Expr));
-# 609 "Gen/Parser.fs"
+# 627 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 93 "Parser.fsy"
-                                                   Expr.Function (Function.RegexMatch, [_3; _1]) 
+# 111 "Parser.fsy"
+                                                   withRuleLocation parseState 1 3 (Expr.Function (Function.RegexMatch, [_3; _1])) 
                    )
-# 93 "Parser.fsy"
+# 111 "Parser.fsy"
                  : 'gentype_Expr));
-# 621 "Gen/Parser.fs"
+# 639 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 94 "Parser.fsy"
-                                                    Expr.Function (Function.Equal, [_1; _3]) 
+# 112 "Parser.fsy"
+                                                    withRuleLocation parseState 1 3 (Expr.Function (Function.Equal, [_1; _3])) 
                    )
-# 94 "Parser.fsy"
+# 112 "Parser.fsy"
                  : 'gentype_Expr));
-# 633 "Gen/Parser.fs"
+# 651 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 95 "Parser.fsy"
-                                                 Expr.Function (Function.NotEqual, [_1; _3]) 
+# 113 "Parser.fsy"
+                                                 withRuleLocation parseState 1 3 (Expr.Function (Function.NotEqual, [_1; _3])) 
                    )
-# 95 "Parser.fsy"
+# 113 "Parser.fsy"
                  : 'gentype_Expr));
-# 645 "Gen/Parser.fs"
+# 663 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 96 "Parser.fsy"
-                                            Expr.Function (Function.Plus, [_1; _3]) 
+# 114 "Parser.fsy"
+                                            withRuleLocation parseState 1 3 (Expr.Function (Function.Plus, [_1; _3])) 
                    )
-# 96 "Parser.fsy"
+# 114 "Parser.fsy"
                  : 'gentype_Expr));
-# 657 "Gen/Parser.fs"
+# 675 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 97 "Parser.fsy"
-                                             Expr.Function (Function.Minus, [_1; _3]) 
+# 115 "Parser.fsy"
+                                             withRuleLocation parseState 1 3 (Expr.Function (Function.Minus, [_1; _3])) 
                    )
-# 97 "Parser.fsy"
+# 115 "Parser.fsy"
                  : 'gentype_Expr));
-# 669 "Gen/Parser.fs"
+# 687 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 98 "Parser.fsy"
-                                            Expr.Function (Function.Mult, [_1; _3]) 
+# 116 "Parser.fsy"
+                                            withRuleLocation parseState 1 3 (Expr.Function (Function.Mult, [_1; _3])) 
                    )
-# 98 "Parser.fsy"
+# 116 "Parser.fsy"
                  : 'gentype_Expr));
-# 681 "Gen/Parser.fs"
+# 699 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 99 "Parser.fsy"
-                                           Expr.Function (Function.Div, [_1; _3]) 
+# 117 "Parser.fsy"
+                                           withRuleLocation parseState 1 3 (Expr.Function (Function.Div, [_1; _3])) 
                    )
-# 99 "Parser.fsy"
+# 117 "Parser.fsy"
                  : 'gentype_Expr));
-# 693 "Gen/Parser.fs"
+# 711 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 100 "Parser.fsy"
-                                           Expr.Function (Function.And, [_1; _3]) 
+# 118 "Parser.fsy"
+                                           withRuleLocation parseState 1 3 (Expr.Function (Function.And, [_1; _3])) 
                    )
-# 100 "Parser.fsy"
+# 118 "Parser.fsy"
                  : 'gentype_Expr));
-# 705 "Gen/Parser.fs"
+# 723 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 101 "Parser.fsy"
-                                          Expr.Function (Function.Or, [_1; _3]) 
+# 119 "Parser.fsy"
+                                          withRuleLocation parseState 1 3 (Expr.Function (Function.Or, [_1; _3])) 
                    )
-# 101 "Parser.fsy"
+# 119 "Parser.fsy"
                  : 'gentype_Expr));
-# 717 "Gen/Parser.fs"
+# 735 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 102 "Parser.fsy"
-                                                       Expr.Function (Function.Coalesce, [_1; _3]) 
+# 120 "Parser.fsy"
+                                                       withRuleLocation parseState 1 3 (Expr.Function (Function.Coalesce, [_1; _3])) 
                    )
-# 102 "Parser.fsy"
+# 120 "Parser.fsy"
                  : 'gentype_Expr));
-# 729 "Gen/Parser.fs"
+# 747 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
@@ -734,191 +752,191 @@ let _fsyacc_reductions = lazy [|
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 103 "Parser.fsy"
-                                                           Expr.Function (Function.Ternary, [_1; _3; _5] ) 
+# 121 "Parser.fsy"
+                                                           withRuleLocation parseState 1 5 (Expr.Function (Function.Ternary, [_1; _3; _5])) 
                    )
-# 103 "Parser.fsy"
+# 121 "Parser.fsy"
                  : 'gentype_Expr));
-# 742 "Gen/Parser.fs"
+# 760 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> 'gentype_ExprSource in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 104 "Parser.fsy"
-                                             Expr.Function (Function.Not, [_2]) 
+# 122 "Parser.fsy"
+                                             withRuleLocation parseState 1 2 (Expr.Function (Function.Not, [_2])) 
                    )
-# 104 "Parser.fsy"
+# 122 "Parser.fsy"
                  : 'gentype_Expr));
-# 753 "Gen/Parser.fs"
+# 771 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             let _3 = parseState.GetInput(3) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 107 "Parser.fsy"
+# 125 "Parser.fsy"
                                                        
                              Expr.Variable $"{_1 |> parseScopeIdentifier}.{_3 |> parseIdentifier}"
                          
                    )
-# 107 "Parser.fsy"
+# 125 "Parser.fsy"
                  : 'gentype_Variable));
-# 767 "Gen/Parser.fs"
+# 785 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Variable in
             let _3 = parseState.GetInput(3) :?> 'gentype_ExprIndex in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 110 "Parser.fsy"
+# 128 "Parser.fsy"
                                                     Expr.Function (Function.Item, [_1;  _3]) 
                    )
-# 110 "Parser.fsy"
+# 128 "Parser.fsy"
                  : 'gentype_Variable));
-# 779 "Gen/Parser.fs"
+# 797 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Variable in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 111 "Parser.fsy"
+# 129 "Parser.fsy"
                                                                      Expr.Function (Function.Item, [_1;  _3]) 
                    )
-# 111 "Parser.fsy"
+# 129 "Parser.fsy"
                  : 'gentype_Variable));
-# 791 "Gen/Parser.fs"
+# 809 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             let _2 = parseState.GetInput(2) :?> 'gentype_ExprTuple in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 114 "Parser.fsy"
+# 132 "Parser.fsy"
                                                   parseFunction _2 _1 
                    )
-# 114 "Parser.fsy"
+# 132 "Parser.fsy"
                  : 'gentype_Function));
-# 803 "Gen/Parser.fs"
+# 821 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 117 "Parser.fsy"
+# 135 "Parser.fsy"
                                         parseResourceName _1 
                    )
-# 117 "Parser.fsy"
+# 135 "Parser.fsy"
                  : 'gentype_ResourceName));
-# 814 "Gen/Parser.fs"
+# 832 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 120 "Parser.fsy"
+# 138 "Parser.fsy"
                                         parseResourceIdentifier _1 
                    )
-# 120 "Parser.fsy"
+# 138 "Parser.fsy"
                  : 'gentype_ResourceIdentifier));
-# 825 "Gen/Parser.fs"
+# 843 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 123 "Parser.fsy"
+# 141 "Parser.fsy"
                                         parseAttributeName _1 
                    )
-# 123 "Parser.fsy"
+# 141 "Parser.fsy"
                  : 'gentype_AttributeName));
-# 836 "Gen/Parser.fs"
+# 854 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> int in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 126 "Parser.fsy"
+# 144 "Parser.fsy"
                                     Expr.Number _1 
                    )
-# 126 "Parser.fsy"
+# 144 "Parser.fsy"
                  : 'gentype_ExprIndex));
-# 847 "Gen/Parser.fs"
+# 865 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 127 "Parser.fsy"
+# 145 "Parser.fsy"
                                         Expr.String _1 
                    )
-# 127 "Parser.fsy"
+# 145 "Parser.fsy"
                  : 'gentype_ExprIndex));
-# 858 "Gen/Parser.fs"
+# 876 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 130 "Parser.fsy"
+# 148 "Parser.fsy"
                                         parseExpressionLiteral _1 
                    )
-# 130 "Parser.fsy"
+# 148 "Parser.fsy"
                  : 'gentype_ExprLiteral));
-# 869 "Gen/Parser.fs"
+# 887 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 133 "Parser.fsy"
+# 151 "Parser.fsy"
                                                      _2 
                    )
-# 133 "Parser.fsy"
+# 151 "Parser.fsy"
                  : 'gentype_String));
-# 880 "Gen/Parser.fs"
+# 898 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_String in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 136 "Parser.fsy"
+# 154 "Parser.fsy"
                                     Expr.String _1 
                    )
-# 136 "Parser.fsy"
+# 154 "Parser.fsy"
                  : 'gentype_InterpolatedString));
-# 891 "Gen/Parser.fs"
+# 909 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> 'gentype_InterpolatedStringExpression in
             let _3 = parseState.GetInput(3) :?> string in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 137 "Parser.fsy"
+# 155 "Parser.fsy"
                                                                                   
                              if _3 |> String.IsNullOrEmpty then Expr.Function (Function.ToString, [_2])
                              else Expr.Function (Function.Format, [Expr.String "{0}{1}"; _2; Expr.String _3]) 
                          
                    )
-# 137 "Parser.fsy"
+# 155 "Parser.fsy"
                  : 'gentype_InterpolatedString));
-# 906 "Gen/Parser.fs"
+# 924 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> string in
             let _2 = parseState.GetInput(2) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 143 "Parser.fsy"
+# 161 "Parser.fsy"
                                                                   
                              if _1 |> String.IsNullOrEmpty then _2
                              else Expr.Function (Function.Format, [Expr.String "{0}{1}"; Expr.String _1; _2])
                          
                    )
-# 143 "Parser.fsy"
+# 161 "Parser.fsy"
                  : 'gentype_InterpolatedStringExpression));
-# 921 "Gen/Parser.fs"
+# 939 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_InterpolatedStringExpression in
             let _2 = parseState.GetInput(2) :?> string in
@@ -926,125 +944,125 @@ let _fsyacc_reductions = lazy [|
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 147 "Parser.fsy"
+# 165 "Parser.fsy"
                                                                                               
                              if _2 |> String.IsNullOrEmpty then Expr.Function (Function.Format, [Expr.String "{0}{1}"; _1; _3])
                              else Expr.Function (Function.Format, [Expr.String "{0}{1}{2}"; _1; Expr.String _2; _3])
                          
                    )
-# 147 "Parser.fsy"
+# 165 "Parser.fsy"
                  : 'gentype_InterpolatedStringExpression));
-# 937 "Gen/Parser.fs"
+# 955 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> 'gentype_ExprTupleContent in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 153 "Parser.fsy"
+# 171 "Parser.fsy"
                                                             _2 
                    )
-# 153 "Parser.fsy"
+# 171 "Parser.fsy"
                  : 'gentype_ExprTuple));
-# 948 "Gen/Parser.fs"
+# 966 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 155 "Parser.fsy"
+# 173 "Parser.fsy"
                                          [] 
                    )
-# 155 "Parser.fsy"
+# 173 "Parser.fsy"
                  : 'gentype_ExprTupleContent));
-# 958 "Gen/Parser.fs"
+# 976 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 156 "Parser.fsy"
+# 174 "Parser.fsy"
                                   [_1] 
                    )
-# 156 "Parser.fsy"
+# 174 "Parser.fsy"
                  : 'gentype_ExprTupleContent));
-# 969 "Gen/Parser.fs"
+# 987 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprTupleContent in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 157 "Parser.fsy"
+# 175 "Parser.fsy"
                                                          _1 @ [_3] 
                    )
-# 157 "Parser.fsy"
+# 175 "Parser.fsy"
                  : 'gentype_ExprTupleContent));
-# 981 "Gen/Parser.fs"
+# 999 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> 'gentype_ExprListContent in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 160 "Parser.fsy"
+# 178 "Parser.fsy"
                                                                    _2 
                    )
-# 160 "Parser.fsy"
+# 178 "Parser.fsy"
                  : 'gentype_ExprList));
-# 992 "Gen/Parser.fs"
+# 1010 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 162 "Parser.fsy"
+# 180 "Parser.fsy"
                                          [] 
                    )
-# 162 "Parser.fsy"
+# 180 "Parser.fsy"
                  : 'gentype_ExprListContent));
-# 1002 "Gen/Parser.fs"
+# 1020 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprListContent in
             let _2 = parseState.GetInput(2) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 163 "Parser.fsy"
+# 181 "Parser.fsy"
                                                   _1 @ [_2] 
                    )
-# 163 "Parser.fsy"
+# 181 "Parser.fsy"
                  : 'gentype_ExprListContent));
-# 1014 "Gen/Parser.fs"
+# 1032 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprListContent in
             let _3 = parseState.GetInput(3) :?> 'gentype_Expr in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 164 "Parser.fsy"
+# 182 "Parser.fsy"
                                                         _1 @ [_3] 
                    )
-# 164 "Parser.fsy"
+# 182 "Parser.fsy"
                  : 'gentype_ExprListContent));
-# 1026 "Gen/Parser.fs"
+# 1044 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _2 = parseState.GetInput(2) :?> 'gentype_ExprMapContent in
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 167 "Parser.fsy"
+# 185 "Parser.fsy"
                                                           _2 
                    )
-# 167 "Parser.fsy"
+# 185 "Parser.fsy"
                  : 'gentype_ExprMap));
-# 1037 "Gen/Parser.fs"
+# 1055 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 169 "Parser.fsy"
+# 187 "Parser.fsy"
                                          Map.empty 
                    )
-# 169 "Parser.fsy"
+# 187 "Parser.fsy"
                  : 'gentype_ExprMapContent));
-# 1047 "Gen/Parser.fs"
+# 1065 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprMapContent in
             let _2 = parseState.GetInput(2) :?> string in
@@ -1052,12 +1070,12 @@ let _fsyacc_reductions = lazy [|
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 170 "Parser.fsy"
+# 188 "Parser.fsy"
                                                      _1.Add (_2, _3) 
                    )
-# 170 "Parser.fsy"
+# 188 "Parser.fsy"
                  : 'gentype_ExprMapContent));
-# 1060 "Gen/Parser.fs"
+# 1078 "Gen/Parser.fs"
         (fun (parseState : FSharp.Text.Parsing.IParseState) ->
             let _1 = parseState.GetInput(1) :?> 'gentype_ExprMapContent in
             let _3 = parseState.GetInput(3) :?> string in
@@ -1065,13 +1083,13 @@ let _fsyacc_reductions = lazy [|
             Microsoft.FSharp.Core.Operators.box
                 (
                    (
-# 171 "Parser.fsy"
+# 189 "Parser.fsy"
                                                            _1.Add (_3, _4) 
                    )
-# 171 "Parser.fsy"
+# 189 "Parser.fsy"
                  : 'gentype_ExprMapContent));
 |]
-# 1074 "Gen/Parser.fs"
+# 1092 "Gen/Parser.fs"
 let tables : FSharp.Text.Parsing.Tables<_> = 
   { reductions = _fsyacc_reductions.Value;
     endOfInputTag = _fsyacc_endOfInputTag;

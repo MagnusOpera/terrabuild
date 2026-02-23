@@ -4,11 +4,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Errors.fs" />
     <Compile Include="Collections.fs" />
     <Compile Include="Ansi.fs" />
     <Compile Include="String.fs" />
     <Compile Include="FS.fs" />
+    <Compile Include="Errors.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Hash.fs" />
     <Compile Include="Compression.fs" />

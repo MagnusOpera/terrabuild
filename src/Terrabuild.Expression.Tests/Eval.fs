@@ -3,6 +3,7 @@ module Terrabuild.Expression.Eval.Tests
 open NUnit.Framework
 open FsUnit
 open Terrabuild.Expression
+open Errors
 
 let private evaluationContext = {
     Eval.EvaluationContext.WorkspaceDir = Some TestContext.CurrentContext.WorkDirectory
@@ -329,3 +330,22 @@ let mapHelpers() =
 
     mapAdd newMap oldMap |> should equal (Value.Map (Map [ "left", Value.Number 1; "right", Value.Number 2 ]))
     asMap oldMap |> should equal (Map [ "left", Value.Number 1 ])
+
+[<Test>]
+let locationIsAttachedOnExpressionFailure() =
+    let location =
+        { SourceLocation.File = Some "WORKSPACE"
+          SourceLocation.StartLine = 12
+          SourceLocation.StartColumn = 5
+          SourceLocation.EndLine = 12
+          SourceLocation.EndColumn = 32 }
+    let expr =
+        Expr.WithLocation location (Expr.Function (Function.Replace, [ Expr.Nothing; Expr.String "x"; Expr.String "y" ]))
+
+    try
+        eval evaluationContext expr |> ignore
+        Assert.Fail("Expected TerrabuildException")
+    with
+    | :? TerrabuildException as ex ->
+        ex.Location |> should equal (Some location)
+        ex.Message |> should equal "Invalid arguments for function Replace with parameters (nothing*string*string)"

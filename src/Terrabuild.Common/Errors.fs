@@ -1,5 +1,6 @@
 module Errors
 open System
+open System.IO
 open System.Runtime.ExceptionServices
 
 [<RequireQualifiedAccess>]
@@ -12,9 +13,37 @@ type ErrorArea =
     | Bug
     | Auth
 
-type TerrabuildException(msg, area, ?innerException: Exception) =
+type SourceLocation =
+    { File: string option
+      StartLine: int
+      StartColumn: int
+      EndLine: int
+      EndColumn: int }
+with
+    member x.Format() =
+        let file =
+            x.File
+            |> Option.filter (String.IsNullOrWhiteSpace >> not)
+            |> Option.map (fun file ->
+                try
+                    let cwd = Environment.CurrentDirectory
+                    let relative =
+                        if Path.IsPathRooted(file) then
+                            let absoluteWithoutSlash = FS.workspaceRelative "/" "/" file
+                            let absolute = "/" + absoluteWithoutSlash
+                            FS.relativePath cwd absolute
+                        else
+                            FS.workspaceRelative cwd cwd file
+                    if relative.StartsWith("..") then file else relative
+                with
+                | _ -> file)
+            |> Option.defaultValue "<unknown>"
+        $"{file}:{x.StartLine}:{x.StartColumn}"
+
+type TerrabuildException(msg, area, ?innerException: Exception, ?location: SourceLocation) =
     inherit Exception(msg, innerException |> Option.toObj)
     member _.Area: ErrorArea = area
+    member val Location: SourceLocation option = location with get, set
 
 
 let raiseInvalidArg(msg) =
@@ -47,12 +76,24 @@ let forwardExternalError(msg, innerException) =
 let forwardAuthError(msg, innerException) =
     TerrabuildException(msg, ErrorArea.Auth, innerException) |> raise
 
+let withLocation (location: SourceLocation) (ex: exn) =
+    match ex with
+    | :? TerrabuildException as terrabuildEx ->
+        if terrabuildEx.Location.IsNone then
+            terrabuildEx.Location <- Some location
+        terrabuildEx :> exn
+    | _ -> ex
+
 
 let rec dumpKnownException (ex: Exception | null) =
     seq {
         match ex with
         | :? TerrabuildException as ex ->
-            yield $"{ex.Message}"
+            let location =
+                ex.Location
+                |> Option.map (fun loc -> $" ({loc.Format()})")
+                |> Option.defaultValue ""
+            yield $"{ex.Message}{location}"
             yield! ex.InnerException |> dumpKnownException
         | null -> ()
         | _ -> ()
@@ -74,5 +115,3 @@ let tryInvoke action =
         None
     with
         exn -> ExceptionDispatchInfo.Capture(exn) |> Some
-
-

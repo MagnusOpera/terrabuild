@@ -7,6 +7,7 @@ open FSharp.Reflection
 let rec find (expr: Expr) =
     let rec eval (varUsed: Set<string>) (expr: Expr) =
         match expr with
+        | Expr.Located (_, value) -> eval varUsed value
         | Expr.Variable var -> varUsed |> Set.add var
         | Expr.Map map -> map |> Map.fold (fun varUsed _ v -> varUsed + eval varUsed v) varUsed
         | Expr.List list -> list |> List.fold (fun varUsed v -> varUsed + eval varUsed v) varUsed
@@ -20,10 +21,12 @@ let rec findArrayOfDependencies (expr: Expr) =
 
     let rec eval (varUsed: Set<string>) (expr: Expr) =
         match expr with
+        | Expr.Located (_, value) -> eval varUsed value
         | Expr.Variable var -> varUsed |> Set.add var
         | _ -> Errors.raiseInvalidArg "Array of dependencies expected"
 
     match expr with
+    | Expr.Located (_, value) -> findArrayOfDependencies value
     | Expr.List list -> list |> List.fold (fun varUsed v -> varUsed + eval varUsed v) Set.empty
     | _ -> Errors.raiseInvalidArg "Array of dependencies expected"
 
