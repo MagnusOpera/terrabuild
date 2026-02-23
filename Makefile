@@ -17,6 +17,7 @@ dryrun ?= false
 current_dir = $(shell pwd)
 
 
+.PHONY: docs
 
 
 #

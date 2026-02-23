@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
+- Fix `make docs` generation target by declaring it as `.PHONY` to avoid collisions with the `docs/` directory.
 
 ## [0.189.12-next]
 
