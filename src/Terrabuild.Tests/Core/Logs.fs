@@ -173,13 +173,16 @@ let ``Markdown links batch members to single batch anchor`` () =
         let nodeBAnchor = Hash.md5 $"{logId} {nodeB.Id}" |> String.toLower
 
         markdown.Contains($"(#user-content-{batchAnchor})") |> should equal true
-        markdown.Contains($"[build batch {batchId}](#user-content-{batchAnchor})") |> should equal true
-        markdown.Contains("Projects:") |> should equal true
+        markdown.Contains($"[build {nodeA.ProjectDir}](#user-content-{batchAnchor})") |> should equal true
+        markdown.Contains($"[build {nodeB.ProjectDir}](#user-content-{batchAnchor})") |> should equal true
+        markdown.Contains($"[build {nodeA.ProjectDir}](#user-content-{batchAnchor}) | 2s") |> should equal true
+        markdown.Contains($"[build {nodeB.ProjectDir}](#user-content-{batchAnchor}) | 2s") |> should equal true
+        markdown.Contains($"[build batch {batchId}]") |> should equal false
+        markdown.Contains($"build {batchId} [src/a src/b]") |> should equal true
+        markdown.Contains("Projects:") |> should equal false
         markdown.Contains("- src/a") |> should equal true
         markdown.Contains("- src/b") |> should equal true
         markdown.Contains("*Members:*") |> should equal false
-        markdown.Contains($"[build {nodeA.ProjectDir}]") |> should equal false
-        markdown.Contains($"[build {nodeB.ProjectDir}]") |> should equal false
         markdown.Contains($"## <a name=\"user-content-{batchAnchor}\"></a>") |> should equal true
         markdown.Contains($"## <a name=\"user-content-{nodeAAnchor}\"></a>") |> should equal false
         markdown.Contains($"## <a name=\"user-content-{nodeBAnchor}\"></a>") |> should equal false

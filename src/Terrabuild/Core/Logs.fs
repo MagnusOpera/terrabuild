@@ -80,6 +80,18 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         |> List.distinct
         |> List.sort
 
+    let splitDurationEvenly (duration: TimeSpan) (parts: int) =
+        if parts <= 0 then
+            []
+        else
+            let totalTicks = duration.Ticks
+            let baseTicks = totalTicks / int64 parts
+            let remainder = totalTicks % int64 parts
+            [ 0 .. parts - 1 ]
+            |> List.map (fun index ->
+                let extraTick = if int64 index < remainder then 1L else 0L
+                TimeSpan(baseTicks + extraTick))
+
 
     let dumpMarkdown filename (nodes: GraphDef.Node seq) =
         let nodes = nodes |> List.ofSeq
@@ -122,9 +134,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let header =
                 let statusEmoji = statusEmoji representative
                 let uniqueId = stableRandomId reportId
-                let label =
-                    if isBatchReport reportId then buildBatchLabel representative.Target reportId
-                    else $"{representative.Target} {representative.ProjectDir}"
+                let label = buildTerminalLabel reportId representative groupedNodes
                 $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {label}"
 
             let dumpLogs =
@@ -151,7 +161,6 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
             header |> append
             if isBatchReport reportId then
-                "Projects:" |> append
                 groupedNodes
                 |> getBatchProjectDirs
                 |> List.iter (fun projectDir -> $"- {projectDir}" |> append)
@@ -173,17 +182,22 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         "|--------|---------:|" |> append
 
         reportGroups
-        |> Seq.map (fun (id, _, representative) ->
+        |> Seq.collect (fun (id, groupedNodes, representative) ->
             let originSummary = originSummaries[representative.Id]
             let duration =
                 match originSummary with
                 | Some (_, summary) -> summary.Duration
                 | _ -> TimeSpan.Zero
 
-            let label =
-                if isBatchReport id then buildBatchLabel representative.Target id
-                else $"{representative.Target} {representative.ProjectDir}"
-            id, representative, label, duration)
+            if isBatchReport id then
+                let projectDirs = getBatchProjectDirs groupedNodes
+                let durations = splitDurationEvenly duration projectDirs.Length
+                Seq.zip projectDirs durations
+                |> Seq.map (fun (projectDir, projectDuration) ->
+                    let label = $"{representative.Target} {projectDir}"
+                    id, representative, label, projectDuration)
+            else
+                Seq.singleton (id, representative, $"{representative.Target} {representative.ProjectDir}", duration))
         |> Seq.sortByDescending (fun (_, _, _, duration) -> duration)
         |> Seq.iter (fun (id, representative, label, duration) ->
             let statusEmoji = statusEmoji representative
