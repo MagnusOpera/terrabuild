@@ -45,6 +45,11 @@ let private buildTerminalOptions () =
     { buildOptions markdownFile with
         ConfigOptions.Options.LogTypes = [ Contracts.LogType.Terminal ] }
 
+let private buildGitHubActionsOptions () =
+    let markdownFile = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}.md")
+    { buildOptions markdownFile with
+        ConfigOptions.Options.LogTypes = [ Contracts.LogType.GitHubActions ] }
+
 let private buildNode id projectDir projectHash targetHash =
     { GraphDef.Node.Id = id
       GraphDef.Node.ProjectId = id
@@ -88,6 +93,18 @@ let private buildTargetSummary (logFile: string) =
       TargetSummary.Operations = [ [ buildStep logFile ] ]
       TargetSummary.Outputs = None
       TargetSummary.IsSuccessful = true
+      TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-5.0)
+      TargetSummary.EndedAt = DateTime.UtcNow.AddSeconds(-1.0)
+      TargetSummary.Duration = TimeSpan.FromSeconds(4.0)
+      TargetSummary.Cache = GraphDef.ArtifactMode.Workspace }
+
+let private buildFailedTargetSummary (logFile: string) =
+    let failedStep = { buildStep logFile with OperationSummary.ExitCode = 1 }
+    { TargetSummary.Project = "."
+      TargetSummary.Target = "build"
+      TargetSummary.Operations = [ [ failedStep ] ]
+      TargetSummary.Outputs = None
+      TargetSummary.IsSuccessful = false
       TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-5.0)
       TargetSummary.EndedAt = DateTime.UtcNow.AddSeconds(-1.0)
       TargetSummary.Duration = TimeSpan.FromSeconds(4.0)
@@ -156,7 +173,11 @@ let ``Markdown links batch members to single batch anchor`` () =
         let nodeBAnchor = Hash.md5 $"{logId} {nodeB.Id}" |> String.toLower
 
         markdown.Contains($"(#user-content-{batchAnchor})") |> should equal true
-        markdown.Contains($"[build [batch:{batchId}]](#user-content-{batchAnchor})") |> should equal true
+        markdown.Contains($"[build batch {batchId}](#user-content-{batchAnchor})") |> should equal true
+        markdown.Contains("Projects:") |> should equal true
+        markdown.Contains("- src/a") |> should equal true
+        markdown.Contains("- src/b") |> should equal true
+        markdown.Contains("*Members:*") |> should equal false
         markdown.Contains($"[build {nodeA.ProjectDir}]") |> should equal false
         markdown.Contains($"[build {nodeB.ProjectDir}]") |> should equal false
         markdown.Contains($"## <a name=\"user-content-{batchAnchor}\"></a>") |> should equal true
@@ -303,5 +324,48 @@ let ``Terminal truncates batch members after five projects`` () =
                 Logs.dumpLogs (Guid.NewGuid()) options cache graph runnerSummary)
 
         output.Contains("build ABCDEF [src/a1 src/a2 src/a3 src/a4 src/a5 ... +2]") |> should equal true
+    finally
+        if Directory.Exists(root) then Directory.Delete(root, true)
+
+[<Test>]
+let ``GitHubActions renders batch label with hash in failure annotation`` () =
+    let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(root) |> ignore
+    let logFile = Path.Combine(root, "batch.log")
+    File.WriteAllText(logFile, "batch log")
+
+    try
+        let nodeA = buildNode "node-a" "src/apps/ArtApi" "project-a" "target-a"
+        let nodeB = buildNode "node-b" "src/apps/InvestApi" "project-b" "target-b"
+        let nodeC = buildNode "node-c" "src/apps/PrintServer" "project-c" "target-c"
+        let batchId = "4653FC463A16962B1E6E4B90900B46B5EDF33E89317E34E8F14AFA56D60786D4"
+        let graph =
+            { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB; nodeC.Id, nodeC ] |> Map.ofList
+              GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id; nodeC.Id ]
+              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id; nodeC.Id ] ] }
+
+        let summaries =
+            [ nodeA; nodeB; nodeC ]
+            |> List.map (fun node ->
+                let key = GraphDef.buildCacheKey node
+                key, (Origin.Local, buildFailedTargetSummary logFile))
+            |> Map.ofList
+
+        let runnerSummary =
+            { Runner.Summary.Commit = "c"
+              Runner.Summary.BranchOrTag = "main"
+              Runner.Summary.StartedAt = DateTime.UtcNow.AddMinutes(-2.0)
+              Runner.Summary.EndedAt = DateTime.UtcNow
+              Runner.Summary.IsSuccess = false
+              Runner.Summary.Targets = Set [ "build" ]
+              Runner.Summary.Nodes = [ nodeA.Id, buildSummaryInfo (); nodeB.Id, buildSummaryInfo (); nodeC.Id, buildSummaryInfo () ] |> Map.ofList }
+
+        let output =
+            captureConsoleOutput (fun () ->
+                let options = buildGitHubActionsOptions ()
+                let cache = FakeCache(summaries) :> ICache
+                Logs.dumpLogs (Guid.NewGuid()) options cache graph runnerSummary)
+
+        output.Contains($"::error title=build failed::build batch {batchId}") |> should equal true
     finally
         if Directory.Exists(root) then Directory.Delete(root, true)

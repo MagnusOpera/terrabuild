@@ -71,6 +71,15 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
         else
             $"{node.Target} {node.ProjectDir}"
 
+    let buildBatchLabel (target: string) (batchId: string) =
+        $"{target} batch {batchId}"
+
+    let getBatchProjectDirs (groupedNodes: GraphDef.Node list) =
+        groupedNodes
+        |> List.map (fun node -> node.ProjectDir)
+        |> List.distinct
+        |> List.sort
+
 
     let dumpMarkdown filename (nodes: GraphDef.Node seq) =
         let nodes = nodes |> List.ofSeq
@@ -114,7 +123,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 let statusEmoji = statusEmoji representative
                 let uniqueId = stableRandomId reportId
                 let label =
-                    if isBatchReport reportId then $"{representative.Target} [batch:{reportId}]"
+                    if isBatchReport reportId then buildBatchLabel representative.Target reportId
                     else $"{representative.Target} {representative.ProjectDir}"
                 $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {label}"
 
@@ -142,8 +151,10 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
             header |> append
             if isBatchReport reportId then
-                let members = groupedNodes |> List.map (fun node -> node.ProjectDir) |> List.sort |> String.join ", "
-                $"*Members:* {members}" |> append
+                "Projects:" |> append
+                groupedNodes
+                |> getBatchProjectDirs
+                |> List.iter (fun projectDir -> $"- {projectDir}" |> append)
             dumpLogs ()
 
         let targets = options.Targets |> String.join " "
@@ -170,7 +181,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | _ -> TimeSpan.Zero
 
             let label =
-                if isBatchReport id then $"{representative.Target} [batch:{id}]"
+                if isBatchReport id then buildBatchLabel representative.Target id
                 else $"{representative.Target} {representative.ProjectDir}"
             id, representative, label, duration)
         |> Seq.sortByDescending (fun (_, _, _, duration) -> duration)
@@ -299,7 +310,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
         let dumpTerminal (id: string, node: GraphDef.Node) =
             let label =
-                if isBatchReport id then $"{node.Target} [batch:{id}]"
+                if isBatchReport id then buildBatchLabel node.Target id
                 else $"{node.Target} {node.ProjectDir}"
             let cacheEntryId = GraphDef.buildCacheKey node
             let summary = cache.TryGetSummaryOnly false cacheEntryId

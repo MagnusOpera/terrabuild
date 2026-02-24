@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Align GitHub Actions batch log labeling with local style by rendering `target batch <hash>` and listing all batch projects under a `Projects:` section in step summary details.
+
 ## [0.189.13-next]
 
 
