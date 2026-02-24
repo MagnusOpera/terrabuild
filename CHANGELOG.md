@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.15-next]
+
+
 - Update markdown batch log summaries to list one row per project with shared batch anchors, split batch duration evenly across those project rows, and render batch detail headers in terminal style (`build <hash> [members]`) without the `Projects:` prefix.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.14-next...0.189.15-next
 
 ## [0.189.14-next]
 
