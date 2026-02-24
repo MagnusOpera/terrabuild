@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.14-next]
+
+
 - Align GitHub Actions batch log labeling with local style by rendering `target batch <hash>` and listing all batch projects under a `Projects:` section in step summary details.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.13-next...0.189.14-next
 
 ## [0.189.13-next]
 
