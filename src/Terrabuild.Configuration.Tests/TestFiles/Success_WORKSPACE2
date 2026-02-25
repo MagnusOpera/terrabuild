@@ -17,6 +17,7 @@ target dist {
 target dummy { }
 
 extension dotnet {
+  script = "scripts/dotnet.fss"
   image = "mcr.microsoft.com/dotnet/sdk:8.0.101"
   defaults {
     configuration1 = var.map.toto
@@ -25,10 +26,11 @@ extension dotnet {
   }
 }
 
-extension docker { }
+extension docker {
+  script = "scripts/docker.fss"
+}
 
 # multiple comments at the end
 # multiple comments at the end
 
 # multiple comments at the end
-

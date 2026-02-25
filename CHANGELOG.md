@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Enforce extension declaration safety by requiring `script` for non-`@` extension blocks, forbidding built-in script overrides (for example `@dotnet`), and resolving FScript imports relative to importer origin (workspace file-relative or URL-relative) with workspace-boundary and deny-path checks for local files.
+
 ## [0.189.15-next]
 
 

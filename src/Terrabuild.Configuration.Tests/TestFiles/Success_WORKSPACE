@@ -31,13 +31,16 @@ variable infra_env {
 }
 
 extension dotnet {
+  script = "scripts/dotnet.fss"
   image = "mcr.microsoft.com/dotnet/sdk:8.0.101"
   defaults {
     configuration = local.configuration
   }
 }
 
-extension docker { }
+extension docker {
+  script = "scripts/docker.fss"
+}
 
 extension npmext {
     image = "node:20"
@@ -52,4 +55,3 @@ extension npmext {
 # multiple comments at the end
 
 # multiple comments at the end
-

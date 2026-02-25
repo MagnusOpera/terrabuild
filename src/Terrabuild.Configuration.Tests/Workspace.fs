@@ -35,7 +35,7 @@ let parseWorkspace() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = None
+              Script = Some (Expr.String "scripts/dotnet.fss")
               Defaults = Map [ "configuration", Expr.Variable "local.configuration" ] |> Some
               Env = None }
         let extDocker =
@@ -43,7 +43,7 @@ let parseWorkspace() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = None
+              Script = Some (Expr.String "scripts/docker.fss")
               Defaults = None
               Env = None }
         let extNpm =
@@ -105,7 +105,7 @@ let parseWorkspace2() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = None
+              Script = Some (Expr.String "scripts/dotnet.fss")
               Defaults = Map [ "configuration1", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "toto"])
                                "configuration2", Expr.Function (Function.Item, [Expr.Variable "var.map"; Expr.String "titi"])
                                "configuration3", Expr.Function (Function.Replace, [Expr.String "toto titi"; Expr.String "toto"; Expr.String "titi"]) ] |> Some
@@ -115,7 +115,7 @@ let parseWorkspace2() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = None
+              Script = Some (Expr.String "scripts/docker.fss")
               Defaults = None
               Env =  None }
 
@@ -177,3 +177,13 @@ let duplicatedLocalIsError() =
 let duplicatedVariableIsError() =
     let content = File.ReadAllText("TestFiles/Error_Workspace_DuplicatedVariable")
     (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore) |> should (throwWithMessage "duplicated variable 'configuration'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let customExtensionWithoutScriptIsError() =
+    let content =
+        """
+workspace {}
+extension dotnet {}
+"""
+    (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore)
+    |> should (throwWithMessage "extension 'dotnet' must declare 'script'") typeof<Errors.TerrabuildException>

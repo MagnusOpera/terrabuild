@@ -178,3 +178,13 @@ let duplicatedTargetIsError() =
 let duplicatedLocalIsError() =
     let content = File.ReadAllText("TestFiles/Error_DuplicatedLocal")
     (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore) |> should (throwWithMessage "duplicated local 'app_name'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let customExtensionWithoutScriptIsError() =
+    let content =
+        """
+project {}
+extension dummy {}
+"""
+    (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
+    |> should (throwWithMessage "extension 'dummy' must declare 'script'") typeof<Errors.TerrabuildException>

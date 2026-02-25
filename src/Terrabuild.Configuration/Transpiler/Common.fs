@@ -2,8 +2,9 @@ module private Terrabuild.Configuration.Transpiler.Common
 open Terrabuild.Lang.AST
 open Terrabuild.Configuration.AST
 open Helpers
+open Errors
 
-let toExtension (block: Block) =
+let toExtension (name: string) (block: Block) =
     block
     |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "cpus"]
     |> checkAllowedNestedBlocks ["defaults"; "env"]
@@ -38,6 +39,9 @@ let toExtension (block: Block) =
             |> List.map (fun a -> (a.Name, a.Value))
             |> Map.ofList)
 
+    if name.StartsWith("@", System.StringComparison.Ordinal) |> not && script.IsNone then
+        raiseParseError $"extension '{name}' must declare 'script'"
+
     { ExtensionBlock.Image = image
       ExtensionBlock.Platform = platform
       ExtensionBlock.Variables = variables
@@ -55,5 +59,3 @@ let toLocals (block: Block) =
                     |> List.map (fun a -> (a.Name, a.Value))
                     |> Map.ofList
     variables
-
-

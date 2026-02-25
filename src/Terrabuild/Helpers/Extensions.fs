@@ -4,7 +4,9 @@ open System.IO
 open System.Net.Http
 open System.Security.Cryptography
 open System.Text
+open System.Text.RegularExpressions
 open System.Reflection
+open Microsoft.Extensions.FileSystemGlobbing
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
@@ -89,6 +91,10 @@ let terrabuildScripting =
 
 let private httpClient = new HttpClient()
 
+type private ScriptOrigin =
+    | LocalFile of fullPath: string
+    | RemoteUrl of uri: Uri
+
 let private tryGetScriptUri (value: string) =
     try
         let uri = Uri(value, UriKind.Absolute)
@@ -96,6 +102,11 @@ let private tryGetScriptUri (value: string) =
         else None
     with
     | :? UriFormatException -> None
+
+let private ensureHttpsUri (extensionName: string) (uri: Uri) =
+    if uri.Scheme <> Uri.UriSchemeHttps then
+        raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{extensionName}'"
+    uri
 
 let private isWithinWorkspace (workspaceRoot: string) (candidatePath: string) =
     let normalize (path: string) =
@@ -117,6 +128,50 @@ let private resolveLocalScriptPath (workspaceRoot: string) (script: string) =
         raiseInvalidArg $"Script '{script}' is outside workspace '{workspaceRoot}'"
     resolved
 
+let private hasWildcardCharacters (pattern: string) =
+    pattern.IndexOfAny([| '*'; '?'; '['; ']'; '!' |]) >= 0
+
+let private normalizePathForMatching (value: string) =
+    value.Replace('\\', '/').TrimStart('/')
+
+let private matchesDeniedGlob (relativePath: string) (glob: string) =
+    let relativePath = normalizePathForMatching relativePath
+    let glob = glob.Trim() |> normalizePathForMatching
+    if String.IsNullOrWhiteSpace glob then
+        false
+    elif hasWildcardCharacters glob then
+        let matcher = Matcher()
+        matcher.AddInclude(glob) |> ignore
+        matcher.Match(relativePath).HasMatches
+    else
+        relativePath = glob
+        || relativePath.StartsWith($"{glob}/", StringComparison.Ordinal)
+        || relativePath.Contains($"/{glob}/", StringComparison.Ordinal)
+        || relativePath.EndsWith($"/{glob}", StringComparison.Ordinal)
+
+let private isDeniedWorkspacePath (workspaceRoot: string) (deniedPathGlobs: string list) (path: string) =
+    let relative = FS.relativePath workspaceRoot path |> normalizePathForMatching
+    deniedPathGlobs |> List.exists (matchesDeniedGlob relative)
+
+let private resolveImportedFilePath
+    (workspaceRoot: string)
+    (deniedPathGlobs: string list)
+    (importerPath: string)
+    (importPath: string) =
+    let importerDir =
+        match Path.GetDirectoryName(importerPath) with
+        | NonNull value -> value
+        | Null -> raiseInvalidArg $"Unable to resolve importer directory for '{importerPath}'"
+    let candidatePath =
+        if Path.IsPathRooted importPath then importPath
+        else Path.Combine(importerDir, importPath)
+    let resolved = Path.GetFullPath(candidatePath)
+    if isWithinWorkspace workspaceRoot resolved |> not then
+        raiseInvalidArg $"Script import '{importPath}' from '{importerPath}' is outside workspace '{workspaceRoot}'"
+    if isDeniedWorkspacePath workspaceRoot deniedPathGlobs resolved then
+        raiseInvalidArg $"Script import '{importPath}' from '{importerPath}' resolves to denied path '{resolved}'"
+    resolved
+
 let private urlHash (value: string) =
     let bytes = Encoding.UTF8.GetBytes(value)
     using (SHA256.Create()) (fun sha ->
@@ -124,40 +179,174 @@ let private urlHash (value: string) =
         |> Array.map (fun b -> b.ToString("x2"))
         |> String.concat "")
 
-let private downloadScript (workspaceRoot: string) (uri: Uri) =
-    let extension =
-        match Path.GetExtension(uri.AbsolutePath) with
-        | null
-        | "" -> ".fss"
-        | ext -> ext
-
-    let cacheDir = Path.Combine(workspaceRoot, ".terrabuild", ".scripts")
-    Directory.CreateDirectory(cacheDir) |> ignore
-
-    let hash = urlHash (uri.AbsoluteUri)
-    let localFile = Path.Combine(cacheDir, $"{hash}{extension}")
-
+let private downloadScriptSource (uri: Uri) =
     let response = httpClient.GetAsync(uri).GetAwaiter().GetResult()
     if response.IsSuccessStatusCode |> not then
         raiseExternalError $"Failed to download script from '{uri.AbsoluteUri}' (status {(int response.StatusCode)})"
+    response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
 
-    let content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-    File.WriteAllText(localFile, content)
-    localFile
+let private sanitizePathSegment (value: string) =
+    let invalidChars = Path.GetInvalidFileNameChars() |> Set.ofArray
+    value
+    |> Seq.map (fun ch -> if invalidChars.Contains(ch) then '_' else ch)
+    |> Seq.toArray
+    |> String
+
+let private toUrlVirtualPath (workspaceRoot: string) (uri: Uri) =
+    let cacheRoot = Path.Combine(workspaceRoot, ".terrabuild", ".scripts", "url")
+    let scheme = sanitizePathSegment uri.Scheme
+    let host =
+        (if uri.IsDefaultPort then uri.Host
+         else $"{uri.Host}_{uri.Port}")
+        |> sanitizePathSegment
+    let segments =
+        uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries)
+        |> Array.map sanitizePathSegment
+        |> List.ofArray
+    let fileName, parents =
+        match segments |> List.rev with
+        | [] -> "index.fss", []
+        | head :: tail ->
+            let baseName =
+                if String.IsNullOrWhiteSpace(Path.GetExtension(head)) then $"{head}.fss"
+                else head
+            let withQuery =
+                if String.IsNullOrWhiteSpace(uri.Query) then baseName
+                else
+                    let ext = Path.GetExtension(baseName)
+                    let stem = Path.GetFileNameWithoutExtension(baseName)
+                    $"{stem}_{urlHash uri.Query}{ext}"
+            withQuery, (tail |> List.rev)
+    [ cacheRoot; scheme; host ]
+    |> List.append parents
+    |> List.append [ fileName ]
+    |> List.toArray
+    |> Path.Combine
+    |> Path.GetFullPath
+
+let private importLineRegex =
+    Regex("^([ \\t]*import[ \\t]+\")([^\"]+)(\"[ \\t]+as[ \\t]+[A-Za-z_][A-Za-z0-9_]*.*)$", RegexOptions.Compiled)
+
+let private rewriteScriptImports (source: string) (rewriteImportPath: string -> string) =
+    let newline =
+        if source.Contains("\r\n", StringComparison.Ordinal) then "\r\n"
+        else "\n"
+    source
+    |> fun text -> text.Replace("\r\n", "\n", StringComparison.Ordinal)
+    |> fun text -> text.Split('\n')
+    |> Array.map (fun line ->
+        let m = importLineRegex.Match(line)
+        if m.Success then
+            let importPath = m.Groups[2].Value
+            let rewritten = rewriteImportPath importPath
+            $"{m.Groups[1].Value}{rewritten}{m.Groups[3].Value}"
+        else
+            line)
+    |> String.concat newline
+
+let private relativeImportPath (fromFile: string) (targetFile: string) =
+    let fromDir =
+        match Path.GetDirectoryName(fromFile) with
+        | NonNull value -> value
+        | Null -> raiseInvalidArg $"Unable to resolve parent directory for script '{fromFile}'"
+    let relative = Path.GetRelativePath(fromDir, targetFile).Replace('\\', '/')
+    if relative.StartsWith(".", StringComparison.Ordinal) then relative
+    else $"./{relative}"
+
+let private originKey = function
+    | LocalFile path -> $"file:{path}"
+    | RemoteUrl uri -> $"url:{uri.AbsoluteUri}"
+
+let private loadScriptFromOriginWithIncludes
+    (workspaceRoot: string)
+    (deniedPathGlobs: string list)
+    (extensionName: string)
+    (entryOrigin: ScriptOrigin) =
+    let sourceMap = Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal)
+    let loadedOrigins = Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal)
+    let loadingOrigins = Collections.Generic.HashSet<string>(StringComparer.Ordinal)
+    let remoteSourceCache = Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal)
+
+    let rec ensureLoaded (origin: ScriptOrigin) =
+        let key = originKey origin
+        match loadedOrigins.TryGetValue(key) with
+        | true, value -> value
+        | _ ->
+            if loadingOrigins.Contains(key) then
+                raiseInvalidArg $"Detected circular script import while loading '{key}'"
+            loadingOrigins.Add(key) |> ignore
+
+            let virtualPath, rawSource =
+                match origin with
+                | LocalFile path ->
+                    path, File.ReadAllText(path)
+                | RemoteUrl uri ->
+                    let virtualPath = toUrlVirtualPath workspaceRoot uri
+                    let source =
+                        match remoteSourceCache.TryGetValue(uri.AbsoluteUri) with
+                        | true, cached -> cached
+                        | _ ->
+                            let downloaded = downloadScriptSource uri
+                            remoteSourceCache[uri.AbsoluteUri] <- downloaded
+                            downloaded
+                    virtualPath, source
+
+            let rewrittenSource =
+                rewriteScriptImports rawSource (fun importPath ->
+                    let importedOrigin =
+                        match tryGetScriptUri importPath with
+                        | Some uri ->
+                            let httpsUri = ensureHttpsUri extensionName uri
+                            RemoteUrl httpsUri
+                        | None ->
+                            match origin with
+                            | LocalFile importerPath ->
+                                let resolved = resolveImportedFilePath workspaceRoot deniedPathGlobs importerPath importPath
+                                LocalFile resolved
+                            | RemoteUrl importerUri ->
+                                let resolvedUri = Uri(importerUri, importPath) |> ensureHttpsUri extensionName
+                                RemoteUrl resolvedUri
+
+                    let importedVirtualPath = ensureLoaded importedOrigin
+                    relativeImportPath virtualPath importedVirtualPath)
+
+            let fullVirtualPath = Path.GetFullPath(virtualPath)
+            sourceMap[fullVirtualPath] <- rewrittenSource
+            loadedOrigins[key] <- fullVirtualPath
+            loadingOrigins.Remove(key) |> ignore
+            fullVirtualPath
+
+    let entryPath = ensureLoaded entryOrigin
+    let entrySource = sourceMap[entryPath]
+    let resolveImportedSource (path: string) =
+        let fullPath = Path.GetFullPath(path)
+        match sourceMap.TryGetValue(fullPath) with
+        | true, source -> Some source
+        | _ -> None
+
+    loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+        workspaceRoot
+        deniedPathGlobs
+        workspaceRoot
+        entryPath
+        entrySource
+        resolveImportedSource
 
 let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name: string) (script: string option) =
     let initScript () =
         match script with
         | Some script ->
+            if ScriptRegistry.BuiltInScriptFiles |> Map.containsKey name then
+                raiseInvalidArg $"Script override is not allowed for built-in extension '{name}'"
             match tryGetScriptUri script with
             | Some uri ->
-                if uri.Scheme <> Uri.UriSchemeHttps then
-                    raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{name}'"
-                let downloadedFile = downloadScript workspaceRoot uri
-                loadScriptWithDeniedPathGlobs workspaceRoot [ terrabuildScripting ] deniedPathGlobs downloadedFile
+                let uri = ensureHttpsUri name uri
+                loadScriptFromOriginWithIncludes workspaceRoot deniedPathGlobs name (RemoteUrl uri)
             | _ ->
                 let localScript = resolveLocalScriptPath workspaceRoot script
-                loadScriptWithDeniedPathGlobs workspaceRoot [ terrabuildScripting ] deniedPathGlobs localScript
+                if isDeniedWorkspacePath workspaceRoot deniedPathGlobs localScript then
+                    raiseInvalidArg $"Script '{script}' resolves to denied path '{localScript}'"
+                loadScriptFromOriginWithIncludes workspaceRoot deniedPathGlobs name (LocalFile localScript)
         | _ ->
             let systemScriptPath =
                 extensionCandidates name

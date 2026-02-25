@@ -235,6 +235,13 @@ let private isHttpScriptUrl (script: string) =
     with
     | :? System.UriFormatException -> false
 
+let private isProtectedBuiltInExtension (extensionName: string) =
+    ScriptRegistry.BuiltInScriptFiles |> Map.containsKey extensionName
+
+let private validateExtensionScriptOverride (extensionName: string) (script: string option) =
+    if isProtectedBuiltInExtension extensionName && script.IsSome then
+        raiseInvalidArg $"Script override is not allowed for built-in extension '{extensionName}'"
+
 
 let private buildScripts
     (options: ConfigOptions.Options)
@@ -254,10 +261,11 @@ let private buildScripts
     // load user extension
     let userScripts =
         workspaceConfig.Extensions
-        |> Map.map (fun _ ext ->
+        |> Map.map (fun extensionName ext ->
             let script =
                 ext.Script
                 |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
+            validateExtensionScriptOverride extensionName script
             match script with
             | Some script -> script |> normalizeScriptPath "" |> Some
             | _ -> None)
@@ -296,12 +304,15 @@ let private loadProjectDef
 
     let projectScripts =
         projectConfig.Extensions
-        |> Map.map (fun _ ext ->
-            ext.Script
-            |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
-            |> Option.map (fun script ->
-                if isHttpScriptUrl script then script
-                else script |> FS.workspaceRelative options.Workspace projectDir))
+        |> Map.map (fun extensionName ext ->
+            let script =
+                ext.Script
+                |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
+                |> Option.map (fun script ->
+                    if isHttpScriptUrl script then script
+                    else script |> FS.workspaceRelative options.Workspace projectDir)
+            validateExtensionScriptOverride extensionName script
+            script)
 
     let scripts =
         scripts
