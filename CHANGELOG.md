@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.17-next]
+
+
 
 - Simplify CI markdown batch detail headers to `build <hash>` (without `[members ...]`) since project members are already listed below.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.16-next...0.189.17-next
 
 ## [0.189.16-next]
 
