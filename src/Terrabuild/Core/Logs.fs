@@ -74,6 +74,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
     let buildBatchLabel (target: string) (batchId: string) =
         $"{target} batch {batchId}"
 
+    let buildBatchHashLabel (target: string) (batchId: string) =
+        $"{target} {batchId}"
+
     let getBatchProjectDirs (groupedNodes: GraphDef.Node list) =
         groupedNodes
         |> List.map (fun node -> node.ProjectDir)
@@ -134,7 +137,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let header =
                 let statusEmoji = statusEmoji representative
                 let uniqueId = stableRandomId reportId
-                let label = buildTerminalLabel reportId representative groupedNodes
+                let label =
+                    if isBatchReport reportId then buildBatchHashLabel representative.Target reportId
+                    else buildTerminalLabel reportId representative groupedNodes
                 $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {label}"
 
             let dumpLogs =

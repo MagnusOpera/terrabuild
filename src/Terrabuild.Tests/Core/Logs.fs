@@ -178,7 +178,8 @@ let ``Markdown links batch members to single batch anchor`` () =
         markdown.Contains($"[build {nodeA.ProjectDir}](#user-content-{batchAnchor}) | 2s") |> should equal true
         markdown.Contains($"[build {nodeB.ProjectDir}](#user-content-{batchAnchor}) | 2s") |> should equal true
         markdown.Contains($"[build batch {batchId}]") |> should equal false
-        markdown.Contains($"build {batchId} [src/a src/b]") |> should equal true
+        markdown.Contains($"build {batchId}") |> should equal true
+        markdown.Contains($"build {batchId} [src/a src/b]") |> should equal false
         markdown.Contains("Projects:") |> should equal false
         markdown.Contains("- src/a") |> should equal true
         markdown.Contains("- src/b") |> should equal true

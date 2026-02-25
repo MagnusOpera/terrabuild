@@ -4,8 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-## [0.189.16-next]
 
+- Simplify CI markdown batch detail headers to `build <hash>` (without `[members ...]`) since project members are already listed below.
+
+## [0.189.16-next]
 
 - Enforce extension declaration safety by requiring `script` for non-`@` extension blocks, forbidding built-in script overrides (for example `@dotnet`), and resolving FScript imports relative to importer origin (workspace file-relative or URL-relative) with workspace-boundary and deny-path checks for local files.
 
