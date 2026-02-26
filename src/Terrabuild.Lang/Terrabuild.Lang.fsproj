@@ -2,30 +2,15 @@
 
   <PropertyGroup>
     <Nullable>disable</Nullable>
-    <FsYaccOutputFolder>Gen/</FsYaccOutputFolder>
-    <FsLexOutputFolder>Gen/</FsLexOutputFolder>
   </PropertyGroup>
-
-  <ItemGroup>
-    <FsYacc Include="Parser.fsy">
-      <OtherFlags>-v --internal --module Terrabuild.Lang.Parser</OtherFlags>
-    </FsYacc>
-    <FsLex Include="Lexer.fsl">
-      <OtherFlags>--internal --module Terrabuild.Lang.Lexer --unicode</OtherFlags>
-    </FsLex>
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="AST.fs" />
-    <Compile Include="Gen/Parser.fsi" />
-    <Compile Include="Gen/Parser.fs" />
-    <Compile Include="Gen/Lexer.fs" />
+    <Compile Include="Token.fs" />
+    <Compile Include="Lexer.fs" />
+    <Compile Include="Parser.fs" />
     <Compile Include="FrontEnd.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FsLexYacc" Version="11.3.0" />
   </ItemGroup>
 
   <ItemGroup>
