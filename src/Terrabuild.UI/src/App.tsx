@@ -45,6 +45,7 @@ type ProjectStatusMap = Record<string, ProjectStatus["status"]>;
 const nodeWidth = 320;
 const nodeHeight = 120;
 const nodePadding = 32;
+const startupToastId = "workspace-startup-loading";
 
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
@@ -75,6 +76,7 @@ const layoutGraph = (nodes: Node[], edges: Edge[]) => {
 const App = () => {
   const [targets, setTargets] = useState<string[]>([]);
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
+  const [workspaceLoading, setWorkspaceLoading] = useState(true);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [graph, setGraph] = useState<GraphResponse | null>(null);
@@ -318,27 +320,48 @@ const App = () => {
   }, [selectedNodeId, effectiveColorScheme, theme, projectStatus, setNodes]);
 
   useEffect(() => {
+    let cancelled = false;
+    notifications.show({
+      id: startupToastId,
+      color: "blue",
+      title: "Collecting targets",
+      message: "Collecting workspace targets...",
+      loading: true,
+      autoClose: false,
+      withCloseButton: false,
+    });
     const load = async () => {
       try {
         const [targetsRes, projectsRes] = await Promise.all([
           fetch("/api/targets"),
           fetch("/api/projects"),
         ]);
-        if (targetsRes.ok) {
+        if (!cancelled && targetsRes.ok) {
           setTargets(await targetsRes.json());
-        } else {
+        } else if (!cancelled) {
           notifyApiUnavailable();
         }
-        if (projectsRes.ok) {
+        if (!cancelled && projectsRes.ok) {
           setProjects(await projectsRes.json());
-        } else {
+        } else if (!cancelled) {
           notifyApiUnavailable();
         }
       } catch {
-        notifyApiUnavailable();
+        if (!cancelled) {
+          notifyApiUnavailable();
+        }
+      } finally {
+        notifications.hide(startupToastId);
+        if (!cancelled) {
+          setWorkspaceLoading(false);
+        }
       }
     };
     load().catch(() => null);
+    return () => {
+      cancelled = true;
+      notifications.hide(startupToastId);
+    };
   }, []);
 
   const appendBuildParams = (params: URLSearchParams) => {
@@ -1019,6 +1042,7 @@ const App = () => {
               targets={targets}
               selectedTargets={selectedTargets}
               onTargetsChange={setSelectedTargets}
+              controlsDisabled={workspaceLoading}
               forceBuild={forceBuild}
               retryBuild={retryBuild}
               onForceBuildChange={setForceBuild}

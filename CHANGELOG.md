@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Terrabuild.UI now shows a startup toast while workspace targets/projects are being collected and keeps Build Controls disabled until that initialization completes.
+
 ## [0.189.18-next]
 
 
