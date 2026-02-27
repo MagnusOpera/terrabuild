@@ -120,10 +120,12 @@ let with_configuration configuration =
 /// <summary>Restores NuGet packages for one project or a batch solution.</summary>
 /// <param name="locked" default="true" example="&quot;true&quot;">Adds `--locked-mode`.</param>
 /// <param name="evaluate" default="false" example="&quot;true&quot;">Adds `--force-evaluate`.</param>
+/// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="args" default="" example="&quot;--no-dependencies&quot;">Extra `dotnet restore` arguments.</param>
-[<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (args: string option) =
+[<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (dependencies: bool option) (args: string option) =
   let locked = locked |> Helpers.map_true_default true "--locked-mode"
   let force_evaluate = evaluate |> Helpers.map_true "--force-evaluate"
+  let dependencies = dependencies |> Helpers.map_false "--no-dependencies"
   let args = args |> Helpers.with_args
 
   let create_command project_file =
@@ -132,6 +134,7 @@ let with_configuration configuration =
     |> Helpers.append_part project_file
     |> Helpers.append_part locked
     |> Helpers.append_part force_evaluate
+    |> Helpers.append_part dependencies
     |> Helpers.append_part args
     |> command_op
 
@@ -144,12 +147,14 @@ let with_configuration configuration =
 /// <param name="parallel" default="" example="1">Max CPU count (`-maxcpucount`).</param>
 /// <param name="log" default="false" example="true">Adds `-bl`.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before build.</param>
+/// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="version" default="" example="&quot;1.2.3&quot;">Sets MSBuild `Version`.</param>
 /// <param name="args" default="" example="&quot;--no-incremental&quot;">Extra `dotnet build` arguments.</param>
-[<export>] let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (version: string option) (args: string option) =
+[<export>] let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (dependencies: bool option) (version: string option) (args: string option) =
   let configuration = configuration |> with_configuration
   let log = log |> Helpers.map_true "-bl"
   let restore = restore |> Helpers.map_false "--no-restore"
+  let dependencies = dependencies |> Helpers.map_false "--no-dependencies"
   let maxcpucount = parallel |> Helpers.map_value (fun value -> $"-maxcpucount:{value}")
   let version = version |> Helpers.map_value (fun value -> $"-p:Version={value}")
   let args = args |> Helpers.with_args
@@ -159,6 +164,7 @@ let with_configuration configuration =
     |> Helpers.append_part "build"
     |> Helpers.append_part project_file
     |> Helpers.append_part restore
+    |> Helpers.append_part dependencies
     |> Helpers.append_part $"--configuration {configuration}"
     |> Helpers.append_part log
     |> Helpers.append_part maxcpucount
@@ -173,13 +179,15 @@ let with_configuration configuration =
 /// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before pack.</param>
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before pack.</param>
+/// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
 /// <param name="args" default="" example="&quot;--include-symbols&quot;">Extra `dotnet pack` arguments.</param>
-[<export>] let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (args: string option) =
+[<export>] let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (args: string option) =
   let configuration = configuration |> with_configuration
   let version = version |> Helpers.map_value (fun value -> $"/p:Version={value}")
   let restore = restore |> Helpers.map_false "--no-restore"
   let build = build |> Helpers.map_false "--no-build"
+  let dependencies = dependencies |> Helpers.map_false "--no-dependencies"
   let args = args |> Helpers.with_args
 
   let command =
@@ -187,6 +195,7 @@ let with_configuration configuration =
     |> Helpers.append_part "pack"
     |> Helpers.append_part restore
     |> Helpers.append_part build
+    |> Helpers.append_part dependencies
     |> Helpers.append_part $"--configuration {configuration}"
     |> Helpers.append_part version
     |> Helpers.append_part args
@@ -198,14 +207,16 @@ let with_configuration configuration =
 /// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
 /// <param name="restore" default="true" example="&quot;true&quot;">Runs restore before publish.</param>
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before publish.</param>
+/// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="runtime" default="" example="&quot;linux-x64&quot;">Runtime identifier (`--runtime`).</param>
 /// <param name="trim" default="false" example="true">Enables trimming.</param>
 /// <param name="single" default="false" example="true">Enables self-contained publish.</param>
 /// <param name="args" default="" example="&quot;--version-suffix beta&quot;">Extra `dotnet publish` arguments.</param>
-[<export>] let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
+[<export>] let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"
   let build = build |> Helpers.map_false "--no-build"
+  let dependencies = dependencies |> Helpers.map_false "--no-dependencies"
   let runtime = runtime |> Helpers.map_value (fun value -> $"-r {value}")
   let trim = trim |> Helpers.map_true "-p:PublishTrimmed=true"
   let single = single |> Helpers.map_true "--self-contained"
@@ -217,6 +228,7 @@ let with_configuration configuration =
     |> Helpers.append_part project_file
     |> Helpers.append_part restore
     |> Helpers.append_part build
+    |> Helpers.append_part dependencies
     |> Helpers.append_part $"--configuration {configuration}"
     |> Helpers.append_part runtime
     |> Helpers.append_part trim

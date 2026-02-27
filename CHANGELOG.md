@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add `dependencies` support to `@dotnet` `restore/build/pack/publish`, mapping `dependencies = false` to `--no-dependencies`, while preserving imperative `restore/build` no-flag behavior (`false` => `--no-restore` / `--no-build`).
+
 ## [0.189.17-next]
 
 
