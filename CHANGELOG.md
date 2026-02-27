@@ -183,7 +183,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.1-next]
 
-## What's Changed
 * feat: fix embedded extension location with AOT by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/384
 
 
@@ -191,7 +190,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.0-next]
 
-## What's Changed
 * Update extension descriptions and defaults
 * Migrate extensions to FScript and remove legacy extension projects by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/378
 * feat: update entitlements by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/377
