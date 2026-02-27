@@ -4,8 +4,72 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.21]
+
 - Update `make release-prepare version=X.Y.Z` to aggregate stable release notes from `Unreleased` plus all changelog sections since the previous stable tag (while keeping `-next` release-prepare behavior unchanged).
 - Update `@dotnet restore` documentation example for `args` to use `--force` (documentation-only, behavior unchanged).
+- Default Terrabuild.UI build configuration now starts with `Retry` enabled when the console opens.
+- Add a dedicated Terrabuild.UI Cache Management section (between build configuration and build details) with `Cache`/`Home` scope checkboxes, a red `Clear Cache` action, in-progress toast, and automatic graph/status reload after successful cache clearing.
+- Add GraphServer `POST /api/cache/clear` endpoint to clear selected cache scopes (`cache`, `home`) for the UI.
+- Fix Terrabuild.UI graph-node click behavior to always resolve a target and open cached logs, including first selection when no prior target was active.
+- Terrabuild.UI now shows a startup toast while workspace targets/projects are being collected and keeps Build Controls disabled until that initialization completes.
+- Terrabuild.UI now shows a loading toast and disables Build Controls while fetching graph and build status after target selection changes.
+- Add `dependencies` support to `@dotnet` `restore/build/pack/publish`, mapping `dependencies = false` to `--no-dependencies`, while preserving imperative `restore/build` no-flag behavior (`false` => `--no-restore` / `--no-build`).
+- Simplify CI markdown batch detail headers to `build <hash>` (without `[members ...]`) since project members are already listed below.
+- Enforce extension declaration safety by requiring `script` for non-`@` extension blocks, forbidding built-in script overrides (for example `@dotnet`), and resolving FScript imports relative to importer origin (workspace file-relative or URL-relative) with workspace-boundary and deny-path checks for local files.
+- Update markdown batch log summaries to list one row per project with shared batch anchors, split batch duration evenly across those project rows, and render batch detail headers in terminal style (`build <hash> [members]`) without the `Projects:` prefix.
+- Align GitHub Actions batch log labeling with local style by rendering `target batch <hash>` and listing all batch projects under a `Projects:` section in step summary details.
+- Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
+- Revert default extension build configs to debug profiles (`dotnet=Debug`, `gradle=Debug`, `cargo=dev`).
+- Fix `make docs` generation target by declaring it as `.PHONY` to avoid collisions with the `docs/` directory.
+- Fix Terraform `@terraform apply` default behavior to pass `terrabuild.planfile` when `plan` is omitted.
+- Restore extension-focused unit tests in `Terrabuild.Tests/Scripts` with one file per built-in FScript extension (`cargo`, `docker`, `dotnet`, `gradle`, `make`, `npm`, `npx`, `null`, `openapi`, `playwright`, `pnpm`, `sentry`, `shell`, `terraform`, `yarn`) covering defaults, cacheability, command rendering, and batch regressions.
+- Add expression source-location tracking (`file:line:column`) through parsing and evaluation so configuration errors report exact anchors.
+- Preserve legacy parser shape for existing consumers while using source-aware parsing in WORKSPACE/PROJECT loading paths.
+- Render configuration expression error anchors with workspace-relative file paths for clearer diagnostics in multi-project workspaces.
+- Improve local-evaluation diagnostics by including failing local names in error chaining.
+- Fix dotnet extension batching by generating one per-batch `.slnx` file in-script and using it for batched `dotnet` commands.
+- Fix dotnet local dependency discovery by querying `//ProjectReference/@Include` from XML and normalizing Windows-style separators, so graph dependencies and batching match GA behavior.
+- Remove trailing `.` in single-project dotnet command invocation to reduce debug/action log noise.
+- Deduplicate batch reporting logs so batched nodes link/report under a single batch log entry in terminal, markdown, and GitHub Actions outputs.
+- Upgrade Terrabuild FScript runtime/language to `0.57.0`.
+- Remove dotnet extension string interpolation workaround (`dq`) and rely on fixed `String.*` pipeline semantics in FScript `0.56.0`.
+- Add opt-in `UseLocalFScript=true` build switch to resolve FScript via local `../FScript` project references instead of NuGet for faster integration loops.
+- Add Makefile `flags=fscript` support to propagate `/p:UseLocalFScript=true` across `dotnet` build/test/publish/doc flows.
+- Add debug-time FScript performance profiling (phase durations, script load/cache counters, invocation/conversion totals) to diagnose configuration and graph overhead.
+- Improve FScript runtime integration performance with cached method resolution and cached object/return type converters; optimize batch `.slnx` project resolution in `dotnet.fss` to avoid unnecessary file scans.
+- Remove TargetsForTfmSpecificContentInPackage on dotnet pack.
+- Add unit tests for full configuration/graph pipeline validation covering batch and non-batch scenarios.
+- Rename `Terrabuild.Expressions` project/module to `Terrabuild.Expression` and update all solution/project references.
+- Extend expression unit tests to cover all evaluation functions and dependency extraction helpers.
+- Switch `Terrabuild.Lang` FsLexYacc generation to standard incremental build workflow (always-on `FsLex`/`FsYacc`) and remove the `make parser`/`GENERATE_PARSER` workaround.
+- Upgrade FScript runtime/language packages to `0.59.0`.
+- Upgrade Terrabuild FScript runtime/language to `0.54.2`.
+- Use FScript `HostContext.DeniedPathGlobs` and pass workspace script sandbox deny patterns from `workspace.deny`.
+- Default script sandbox deny list to `[ ".git" ]` when `workspace.deny` is not specified.
+- Add scripting tests for denied-path traversal bypass attempts and custom deny glob behavior.
+- Upgrade Terrabuild FScript runtime/language to `0.52.0`.
+- Exclude `<workspace-root>/.git/**` from FScript extension filesystem extern access.
+- Adopt FScript `String.*` helpers in built-in extension scripts where behavior is preserved.
+- Upgrade Terrabuild FScript runtime/language to `0.50.0`.
+- Align extension script/docs literal formatting to FScript compact multiline compatibility rules.
+- Upgrade Terrabuild FScript runtime/language to `0.41.0`.
+- Make extension batch support dynamic per command by requiring command handlers to return `{ Batchable; Operations }`.
+- Remove static `Batchable` descriptor/attribute semantics and update built-in extensions, protocol docs, and scripting tests accordingly.
+- Document and align extension protocol/type definitions on compact multiline record indentation style.
+- Upgrade Terrabuild FScript runtime to 0.40.0 and initialize `Env` (`ScriptName`, `Arguments`) when loading `.fss` extension scripts.
+- Fix FScript `Env` prelude injection to preserve leading `import` directives in embedded scripts.
+- Create annotated release tags in `release-prepare` so `git push --follow-tags` pushes releases
+- Update contributor workflow docs and add local architecture docs index
+- Add a usage skill guide for day-to-day Terrabuild workflows
+- Rename release helper target to `make release-prepare` to avoid implying remote push/publish
+- Revert entitlements changes.
+- Initialize changelog-driven draft release notes for tag workflows
+- Load built-in extension scripts from embedded resources only and remove filesystem fallback/copy
+- Fix embedded extension loading to preserve workspace host context in smoke-test scenarios
+- Add `make release-prepare` to automate changelog versioning, compare link, commit, and local tag creation
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.188.29...0.189.21
 
 ## [0.189.21-next]
 
