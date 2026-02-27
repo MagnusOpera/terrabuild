@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.21-next]
+
+
 - Default Terrabuild.UI build configuration now starts with `Retry` enabled when the console opens.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.20-next...0.189.21-next
 
 ## [0.189.20-next]
 
