@@ -121,7 +121,7 @@ let with_configuration configuration =
 /// <param name="locked" default="true" example="&quot;true&quot;">Adds `--locked-mode`.</param>
 /// <param name="evaluate" default="false" example="&quot;true&quot;">Adds `--force-evaluate`.</param>
 /// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
-/// <param name="args" default="" example="&quot;--no-dependencies&quot;">Extra `dotnet restore` arguments.</param>
+/// <param name="args" default="" example="&quot;--force&quot;">Extra `dotnet restore` arguments.</param>
 [<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (dependencies: bool option) (args: string option) =
   let locked = locked |> Helpers.map_true_default true "--locked-mode"
   let force_evaluate = evaluate |> Helpers.map_true "--force-evaluate"

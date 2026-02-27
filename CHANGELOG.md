@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Update `make release-prepare version=X.Y.Z` to aggregate stable release notes from `Unreleased` plus all changelog sections since the previous stable tag (while keeping `-next` release-prepare behavior unchanged).
+- Update `@dotnet restore` documentation example for `args` to use `--force` (documentation-only, behavior unchanged).
 
 ## [0.189.21-next]
 
