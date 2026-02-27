@@ -92,7 +92,7 @@ const App = () => {
   const [buildError, setBuildError] = useState<string | null>(null);
   const [buildRunning, setBuildRunning] = useState(false);
   const [forceBuild, setForceBuild] = useState(false);
-  const [retryBuild, setRetryBuild] = useState(false);
+  const [retryBuild, setRetryBuild] = useState(true);
   const [logBuild, setLogBuild] = useState(false);
   const [debugBuild, setDebugBuild] = useState(false);
   const [parallelism, setParallelism] = useState("");

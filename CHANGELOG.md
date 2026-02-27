@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Default Terrabuild.UI build configuration now starts with `Retry` enabled when the console opens.
+
 ## [0.189.20-next]
 
 
