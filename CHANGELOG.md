@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.189.18-next]
+
+
 - Add `dependencies` support to `@dotnet` `restore/build/pack/publish`, mapping `dependencies = false` to `--no-dependencies`, while preserving imperative `restore/build` no-flag behavior (`false` => `--no-restore` / `--no-build`).
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.17-next...0.189.18-next
 
 ## [0.189.17-next]
 
