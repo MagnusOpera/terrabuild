@@ -46,6 +46,7 @@ const nodeWidth = 320;
 const nodeHeight = 120;
 const nodePadding = 32;
 const startupToastId = "workspace-startup-loading";
+const graphLoadToastId = "workspace-graph-loading";
 
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
@@ -77,6 +78,7 @@ const App = () => {
   const [targets, setTargets] = useState<string[]>([]);
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [workspaceLoading, setWorkspaceLoading] = useState(true);
+  const [graphLoading, setGraphLoading] = useState(false);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [graph, setGraph] = useState<GraphResponse | null>(null);
@@ -132,6 +134,7 @@ const App = () => {
   );
   const pendingBuildLogRef = useRef(false);
   const lastApiNoticeRef = useRef(0);
+  const graphRequestSeqRef = useRef(0);
   const applyTerminalTheme = () => {
     if (!terminal.current || !terminalReady.current) {
       return;
@@ -379,18 +382,40 @@ const App = () => {
   };
 
   useEffect(() => {
+    const requestSeq = graphRequestSeqRef.current + 1;
+    graphRequestSeqRef.current = requestSeq;
+    const abortController = new AbortController();
+
     const fetchGraph = async () => {
       if (selectedTargets.length === 0) {
+        notifications.hide(graphLoadToastId);
+        setGraphLoading(false);
         setGraph(null);
         setGraphError("Select at least one target to load the graph.");
         return;
       }
+
+      setGraphLoading(true);
+      notifications.show({
+        id: graphLoadToastId,
+        color: "blue",
+        title: "Loading graph",
+        message: "Fetching graph and build status...",
+        loading: true,
+        autoClose: false,
+        withCloseButton: false,
+      });
       setGraphError(null);
       const params = new URLSearchParams();
       selectedTargets.forEach((target) => params.append("targets", target));
       selectedProjects.forEach((project) => params.append("projects", project));
       appendBuildParams(params);
-      const response = await fetch(`/api/graph?${params.toString()}`);
+      const response = await fetch(`/api/graph?${params.toString()}`, {
+        signal: abortController.signal,
+      });
+      if (requestSeq !== graphRequestSeqRef.current) {
+        return;
+      }
       if (!response.ok) {
         setGraphError(await response.text());
         setGraph(null);
@@ -400,9 +425,12 @@ const App = () => {
       setManualPositions({});
       setGraph(data);
 
-      const statusResponse = await fetch(
-        `/api/build/status?${params.toString()}`
-      );
+      const statusResponse = await fetch(`/api/build/status?${params.toString()}`, {
+        signal: abortController.signal,
+      });
+      if (requestSeq !== graphRequestSeqRef.current) {
+        return;
+      }
       if (statusResponse.ok) {
         const statusData = (await statusResponse.json()) as ProjectStatus[];
         const statusMap: ProjectStatusMap = {};
@@ -414,11 +442,31 @@ const App = () => {
         setProjectStatus({});
       }
     };
-    fetchGraph().catch(() => {
-      setGraphError("Failed to load graph.");
-      setGraph(null);
-      notifyApiUnavailable();
-    });
+    fetchGraph()
+      .catch((error: unknown) => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        if (requestSeq !== graphRequestSeqRef.current) {
+          return;
+        }
+        setGraphError("Failed to load graph.");
+        setGraph(null);
+        notifyApiUnavailable();
+      })
+      .finally(() => {
+        if (requestSeq !== graphRequestSeqRef.current) {
+          return;
+        }
+        setGraphLoading(false);
+        notifications.hide(graphLoadToastId);
+      });
+    return () => {
+      abortController.abort();
+    };
   }, [selectedTargets, selectedProjects, configuration, environment, engine]);
 
   const baseGraph = useMemo(() => {
@@ -1042,7 +1090,7 @@ const App = () => {
               targets={targets}
               selectedTargets={selectedTargets}
               onTargetsChange={setSelectedTargets}
-              controlsDisabled={workspaceLoading}
+              controlsDisabled={workspaceLoading || graphLoading}
               forceBuild={forceBuild}
               retryBuild={retryBuild}
               onForceBuildChange={setForceBuild}
