@@ -40,27 +40,12 @@ if grep -q "^## \[${version}\]$" CHANGELOG.md; then
 fi
 
 section_header="## [Unreleased]"
-
-unreleased_body="$(
-  awk -v header="$section_header" '
-    BEGIN { in_section = 0 }
-    $0 == header { in_section = 1; next }
-    /^## \[/ && in_section { exit }
-    in_section { print }
-  ' CHANGELOG.md
-)"
-
-if [[ -z "${unreleased_body//[[:space:]]/}" ]]; then
-  echo "ERROR: Unreleased section is empty."
-  exit 1
-fi
-
-if ! grep -q '^[[:space:]]*-\s\+' <<<"$unreleased_body"; then
-  echo "ERROR: Unreleased section must include at least one bullet."
-  exit 1
-fi
-
+is_next=false
 if [[ "$version" == *-next ]]; then
+  is_next=true
+fi
+
+if [[ "$is_next" == "true" ]]; then
   next_tags="$(git tag --list '*-next' | sort -Vu)"
   previous_tag="$(
     {
@@ -98,6 +83,55 @@ if [[ -z "$previous_tag" ]]; then
   exit 1
 fi
 
+unreleased_body="$(
+  awk -v header="$section_header" '
+    BEGIN { in_section = 0 }
+    $0 == header { in_section = 1; next }
+    /^## \[/ && in_section { exit }
+    in_section { print }
+  ' CHANGELOG.md
+)"
+
+section_body=""
+if [[ "$is_next" == "true" ]]; then
+  if [[ -z "${unreleased_body//[[:space:]]/}" ]]; then
+    echo "ERROR: Unreleased section is empty."
+    exit 1
+  fi
+  if ! grep -q '^[[:space:]]*-\s\+' <<<"$unreleased_body"; then
+    echo "ERROR: Unreleased section must include at least one bullet."
+    exit 1
+  fi
+  section_body="$unreleased_body"
+else
+  if ! grep -q "^## \[${previous_tag}\]$" CHANGELOG.md; then
+    echo "ERROR: CHANGELOG section '## [${previous_tag}]' not found."
+    exit 1
+  fi
+  stable_source="$(
+    awk -v prev="$previous_tag" '
+      BEGIN { in_section = 0 }
+      $0 == "## [Unreleased]" { in_section = 1; next }
+      in_section && $0 == ("## [" prev "]") { exit }
+      in_section { print }
+    ' CHANGELOG.md
+  )"
+  section_body="$(
+    awk '
+      BEGIN { in_bullet = 0 }
+      /^## \[/ { in_bullet = 0; next }
+      /^\*\*Full Changelog\*\*:/ { in_bullet = 0; next }
+      /^[[:space:]]*-[[:space:]]+/ { print; in_bullet = 1; next }
+      in_bullet && /^[[:space:]]{2,}\S/ { print; next }
+      { in_bullet = 0 }
+    ' <<<"$stable_source"
+  )"
+  if [[ -z "${section_body//[[:space:]]/}" ]]; then
+    echo "ERROR: No release bullets found to aggregate since stable tag '${previous_tag}'."
+    exit 1
+  fi
+fi
+
 compare_link="**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/${previous_tag}...${version}"
 
 tmp_dir="$(mktemp -d)"
@@ -122,7 +156,7 @@ awk '
 {
   echo "## [${version}]"
   echo ""
-  printf "%s\n" "$unreleased_body"
+  printf "%s\n" "$section_body"
   echo ""
   echo "$compare_link"
 } > "$new_section_file"
@@ -155,6 +189,11 @@ fi
 
 if [[ "$dryrun" == "true" ]]; then
   echo "[DRY RUN] Would update CHANGELOG.md, commit and create annotated tag '${version}'."
+  if [[ "$is_next" == "true" ]]; then
+    echo "[DRY RUN] Mode: preview (Unreleased-only notes)."
+  else
+    echo "[DRY RUN] Mode: stable aggregation (Unreleased + sections since previous stable)."
+  fi
   echo "[DRY RUN] Previous tag: ${previous_tag}"
   echo "[DRY RUN] Compare link: ${compare_link}"
   exit 0
