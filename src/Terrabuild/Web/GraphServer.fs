@@ -36,6 +36,11 @@ type BuildRequest = {
     Environment: string option
 }
 
+type ClearCacheRequest = {
+    Cache: bool option
+    Home: bool option
+}
+
 type ProjectInfo = {
     Id: string
     Name: string option
@@ -477,6 +482,37 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
                     |> Seq.toList
                 let json = Json.Serialize statuses
                 return Results.Text(json, "application/json")
+        }))
+    |> ignore
+
+    app.MapPost("/api/cache/clear", Func<HttpContext, Task<IResult>>(fun ctx ->
+        task {
+            let! body = readBody ctx
+            let requestResult =
+                try
+                    Json.Deserialize<ClearCacheRequest> body |> Ok
+                with ex ->
+                    Error ex.Message
+            match requestResult with
+            | Error err ->
+                return Results.BadRequest(err)
+            | Ok request ->
+                let clearCache = request.Cache |> Option.defaultValue false
+                let clearHome = request.Home |> Option.defaultValue false
+                if not clearCache && not clearHome then
+                    return Results.BadRequest("Select at least one cache scope.")
+                else
+                    try
+                        lock workspaceLock (fun () ->
+                            if clearCache then Cache.clearCache()
+                            if clearHome then Cache.clearHomeCache()
+                        )
+                        let cleared =
+                            [ if clearCache then "cache"
+                              if clearHome then "home" ]
+                        return Results.Json {| cleared = cleared |}
+                    with ex ->
+                        return Results.Problem(ex.Message)
         }))
     |> ignore
 

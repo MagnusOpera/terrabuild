@@ -25,6 +25,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import BuildControlsPanel from "./components/BuildControlsPanel";
+import CacheManagementPanel from "./components/CacheManagementPanel";
 import BuildDetailsPanel from "./components/BuildDetailsPanel";
 import BuildLogPanel from "./components/BuildLogPanel";
 import GraphPanel from "./components/GraphPanel";
@@ -47,6 +48,7 @@ const nodeHeight = 120;
 const nodePadding = 32;
 const startupToastId = "workspace-startup-loading";
 const graphLoadToastId = "workspace-graph-loading";
+const clearCacheToastId = "workspace-clear-cache-loading";
 
 const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   const graph = new dagre.graphlib.Graph();
@@ -79,8 +81,12 @@ const App = () => {
   const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [workspaceLoading, setWorkspaceLoading] = useState(true);
   const [graphLoading, setGraphLoading] = useState(false);
+  const [graphReloadVersion, setGraphReloadVersion] = useState(0);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [clearCacheChecked, setClearCacheChecked] = useState(false);
+  const [clearHomeChecked, setClearHomeChecked] = useState(false);
+  const [clearCacheRunning, setClearCacheRunning] = useState(false);
   const [graph, setGraph] = useState<GraphResponse | null>(null);
   const [graphError, setGraphError] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -467,7 +473,14 @@ const App = () => {
     return () => {
       abortController.abort();
     };
-  }, [selectedTargets, selectedProjects, configuration, environment, engine]);
+  }, [
+    selectedTargets,
+    selectedProjects,
+    configuration,
+    environment,
+    engine,
+    graphReloadVersion,
+  ]);
 
   const baseGraph = useMemo(() => {
     if (!graph) {
@@ -777,6 +790,66 @@ const App = () => {
     }
   };
 
+  const clearCache = async () => {
+    if (clearCacheRunning || buildRunning) {
+      return;
+    }
+    if (!clearCacheChecked && !clearHomeChecked) {
+      return;
+    }
+    setClearCacheRunning(true);
+    notifications.show({
+      id: clearCacheToastId,
+      color: "blue",
+      title: "Clearing cache",
+      message: "Clearing selected cache scopes...",
+      loading: true,
+      autoClose: false,
+      withCloseButton: false,
+    });
+    try {
+      const response = await fetch("/api/cache/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cache: clearCacheChecked,
+          home: clearHomeChecked,
+        }),
+      });
+      if (!response.ok) {
+        notifications.show({
+          color: "red",
+          title: "Cache clear failed",
+          message: await response.text(),
+        });
+        return;
+      }
+      const clearedScopes = [
+        clearCacheChecked ? "cache" : null,
+        clearHomeChecked ? "home" : null,
+      ].filter((value): value is string => value !== null);
+      notifications.show({
+        color: "green",
+        title: "Cache cleared",
+        message: `Cleared ${clearedScopes.join(" and ")}.`,
+      });
+      setClearCacheChecked(false);
+      setClearHomeChecked(false);
+      setNodeResults({});
+      setGraphReloadVersion((value) => value + 1);
+    } catch {
+      notifyApiUnavailable();
+      notifications.show({
+        color: "red",
+        title: "Cache clear failed",
+        message: "Unable to clear cache.",
+      });
+    } finally {
+      notifications.hide(clearCacheToastId);
+      setClearCacheRunning(false);
+    }
+  };
+
   const startBuild = async () => {
     if (selectedTargets.length === 0 || buildRunning) {
       return;
@@ -870,7 +943,6 @@ const App = () => {
 
   const loadProjectResults = async (project: ProjectNode) => {
     const previousTargetKey = selectedTargetKeyRef.current;
-    const shouldSyncLog = previousTargetKey !== null;
     activeProjectRef.current = project.id;
     setSelectedProject(project);
     setSelectedNodeId(project.id);
@@ -897,13 +969,13 @@ const App = () => {
     if (activeProjectRef.current !== project.id) {
       return;
     }
-    if (!shouldSyncLog || project.targets.length === 0) {
+    if (project.targets.length === 0) {
       return;
     }
-    const [_, selectedTargetName] = previousTargetKey.split("/", 3);
-    const matchingTarget = project.targets.find(
-      (target) => target.target === selectedTargetName
-    );
+    const selectedTargetName = previousTargetKey?.split("/", 3)[1];
+    const matchingTarget = selectedTargetName
+      ? project.targets.find((target) => target.target === selectedTargetName)
+      : undefined;
     const resultsLookup = { ...nodeResults, ...freshResults };
     const fallbackTarget = project.targets.reduce((newest, candidate) => {
       if (!newest) {
@@ -1114,6 +1186,23 @@ const App = () => {
               buildError={buildError}
               onStartBuild={startBuild}
               onCopyBuildCommand={copyBuildCommand}
+            />
+
+            <CacheManagementPanel
+              clearCache={clearCacheChecked}
+              clearHome={clearHomeChecked}
+              onClearCacheChange={setClearCacheChecked}
+              onClearHomeChange={setClearHomeChecked}
+              onClearCache={clearCache}
+              clearCacheDisabled={
+                clearCacheRunning ||
+                buildRunning ||
+                workspaceLoading ||
+                graphLoading ||
+                (!clearCacheChecked && !clearHomeChecked)
+              }
+              clearCacheRunning={clearCacheRunning}
+              disabled={workspaceLoading || graphLoading}
             />
 
             <BuildDetailsPanel

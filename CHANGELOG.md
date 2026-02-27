@@ -4,6 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add a dedicated Terrabuild.UI Cache Management section (between build configuration and build details) with `Cache`/`Home` scope checkboxes, a red `Clear Cache` action, in-progress toast, and automatic graph/status reload after successful cache clearing.
+- Add GraphServer `POST /api/cache/clear` endpoint to clear selected cache scopes (`cache`, `home`) for the UI.
+- Fix Terrabuild.UI graph-node click behavior to always resolve a target and open cached logs, including first selection when no prior target was active.
+
 ## [0.189.19-next]
 
 
