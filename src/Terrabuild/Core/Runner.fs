@@ -165,11 +165,31 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
     cmdLastSuccess, lastStatusCode, (stepLogs |> List.ofSeq)
 
+let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode: GraphDef.Node) (membersOpt: Set<string> option) =
+    [ match membersOpt with
+      | Some members ->
+          if flattenBatchProgress then
+              yield! members |> Seq.map (fun nodeId ->
+                  let n = graph.Nodes[nodeId]
+                  (n.Id, $"{targetNode.Target} {n.ProjectDir}"))
+          else
+              (targetNode.Id, $"{targetNode.Target}")
+              yield! members |> Seq.map (fun nodeId ->
+                  let n = graph.Nodes[nodeId]
+                  (n.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {n.ProjectDir}"))
+      | None ->
+          (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
+
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
 
     let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
+    let flattenBatchProgress =
+        options.LogTypes
+        |> List.exists (function
+            | Contracts.GitHubActions -> true
+            | _ -> false)
     buildProgress.BuildStarted()
     api |> Option.iter (fun api -> api.StartBuild())
 
@@ -321,7 +341,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let batchExecNode (batchNode: GraphDef.Node) =
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing batch", batchNode.Id)
-        buildProgress.TaskBuilding batchNode.Id
+        if not flattenBatchProgress then
+            buildProgress.TaskBuilding batchNode.Id
 
         let batchId = batchNode.Id
         let members = graph.Batches[batchId]
@@ -406,10 +427,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         match status with
         | TaskStatus.Success _ ->
             Log.Debug("{NodeId} is successful", batchNode.Id)
-            buildProgress.TaskCompleted batchNode.Id false true
+            if not flattenBatchProgress then
+                buildProgress.TaskCompleted batchNode.Id false true
         | _ ->
             Log.Debug("{NodeId} has failed", batchNode.Id)
-            buildProgress.TaskCompleted batchNode.Id false false
+            if not flattenBatchProgress then
+                buildProgress.TaskCompleted batchNode.Id false false
 
     // ----------------------------
     // scheduling
@@ -446,16 +469,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | GraphDef.RunAction.Ignore -> hub.SubscribeBackground
 
             subscribe targetNode.Id schedDependencies (fun () ->
-                let batchSchedule =
-                    [ match membersOpt with
-                      | Some members ->
-                          (targetNode.Id, $"{targetNode.Target}")
-                          yield! members |> Seq.map (fun nodeId ->
-                              let n = graph.Nodes[nodeId]
-                              (n.Id, $" {Ansi.Styles.dimwhite}⦙{Ansi.Styles.reset} {n.ProjectDir}"))
-                      | None ->
-                          (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
-
+                let batchSchedule = buildBatchSchedule flattenBatchProgress graph targetNode membersOpt
                 buildProgress.BatchScheduled batchSchedule
 
                 match targetNode.Action with

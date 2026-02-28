@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Flatten GitHub live batch progress output to one status line per project (for example `install apps/Api`) and remove nested `⦙` hierarchy rows while keeping progress indicators.
+
 ## [0.189.21]
 
 - Update `make release-prepare version=X.Y.Z` to aggregate stable release notes from `Unreleased` plus all changelog sections since the previous stable tag (while keeping `-next` release-prepare behavior unchanged).
