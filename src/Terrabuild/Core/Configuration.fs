@@ -318,10 +318,9 @@ let private loadProjectDef
         scripts
         |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace scriptDeniedPathGlobs))
 
-    let evalAsStringSet expr =
+    let evalAsStringSetOption expr =
         expr
         |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
-        |> Option.defaultValue Set.empty
 
     let parseContext = 
         let context = { Terrabuild.ScriptingContracts.ExtensionContext.Debug = options.Debug
@@ -439,13 +438,11 @@ let private loadProjectDef
                 format_project_id SCOPE_PATH relativeWks)
 
     let projectIncludes =
-        projectScripts
-        |> Seq.choose (fun (KeyValue(_, script)) -> script)
-        |> Set.ofSeq
-        |> Set.union (projectConfig.Project.Includes |> evalAsStringSet)
+        let defaultIncludes = projectScripts |> Seq.choose (fun (KeyValue(_, script)) -> script) |> Set.ofSeq
+        projectConfig.Project.Includes |> evalAsStringSetOption |> Option.defaultValue defaultIncludes
 
-    let projectIgnores = projectConfig.Project.Ignores |> evalAsStringSet
-    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSet |> Set.union defaultsProjectInfo.Outputs
+    let projectIgnores = projectConfig.Project.Ignores |> evalAsStringSetOption |> Option.defaultValue Set.empty
+    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSetOption |> Option.defaultValue defaultsProjectInfo.Outputs
 
     // enrich workspace locals with project locals
     // NOTE we are checking for duplicated fields as this is an error

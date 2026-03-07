@@ -95,12 +95,21 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>)
 type private FakeCache(root: string) =
     let completed = ResizeArray<string>()
     let entries = Dictionary<string, FakeEntry>()
+    let summaries = Dictionary<string, Cache.TargetSummary>()
 
     member _.Completed = completed |> Seq.toList
+    member _.SetSummary(id, summary) = summaries[id] <- summary
 
     interface Cache.ICache with
-        member _.TryGetSummaryOnly _useRemote _id = None
-        member _.TryGetSummary _useRemote _id = None
+        member _.TryGetSummaryOnly _useRemote id =
+            match summaries.TryGetValue(id) with
+            | true, summary -> Some (Cache.Origin.Local, summary)
+            | _ -> None
+
+        member _.TryGetSummary _useRemote id =
+            match summaries.TryGetValue(id) with
+            | true, summary -> Some summary
+            | _ -> None
 
         member _.GetEntry _useRemote id =
             match entries.TryGetValue(id) with
@@ -215,3 +224,76 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         summary.Nodes[execMember.Id].Status.IsSuccess |> should equal expectedSuccess
         summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess)
+
+[<Test>]
+let ``run restores cached lazy dependencies pulled by executable roots`` () =
+    withTempWorkspace (fun workspace ->
+        let genProjectDir = Path.Combine(workspace, "gen")
+        let buildProjectDir = Path.Combine(workspace, "build")
+        Directory.CreateDirectory(genProjectDir) |> ignore
+        Directory.CreateDirectory(buildProjectDir) |> ignore
+
+        let genNode =
+            { buildNode "gen" genProjectDir "gen" GraphDef.RunAction.Restore []
+                with Build = GraphDef.BuildMode.Lazy
+                     Outputs = Set [ "generated.txt" ] }
+
+        let operation =
+            { GraphDef.ContaineredShellOperation.Image = None
+              GraphDef.ContaineredShellOperation.Platform = None
+              GraphDef.ContaineredShellOperation.Cpus = None
+              GraphDef.ContaineredShellOperation.Variables = Set.empty
+              GraphDef.ContaineredShellOperation.Envs = Map.empty
+              GraphDef.ContaineredShellOperation.MetaCommand = "test"
+              GraphDef.ContaineredShellOperation.Command = "/usr/bin/true"
+              GraphDef.ContaineredShellOperation.Arguments = ""
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
+
+        let buildNode =
+            { buildNode "build" buildProjectDir "build" GraphDef.RunAction.Exec [ operation ]
+                with Dependencies = Set [ genNode.Id ]
+                     Outputs = Set [ "compiled.txt" ] }
+
+        let graph =
+            { GraphDef.Graph.Nodes =
+                [ genNode.Id, genNode
+                  buildNode.Id, buildNode ] |> Map.ofList
+              GraphDef.Graph.RootNodes = Set [ buildNode.Id ]
+              GraphDef.Graph.Batches = Map.empty }
+
+        let cache = FakeCache(workspace)
+        let api = FakeApiClient()
+
+        let makeSummary (node: GraphDef.Node) (filename: string) (content: string) =
+            let cacheOutputs = Path.Combine(workspace, $"cache-{node.Id}")
+            Directory.CreateDirectory(cacheOutputs) |> ignore
+            File.WriteAllText(Path.Combine(cacheOutputs, filename), content)
+            { Cache.TargetSummary.Project = node.ProjectDir
+              Cache.TargetSummary.Target = node.Target
+              Cache.TargetSummary.Operations = []
+              Cache.TargetSummary.Outputs = Some cacheOutputs
+              Cache.TargetSummary.IsSuccessful = true
+              Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+              Cache.TargetSummary.EndedAt = DateTime.UtcNow
+              Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+              Cache.TargetSummary.Cache = node.Artifacts }
+
+        cache.SetSummary(GraphDef.buildCacheKey genNode, makeSummary genNode "generated.txt" "gen-output")
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph
+
+        File.ReadAllText(Path.Combine(genProjectDir, "generated.txt")) |> should equal "gen-output"
+        cache.Completed |> should equal [ GraphDef.buildCacheKey buildNode ]
+        api.AddCalls.Length |> should equal 1
+        api.AddCalls[0] |> should equal (
+            buildNode.ProjectDir,
+            buildNode.Target,
+            buildNode.ProjectHash,
+            buildNode.TargetHash,
+            [ $"artifact-{GraphDef.buildCacheKey buildNode}" ],
+            true)
+        api.UseCalls |> should equal [ (genNode.ProjectHash, genNode.TargetHash) ]
+
+        summary.Nodes[genNode.Id].Request |> should equal Runner.TaskRequest.Restore
+        summary.Nodes[buildNode.Id].Request |> should equal Runner.TaskRequest.Exec
+        summary.Nodes[genNode.Id].Status.IsSuccess |> should equal true
+        summary.Nodes[buildNode.Id].Status.IsSuccess |> should equal true)
