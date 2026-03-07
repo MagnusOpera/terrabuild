@@ -382,36 +382,40 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 let node = graph.Nodes[nodeId]
-
-                // copy log files
-                let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
-                IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
-
-                let outputs =
-                    match node.Artifacts with
-                    | GraphDef.ArtifactMode.Workspace
-                    | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
-                        let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                        IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
-                    | _ -> None
-
                 buildProgress.TaskUploading node.Id
 
-                let summary =
-                    { Cache.TargetSummary.Project = node.ProjectDir
-                      Cache.TargetSummary.Target = node.Target
-                      Cache.TargetSummary.Operations = [ stepLogs ]
-                      Cache.TargetSummary.Outputs = outputs
-                      Cache.TargetSummary.IsSuccessful = successful
-                      Cache.TargetSummary.StartedAt = startedAt
-                      Cache.TargetSummary.EndedAt = endedAt
-                      Cache.TargetSummary.Duration = duration
-                      Cache.TargetSummary.Cache = node.Artifacts }
+                match node.Action with
+                | GraphDef.RunAction.Restore ->
+                    nodeResults[nodeId] <- (TaskRequest.Restore, status)
+                    api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                | _ ->
+                    // copy logs only for members that publish a new cache entry
+                    let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
+                    IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
 
-                nodeResults[nodeId] <- (TaskRequest.Exec, status)
+                    let outputs =
+                        match node.Artifacts with
+                        | GraphDef.ArtifactMode.Workspace
+                        | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
+                            let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                            IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                        | _ -> None
 
-                let files = cacheEntry.Complete summary
-                api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
+                    let summary =
+                        { Cache.TargetSummary.Project = node.ProjectDir
+                          Cache.TargetSummary.Target = node.Target
+                          Cache.TargetSummary.Operations = [ stepLogs ]
+                          Cache.TargetSummary.Outputs = outputs
+                          Cache.TargetSummary.IsSuccessful = successful
+                          Cache.TargetSummary.StartedAt = startedAt
+                          Cache.TargetSummary.EndedAt = endedAt
+                          Cache.TargetSummary.Duration = duration
+                          Cache.TargetSummary.Cache = node.Artifacts }
+
+                    nodeResults[nodeId] <- (TaskRequest.Exec, status)
+
+                    let files = cacheEntry.Complete summary
+                    api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
 
                 match status with
                 | TaskStatus.Success completionDate ->
