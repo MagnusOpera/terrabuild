@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.190.1-next]
+
+
 - Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.0-next...0.190.1-next
 
 ## [0.190.0-next]
 
