@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.190.0-next]
+
+
 - Reuse existing artifacts for batched `Restore` members by linking them to the current build with `use-artifact` instead of republishing cache/artifact state after batch execution.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.21-next...0.190.0-next
 
 ## [0.189.22]
 
