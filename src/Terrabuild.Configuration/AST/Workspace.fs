@@ -16,7 +16,7 @@ type WorkspaceBlock =
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
-    { Outputs: Expr option
+    { Outputs: OutputOperation list
       DependsOn: Set<string> option
       Build: Expr option
       Cache: Expr option

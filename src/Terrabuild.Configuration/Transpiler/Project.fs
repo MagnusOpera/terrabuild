@@ -28,6 +28,7 @@ let (|Project|Extension|Target|Locals|UnknownBlock|) (block: Block) =
 let toProject (block: Block) =
     block
     |> checkAllowedAttributes ["depends_on"; "outputs"; "ignores"; "includes"; "labels"; "environments"]
+    |> checkAllowedAttributeOperators ["outputs"]
     |> ignore
 
     let dependsOn =
@@ -39,7 +40,7 @@ let toProject (block: Block) =
                 match dependency with
                 | String.Regex "^project\.(.*)$" [_] -> dependency
                 | _ -> raiseInvalidArg $"Invalid project dependency '{dependency}'"))
-    let outputs = block |> tryFindAttribute "outputs"
+    let outputs = block |> findOutputOperations
     let ignores = block |> tryFindAttribute "ignores"
     let includes = block |> tryFindAttribute "includes"
 
@@ -76,9 +77,10 @@ let toProject (block: Block) =
 let toTarget (block: Block) =
     block
     |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"]
+    |> checkAllowedAttributeOperators ["outputs"]
     |> ignore
 
-    let outputs = block |> tryFindAttribute "outputs"
+    let outputs = block |> findOutputOperations
     let dependsOn =
         block |> tryFindAttribute "depends_on"
         |> Option.map Dependencies.findArrayOfDependencies
@@ -130,7 +132,7 @@ let transpile (blocks: Block list) =
                             ProjectBlock.Name = None
                             ProjectBlock.Initializers = Set.empty
                             ProjectBlock.DependsOn = None
-                            ProjectBlock.Outputs = None
+                            ProjectBlock.Outputs = []
                             ProjectBlock.Ignores = None
                             ProjectBlock.Includes = None
                             ProjectBlock.Labels = Set.empty

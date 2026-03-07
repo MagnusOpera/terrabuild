@@ -406,3 +406,63 @@ target gen {
 
         genNode.Action |> should equal RunAction.Exec
         graphAction.RootNodes |> should equal Set.empty<string>)
+
+[<Test>]
+let ``Configuration read resolves project outputs operators against inferred defaults`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a {
+  outputs += [ "generated/**" ]
+  outputs -= [ "obj/" ]
+  @dotnet {}
+}
+
+target build {
+  @dotnet build {}
+}
+"""
+        writeDotnetProject workspace "src/a" "a" []
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let _, config = Configuration.read options
+        let project = config.Projects["workspace/path#src/a"]
+
+        project.Targets["build"].Outputs
+        |> should equal (Set [ "bin/"; "**/*.binlog"; "generated/**" ]))
+
+[<Test>]
+let ``Configuration read resolves workspace and project target outputs operators in order`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  outputs += [ "workspace/**" ]
+  outputs -= [ "obj/" ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a {
+  @dotnet {}
+}
+
+target build {
+  outputs += [ "project/**" ]
+  outputs = [ "reset/**" ]
+  outputs += [ "final/**" ]
+  @dotnet build {}
+}
+"""
+        writeDotnetProject workspace "src/a" "a" []
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let _, config = Configuration.read options
+        let project = config.Projects["workspace/path#src/a"]
+
+        project.Targets["build"].Outputs
+        |> should equal (Set [ "reset/**"; "final/**" ]))

@@ -15,6 +15,8 @@ type token =
   | DIV
   | COMMA
   | EQUAL
+  | PLUS_EQUAL
+  | MINUS_EQUAL
   | DOUBLE_EQUAL
   | NOT_EQUAL
   | LPAREN
@@ -49,6 +51,8 @@ type tokenId =
     | TOKEN_DIV
     | TOKEN_COMMA
     | TOKEN_EQUAL
+    | TOKEN_PLUS_EQUAL
+    | TOKEN_MINUS_EQUAL
     | TOKEN_DOUBLE_EQUAL
     | TOKEN_NOT_EQUAL
     | TOKEN_LPAREN
@@ -75,6 +79,7 @@ type nonTerminalId =
     | NONTERM_File
     | NONTERM_Attributes
     | NONTERM_Attribute
+    | NONTERM_AssignmentOperator
     | NONTERM_Blocks
     | NONTERM_Block
     | NONTERM_BlockContent

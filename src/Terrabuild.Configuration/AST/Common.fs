@@ -1,5 +1,10 @@
 namespace Terrabuild.Configuration.AST
 open Terrabuild.Expression
+open Terrabuild.Lang.AST
+
+type OutputOperation =
+    { Operator: AssignmentOperator
+      Value: Expr }
 
 type ExtensionBlock =
     { Image: Expr option

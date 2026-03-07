@@ -5,21 +5,31 @@ open System.IO
 open NUnit.Framework
 open FsUnit
 
+let private attr name value =
+    { Attribute.Name = name
+      Attribute.Operator = AssignmentOperator.Assign
+      Attribute.Value = value }
+
+let private attrWith operator name value =
+    { Attribute.Name = name
+      Attribute.Operator = operator
+      Attribute.Value = value }
+
 [<Test>]
 let checkValidSyntax() =
     let expected = 
         { File.Blocks =
             [ { Block.Resource = "toplevelblock"
                 Block.Id = None
-                Block.Attributes = [ { Attribute.Name = "attribute1"; Attribute.Value = Expr.String "42" }
-                                     { Attribute.Name = "attribute2"; Attribute.Value = Expr.Variable "local.value" }]
+                Block.Attributes = [ attr "attribute1" (Expr.String "42")
+                                     attr "attribute2" (Expr.Variable "local.value") ]
                 Block.Blocks = [ { Block.Resource = "innerblock"
                                    Block.Id = None
-                                   Block.Attributes = [ { Attribute.Name = "innerattribute"; Value = Expr.Number 666 }]
+                                   Block.Attributes = [ attr "innerattribute" (Expr.Number 666) ]
                                    Block.Blocks = [] }
                                  { Block.Resource = "innerblock_with_type"
                                    Block.Id = Some "type"
-                                   Block.Attributes = [ { Attribute.Name = "inner_attribute"; Attribute.Value = Expr.Number -20 }]
+                                   Block.Attributes = [ attr "inner_attribute" (Expr.Number -20) ]
                                    Block.Blocks = [] } ] }
               { Block.Resource = "other_block_with_type"
                 Block.Id = Some "type"
@@ -27,72 +37,66 @@ let checkValidSyntax() =
                 Block.Blocks = [] }
               { Block.Resource = "locals"
                 Block.Id = None
-                Block.Attributes = [ { Attribute.Name = "string"; Attribute.Value = Expr.String "toto" }
-                                     { Attribute.Name = "number"; Attribute.Value = Expr.Number 42 }
-                                     { Attribute.Name = "negative_number"; Attribute.Value = Expr.Number -42 }
-                                     { Attribute.Name = "map"; Attribute.Value = Expr.Map (Map [("a", Expr.Number 42)
-                                                                                                ("b", Expr.Number 666)]) }
-                                     { Attribute.Name = "list"; Attribute.Value = Expr.List [Expr.String "a"
-                                                                                             Expr.String "b"] }
-                                     { Attribute.Name = "literal_bool_true"; Attribute.Value = Expr.Bool true }
-                                     { Attribute.Name = "literal_bool_false"; Attribute.Value = Expr.Bool false }
-                                     { Attribute.Name = "literal_nothing"; Attribute.Value = Expr.Nothing }
-                                     { Attribute.Name = "interpolated_string"; Attribute.Value = Expr.Function(Function.ToString,
-                                                                                                               [Expr.Function (Function.Format,
-                                                                                                                               [Expr.String "{0}{1}"
-                                                                                                                                Expr.String "toto "
-                                                                                                                                Expr.Function (Function.Plus,
-                                                                                                                                               [Expr.Variable "local.var"; Expr.Number 42])])]) }
-                                     { Attribute.Name = "data"; Value = Expr.Variable "var.titi" }
-                                     { Attribute.Name = "data_index"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.Number 42]) }
-                                     { Attribute.Name = "data_index_name"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]) }
-                                     { Attribute.Name = "data_item"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]) }
+                Block.Attributes = [ attr "string" (Expr.String "toto")
+                                     attr "number" (Expr.Number 42)
+                                     attr "negative_number" (Expr.Number -42)
+                                     attr "map" (Expr.Map (Map [("a", Expr.Number 42)
+                                                                ("b", Expr.Number 666)]))
+                                     attr "list" (Expr.List [Expr.String "a"; Expr.String "b"])
+                                     attr "literal_bool_true" (Expr.Bool true)
+                                     attr "literal_bool_false" (Expr.Bool false)
+                                     attr "literal_nothing" Expr.Nothing
+                                     attr "interpolated_string" (Expr.Function(Function.ToString,
+                                                                              [Expr.Function (Function.Format,
+                                                                                              [Expr.String "{0}{1}"
+                                                                                               Expr.String "toto "
+                                                                                               Expr.Function (Function.Plus,
+                                                                                                              [Expr.Variable "local.var"; Expr.Number 42])])]))
+                                     attr "data" (Expr.Variable "var.titi")
+                                     attr "data_index" (Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.Number 42]))
+                                     attr "data_index_name" (Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]))
+                                     attr "data_item" (Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]))
 
-                                     { Attribute.Name = "bool_equal"; Value = Expr.Function (Function.Equal, [Expr.Number 42; Expr.Number 666]) }
-                                     { Attribute.Name = "bool_not_equal"; Attribute.Value = Expr.Function (Function.NotEqual, [Expr.Number 42; Expr.Number 666]) }
-                                     { Attribute.Name = "bool_and"; Value = Expr.Function (Function.And, [Expr.Bool true; Expr.Bool false]) }
-                                     { Attribute.Name = "bool_or"; Attribute.Value = Expr.Function (Function.Or, [Expr.Bool true; Expr.Bool false]) }
-                                     { Attribute.Name = "bool_not"; Attribute.Value = Expr.Function (Function.Not, [Expr.Bool false]) }
+                                     attr "bool_equal" (Expr.Function (Function.Equal, [Expr.Number 42; Expr.Number 666]))
+                                     attr "bool_not_equal" (Expr.Function (Function.NotEqual, [Expr.Number 42; Expr.Number 666]))
+                                     attr "bool_and" (Expr.Function (Function.And, [Expr.Bool true; Expr.Bool false]))
+                                     attr "bool_or" (Expr.Function (Function.Or, [Expr.Bool true; Expr.Bool false]))
+                                     attr "bool_not" (Expr.Function (Function.Not, [Expr.Bool false]))
 
-                                     { Attribute.Name = "regex"; Attribute.Value = Expr.Function (Function.RegexMatch, [Expr.String "^prod.*"; Expr.String "prodfr"]) }
+                                     attr "regex" (Expr.Function (Function.RegexMatch, [Expr.String "^prod.*"; Expr.String "prodfr"]))
 
-                                     { Attribute.Name = "expr_math_op"; Attribute.Value = Expr.Function(Function.Minus,
-                                                                                                        [Expr.Function(Function.Plus,
-                                                                                                                       [Expr.Function (Function.Plus,
-                                                                                                                                       [Expr.Number 1
-                                                                                                                                        Expr.Function (Function.Mult,
-                                                                                                                                                       [Expr.Number 42
-                                                                                                                                                        Expr.Number 2])])
-                                                                                                                        Expr.Function (Function.Div,
-                                                                                                                                       [Expr.Number 4
-                                                                                                                                        Expr.Number 4])])
-                                                                                                         Expr.Number 3]) }
-                                     { Attribute.Name = "expr_bool_op"; Attribute.Value = Expr.Function(Function.Equal,
-                                                                                                        [Expr.Function
-                                                                                                            (Function.Equal,
-                                                                                                             [Expr.Function (Function.Plus,
-                                                                                                                             [Expr.Number 1
-                                                                                                                              Expr.Number 42])
-                                                                                                              Expr.Function (Function.Plus,
-                                                                                                                             [Expr.Number 42
-                                                                                                                              Expr.Number 1])])
-                                                                                                         Expr.Bool false]) }
-                                     { Attribute.Name = "coalesce_op"; Attribute.Value = Expr.Function (Function.Coalesce,
-                                                                                                        [Expr.Nothing
-                                                                                                         Expr.String "toto"]) }
-                                     { Attribute.Name = "ternary_op"; Attribute.Value = Expr.Function (Function.Ternary,
-                                                                                                       [Expr.Bool true
-                                                                                                        Expr.String "titi"
-                                                                                                        Expr.String "toto"]) }
-                                     { Attribute.Name = "function_trim"; Attribute.Value = Expr.Function (Function.Trim, []) }
-                                     { Attribute.Name = "function_upper"; Attribute.Value = Expr.Function (Function.Upper, []) }
-                                     { Attribute.Name = "function_lower"; Attribute.Value = Expr.Function (Function.Lower, []) }
-                                     { Attribute.Name = "function_replace"; Attribute.Value = Expr.Function (Function.Replace, []) }
-                                     { Attribute.Name = "function_count"; Attribute.Value = Expr.Function (Function.Count, []) }
-                                     { Attribute.Name = "function_arity0"; Attribute.Value = Expr.Function (Function.Trim, []) }
-                                     { Attribute.Name = "function_arity1"; Attribute.Value = Expr.Function (Function.Trim, [Expr.String "titi"]) }
-                                     { Attribute.Name = "function_arity2"; Attribute.Value = Expr.Function (Function.Trim, [Expr.String "titi"; Expr.Number 42]) }
-                                     { Attribute.Name = "function_arity3"; Value = Expr.Function (Function.Trim, [Expr.String "titi"; Expr.Number 42; Expr.Bool false]) }]
+                                     attr "expr_math_op" (Expr.Function(Function.Minus,
+                                                                        [Expr.Function(Function.Plus,
+                                                                                       [Expr.Function (Function.Plus,
+                                                                                                       [Expr.Number 1
+                                                                                                        Expr.Function (Function.Mult,
+                                                                                                                       [Expr.Number 42
+                                                                                                                        Expr.Number 2])])
+                                                                                        Expr.Function (Function.Div,
+                                                                                                       [Expr.Number 4
+                                                                                                        Expr.Number 4])])
+                                                                         Expr.Number 3]))
+                                     attr "expr_bool_op" (Expr.Function(Function.Equal,
+                                                                        [Expr.Function
+                                                                            (Function.Equal,
+                                                                             [Expr.Function (Function.Plus,
+                                                                                             [Expr.Number 1
+                                                                                              Expr.Number 42])
+                                                                              Expr.Function (Function.Plus,
+                                                                                             [Expr.Number 42
+                                                                                              Expr.Number 1])])
+                                                                         Expr.Bool false]))
+                                     attr "coalesce_op" (Expr.Function (Function.Coalesce, [Expr.Nothing; Expr.String "toto"]))
+                                     attr "ternary_op" (Expr.Function (Function.Ternary, [Expr.Bool true; Expr.String "titi"; Expr.String "toto"]))
+                                     attr "function_trim" (Expr.Function (Function.Trim, []))
+                                     attr "function_upper" (Expr.Function (Function.Upper, []))
+                                     attr "function_lower" (Expr.Function (Function.Lower, []))
+                                     attr "function_replace" (Expr.Function (Function.Replace, []))
+                                     attr "function_count" (Expr.Function (Function.Count, []))
+                                     attr "function_arity0" (Expr.Function (Function.Trim, []))
+                                     attr "function_arity1" (Expr.Function (Function.Trim, [Expr.String "titi"]))
+                                     attr "function_arity2" (Expr.Function (Function.Trim, [Expr.String "titi"; Expr.Number 42]))
+                                     attr "function_arity3" (Expr.Function (Function.Trim, [Expr.String "titi"; Expr.Number 42; Expr.Bool false])) ]
                 Blocks = [] }] }
 
     let content = File.ReadAllText("TestFiles/Success_Syntax")
@@ -152,3 +156,24 @@ let parseWithSourceTracksExpressionLocation() =
         location.File |> should equal (Some "TestFiles/Success_Syntax")
         location.StartLine |> should equal 5
     | None -> Assert.Fail("Expected expression location")
+
+[<Test>]
+let outputsOperatorsParseAndPreserveOrder() =
+    let content =
+        """
+project {
+  outputs += [ "dist/**" ]
+  outputs -= [ "obj/**" ]
+  outputs = [ "bin/**" ]
+}
+"""
+
+    let file = FrontEnd.parse content
+    let project = file.Blocks.Head
+
+    project.Attributes
+    |> should equal [
+        attrWith AssignmentOperator.Add "outputs" (Expr.List [ Expr.String "dist/**" ])
+        attrWith AssignmentOperator.Remove "outputs" (Expr.List [ Expr.String "obj/**" ])
+        attrWith AssignmentOperator.Assign "outputs" (Expr.List [ Expr.String "bin/**" ])
+    ]
