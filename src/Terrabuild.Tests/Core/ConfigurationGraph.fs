@@ -100,6 +100,29 @@ type private NoopCache() =
         member _.TryGetSummary _useRemote _id = None
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
 
+type private SummaryCache(summaryIds: string set) =
+    let summary =
+        { Cache.TargetSummary.Project = "."
+          Cache.TargetSummary.Target = "build"
+          Cache.TargetSummary.Operations = []
+          Cache.TargetSummary.Outputs = None
+          Cache.TargetSummary.IsSuccessful = true
+          Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+          Cache.TargetSummary.EndedAt = DateTime.UtcNow
+          Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+          Cache.TargetSummary.Cache = ArtifactMode.Workspace }
+
+    interface Cache.ICache with
+        member _.TryGetSummaryOnly _useRemote id =
+            if summaryIds |> Set.contains id then Some (Cache.Origin.Local, summary)
+            else None
+
+        member _.TryGetSummary _useRemote id =
+            if summaryIds |> Set.contains id then Some summary
+            else None
+
+        member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
+
 let private runPipeline options =
     let options, config = Configuration.read options
     let graphNode = GraphPipeline.Node.build options config
@@ -315,3 +338,71 @@ target build {
         let options, config = Configuration.read options
         (fun () -> GraphPipeline.Node.build options config |> ignore)
         |> should (throwWithMessage "Target unknown is not defined in WORKSPACE") typeof<TerrabuildException>)
+
+[<Test>]
+let ``Action pipeline excludes cached selected roots from runnable roots`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target gen {
+  outputs = []
+  build = ~lazy
+  artifacts = ~workspace
+}
+
+target build {
+  outputs = []
+  artifacts = ~workspace
+  depends_on = [ target.gen ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target gen {
+  @shell echo { arguments = "gen" }
+}
+target build {
+  @shell echo { arguments = "build" }
+}
+"""
+
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let options, config = Configuration.read options
+        let graphNode = GraphPipeline.Node.build options config
+        let buildNode = graphNode.Nodes["workspace/path#src/a:build"]
+        let genNode = graphNode.Nodes["workspace/path#src/a:gen"]
+        let cachedIds = Set [ GraphDef.buildCacheKey buildNode; GraphDef.buildCacheKey genNode ]
+        let graphAction = GraphPipeline.Action.build options (SummaryCache(cachedIds) :> Cache.ICache) graphNode
+
+        graphAction.RootNodes |> should equal Set.empty<string>
+        graphAction.Nodes[buildNode.Id].Action |> should equal RunAction.Restore
+        graphAction.Nodes[genNode.Id].Action |> should equal RunAction.Restore)
+
+[<Test>]
+let ``Action pipeline excludes selected lazy roots when they must execute`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target gen {
+  outputs = []
+  build = ~lazy
+  artifacts = ~workspace
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target gen {
+  @shell echo { arguments = "gen" }
+}
+"""
+
+        let options = { baseOptions workspace (Set [ "gen" ]) with Force = false }
+        let options, config = Configuration.read options
+        let graphNode = GraphPipeline.Node.build options config
+        let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphNode
+        let genNode = graphAction.Nodes["workspace/path#src/a:gen"]
+
+        genNode.Action |> should equal RunAction.Exec
+        graphAction.RootNodes |> should equal Set.empty<string>)
