@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
+
 ## [0.190.0-next]
 
 
