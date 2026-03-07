@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Reuse existing artifacts for batched `Restore` members by linking them to the current build with `use-artifact` instead of republishing cache/artifact state after batch execution.
+
 ## [0.189.22]
 
 - Flatten GitHub live batch progress output to one status line per project (for example `install apps/Api`) and remove nested `⦙` hierarchy rows while keeping progress indicators.
