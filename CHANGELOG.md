@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.190.2-next]
+
+
 - Fix cache artifact publication to send logical file names (`logs`, `outputs`) to Insights while keeping full `<ProjectHash>/<Target>/<TargetHash>/...` storage keys internal to cache uploads.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.1-next...0.190.2-next
 
 ## [0.190.1-next]
 
