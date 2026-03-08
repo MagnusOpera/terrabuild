@@ -159,6 +159,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                         compressFile <- Compression.compress (tarFile |> nonNull)
                         encryptedFile <- Encryption.encrypt masterKey id (compressFile |> nonNull)
                         storage.Upload path (encryptedFile |> nonNull)
+                        name
                     finally
                         IO.deleteAny encryptedFile
                         IO.deleteAny compressFile
