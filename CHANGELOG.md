@@ -4,6 +4,15 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.190.3]
+
+- Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
+- Fix cache artifact publication to send logical file names (`logs`, `outputs`) to Insights while keeping full `<ProjectHash>/<Target>/<TargetHash>/...` storage keys internal to cache uploads.
+- Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
+- Reuse existing artifacts for batched `Restore` members by linking them to the current build with `use-artifact` instead of republishing cache/artifact state after batch execution.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.22...0.190.3
+
 ## [0.190.3-next]
 
 
