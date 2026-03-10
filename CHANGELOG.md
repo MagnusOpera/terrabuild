@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.190.3-next]
+
+
 - Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.2-next...0.190.3-next
 
 ## [0.190.2-next]
 
