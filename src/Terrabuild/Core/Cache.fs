@@ -106,6 +106,10 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
     let outputsDir = FS.combinePath entryDir "outputs"
     let mutable logNum = 1
 
+    let hasMaterializedOutputs () =
+        Directory.Exists outputsDir &&
+        (IO.enumerateFiles outputsDir |> List.isEmpty |> not)
+
     do
         match entryDir with
         | FS.Directory _ | FS.File _ -> IO.deleteAny entryDir
@@ -123,8 +127,11 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                                 stepGroup
                                 |> List.map (fun step -> { step
                                                             with Log = IO.getFilename step.Log }))
-                     Outputs = summary.Outputs
-                               |> Option.map (fun outputs -> IO.getFilename outputs) }
+                     Outputs =
+                        if hasMaterializedOutputs () then
+                            summary.Outputs |> Option.map IO.getFilename
+                        else
+                            None }
 
         summary |> Json.Serialize |> IO.writeTextFile file
 

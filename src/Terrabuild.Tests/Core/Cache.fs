@@ -63,3 +63,20 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
             "project-hash/build/target-hash/outputs"
             "project-hash/build/target-hash/logs"
         ])
+
+[<Test>]
+let ``cache completion omits summary outputs marker when outputs are not materialized`` () =
+    withTempDir (fun root ->
+        let storage = FakeStorage()
+        let entryDir = Path.Combine(root, "entry")
+        let entry = Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+        let outputsPath = entry.Outputs
+
+        entry.Complete(summary (Some outputsPath)) |> ignore
+
+        let writtenSummary =
+            Path.Combine(entry.Logs, "summary.json")
+            |> File.ReadAllText
+            |> Json.Deserialize<Cache.TargetSummary>
+
+        writtenSummary.Outputs |> should equal None)
