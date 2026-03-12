@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.191.0-next]
+
+
 - Add ordered `outputs` and project-target `depends_on` operations (`=`, `+=`, `-=`), allowing `PROJECT` files to update outputs and to extend, remove, or replace workspace target dependencies in declaration order.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.3-next...0.191.0-next
 
 ## [0.190.3]
 
