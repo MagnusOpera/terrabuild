@@ -147,6 +147,15 @@ let private resolveOutputOperations evaluationContext (baseOutputs: string set) 
         | _, None -> outputs
     ) baseOutputs
 
+let private resolveDependencyOperations (baseDependsOn: string set) (operations: AST.DependencyOperation list) =
+    operations
+    |> List.fold (fun dependsOn operation ->
+        match operation.Operator with
+        | Terrabuild.Lang.AST.AssignmentOperator.Assign -> operation.Value
+        | Terrabuild.Lang.AST.AssignmentOperator.Add -> dependsOn + operation.Value
+        | Terrabuild.Lang.AST.AssignmentOperator.Remove -> dependsOn - operation.Value
+    ) baseDependsOn
+
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
@@ -416,13 +425,19 @@ let private loadProjectDef
                 // apply workspace default value
                 let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
                 let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
-                let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
+                let workspaceDependsOn =
+                    workspaceTarget
+                    |> Option.bind _.DependsOn
+                    |> Option.map (fun dependsOn ->
+                        { AST.DependencyOperation.Operator = Terrabuild.Lang.AST.AssignmentOperator.Assign
+                          AST.DependencyOperation.Value = dependsOn })
+                    |> Option.toList
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
                 let outputs = (workspaceTarget |> Option.map _.Outputs |> Option.defaultValue []) @ targetBlock.Outputs
                 { targetBlock with 
                     Build = build
-                    DependsOn = dependsOn
+                    DependsOn = workspaceDependsOn @ targetBlock.DependsOn
                     Cache = cache
                     Batch = group
                     Outputs = outputs })
@@ -675,7 +690,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     operations
                 ) []
 
-            let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
+            let targetDependsOn = resolveDependencyOperations Set.empty target.DependsOn
 
             let targetOutputs = resolveOutputOperations evaluationContext projectDef.Outputs target.Outputs
 

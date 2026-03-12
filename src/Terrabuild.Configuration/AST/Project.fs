@@ -24,7 +24,7 @@ type Step =
 [<RequireQualifiedAccess>]
 type TargetBlock =
     { Outputs: OutputOperation list
-      DependsOn: Set<string> option
+      DependsOn: DependencyOperation list
       Build: Expr option
       Cache: Expr option
       Batch: Expr option

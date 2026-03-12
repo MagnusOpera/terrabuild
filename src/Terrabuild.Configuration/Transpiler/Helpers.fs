@@ -31,12 +31,17 @@ let checkAllowedNestedBlocks (allowed: string list) (block: Block) =
 let checkNoNestedBlocks = checkAllowedNestedBlocks []
 
 let tryFindAttribute (name: string) (block: Block) =
-    block.Attributes
-    |> List.tryFind (fun a -> a.Name = name)
-    |> Option.map (fun a ->
+    let candidates =
+        block.Attributes
+        |> List.filter (fun a -> a.Name = name)
+
+    match candidates with
+    | [] -> None
+    | [a] ->
         if a.Operator <> AssignmentOperator.Assign then
             raiseParseError $"attribute '{a.Name}' does not support operator '{a.Operator}'"
-        a.Value)
+        Some a.Value
+    | _ -> raiseParseError $"duplicated attribute '{name}'"
 
 let findOutputOperations (block: Block) =
     block.Attributes
@@ -45,6 +50,22 @@ let findOutputOperations (block: Block) =
             Some {
                 OutputOperation.Operator = a.Operator
                 OutputOperation.Value = a.Value
+            }
+        else
+            None)
+
+let findDependencyOperations normalizeDependency (block: Block) =
+    block.Attributes
+    |> List.choose (fun a ->
+        if a.Name = "depends_on" then
+            let dependsOn =
+                a.Value
+                |> Dependencies.findArrayOfDependencies
+                |> Set.map normalizeDependency
+
+            Some {
+                DependencyOperation.Operator = a.Operator
+                DependencyOperation.Value = dependsOn
             }
         else
             None)

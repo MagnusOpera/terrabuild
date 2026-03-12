@@ -77,18 +77,16 @@ let toProject (block: Block) =
 let toTarget (block: Block) =
     block
     |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"]
-    |> checkAllowedAttributeOperators ["outputs"]
+    |> checkAllowedAttributeOperators ["outputs"; "depends_on"]
     |> ignore
 
     let outputs = block |> findOutputOperations
     let dependsOn =
-        block |> tryFindAttribute "depends_on"
-        |> Option.map Dependencies.findArrayOfDependencies
-        |> Option.map (fun dependsOn ->
-            dependsOn |> Set.map (fun dependency ->
-                match dependency with
-                | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
-                | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
+        block
+        |> findDependencyOperations (fun dependency ->
+            match dependency with
+            | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
+            | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'")
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"

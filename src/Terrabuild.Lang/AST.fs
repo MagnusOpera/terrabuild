@@ -17,7 +17,9 @@ with
           Attribute.Value = value }
 
     static member Append (attributes: Attribute list) (attribute: Attribute) =
-        if attribute.Name <> "outputs" && attributes |> List.exists (fun a -> a.Name = attribute.Name) then
+        if attribute.Name <> "outputs"
+           && attribute.Name <> "depends_on"
+           && attributes |> List.exists (fun a -> a.Name = attribute.Name) then
             Errors.raiseParseError $"duplicated attribute '{attribute.Name}'"
         else
             attributes @ [attribute]

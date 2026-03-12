@@ -6,6 +6,10 @@ type OutputOperation =
     { Operator: AssignmentOperator
       Value: Expr }
 
+type DependencyOperation =
+    { Operator: AssignmentOperator
+      Value: Set<string> }
+
 type ExtensionBlock =
     { Image: Expr option
       Platform: Expr option

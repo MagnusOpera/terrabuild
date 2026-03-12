@@ -22,6 +22,18 @@ let private outputRemove value =
     { OutputOperation.Operator = AssignmentOperator.Remove
       OutputOperation.Value = value }
 
+let private dependencyAssign value =
+    { DependencyOperation.Operator = AssignmentOperator.Assign
+      DependencyOperation.Value = value }
+
+let private dependencyAdd value =
+    { DependencyOperation.Operator = AssignmentOperator.Add
+      DependencyOperation.Value = value }
+
+let private dependencyRemove value =
+    { DependencyOperation.Operator = AssignmentOperator.Remove
+      DependencyOperation.Value = value }
+
 [<Test>]
 let parseProject() =
     let expectedProject =
@@ -63,14 +75,14 @@ let parseProject() =
               Env = Map [ "DUMMY_VAR", Expr.String "tagada" ] |> Some }
 
         let targetBuild = 
-            { TargetBlock.DependsOn = Set [ "dist" ] |> Some
+            { TargetBlock.DependsOn = [ dependencyAssign (Set [ "dist" ]) ]
               TargetBlock.Build = None
               TargetBlock.Outputs = []
               TargetBlock.Cache = None
               TargetBlock.Batch = Expr.Enum "partition" |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
-            { TargetBlock.DependsOn = None
+            { TargetBlock.DependsOn = []
               TargetBlock.Build = None
               TargetBlock.Outputs = []
               TargetBlock.Cache = None
@@ -78,7 +90,7 @@ let parseProject() =
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
-            { TargetBlock.DependsOn = None
+            { TargetBlock.DependsOn = []
               TargetBlock.Build = "auto" |> Expr.Enum |> Some
               TargetBlock.Outputs = []
               TargetBlock.Cache = "remote" |> Expr.Enum |> Some
@@ -139,7 +151,7 @@ let parseProject2() =
                                                                                 [ Expr.String "{0}{1}"
                                                                                   Expr.Variable "local.wildcard"
                                                                                   Expr.String ".dll" ])]) ]
-              TargetBlock.DependsOn = None
+              TargetBlock.DependsOn = []
               TargetBlock.Cache = None
               TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
@@ -223,6 +235,28 @@ project {
     ]
 
 [<Test>]
+let projectTargetDependsOnSupportsOrderedOperations() =
+    let content =
+        """
+project {}
+
+target build {
+  depends_on += [ target.gen ]
+  depends_on -= [ target.clean ]
+  depends_on = [ target.dist ]
+}
+"""
+
+    let project = Terrabuild.Configuration.FrontEnd.Project.parse content
+
+    project.Targets["build"].DependsOn
+    |> should equal [
+        dependencyAdd (Set [ "gen" ])
+        dependencyRemove (Set [ "clean" ])
+        dependencyAssign (Set [ "dist" ])
+    ]
+
+[<Test>]
 let outputsOperatorsAreRejectedForNonOutputsProjectAttributes() =
     let content =
         """
@@ -233,3 +267,15 @@ project {
 
     (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
     |> should (throwWithMessage "attribute 'includes' does not support operator 'Add'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let dependsOnOperatorsAreRejectedForProjectBlockAttributes() =
+    let content =
+        """
+project {
+  depends_on += [ project.lib ]
+}
+"""
+
+    (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
+    |> should (throwWithMessage "attribute 'depends_on' does not support operator 'Add'") typeof<Errors.TerrabuildException>

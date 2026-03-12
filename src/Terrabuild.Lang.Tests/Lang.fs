@@ -177,3 +177,24 @@ project {
         attrWith AssignmentOperator.Remove "outputs" (Expr.List [ Expr.String "obj/**" ])
         attrWith AssignmentOperator.Assign "outputs" (Expr.List [ Expr.String "bin/**" ])
     ]
+
+[<Test>]
+let dependsOnOperatorsParseAndPreserveOrder() =
+    let content =
+        """
+target build {
+  depends_on += [ target.gen ]
+  depends_on -= [ target.clean ]
+  depends_on = [ target.dist ]
+}
+"""
+
+    let file = FrontEnd.parse content
+    let target = file.Blocks.Head
+
+    target.Attributes
+    |> should equal [
+        attrWith AssignmentOperator.Add "depends_on" (Expr.List [ Expr.Variable "target.gen" ])
+        attrWith AssignmentOperator.Remove "depends_on" (Expr.List [ Expr.Variable "target.clean" ])
+        attrWith AssignmentOperator.Assign "depends_on" (Expr.List [ Expr.Variable "target.dist" ])
+    ]

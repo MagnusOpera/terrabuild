@@ -466,3 +466,51 @@ target build {
 
         project.Targets["build"].Outputs
         |> should equal (Set [ "reset/**"; "final/**" ]))
+
+[<Test>]
+let ``Configuration read resolves workspace and project target depends_on operators in order`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  depends_on = [ target.workspace_base, target.clean ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a {
+  @dotnet {}
+}
+
+target workspace_base {
+  @shell echo { arguments = "workspace" }
+}
+
+target clean {
+  @shell echo { arguments = "clean" }
+}
+
+target gen {
+  @shell echo { arguments = "gen" }
+}
+
+target dist {
+  @dotnet build {}
+}
+
+target build {
+  depends_on += [ target.gen ]
+  depends_on -= [ target.clean ]
+  depends_on = [ target.dist ]
+  depends_on += [ target.gen ]
+  @dotnet build {}
+}
+"""
+        writeDotnetProject workspace "src/a" "a" []
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let _, config = Configuration.read options
+        let project = config.Projects["workspace/path#src/a"]
+
+        project.Targets["build"].DependsOn
+        |> should equal (Set [ "dist"; "gen" ]))
