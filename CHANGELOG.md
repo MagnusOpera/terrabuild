@@ -4,7 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Add ordered `depends_on` operations (`=`, `+=`, `-=`) for `target` blocks in `PROJECT`, allowing project targets to extend, remove, or replace workspace target dependencies in declaration order.
+- Add ordered `outputs` and project-target `depends_on` operations (`=`, `+=`, `-=`), allowing `PROJECT` files to update outputs and to extend, remove, or replace workspace target dependencies in declaration order.
 
 ## [0.190.0-next]
 
