@@ -6,19 +6,6 @@ open FsUnit
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Workspace
 open Terrabuild.Expression
-open Terrabuild.Lang.AST
-
-let private outputAssign value =
-    { OutputOperation.Operator = AssignmentOperator.Assign
-      OutputOperation.Value = value }
-
-let private outputAdd value =
-    { OutputOperation.Operator = AssignmentOperator.Add
-      OutputOperation.Value = value }
-
-let private outputRemove value =
-    { OutputOperation.Operator = AssignmentOperator.Remove
-      OutputOperation.Value = value }
 
 
 [<Test>]
@@ -29,19 +16,19 @@ let parseWorkspace() =
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
-              TargetBlock.Outputs = [ outputAssign Expr.EmptyList ] }
+              TargetBlock.Outputs = Expr.EmptyList |> Some }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Build = "auto" |> Expr.Enum |> Some
               TargetBlock.Cache = "none" |> Expr.Enum |> Some
               TargetBlock.Batch = "single" |> Expr.Enum |> Some
-              TargetBlock.Outputs = [] }
+              TargetBlock.Outputs = None }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
-              TargetBlock.Outputs = [] }
+              TargetBlock.Outputs = None }
 
         let extDotnet =
             { Image = Some (Expr.String "mcr.microsoft.com/dotnet/sdk:8.0.101")
@@ -99,19 +86,19 @@ let parseWorkspace2() =
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
-              TargetBlock.Outputs = [ outputAssign (Expr.List [ Expr.String "toto" ]) ] }
+              TargetBlock.Outputs = [ Expr.String "toto" ] |> Expr.List |> Some }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
-              TargetBlock.Outputs = [] }
+              TargetBlock.Outputs = None }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
-              TargetBlock.Outputs = [] }
+              TargetBlock.Outputs = None }
 
         let extDotnet =
             { Image = Expr.String "mcr.microsoft.com/dotnet/sdk:8.0.101" |> Some
@@ -200,25 +187,3 @@ extension dotnet {}
 """
     (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore)
     |> should (throwWithMessage "extension 'dotnet' must declare 'script'") typeof<Errors.TerrabuildException>
-
-[<Test>]
-let workspaceTargetOutputsSupportOrderedOperations() =
-    let content =
-        """
-workspace {}
-
-target build {
-  outputs += [ "dist/**" ]
-  outputs -= [ "obj/**" ]
-  outputs = [ "bin/**" ]
-}
-"""
-
-    let workspace = Terrabuild.Configuration.FrontEnd.Workspace.parse content
-
-    workspace.Targets["build"].Outputs
-    |> should equal [
-        outputAdd (Expr.List [ Expr.String "dist/**" ])
-        outputRemove (Expr.List [ Expr.String "obj/**" ])
-        outputAssign (Expr.List [ Expr.String "bin/**" ])
-    ]

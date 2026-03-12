@@ -131,31 +131,6 @@ let private SCOPE_NAME = "workspace/name"
 
 let private format_project_id scope id = $"{scope}#{id}"
 
-let private resolveOutputOperations evaluationContext (baseOutputs: string set) (operations: AST.OutputOperation list) =
-    operations
-    |> List.fold (fun outputs operation ->
-        let evaluated =
-            operation.Value
-            |> Eval.eval evaluationContext
-            |> Eval.asStringSetOption
-
-        match operation.Operator, evaluated with
-        | Terrabuild.Lang.AST.AssignmentOperator.Assign, Some evaluated -> evaluated
-        | Terrabuild.Lang.AST.AssignmentOperator.Add, Some evaluated -> outputs + evaluated
-        | Terrabuild.Lang.AST.AssignmentOperator.Remove, Some evaluated -> outputs - evaluated
-        | Terrabuild.Lang.AST.AssignmentOperator.Assign, None -> baseOutputs
-        | _, None -> outputs
-    ) baseOutputs
-
-let private resolveDependencyOperations (baseDependsOn: string set) (operations: AST.DependencyOperation list) =
-    operations
-    |> List.fold (fun dependsOn operation ->
-        match operation.Operator with
-        | Terrabuild.Lang.AST.AssignmentOperator.Assign -> operation.Value
-        | Terrabuild.Lang.AST.AssignmentOperator.Add -> dependsOn + operation.Value
-        | Terrabuild.Lang.AST.AssignmentOperator.Remove -> dependsOn - operation.Value
-    ) baseDependsOn
-
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
@@ -425,19 +400,13 @@ let private loadProjectDef
                 // apply workspace default value
                 let workspaceTarget = workspaceConfig.Targets |> Map.tryFind targetName
                 let build = targetBlock.Build |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Build)
-                let workspaceDependsOn =
-                    workspaceTarget
-                    |> Option.bind _.DependsOn
-                    |> Option.map (fun dependsOn ->
-                        { AST.DependencyOperation.Operator = Terrabuild.Lang.AST.AssignmentOperator.Assign
-                          AST.DependencyOperation.Value = dependsOn })
-                    |> Option.toList
+                let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
-                let outputs = (workspaceTarget |> Option.map _.Outputs |> Option.defaultValue []) @ targetBlock.Outputs
+                let outputs = targetBlock.Outputs |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Outputs)
                 { targetBlock with 
                     Build = build
-                    DependsOn = workspaceDependsOn @ targetBlock.DependsOn
+                    DependsOn = dependsOn
                     Cache = cache
                     Batch = group
                     Outputs = outputs })
@@ -473,7 +442,7 @@ let private loadProjectDef
         projectConfig.Project.Includes |> evalAsStringSetOption |> Option.defaultValue defaultIncludes
 
     let projectIgnores = projectConfig.Project.Ignores |> evalAsStringSetOption |> Option.defaultValue Set.empty
-    let projectOutputs = resolveOutputOperations evaluationContext defaultsProjectInfo.Outputs projectConfig.Project.Outputs
+    let projectOutputs = projectConfig.Project.Outputs |> evalAsStringSetOption |> Option.defaultValue defaultsProjectInfo.Outputs
 
     // enrich workspace locals with project locals
     // NOTE we are checking for duplicated fields as this is an error
@@ -690,9 +659,15 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
                     operations
                 ) []
 
-            let targetDependsOn = resolveDependencyOperations Set.empty target.DependsOn
+            let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
 
-            let targetOutputs = resolveOutputOperations evaluationContext projectDef.Outputs target.Outputs
+            let targetOutputs =
+                let targetOutputs =
+                    target.Outputs
+                    |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
+                match targetOutputs with
+                | Some outputs -> outputs
+                | _ -> projectDef.Outputs
 
             let targetCache =
                 match target.Cache with

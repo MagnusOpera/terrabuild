@@ -29,7 +29,6 @@ let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
 let toWorkspace (block: Block) =
     block
     |> checkAllowedAttributes ["id"; "ignores"; "deny"; "version"; "engine"; "configuration"; "environment"]
-    |> checkAllowedAttributeOperators []
     |> checkNoNestedBlocks
     |> ignore
 
@@ -71,7 +70,6 @@ let toWorkspace (block: Block) =
 let toTarget (block: Block) =
     block
     |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"]
-    |> checkAllowedAttributeOperators ["outputs"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -83,7 +81,7 @@ let toTarget (block: Block) =
                 match dependency with
                 | String.Regex "^target\.(.*)$" [targetIdentifier] -> targetIdentifier
                 | _ -> raiseInvalidArg $"Invalid target dependency '{dependency}'"))
-    let outputs = block |> findOutputOperations
+    let outputs = block |> tryFindAttribute "outputs"
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
@@ -97,7 +95,6 @@ let toTarget (block: Block) =
 let toVariable (block: Block) =
     block
     |> checkAllowedAttributes ["default"; "description"]
-    |> checkAllowedAttributeOperators []
     |> checkNoNestedBlocks
     |> ignore
 
@@ -108,7 +105,6 @@ let toVariable (block: Block) =
 
 let toLocals (block: Block) =
     block
-    |> checkAllowedAttributeOperators []
     |> checkNoNestedBlocks
     |> ignore
 

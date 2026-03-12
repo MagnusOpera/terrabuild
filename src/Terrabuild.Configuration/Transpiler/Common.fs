@@ -7,7 +7,6 @@ open Errors
 let toExtension (name: string) (block: Block) =
     block
     |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "cpus"]
-    |> checkAllowedAttributeOperators []
     |> checkAllowedNestedBlocks ["defaults"; "env"]
     |> ignore
 
@@ -21,7 +20,6 @@ let toExtension (name: string) (block: Block) =
         |> tryFindBlock "defaults"
         |> Option.map (fun defaults ->
             defaults
-            |> checkAllowedAttributeOperators []
             |> checkNoNestedBlocks
             |> ignore
 
@@ -34,7 +32,6 @@ let toExtension (name: string) (block: Block) =
         |> tryFindBlock "env"
         |> Option.map (fun envs ->
             envs
-            |> checkAllowedAttributeOperators []
             |> checkNoNestedBlocks
             |> ignore
 

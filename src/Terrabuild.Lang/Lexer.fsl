@@ -68,8 +68,6 @@ rule token lexerMode = parse
     | ")" { RPAREN }
     | "==" { DOUBLE_EQUAL }
     | "~=" { REGEX_MATCH }
-    | "+=" { PLUS_EQUAL }
-    | "-=" { MINUS_EQUAL }
     | "=" { EQUAL }
     | "!=" { NOT_EQUAL }
     | "," { COMMA }

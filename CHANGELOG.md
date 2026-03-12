@@ -4,8 +4,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Add ordered `outputs` and project-target `depends_on` operations (`=`, `+=`, `-=`), allowing `PROJECT` files to update outputs and to extend, remove, or replace workspace target dependencies in declaration order.
-
 ## [0.190.3]
 
 - Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
