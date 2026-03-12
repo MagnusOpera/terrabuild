@@ -8,6 +8,31 @@ open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Project
 
 open Terrabuild.Expression
+open Terrabuild.Lang.AST
+
+let private outputAssign value =
+    { OutputOperation.Operator = AssignmentOperator.Assign
+      OutputOperation.Value = value }
+
+let private outputAdd value =
+    { OutputOperation.Operator = AssignmentOperator.Add
+      OutputOperation.Value = value }
+
+let private outputRemove value =
+    { OutputOperation.Operator = AssignmentOperator.Remove
+      OutputOperation.Value = value }
+
+let private dependencyAssign value =
+    { DependencyOperation.Operator = AssignmentOperator.Assign
+      DependencyOperation.Value = value }
+
+let private dependencyAdd value =
+    { DependencyOperation.Operator = AssignmentOperator.Add
+      DependencyOperation.Value = value }
+
+let private dependencyRemove value =
+    { DependencyOperation.Operator = AssignmentOperator.Remove
+      DependencyOperation.Value = value }
 
 [<Test>]
 let parseProject() =
@@ -17,7 +42,7 @@ let parseProject() =
               ProjectBlock.Name = Some "id"
               ProjectBlock.Initializers = Set [ "@dotnet" ]
               ProjectBlock.DependsOn = None
-              ProjectBlock.Outputs = Expr.List [ Expr.String "dist" ] |> Some
+              ProjectBlock.Outputs = [ outputAssign (Expr.List [ Expr.String "dist" ]) ]
               ProjectBlock.Ignores = None
               ProjectBlock.Includes = None
               ProjectBlock.Labels = Set [ "app"; "dotnet" ]
@@ -50,24 +75,24 @@ let parseProject() =
               Env = Map [ "DUMMY_VAR", Expr.String "tagada" ] |> Some }
 
         let targetBuild = 
-            { TargetBlock.DependsOn = Set [ "dist" ] |> Some
+            { TargetBlock.DependsOn = [ dependencyAssign (Set [ "dist" ]) ]
               TargetBlock.Build = None
-              TargetBlock.Outputs = None
+              TargetBlock.Outputs = []
               TargetBlock.Cache = None
               TargetBlock.Batch = Expr.Enum "partition" |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
-            { TargetBlock.DependsOn = None
+            { TargetBlock.DependsOn = []
               TargetBlock.Build = None
-              TargetBlock.Outputs = None
+              TargetBlock.Outputs = []
               TargetBlock.Cache = None
               TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
         let targetDocker =
-            { TargetBlock.DependsOn = None
+            { TargetBlock.DependsOn = []
               TargetBlock.Build = "auto" |> Expr.Enum |> Some
-              TargetBlock.Outputs = None
+              TargetBlock.Outputs = []
               TargetBlock.Cache = "remote" |> Expr.Enum |> Some
               TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
@@ -105,7 +130,7 @@ let parseProject2() =
               ProjectBlock.Name = None
               ProjectBlock.Initializers = Set [ "@dotnet" ]
               ProjectBlock.DependsOn = None
-              ProjectBlock.Outputs = None
+              ProjectBlock.Outputs = []
               ProjectBlock.Ignores = None
               ProjectBlock.Includes = None
               ProjectBlock.Labels = Set.empty
@@ -122,11 +147,11 @@ let parseProject2() =
 
         let buildTarget = 
             { TargetBlock.Build = "always" |> Expr.Enum |> Some
-              TargetBlock.Outputs = Expr.List [ Expr.Function (Function.Format,
-                                                               [ Expr.String "{0}{1}"
-                                                                 Expr.Variable "local.wildcard"
-                                                                 Expr.String ".dll" ])] |> Some
-              TargetBlock.DependsOn = None
+              TargetBlock.Outputs = [ outputAssign (Expr.List [ Expr.Function (Function.Format,
+                                                                                [ Expr.String "{0}{1}"
+                                                                                  Expr.Variable "local.wildcard"
+                                                                                  Expr.String ".dll" ])]) ]
+              TargetBlock.DependsOn = []
               TargetBlock.Cache = None
               TargetBlock.Batch = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
@@ -188,3 +213,69 @@ extension dummy {}
 """
     (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
     |> should (throwWithMessage "extension 'dummy' must declare 'script'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let projectOutputsSupportOrderedOperations() =
+    let content =
+        """
+project {
+  outputs += [ "dist/**" ]
+  outputs -= [ "obj/**" ]
+  outputs = [ "bin/**" ]
+}
+"""
+
+    let project = Terrabuild.Configuration.FrontEnd.Project.parse content
+
+    project.Project.Outputs
+    |> should equal [
+        outputAdd (Expr.List [ Expr.String "dist/**" ])
+        outputRemove (Expr.List [ Expr.String "obj/**" ])
+        outputAssign (Expr.List [ Expr.String "bin/**" ])
+    ]
+
+[<Test>]
+let projectTargetDependsOnSupportsOrderedOperations() =
+    let content =
+        """
+project {}
+
+target build {
+  depends_on += [ target.gen ]
+  depends_on -= [ target.clean ]
+  depends_on = [ target.dist ]
+}
+"""
+
+    let project = Terrabuild.Configuration.FrontEnd.Project.parse content
+
+    project.Targets["build"].DependsOn
+    |> should equal [
+        dependencyAdd (Set [ "gen" ])
+        dependencyRemove (Set [ "clean" ])
+        dependencyAssign (Set [ "dist" ])
+    ]
+
+[<Test>]
+let outputsOperatorsAreRejectedForNonOutputsProjectAttributes() =
+    let content =
+        """
+project {
+  includes += [ "**/*" ]
+}
+"""
+
+    (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
+    |> should (throwWithMessage "attribute 'includes' does not support operator 'Add'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let dependsOnOperatorsAreRejectedForProjectBlockAttributes() =
+    let content =
+        """
+project {
+  depends_on += [ project.lib ]
+}
+"""
+
+    (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
+    |> should (throwWithMessage "attribute 'depends_on' does not support operator 'Add'") typeof<Errors.TerrabuildException>

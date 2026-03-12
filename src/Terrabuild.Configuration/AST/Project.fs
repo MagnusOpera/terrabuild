@@ -9,7 +9,7 @@ type ProjectBlock =
       Name: string option
       Initializers: Set<string>
       DependsOn: Set<string> option
-      Outputs: Expr option
+      Outputs: OutputOperation list
       Ignores: Expr option
       Includes: Expr option
       Labels: Set<string>
@@ -23,8 +23,8 @@ type Step =
 
 [<RequireQualifiedAccess>]
 type TargetBlock =
-    { Outputs: Expr option
-      DependsOn: Set<string> option
+    { Outputs: OutputOperation list
+      DependsOn: DependencyOperation list
       Build: Expr option
       Cache: Expr option
       Batch: Expr option
@@ -36,4 +36,3 @@ type ProjectFile =
       Extensions: Map<string, ExtensionBlock>
       Targets: Map<string, TargetBlock>
       Locals: Map<string, Expr> }
-

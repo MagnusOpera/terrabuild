@@ -47,7 +47,7 @@ let private withRuleLocation (parseState: IParseState) firstToken lastToken (exp
 %token LBRACE RBRACE
 %token DOT LSQBRACKET RSQBRACKET DOT_LSQBRACKET
 %token LPAREN RPAREN
-%token EQUAL DOUBLE_EQUAL NOT_EQUAL
+%token EQUAL PLUS_EQUAL MINUS_EQUAL DOUBLE_EQUAL NOT_EQUAL
 %token COMMA
 %token MINUS PLUS MULT DIV
 %token DOUBLE_QUESTION QUESTION COLON BANG AND OR
@@ -80,7 +80,12 @@ Attributes:
     | Attributes Attribute { Attribute.Append $1 $2 }
 
 Attribute:
-    | AttributeName EQUAL Expr { Attribute.Build $1 $3 }
+    | AttributeName AssignmentOperator Expr { Attribute.Build $1 $2 $3 }
+
+AssignmentOperator:
+    | EQUAL { AssignmentOperator.Assign }
+    | PLUS_EQUAL { AssignmentOperator.Add }
+    | MINUS_EQUAL { AssignmentOperator.Remove }
 
 Blocks:
     | Block { [$1] }

@@ -1,17 +1,25 @@
 namespace Terrabuild.Lang.AST
 open Terrabuild.Expression
 
+type [<RequireQualifiedAccess>] AssignmentOperator =
+    | Assign
+    | Add
+    | Remove
 
 type [<RequireQualifiedAccess>] Attribute =
     { Name: string
+      Operator: AssignmentOperator
       Value: Expr }
 with
-    static member Build name value =
+    static member Build name operator value =
         { Attribute.Name = name
+          Attribute.Operator = operator
           Attribute.Value = value }
 
     static member Append (attributes: Attribute list) (attribute: Attribute) =
-        if attributes |> List.exists (fun a -> a.Name = attribute.Name) then
+        if attribute.Name <> "outputs"
+           && attribute.Name <> "depends_on"
+           && attributes |> List.exists (fun a -> a.Name = attribute.Name) then
             Errors.raiseParseError $"duplicated attribute '{attribute.Name}'"
         else
             attributes @ [attribute]
@@ -35,4 +43,3 @@ type [<RequireQualifiedAccess>] File =
 with
     static member Build blocks =
         { File.Blocks = blocks }
-
