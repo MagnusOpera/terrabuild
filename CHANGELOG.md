@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.191.1-next]
+
+
 - Revert `+=` `-=`
 - Revert `includes` and `outputs` overrides
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.191.0-next...0.191.1-next
 
 ## [0.191.0-next]
 
