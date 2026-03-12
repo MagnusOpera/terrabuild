@@ -6,6 +6,36 @@ All notable changes to Terrabuild are documented in this file.
 
 - Add ordered `outputs` and project-target `depends_on` operations (`=`, `+=`, `-=`), allowing `PROJECT` files to update outputs and to extend, remove, or replace workspace target dependencies in declaration order.
 
+## [0.190.3]
+
+- Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
+- Fix cache artifact publication to send logical file names (`logs`, `outputs`) to Insights while keeping full `<ProjectHash>/<Target>/<TargetHash>/...` storage keys internal to cache uploads.
+- Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
+- Reuse existing artifacts for batched `Restore` members by linking them to the current build with `use-artifact` instead of republishing cache/artifact state after batch execution.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.22...0.190.3
+
+## [0.190.3-next]
+
+
+- Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.2-next...0.190.3-next
+
+## [0.190.2-next]
+
+
+- Fix cache artifact publication to send logical file names (`logs`, `outputs`) to Insights while keeping full `<ProjectHash>/<Target>/<TargetHash>/...` storage keys internal to cache uploads.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.1-next...0.190.2-next
+
+## [0.190.1-next]
+
+
+- Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.0-next...0.190.1-next
+
 ## [0.190.0-next]
 
 
