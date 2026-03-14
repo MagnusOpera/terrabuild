@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.0-next]
+
+
 - Add artifact `startedAt`/`endedAt` timestamps to Insights cache publication so Terrabuild sends per-target execution windows with `add-artifact`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.191.1-next...0.192.0-next
 
 ## [0.191.1]
 
