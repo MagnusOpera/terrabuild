@@ -120,7 +120,7 @@ type private FakeCache(root: string) =
                 entry :> Cache.IEntry
 
 type private FakeApiClient() =
-    let addCalls = ResizeArray<string * string * string * string * string list * bool>()
+    let addCalls = ResizeArray<string * string * string * string * string list * bool * DateTime * DateTime>()
     let useCalls = ResizeArray<string * string>()
 
     member _.AddCalls = addCalls |> Seq.toList
@@ -131,8 +131,8 @@ type private FakeApiClient() =
         member _.CompleteBuild(_success) = ()
         member _.GetArtifact(_path) = Uri("https://example.invalid/artifact")
 
-        member _.AddArtifact project target projectHash targetHash files success =
-            addCalls.Add(project, target, projectHash, targetHash, files, success)
+        member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
+            addCalls.Add(project, target, projectHash, targetHash, files, success, startedAt, endedAt)
 
         member _.UseArtifact projectHash targetHash =
             useCalls.Add(projectHash, targetHash)
@@ -205,13 +205,17 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         cache.Completed |> should equal [ GraphDef.buildCacheKey execMember ]
         api.AddCalls.Length |> should equal 1
+        let (_, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
         api.AddCalls[0] |> should equal (
             execMember.ProjectDir,
             execMember.Target,
             execMember.ProjectHash,
             execMember.TargetHash,
             [ $"artifact-{GraphDef.buildCacheKey execMember}" ],
-            expectedSuccess)
+            expectedSuccess,
+            artifactStartedAt,
+            artifactEndedAt)
+        artifactEndedAt >= artifactStartedAt |> should equal true
         api.UseCalls |> should equal [ (restoreMember.ProjectHash, restoreMember.TargetHash) ]
 
         match summary.Nodes[execMember.Id].Request with
@@ -284,13 +288,17 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
         File.ReadAllText(Path.Combine(genProjectDir, "generated.txt")) |> should equal "gen-output"
         cache.Completed |> should equal [ GraphDef.buildCacheKey buildNode ]
         api.AddCalls.Length |> should equal 1
+        let (_, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
         api.AddCalls[0] |> should equal (
             buildNode.ProjectDir,
             buildNode.Target,
             buildNode.ProjectHash,
             buildNode.TargetHash,
             [ $"artifact-{GraphDef.buildCacheKey buildNode}" ],
-            true)
+            true,
+            artifactStartedAt,
+            artifactEndedAt)
+        artifactEndedAt >= artifactStartedAt |> should equal true
         api.UseCalls |> should equal [ (genNode.ProjectHash, genNode.TargetHash) ]
 
         summary.Nodes[genNode.Id].Request |> should equal Runner.TaskRequest.Restore

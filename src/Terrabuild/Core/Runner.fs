@@ -322,7 +322,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             Log.Debug("{NodeId}: building '{Key}'", node.Id, GraphDef.buildCacheKey node)
             let files = cacheEntry.Complete summary
-            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
+            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
 
             let status =
                 if successful then TaskStatus.Success endedAt
@@ -415,7 +415,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                     let files = cacheEntry.Complete summary
-                    api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful)
+                    api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
 
                 match status with
                 | TaskStatus.Success completionDate ->

@@ -131,7 +131,9 @@ module private Build =
           ProjectHash: string
           TargetHash: string
           Files: string list
-          Success: bool }
+          Success: bool
+          StartedAt: DateTime
+          EndedAt: DateTime }
 
     [<RequireQualifiedAccess>]
     type UseArtifactInput =
@@ -146,13 +148,15 @@ module private Build =
           StartBuildInput.Context = context }
         |> Http.post headers "/builds"
 
-    let addArtifact headers buildId project target projectHash targetHash files success: Unit =
+    let addArtifact headers buildId project target projectHash targetHash files success startedAt endedAt: Unit =
         { AddArtifactInput.Project = project
           AddArtifactInput.Target = target
           AddArtifactInput.ProjectHash = projectHash
           AddArtifactInput.TargetHash = targetHash
           AddArtifactInput.Files = files
-          AddArtifactInput.Success = success }
+          AddArtifactInput.Success = success
+          AddArtifactInput.StartedAt = startedAt
+          AddArtifactInput.EndedAt = endedAt }
         |> Http.post<AddArtifactInput, Unit> headers $"/builds/{buildId}/add-artifact"
 
     let useArtifact headers buildId projectHash hash: Unit =
@@ -231,8 +235,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.CompleteBuild success =
             Build.completeBuild headers buildId success
 
-        member _.AddArtifact project target projectHash targetHash files success =
-            Build.addArtifact headers buildId project target projectHash targetHash files success
+        member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
+            Build.addArtifact headers buildId project target projectHash targetHash files success startedAt endedAt
 
         member _.UseArtifact projectHash hash =
             Build.useArtifact headers buildId projectHash hash

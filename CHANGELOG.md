@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add artifact `startedAt`/`endedAt` timestamps to Insights cache publication so Terrabuild sends per-target execution windows with `add-artifact`.
+
 ## [0.191.1]
 
 - Revert `+=` `-=`
