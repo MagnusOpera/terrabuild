@@ -474,7 +474,7 @@ let private loadProjectDef
 
 
 // this is the final stage: create targets and create the project
-let private finalizeProject workspaceDir projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
+let private finalizeProject repository workspaceDir projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
     let startFinalize = DateTime.UtcNow
     let projectId = projectDef.Id
 
@@ -496,7 +496,7 @@ let private finalizeProject workspaceDir projectDir evaluationContext (projectDe
         |> Hash.sha256strings
 
     // NOTE: this is the hash (modulo target name) used for reconcialiation across executions
-    let projectHash = [ projectId; filesHash; fileNameHash; dependenciesHash ] |> Hash.sha256strings
+    let projectHash = [ repository; projectId; filesHash; fileNameHash; dependenciesHash ] |> Hash.sha256strings
 
     let evaluationContext = 
         let terrabuildProjectVars =
@@ -796,6 +796,11 @@ let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
     let evaluationContext = buildEvaluationContext engine options workspaceConfig
+    // For CI-backed runs, repository identity comes from source-control run metadata
+    // (GitHub Actions `GITHUB_REPOSITORY` via SourceControls/GitHub.fs).
+    // Local runs fall back to the raw git `origin` remote so worktrees share the same repository namespace.
+    let repository =
+        options.Repository
 
     let scriptDeniedPathGlobs =
         workspaceConfig.Workspace.Deny
@@ -863,7 +868,7 @@ let read (options: ConfigOptions.Options) =
                                     project.Id, project)
                                 |> Map.ofSeq
 
-                            let project = finalizeProject options.Workspace projectDir evaluationContext loadedProject dependsOnProjects
+                            let project = finalizeProject repository options.Workspace projectDir evaluationContext loadedProject dependsOnProjects
                             if projects.TryAdd(project.Id, project) |> not then raiseBugError "Unexpected error"
 
                             // signal canonical id

@@ -30,6 +30,7 @@ type Options = {
 
     // from SourceControl
     BranchOrTag: string
+    Repository: string
     HeadCommit: Commit
     CommitLog: Commit list
     Run: Contracts.RunInfo option

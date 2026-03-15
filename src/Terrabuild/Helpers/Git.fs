@@ -32,6 +32,11 @@ let getCommitLog (dir: string) =
         |> List.ofSeq
     | _ -> raiseExternalError "Failed to get commit log"
 
+let tryGetOriginRemote (dir: string) =
+    match Exec.execCaptureOutput dir "git" "config --get remote.origin.url" Map.empty with
+    | Exec.Success (output, _) -> output |> String.firstLine |> Some |> Option.filter (String.IsNullOrWhiteSpace >> not)
+    | _ -> None
+
 // workspaceDir: absolute path anywhere inside the repo (ok if it's a nested "workspace")
 // projectDir:   path relative to workspaceDir
 // returns: absolute file paths in the working tree that are NOT ignored by git

@@ -53,6 +53,7 @@ type GitHub() =
 
     interface Contracts.ISourceControl with
         override _.BranchOrTag = refName
+        override _.Repository = repository
         
         override _.HeadCommit =
             { Sha = commit.Sha
