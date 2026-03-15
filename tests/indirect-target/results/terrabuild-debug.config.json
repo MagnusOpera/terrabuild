@@ -29,7 +29,7 @@
       "id": "workspace/path#a",
       "name": "a",
       "directory": "A",
-      "hash": "3D78C583EFE946F8FCF07B043A3865DE27F02AD3365EDECB6F4EB30D330971ED",
+      "hash": "1A2B2D95CB22331596ED508CCF4351B280CEDFBA5884FB1DF2CE78502E29A9AF",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -98,7 +98,7 @@
       "id": "workspace/path#b",
       "name": "b",
       "directory": "B",
-      "hash": "02729FC906D247AC2B49E02DE160D466459C8258072BB8D890D5D04BFB8E0529",
+      "hash": "06980EACCF81857E1900CA6BFAEDB84C0F188D4E0C386B84923EFF093981107D",
       "dependencies": [
         "workspace/path#a"
       ],
@@ -171,7 +171,7 @@
       "id": "workspace/path#c",
       "name": "c",
       "directory": "C",
-      "hash": "1A3703359DBEDE8627CE671913CBA22EAB2473B3356CC8B365BC7B8C41EE9037",
+      "hash": "76AD094C015BB40069C023EB588D97F2F2F41824EE6B33B861CF7B5004CDEDD8",
       "dependencies": [],
       "files": [
         "PROJECT"

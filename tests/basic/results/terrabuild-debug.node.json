@@ -8,8 +8,8 @@
       "target": "build",
       "dependencies": [],
       "outputs": [],
-      "projectHash": "3A0D64F5259FFFCF4CA9B2B47445D3260CD19DCA72AD3BC842924C8E70EA454E",
-      "targetHash": "8286382E86FF591FFA67ACEF2E27697392771C0EEB4FD5C6459312582FF3C0B8",
+      "projectHash": "7218FD8551B4875527C4663C6A4828B262370683929B706E816F331852208FA7",
+      "targetHash": "EDDA62173D8E5911099D5B246F5537390464C77C2C8641CD81C847F07EA6E9D2",
       "operations": [
         {
           "variables": [],
@@ -18,7 +18,7 @@
           },
           "metaCommand": "@shell echo",
           "command": "echo",
-          "arguments": "building app with lib version: B5BA15D81CE84A568C71FE7765AA0DE2BDFE2F806F42CF48460CA59563A68A6E",
+          "arguments": "building app with lib version: F221ECE47C60AC8A8B3A7188B6E27409B0F53D0D4AA273C72C61920AE0208DC2",
           "errorLevel": 0
         }
       ],

@@ -25,7 +25,7 @@
       "id": "workspace/path#app",
       "name": "appprj",
       "directory": "app",
-      "hash": "3A0D64F5259FFFCF4CA9B2B47445D3260CD19DCA72AD3BC842924C8E70EA454E",
+      "hash": "7218FD8551B4875527C4663C6A4828B262370683929B706E816F331852208FA7",
       "dependencies": [
         "workspace/path#lib"
       ],
@@ -57,7 +57,7 @@
                 {
                   "args": [
                     "string",
-                    "building app with lib version: B5BA15D81CE84A568C71FE7765AA0DE2BDFE2F806F42CF48460CA59563A68A6E"
+                    "building app with lib version: F221ECE47C60AC8A8B3A7188B6E27409B0F53D0D4AA273C72C61920AE0208DC2"
                   ]
                 }
               ]
@@ -76,7 +76,7 @@
       "id": "workspace/path#lib",
       "name": "libprj",
       "directory": "lib",
-      "hash": "B5BA15D81CE84A568C71FE7765AA0DE2BDFE2F806F42CF48460CA59563A68A6E",
+      "hash": "F221ECE47C60AC8A8B3A7188B6E27409B0F53D0D4AA273C72C61920AE0208DC2",
       "dependencies": [],
       "files": [
         "PROJECT"

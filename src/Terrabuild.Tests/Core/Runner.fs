@@ -247,6 +247,44 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess)
 
 [<Test>]
+let ``run includes repository in uploaded graph hash`` () =
+    withTempWorkspace (fun workspace ->
+        let operation =
+            { GraphDef.ContaineredShellOperation.Image = None
+              GraphDef.ContaineredShellOperation.Platform = None
+              GraphDef.ContaineredShellOperation.Cpus = None
+              GraphDef.ContaineredShellOperation.Variables = Set.empty
+              GraphDef.ContaineredShellOperation.Envs = Map.empty
+              GraphDef.ContaineredShellOperation.MetaCommand = "test"
+              GraphDef.ContaineredShellOperation.Command = "/usr/bin/true"
+              GraphDef.ContaineredShellOperation.Arguments = ""
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
+
+        let memberNode = buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec []
+        let batchNode = buildNode "batch-build" "." "build" GraphDef.RunAction.Exec [ operation ]
+        let graph =
+            { GraphDef.Graph.Nodes =
+                [ memberNode.Id, memberNode
+                  batchNode.Id, batchNode ] |> Map.ofList
+              GraphDef.Graph.RootNodes = Set [ memberNode.Id ]
+              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ] }
+
+        let runForRepository repository =
+            let cache = FakeCache(workspace)
+            let api = FakeApiClient()
+            let options =
+                { baseOptions workspace with
+                    ConfigOptions.Options.Repository = repository }
+            Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph |> ignore
+            let (graphHash, _) = api.GraphUploads |> List.exactlyOne
+            graphHash
+
+        let firstHash = runForRepository "acme/repo-a"
+        let secondHash = runForRepository "acme/repo-b"
+
+        firstHash = secondHash |> should equal false)
+
+[<Test>]
 let ``run restores cached lazy dependencies pulled by executable roots`` () =
     withTempWorkspace (fun workspace ->
         let genProjectDir = Path.Combine(workspace, "gen")

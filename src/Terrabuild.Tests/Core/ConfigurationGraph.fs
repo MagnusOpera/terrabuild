@@ -172,6 +172,37 @@ target build {
         graphBatch.Nodes.Count |> should equal graphNode.Nodes.Count)
 
 [<Test>]
+let ``Configuration pipeline includes repository in project hash`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  batch = ~single
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { arguments = "a" }
+}
+"""
+
+        let firstOptions =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Repository = "acme/repo-a" }
+        let secondOptions =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Repository = "acme/repo-b" }
+
+        let _, _, firstGraphNode, _, _ = runPipeline firstOptions
+        let _, _, secondGraphNode, _, _ = runPipeline secondOptions
+        let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
+        let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
+
+        firstNode.ProjectHash = secondNode.ProjectHash |> should equal false)
+
+[<Test>]
 let ``Configuration pipeline keeps disconnected nodes unbatched in partition mode`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
