@@ -33,6 +33,7 @@ let private baseOptions workspace targets =
       ConfigOptions.Options.Variables = Map.empty
       ConfigOptions.Options.Engine = None
       ConfigOptions.Options.BranchOrTag = "main"
+      ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
         { Contracts.Commit.Sha = "deadbeef"
           Contracts.Commit.Author = "test"

@@ -31,6 +31,7 @@ let private buildOptions (markdownFile: string) =
       ConfigOptions.Options.Variables = Map.empty
       ConfigOptions.Options.Engine = None
       ConfigOptions.Options.BranchOrTag = "main"
+      ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
         { Contracts.Commit.Sha = "sha"
           Contracts.Commit.Message = "msg"

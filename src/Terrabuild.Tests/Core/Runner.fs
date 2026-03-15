@@ -48,6 +48,7 @@ let private baseOptions workspace =
       ConfigOptions.Options.Variables = Map.empty
       ConfigOptions.Options.Engine = None
       ConfigOptions.Options.BranchOrTag = "main"
+      ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
         { Commit.Sha = "deadbeef"
           Commit.Author = "test"
