@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.1-next]
+
+
 - Add first-class `Repository` source-control metadata to Terrabuild options, use it directly for remote Insights reporting, and include repository/origin identity in local project and graph hashes so cache keys remain stable across Git worktrees.
 - Upload build graph snapshots to Insights after `StartBuild()`, including node execution metadata (`artifacts`, `build`, `batch`, `action`, `required`, `isBatchNode`) so downstream flow and architecture metrics can compute transitive graph impact.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.0-next...0.192.1-next
 
 ## [0.192.0-next]
 
