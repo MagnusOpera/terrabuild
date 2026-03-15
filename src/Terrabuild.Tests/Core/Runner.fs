@@ -122,13 +122,25 @@ type private FakeCache(root: string) =
 type private FakeApiClient() =
     let addCalls = ResizeArray<string * string * string * string * string list * bool * DateTime * DateTime>()
     let useCalls = ResizeArray<string * string>()
+    let graphUploads = ResizeArray<string * BuildGraphNode list>()
+    let lifecycle = ResizeArray<string>()
 
     member _.AddCalls = addCalls |> Seq.toList
     member _.UseCalls = useCalls |> Seq.toList
+    member _.GraphUploads = graphUploads |> Seq.toList
+    member _.Lifecycle = lifecycle |> Seq.toList
 
     interface Contracts.IApiClient with
-        member _.StartBuild() = ()
-        member _.CompleteBuild(_success) = ()
+        member _.StartBuild() =
+            lifecycle.Add("start")
+
+        member _.UploadBuildGraph graphHash nodes =
+            lifecycle.Add("upload-graph")
+            graphUploads.Add(graphHash, nodes)
+
+        member _.CompleteBuild(_success) =
+            lifecycle.Add("complete")
+
         member _.GetArtifact(_path) = Uri("https://example.invalid/artifact")
 
         member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
@@ -217,6 +229,10 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
             artifactEndedAt)
         artifactEndedAt >= artifactStartedAt |> should equal true
         api.UseCalls |> should equal [ (restoreMember.ProjectHash, restoreMember.TargetHash) ]
+        api.Lifecycle |> should equal [ "start"; "upload-graph"; "complete" ]
+        api.GraphUploads.Length |> should equal 1
+        let (_, uploadedNodes) = api.GraphUploads[0]
+        uploadedNodes |> List.map (fun node -> node.Id) |> Set.ofList |> should equal (Set [ execMember.Id; restoreMember.Id; batchNode.Id ])
 
         match summary.Nodes[execMember.Id].Request with
         | Runner.TaskRequest.Exec -> ()

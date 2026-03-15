@@ -191,7 +191,46 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | Contracts.GitHubActions -> true
             | _ -> false)
     buildProgress.BuildStarted()
-    api |> Option.iter (fun api -> api.StartBuild())
+    api |> Option.iter (fun api ->
+        api.StartBuild()
+
+        let graphNodes =
+            graph.Nodes.Values
+            |> Seq.sortBy (fun node -> node.Id)
+            |> Seq.map (fun node ->
+                { Contracts.BuildGraphNode.Id = node.Id
+                  Contracts.BuildGraphNode.ProjectId = node.ProjectId
+                  Contracts.BuildGraphNode.ProjectName = node.ProjectName
+                  Contracts.BuildGraphNode.ProjectDir = node.ProjectDir
+                  Contracts.BuildGraphNode.Target = node.Target
+                  Contracts.BuildGraphNode.Dependencies = node.Dependencies |> Seq.sort |> List.ofSeq
+                  Contracts.BuildGraphNode.Artifacts = string node.Artifacts
+                  Contracts.BuildGraphNode.Build = string node.Build
+                  Contracts.BuildGraphNode.Batch = string node.Batch
+                  Contracts.BuildGraphNode.Action = string node.Action
+                  Contracts.BuildGraphNode.Required = node.Required
+                  Contracts.BuildGraphNode.IsBatchNode = graph.Batches.ContainsKey(node.Id) })
+            |> List.ofSeq
+        let graphHash =
+            graphNodes
+            |> Seq.collect (fun node ->
+                seq {
+                    yield node.Id
+                    yield node.ProjectId
+                    yield node.ProjectName |> Option.defaultValue ""
+                    yield node.ProjectDir
+                    yield node.Target
+                    yield! node.Dependencies
+                    yield node.Artifacts
+                    yield node.Build
+                    yield node.Batch
+                    yield node.Action
+                    yield string node.Required
+                    yield string node.IsBatchNode
+                })
+            |> Hash.sha256strings
+
+        api.UploadBuildGraph graphHash graphNodes)
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
     let scheduledExec = Concurrent.ConcurrentDictionary<string, bool>()

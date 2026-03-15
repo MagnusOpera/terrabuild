@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upload build graph snapshots to Insights after `StartBuild()`, including node execution metadata (`artifacts`, `build`, `batch`, `action`, `required`, `isBatchNode`) so downstream flow and architecture metrics can compute transitive graph impact.
+
 ## [0.192.0-next]
 
 

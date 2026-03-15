@@ -2,6 +2,7 @@ namespace Api
 open System
 open FSharp.Data
 open Collections
+open Contracts
 
 
 module private Http =
@@ -140,6 +141,26 @@ module private Build =
         { ProjectHash: string
           TargetHash: string }
 
+    [<RequireQualifiedAccess>]
+    type BuildGraphNodeInput =
+        { Id: string
+          ProjectId: string
+          ProjectName: string option
+          ProjectDir: string
+          Target: string
+          Dependencies: string list
+          Artifacts: string
+          Build: string
+          Batch: string
+          Action: string
+          Required: bool
+          IsBatchNode: bool }
+
+    [<RequireQualifiedAccess>]
+    type UploadBuildGraphInput =
+        { GraphHash: string
+          Nodes: BuildGraphNodeInput list }
+
     let startBuild headers branchOrTag headCommit commitLog run context : StartBuildOutput =
         { StartBuildInput.BranchOrTag = branchOrTag
           StartBuildInput.Commit = headCommit
@@ -167,6 +188,27 @@ module private Build =
     let completeBuild headers buildId success: Unit =
         { CompleteBuildInput.Success = success }
         |> Http.post headers $"/builds/{buildId}/complete"
+
+    let uploadBuildGraph headers buildId graphHash (nodes: BuildGraphNode list): Unit =
+        let payload =
+            { UploadBuildGraphInput.GraphHash = graphHash
+              UploadBuildGraphInput.Nodes =
+                nodes
+                |> List.map (fun node -> {
+                    BuildGraphNodeInput.Id = node.Id
+                    BuildGraphNodeInput.ProjectId = node.ProjectId
+                    BuildGraphNodeInput.ProjectName = node.ProjectName
+                    BuildGraphNodeInput.ProjectDir = node.ProjectDir
+                    BuildGraphNodeInput.Target = node.Target
+                    BuildGraphNodeInput.Dependencies = node.Dependencies
+                    BuildGraphNodeInput.Artifacts = node.Artifacts
+                    BuildGraphNodeInput.Build = node.Build
+                    BuildGraphNodeInput.Batch = node.Batch
+                    BuildGraphNodeInput.Action = node.Action
+                    BuildGraphNodeInput.Required = node.Required
+                    BuildGraphNodeInput.IsBatchNode = node.IsBatchNode
+                }) }
+        payload |> Http.post<UploadBuildGraphInput, Unit> headers $"/builds/{buildId}/graph"
 
 
 module private Artifact =
@@ -232,14 +274,17 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.StartBuild () =
             buildId.Force() |> ignore
 
+        member _.UploadBuildGraph graphHash nodes =
+            Build.uploadBuildGraph headers buildId.Value graphHash nodes
+
         member _.CompleteBuild success =
-            Build.completeBuild headers buildId success
+            Build.completeBuild headers buildId.Value success
 
         member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
-            Build.addArtifact headers buildId project target projectHash targetHash files success startedAt endedAt
+            Build.addArtifact headers buildId.Value project target projectHash targetHash files success startedAt endedAt
 
         member _.UseArtifact projectHash hash =
-            Build.useArtifact headers buildId projectHash hash
+            Build.useArtifact headers buildId.Value projectHash hash
 
         member _.GetArtifact path =
             let resp = Artifact.getArtifact headers path
