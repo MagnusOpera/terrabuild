@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.3-next]
+
+
 - Normalize repository identity before hashing projects and build graphs so equivalent local GitHub remotes and `GITHUB_REPOSITORY` resolve to the same namespace while preserving multi-repository workspace separation by host/path.
 - Normalize GitHub repository owner/name case during repository hashing so local remotes like `git@github.com:MagnusOpera/Terrabuild.git` match CI `GITHUB_REPOSITORY=magnusopera/terrabuild`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.2-next...0.192.3-next
 
 ## [0.192.2-next]
 
