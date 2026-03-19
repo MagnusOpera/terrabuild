@@ -54,7 +54,7 @@ let tryNormalizeRepositoryIdentity (repository: string) =
                 normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
 
             if segments.Length >= 2 then
-                Some $"{segments[0]}/{segments[1]}"
+                Some $"{segments[0].ToLowerInvariant()}/{segments[1].ToLowerInvariant()}"
             else
                 None
         else

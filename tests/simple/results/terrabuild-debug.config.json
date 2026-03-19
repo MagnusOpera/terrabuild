@@ -36,7 +36,7 @@
       "id": "@pnpm#npm-app",
       "name": "npm_app",
       "directory": "projects/npm-app",
-      "hash": "F554982E33229CC10BC2EA1938C1F85822E6273E7A572EBDD775CF01521D868D",
+      "hash": "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2",
       "dependencies": [
         "@pnpm#npm-lib"
       ],
@@ -113,7 +113,7 @@
       "id": "@pnpm#npm-lib",
       "name": "npm_lib",
       "directory": "libraries/npm-lib",
-      "hash": "85649B912D67B47D117C10843C0F0F3067929E3DD15FF5A7660A1153E96C5F9C",
+      "hash": "7CC0D50969F50D3400C7BAFEDA87E0A21DFC21D46908058BB49F0816D4238006",
       "dependencies": [],
       "files": [
         "PROJECT",
@@ -181,7 +181,7 @@
     "workspace/path#deployments/terraform-deploy": {
       "id": "workspace/path#deployments/terraform-deploy",
       "directory": "deployments/terraform-deploy",
-      "hash": "723448A08EF367BFF293543237943E97C68117739FA484E01FE578EA60BA76E1",
+      "hash": "0CDE8449DA4BE3834EA0A2E0492CBAE0081109CAF6DCBF6B12388C6633F6B357",
       "dependencies": [
         "@pnpm#npm-app",
         "workspace/path#projects/dotnet-app"
@@ -241,11 +241,11 @@
                     {
                       "dotnet_app_version": [
                         "string",
-                        "1100F448364B3D6E82E6A88F5AF2EB71CC3A12C798B4CB7B517460CFD03A88A6"
+                        "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A"
                       ],
                       "npm_app_version": [
                         "string",
-                        "F554982E33229CC10BC2EA1938C1F85822E6273E7A572EBDD775CF01521D868D"
+                        "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2"
                       ]
                     }
                   ],
@@ -319,7 +319,7 @@
     "workspace/path#libraries/dotnet-lib": {
       "id": "workspace/path#libraries/dotnet-lib",
       "directory": "libraries/dotnet-lib",
-      "hash": "57D42DE0B14C6654EB5C0805889470F8B09D727EE18C80A5E91024F7B817A169",
+      "hash": "D7695503391CECE4DECC4E77E79BD243EDEAE789831F67CC477ED629CD97D17C",
       "dependencies": [],
       "files": [
         "Class1.cs",
@@ -395,7 +395,7 @@
       "id": "workspace/path#libraries/shell-lib",
       "name": "shell_lib",
       "directory": "libraries/shell-lib",
-      "hash": "D297E5E3157C88B9520D77044B02F3FFE9CD9EF0E6919AFD482A3CD831A517EF",
+      "hash": "290E8E7AC7693543F774F195B86A1AC3BBE4B298F91453D5C5089FE19BE87342",
       "dependencies": [],
       "files": [
         "PROJECT"
@@ -436,7 +436,7 @@
       "id": "workspace/path#projects/dotnet-app",
       "name": "dotnet_app",
       "directory": "projects/dotnet-app",
-      "hash": "1100F448364B3D6E82E6A88F5AF2EB71CC3A12C798B4CB7B517460CFD03A88A6",
+      "hash": "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A",
       "dependencies": [
         "workspace/path#libraries/dotnet-lib"
       ],
@@ -620,7 +620,7 @@
     "workspace/path#projects/make-app": {
       "id": "workspace/path#projects/make-app",
       "directory": "projects/make-app",
-      "hash": "A7C9BAB0188D0C8F75D2FE9A02435986E7C03ED5152F47EF9CB40E7E690D18AF",
+      "hash": "D11150BC5F0464B756259344DF172B9B2CC44856C3E7DEEC8CFA1F2EB02246E6",
       "dependencies": [
         "workspace/path#libraries/shell-lib"
       ],
@@ -689,7 +689,7 @@
     "workspace/path#projects/open-api": {
       "id": "workspace/path#projects/open-api",
       "directory": "projects/open-api",
-      "hash": "2352F9BF135E8FA0BB32F85F14757F31D5FC9223DD2E457A49E890A40F8F39BC",
+      "hash": "8D3EC02FB3C760C4389EFFDF8E7B125905D975E090B1079F939082B6D428B6ED",
       "dependencies": [],
       "files": [
         ".gitignore",
@@ -743,7 +743,7 @@
     "workspace/path#projects/rust-app": {
       "id": "workspace/path#projects/rust-app",
       "directory": "projects/rust-app",
-      "hash": "0C2EB48184462FD1BBF013D142B0C24B4C59CC56432355EE605E3B7CC08A8565",
+      "hash": "70492DEE80C7B1494972FF7F6DFF5C192EE994345B7185182E3ED051F115E5E5",
       "dependencies": [],
       "files": [
         "Cargo.lock",
@@ -792,7 +792,7 @@
       "id": "workspace/path#tests/playwright",
       "name": "playwright_test",
       "directory": "tests/playwright",
-      "hash": "A8E8E0AB1CA9AA121F4A93A4C489D5F08604A79E4235EFDBDFFBA3F77F08EFF7",
+      "hash": "FF4ECDF6C2DECEABEA4E389A3FFB683F3BD039C1B7214A75F48086968FF941B2",
       "dependencies": [],
       "files": [
         ".gitignore",
