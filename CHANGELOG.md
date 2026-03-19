@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.2-next]
+
+
 - Support both dotted and bracketed project version lookups in expressions (`project.foo.version`, `project.["foo"].version`, `project.[terrabuild.project].version`) and restore project-reference discovery so those expressions load referenced projects correctly during graph construction.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.1-next...0.192.2-next
 
 ## [0.192.1-next]
 
