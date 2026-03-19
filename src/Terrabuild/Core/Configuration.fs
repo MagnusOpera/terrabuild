@@ -809,11 +809,12 @@ let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.bolt} Building graph" |> Terminal.writeLine
 
     let evaluationContext = buildEvaluationContext engine options workspaceConfig
-    // For CI-backed runs, repository identity comes from source-control run metadata
-    // (GitHub Actions `GITHUB_REPOSITORY` via SourceControls/GitHub.fs).
-    // Local runs fall back to the raw git `origin` remote so worktrees share the same repository namespace.
+    // Repository identity is normalized at the source-control boundary so equivalent
+    // local and CI remotes resolve to the same repository namespace for hashing.
     let repository =
         options.Repository
+        |> Git.tryNormalizeRepositoryIdentity
+        |> Option.defaultValue options.Repository
 
     let scriptDeniedPathGlobs =
         workspaceConfig.Workspace.Deny

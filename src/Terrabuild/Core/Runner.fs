@@ -182,6 +182,10 @@ let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode:
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
+    let repository =
+        options.Repository
+        |> Git.tryNormalizeRepositoryIdentity
+        |> Option.defaultValue options.Repository
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
     let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
     let flattenBatchProgress =
@@ -214,7 +218,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             graphNodes
             |> Seq.collect (fun node ->
                 seq {
-                    yield options.Repository
+                    yield repository
                     yield node.Id
                     yield node.ProjectId
                     yield node.ProjectName |> Option.defaultValue ""

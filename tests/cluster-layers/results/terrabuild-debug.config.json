@@ -18,7 +18,7 @@
       "id": "workspace/path#a",
       "name": "a",
       "directory": "A",
-      "hash": "D4C473B2B2A87BE70F77D839FB9E487529DDECA41DC26E3D0940708386E1344C",
+      "hash": "831FC5581431CDF069D9E1ADB5DA4BCEB327312E46825CADECBED77093E6238F",
       "dependencies": [],
       "files": [
         "A.csproj",
@@ -102,7 +102,7 @@
       "id": "workspace/path#b",
       "name": "b",
       "directory": "B",
-      "hash": "49F27493C04810BAA7E3F5FAD893F2A0EE6D92126E81B78FCDA2821EE8DEAEAF",
+      "hash": "91305F35854AE1D46FBDAE8E5FDF18E4AA7823855DDDEFF8D38A54AFC7788605",
       "dependencies": [],
       "files": [
         "B.csproj",
@@ -186,7 +186,7 @@
       "id": "workspace/path#c",
       "name": "c",
       "directory": "C",
-      "hash": "DE33B6389FF0EA82C069765234EE02765939FD598BC2E15C9B224642DE3C2433",
+      "hash": "73D543CC42653E54AFC2459B1486C1174864BAB629FCF10B7F298CAA1DBD1C1E",
       "dependencies": [
         "workspace/path#a",
         "workspace/path#b"
@@ -262,7 +262,7 @@
       "id": "workspace/path#d",
       "name": "d",
       "directory": "D",
-      "hash": "93B6BA9ED6404F98CB6905DD288A07DD0AF82B00F7D9FE33B796FAD48737593C",
+      "hash": "E874887DFF5E7D76254756DC99C380A02321C4B7570DD2727CA9194E7279444F",
       "dependencies": [
         "workspace/path#c"
       ],
@@ -331,7 +331,7 @@
       "id": "workspace/path#e",
       "name": "e",
       "directory": "E",
-      "hash": "A36F7B57CC5B1D715E890AAE37394B172D5F23D88DEEC16D68DAD65B5571DB4A",
+      "hash": "2F7582A1C922C2D898DFF1A80ECF08131942C91DC578C0491FE786A603F0DE01",
       "dependencies": [
         "workspace/path#c"
       ],
@@ -400,7 +400,7 @@
       "id": "workspace/path#f",
       "name": "f",
       "directory": "F",
-      "hash": "58CCFCD0E49F3139C8987E0741A0EC02794F31C557A99B52487DE750BADF9B50",
+      "hash": "C9AB02D33A6CDDE0C5E98CA2456E0421E9968325A6179E3553AF980CD2AED1D3",
       "dependencies": [
         "workspace/path#d",
         "workspace/path#e"
@@ -459,7 +459,7 @@
       "id": "workspace/path#g",
       "name": "g",
       "directory": "G",
-      "hash": "61F1E7F8A2AD380C2FC149A8CA09A7A20184870C458F2AFF6AAEC71F1A6644E8",
+      "hash": "6348628B317870A235C8F0281CF28807F42B5BC4C9820F3A4B5681A6049C0928",
       "dependencies": [
         "workspace/path#c"
       ],

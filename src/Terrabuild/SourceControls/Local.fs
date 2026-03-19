@@ -4,7 +4,11 @@ open Environment
 type Local() =
     let commitLog = currentDir() |> Git.getCommitLog
     let commit = commitLog.Head
-    let repository = currentDir() |> Git.tryGetOriginRemote |> Option.defaultValue ""
+    let repository =
+        currentDir()
+        |> Git.tryGetOriginRemote
+        |> Option.bind Git.tryNormalizeRepositoryIdentity
+        |> Option.defaultValue ""
 
     interface Contracts.ISourceControl with
         override _.BranchOrTag = currentDir() |> Git.getBranchOrTag

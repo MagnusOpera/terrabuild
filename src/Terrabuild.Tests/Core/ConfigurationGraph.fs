@@ -203,6 +203,37 @@ target build {
         firstNode.ProjectHash = secondNode.ProjectHash |> should equal false)
 
 [<Test>]
+let ``Configuration pipeline normalizes equivalent repository identities in project hash`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  batch = ~single
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { arguments = "a" }
+}
+"""
+
+        let firstOptions =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Repository = "git@github.com:acme/repo.git" }
+        let secondOptions =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Repository = "acme/repo" }
+
+        let _, _, firstGraphNode, _, _ = runPipeline firstOptions
+        let _, _, secondGraphNode, _, _ = runPipeline secondOptions
+        let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
+        let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
+
+        firstNode.ProjectHash |> should equal secondNode.ProjectHash)
+
+[<Test>]
 let ``Configuration pipeline keeps disconnected nodes unbatched in partition mode`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """

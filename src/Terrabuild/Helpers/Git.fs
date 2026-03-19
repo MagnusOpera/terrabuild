@@ -3,6 +3,7 @@ open Errors
 open System
 open LibGit2Sharp
 open System.IO
+open System.Text.RegularExpressions
 
 let getBranchOrTag (dir: string) =
     // https://stackoverflow.com/questions/18659425/get-git-current-branch-tag-name
@@ -36,6 +37,42 @@ let tryGetOriginRemote (dir: string) =
     match Exec.execCaptureOutput dir "git" "config --get remote.origin.url" Map.empty with
     | Exec.Success (output, _) -> output |> String.firstLine |> Some |> Option.filter (String.IsNullOrWhiteSpace >> not)
     | _ -> None
+
+let tryNormalizeRepositoryIdentity (repository: string) =
+    let normalizePath (path: string) =
+        path.Trim().Trim('/')
+        |> fun value -> if value.EndsWith(".git", StringComparison.OrdinalIgnoreCase) then value[..value.LastIndexOf(".git") - 1] else value
+
+    let buildRepositoryIdentity (host: string) (path: string) =
+        let normalizedHost = host.Trim().ToLowerInvariant()
+        let normalizedPath = normalizePath path
+
+        if String.IsNullOrWhiteSpace(normalizedHost) || String.IsNullOrWhiteSpace(normalizedPath) then
+            None
+        elif normalizedHost = "github.com" then
+            let segments =
+                normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
+
+            if segments.Length >= 2 then
+                Some $"{segments[0]}/{segments[1]}"
+            else
+                None
+        else
+            Some $"{normalizedHost}/{normalizedPath}"
+
+    match repository.Trim() with
+    | "" -> None
+    | value ->
+        let sshMatch = Regex.Match(value, "^git@(?<host>[^:]+):(?<path>.+)$")
+
+        if sshMatch.Success then
+            buildRepositoryIdentity sshMatch.Groups["host"].Value sshMatch.Groups["path"].Value
+        else
+            let mutable uri = Unchecked.defaultof<Uri>
+            match Uri.TryCreate(value, UriKind.Absolute, &uri) with
+            | true when uri.Host |> String.IsNullOrWhiteSpace |> not ->
+                buildRepositoryIdentity uri.Host uri.AbsolutePath
+            | _ -> Some value
 
 // workspaceDir: absolute path anywhere inside the repo (ok if it's a nested "workspace")
 // projectDir:   path relative to workspaceDir

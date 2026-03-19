@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Normalize repository identity before hashing projects and build graphs so equivalent local GitHub remotes and `GITHUB_REPOSITORY` resolve to the same namespace while preserving multi-repository workspace separation by host/path.
+
 ## [0.192.2-next]
 
 

@@ -24,6 +24,7 @@
     <Compile Include="Scripts/Terraform.fs" />
     <Compile Include="Scripts/Yarn.fs" />
     <Compile Include="SourceControls/GitHub.fs" />
+    <Compile Include="SourceControls/Repository.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/ConfigurationGraph.fs" />
     <Compile Include="Core/Cache.fs" />
