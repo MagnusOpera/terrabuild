@@ -201,6 +201,53 @@ let mapItem() =
     result |> should equal expected
 
 [<Test>]
+let mapItemWithDynamicKey() =
+    let expected = Value.Number 42
+
+    let context =
+        { evaluationContext with
+            Data =
+                Map [
+                    "project",
+                    Value.Map (
+                        Map [
+                            "appclient", Value.Map (Map [ "version", Value.Number 42 ])
+                        ])
+                    "terrabuild.project", Value.String "appclient"
+                ] }
+
+    let result =
+        eval context (
+            Expr.Function (
+                Function.Item,
+                [
+                    Expr.Function (Function.Item, [ Expr.Variable "project"; Expr.Variable "terrabuild.project" ])
+                    Expr.String "version"
+                ]))
+    result |> should equal expected
+
+[<Test>]
+let mapItemWithFlatProjectAlias() =
+    let expected = Value.Number 42
+
+    let context =
+        { evaluationContext with
+            Data =
+                Map [
+                    "project.appclient", Value.Map (Map [ "version", Value.Number 42 ])
+                ] }
+
+    let result =
+        eval context (
+            Expr.Function (
+                Function.Item,
+                [
+                    Expr.Variable "project.appclient"
+                    Expr.String "version"
+                ]))
+    result |> should equal expected
+
+[<Test>]
 let equalValue() =
     let expected = Value.Bool true
     let result = eval evaluationContext (Expr.Function (Function.Equal, [Expr.String "toto"; Expr.String "toto"]))

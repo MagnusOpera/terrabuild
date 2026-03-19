@@ -35,6 +35,10 @@ locals {
   data_index = var.toto.42
   data_index_name = var.toto.field
   data_item = var.toto.["field"]
+  root_data_item = terrabuild.["arch"]
+  project_flat_data_item = project.appclient.version
+  project_data_item = project.["appclient"].version
+  project_dynamic_item = project.[terrabuild.project].version
 
   bool_equal = 42 == 666
   bool_not_equal = 42 != 666

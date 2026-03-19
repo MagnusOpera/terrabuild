@@ -385,6 +385,7 @@ let private loadProjectDef
         // NOTE we are keeping only project dependencies as we want to construct project graph
         projectConfig.Project.DependsOn |> Option.defaultValue Set.empty
         |> Set.union (Dependencies.reflectionFind projectConfig)
+        |> Set.union (projectConfig |> Dependencies.reflectionFindProjectReferences |> Set.map (fun dep -> $"project.{dep}"))
         |> Set.choose (fun dep ->
             match dep with
             | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId
@@ -504,17 +505,29 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                   "terrabuild.project_slug", projectDir |> String.slugify |> Value.String 
                   "terrabuild.version", Value.String projectHash ]
   
-        let projectVars =
-            projectDependencies |> Seq.choose (fun (KeyValue(_, project)) ->
-                project.Name |> Option.map (fun id ->
-                    $"project.{id}", Value.Map (Map ["version", Value.String project.Hash])))
+        let projectsMap =
+            seq {
+                if projectDef.Name.IsSome then
+                    yield projectDef.Name.Value, Value.Map (Map ["version", Value.String projectHash])
+
+                for KeyValue(_, project) in projectDependencies do
+                    match project.Name with
+                    | Some id -> yield id, Value.Map (Map ["version", Value.String project.Hash])
+                    | None -> ()
+            }
+            |> Map.ofSeq
+
+        let projectAliases =
+            projectsMap
+            |> Seq.map (fun (KeyValue(projectName, value)) -> $"project.{projectName}", value)
             |> Map.ofSeq
 
         { evaluationContext with
             Eval.Data =
                 evaluationContext.Data
                 |> Map.addMap terrabuildProjectVars
-                |> Map.addMap projectVars }
+                |> Map.add "project" (Value.Map projectsMap)
+                |> Map.addMap projectAliases }
 
     let projectSteps =
         projectDef.Targets |> Map.map (fun targetName target ->

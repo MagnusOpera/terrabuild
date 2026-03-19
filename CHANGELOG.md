@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Support both dotted and bracketed project version lookups in expressions (`project.foo.version`, `project.["foo"].version`, `project.[terrabuild.project].version`) and restore project-reference discovery so those expressions load referenced projects correctly during graph construction.
+
 ## [0.192.1-next]
 
 

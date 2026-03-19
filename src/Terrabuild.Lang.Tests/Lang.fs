@@ -47,6 +47,19 @@ let checkValidSyntax() =
                                      { Attribute.Name = "data_index"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.Number 42]) }
                                      { Attribute.Name = "data_index_name"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]) }
                                      { Attribute.Name = "data_item"; Value = Expr.Function (Function.Item, [Expr.Variable "var.toto"; Expr.String "field"]) }
+                                     { Attribute.Name = "root_data_item"; Value = Expr.Function (Function.Item, [Expr.Variable "terrabuild"; Expr.String "arch"]) }
+                                     { Attribute.Name = "project_flat_data_item"
+                                       Value = Expr.Function (Function.Item, [Expr.Variable "project.appclient"; Expr.String "version"]) }
+                                     { Attribute.Name = "project_data_item"
+                                       Value =
+                                            Expr.Function (Function.Item,
+                                                [ Expr.Function (Function.Item, [Expr.Variable "project"; Expr.String "appclient"])
+                                                  Expr.String "version" ]) }
+                                     { Attribute.Name = "project_dynamic_item"
+                                       Value =
+                                            Expr.Function (Function.Item,
+                                                [ Expr.Function (Function.Item, [Expr.Variable "project"; Expr.Variable "terrabuild.project"])
+                                                  Expr.String "version" ]) }
 
                                      { Attribute.Name = "bool_equal"; Value = Expr.Function (Function.Equal, [Expr.Number 42; Expr.Number 666]) }
                                      { Attribute.Name = "bool_not_equal"; Attribute.Value = Expr.Function (Function.NotEqual, [Expr.Number 42; Expr.Number 666]) }

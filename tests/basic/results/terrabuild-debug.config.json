@@ -25,7 +25,7 @@
       "id": "workspace/path#app",
       "name": "appprj",
       "directory": "app",
-      "hash": "7218FD8551B4875527C4663C6A4828B262370683929B706E816F331852208FA7",
+      "hash": "FE7AC4F5EDFB0FC008DB96366D1271B2D5F3BD088C4E96606626465A4F40DEA2",
       "dependencies": [
         "workspace/path#lib"
       ],

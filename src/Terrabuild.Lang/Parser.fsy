@@ -125,6 +125,9 @@ Variable:
     | IDENTIFIER DOT IDENTIFIER { 
         Expr.Variable $"{$1 |> parseScopeIdentifier}.{$3 |> parseIdentifier}"
     }
+    | IDENTIFIER DOT_LSQBRACKET Expr RSQBRACKET {
+        Expr.Function (Function.Item, [Expr.Variable ($1 |> parseScopeIdentifier); $3])
+    }
     | Variable DOT ExprIndex { Expr.Function (Function.Item, [$1;  $3]) }
     | Variable DOT_LSQBRACKET Expr RSQBRACKET { Expr.Function (Function.Item, [$1;  $3]) }
 

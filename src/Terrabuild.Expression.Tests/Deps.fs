@@ -62,6 +62,48 @@ let ``function of field dependencies``() =
     let deps = Dependencies.find expr
     deps |> shouldEqual expected
 
+[<Test>]
+let ``dynamic project field dependencies``() =
+    let expr =
+        Expr.Function (
+            Function.Item,
+            [
+                Expr.Function (Function.Item, [Expr.Variable "project"; Expr.Variable "terrabuild.project"])
+                Expr.String "version"
+            ])
+    let expected = Set [ "project"; "terrabuild.project" ]
+
+    let deps = Dependencies.find expr
+    deps |> shouldEqual expected
+
+[<Test>]
+let ``static project reference discovery``() =
+    let expr =
+        Expr.Function (
+            Function.Item,
+            [
+                Expr.Function (Function.Item, [Expr.Variable "project"; Expr.String "appclient"])
+                Expr.String "version"
+            ])
+
+    expr
+    |> Dependencies.findProjectReferences
+    |> shouldEqual (Set.singleton "appclient")
+
+[<Test>]
+let ``flat project alias remains discoverable via dependency scan``() =
+    let expr =
+        Expr.Function (
+            Function.Item,
+            [
+                Expr.Variable "project.artapi"
+                Expr.String "version"
+            ])
+
+    expr
+    |> Dependencies.find
+    |> shouldEqual (Set.singleton "project.artapi")
+
 
 
 
@@ -93,6 +135,26 @@ let ``reflection find dependencies`` () =
     value
     |> reflectionFind
     |> shouldEqual expected
+
+[<Test>]
+let ``reflection find project references`` () =
+    let value =
+        { SimpleExpr =
+            Expr.Function (
+                Function.Item,
+                [
+                    Expr.Function (Function.Item, [Expr.Variable "project"; Expr.String "dotnet_app"])
+                    Expr.String "version"
+                ])
+          OptExpr = Some (Expr.Variable "local.name")
+          MapOfExpr = Map [ "toto", Expr.Variable "var.toto" ]
+          OptMapOfExpr = Some (Map [ "titi", Expr.Variable "var.titi" ])
+          OptMapOfSubBlock = Map [ "titi", { SubBlockExpr = Expr.Variable "target.block" } ]
+          Content = "toto" }
+
+    value
+    |> reflectionFindProjectReferences
+    |> shouldEqual (Set.singleton "dotnet_app")
 
 [<Test>]
 let ``array dependencies`` () =

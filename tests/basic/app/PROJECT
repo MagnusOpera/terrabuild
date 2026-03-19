@@ -8,5 +8,5 @@ project appprj {
 }
 
 target build {
-    @shell echo { args = "building app with lib version: ${project.libprj.version}" }
+    @shell echo { args = "building app with lib version: ${project.["libprj"].version}" }
 }

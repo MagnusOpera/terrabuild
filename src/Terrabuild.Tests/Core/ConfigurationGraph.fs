@@ -247,6 +247,27 @@ target build {
         graphBatch.Nodes |> Map.values |> Seq.forall (fun node -> node.Operations.Head.Arguments.Contains(".slnx") |> not) |> should equal true)
 
 [<Test>]
+let ``Configuration pipeline resolves project map lookups for current project version`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { args = "${project.[terrabuild.project].version}" }
+}
+"""
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let _, _, graphNode, _, _ = runPipeline options
+        let node = graphNode.Nodes["workspace/path#src/a:build"]
+
+        node.Operations.Head.Arguments |> should equal node.ProjectHash)
+
+[<Test>]
 let ``Configuration pipeline creates single batch with all projects`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
