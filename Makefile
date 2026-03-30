@@ -200,7 +200,10 @@ smoke-test-simple:
 smoke-indirect-target:
 	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --engine docker --local-only)
 
-smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target
+smoke-test-dotnet-cache:
+	dotnet test -c $(config) $(dotnet_props) src/Terrabuild.Tests/Terrabuild.Tests.fsproj --filter "TestCategory=integration"
+
+smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target smoke-test-dotnet-cache
 
 release-prepare:
 	./.github/scripts/release.sh "$(version)" "$(dryrun)"
