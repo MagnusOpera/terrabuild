@@ -164,7 +164,11 @@ let private withTempRoot action =
         action root
     finally
         if Directory.Exists(root) then
-            Directory.Delete(root, true)
+            try
+                Directory.Delete(root, true)
+            with
+            | :? IOException
+            | :? UnauthorizedAccessException -> ()
 
 let private workspaceFile =
     """
