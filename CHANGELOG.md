@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.4-next]
+
+
 - Add a live `.NET` remote-cache integration smoke test that runs the in-process graph pipeline through Docker, verifies `@dotnet restore/build` command emission, and proves a cached project-reference target is restored without recompilation on a fresh worker cache.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.3-next...0.192.4-next
 
 ## [0.192.3-next]
 
