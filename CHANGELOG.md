@@ -4,6 +4,18 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.192.4]
+
+- Add a live `.NET` remote-cache integration smoke test that runs the in-process graph pipeline through Docker, verifies `@dotnet restore/build` command emission, and proves a cached project-reference target is restored without recompilation on a fresh worker cache.
+- Normalize repository identity before hashing projects and build graphs so equivalent local GitHub remotes and `GITHUB_REPOSITORY` resolve to the same namespace while preserving multi-repository workspace separation by host/path.
+- Normalize GitHub repository owner/name case during repository hashing so local remotes like `git@github.com:MagnusOpera/Terrabuild.git` match CI `GITHUB_REPOSITORY=magnusopera/terrabuild`.
+- Support both dotted and bracketed project version lookups in expressions (`project.foo.version`, `project.["foo"].version`, `project.[terrabuild.project].version`) and restore project-reference discovery so those expressions load referenced projects correctly during graph construction.
+- Add first-class `Repository` source-control metadata to Terrabuild options, use it directly for remote Insights reporting, and include repository/origin identity in local project and graph hashes so cache keys remain stable across Git worktrees.
+- Upload build graph snapshots to Insights after `StartBuild()`, including node execution metadata (`artifacts`, `build`, `batch`, `action`, `required`, `isBatchNode`) so downstream flow and architecture metrics can compute transitive graph impact.
+- Add artifact `startedAt`/`endedAt` timestamps to Insights cache publication so Terrabuild sends per-target execution windows with `add-artifact`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.191.1...0.192.4
+
 ## [0.192.4-next]
 
 
