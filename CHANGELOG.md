@@ -4,10 +4,15 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.0-next]
+
+
 - Add explicit extension dependency resolution metadata (`Path` or `Scope`) so scripts can declare whether dependency identifiers resolve by workspace path or extension scope, keeping canonical project IDs stable for pnpm-style packages.
 - Remove the legacy compiled F# extension compatibility layer; Terrabuild now supports only FScript `.fss` extension scripts and rejects `.fsx` extension paths with a migration error.
 - Remove the Terrabuild scripting dependency on `FSharp.Compiler.Service` by loading extension scripts exclusively through the FScript runtime.
 - Upgrade embedded FScript dependencies to `0.61.0`, picking up the runtime fix that preserves missing optional JSON/XML record fields as `None` during extension deserialization.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.4-next...0.193.0-next
 
 ## [0.192.4]
 
