@@ -5,7 +5,10 @@ import "_helpers.fss" as Helpers
 /// <summary>Declares default project outputs for Gradle builds.</summary>
 /// <param name="outputs" example="[ &quot;build/classes/&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
-  { Id = None; Outputs = ["build/classes/"]; Dependencies = [] }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["build/classes/"]
+    Dependencies = [] }
 
 let with_configuration configuration =
   configuration |> Option.defaultValue "Debug"

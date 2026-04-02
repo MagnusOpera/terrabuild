@@ -128,14 +128,33 @@ type CommandResult =
     { Batchable: bool
       Operations: ShellOperations }
 
+type DependencyResolution =
+    | Path
+    | Scope
+
 type ProjectInfo =
     { Id: string option
+      DependencyResolution: DependencyResolution option
       Outputs: string list
       Dependencies: string list }
 ```
 
 `Outputs` and `Dependencies` represent unique path sets semantically.
 Extensions **SHOULD** avoid duplicates.
+
+`DependencyResolution` controls how `Dependencies` are interpreted:
+
+- `Path`: each dependency is a relative path from the current project directory
+- `Scope`: each dependency is an identifier inside the current extension scope (for example `@pnpm#name`)
+
+If omitted, Terrabuild defaults to `Path`.
+
+`Id` controls the canonical project identifier for the extension:
+
+- when `Id` is provided, Terrabuild uses `<extension-scope>#<Id>`
+- when `Id` is omitted, Terrabuild falls back to `workspace/path#<relative-project-path>`
+
+This is independent from `DependencyResolution`. For example, a pnpm extension can return `Id = Some "@scope/pkg"` and `DependencyResolution = Some Scope` so the project keeps a stable canonical ID while dependencies resolve in the pnpm scope.
 
 Command handler example:
 
@@ -147,7 +166,7 @@ Command handler example:
 Default handler example:
 
 ```fsharp
-{ Id = None; Outputs = []; Dependencies = [] }
+{ Id = None; DependencyResolution = None; Outputs = []; Dependencies = [] }
 ```
 
 ## 8. Built-In Script Contract Examples
@@ -178,7 +197,7 @@ import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
 [<export>] let defaults (context: Protocol.ActionContext) : Protocol.ProjectInfo =
-    { Id = None; Outputs = []; Dependencies = [] }
+    { Id = None; DependencyResolution = None; Outputs = []; Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) : Protocol.CommandResult =

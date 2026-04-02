@@ -44,7 +44,10 @@ let dependencies_from (package: Package) =
     |> Option.map dependencies_from
     |> Option.defaultValue []
 
-  { Id = None; Outputs = ["dist/**"]; Dependencies = dependencies }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["dist/**"]
+    Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).</summary>
 /// <param name="args" default="" example="&quot;cache verify&quot;">Extra arguments for the npm command.</param>

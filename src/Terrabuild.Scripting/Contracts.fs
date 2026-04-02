@@ -12,14 +12,21 @@ module ScriptingContracts =
     }
 
     [<RequireQualifiedAccess>]
+    type DependencyResolution =
+        | Path
+        | Scope
+
+    [<RequireQualifiedAccess>]
     type ProjectInfo = {
         Id: string option
+        DependencyResolution: DependencyResolution option
         Outputs: Set<string>
         Dependencies: Set<string>
     }
     with
         static member Default = {
             Id = None
+            DependencyResolution = Some DependencyResolution.Path
             Outputs = Set.empty
             Dependencies = Set.empty
         }

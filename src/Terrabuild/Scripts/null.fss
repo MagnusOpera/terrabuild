@@ -2,7 +2,10 @@ import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 [<export>] let defaults (context: Protocol.ActionContext) =
-  { Id = None; Outputs = []; Dependencies = [] }
+  { Id = None
+    DependencyResolution = None
+    Outputs = []
+    Dependencies = [] }
 [<export>] let dispatch (context: Protocol.ActionContext) =
   { Batchable = false
     Operations = [] }

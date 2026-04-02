@@ -131,6 +131,10 @@ let private SCOPE_NAME = "workspace/name"
 
 let private format_project_id scope id = $"{scope}#{id}"
 
+let private resolve_dependency_scope (projectInfo: ProjectInfo) =
+    projectInfo.DependencyResolution
+    |> Option.defaultValue DependencyResolution.Path
+
 let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
@@ -353,11 +357,6 @@ let private loadProjectDef
         | Some projectType -> projectConfig.Project.Initializers |> Set.remove projectType
         | None -> projectConfig.Project.Initializers
 
-    let dependencyProjectType =
-        match declaredProjectType with
-        | Some declaredType when projectType <> SCOPE_PATH -> Some declaredType
-        | _ -> None
-
     let initProjectInfo =
         initializersForDefaults |> Set.fold (fun projectInfo init ->
             let result =
@@ -377,6 +376,9 @@ let private loadProjectDef
 
     let defaultsProjectInfo =
         { ProjectInfo.Default with
+            ProjectInfo.DependencyResolution =
+                projectTypeDefaults.DependencyResolution
+                |> Option.orElse initProjectInfo.DependencyResolution
             ProjectInfo.Outputs = projectTypeDefaults.Outputs + initProjectInfo.Outputs
             ProjectInfo.Dependencies = projectTypeDefaults.Dependencies + initProjectInfo.Dependencies }
 
@@ -433,9 +435,9 @@ let private loadProjectDef
     let projectDependencies =
         defaultsProjectInfo.Dependencies
         |> Set.map (fun dep ->
-            match dependencyProjectType with
-            | Some projectType -> format_project_id projectType dep
-            | None ->
+            match resolve_dependency_scope defaultsProjectInfo, declaredProjectType with
+            | DependencyResolution.Scope, Some extensionScope -> format_project_id extensionScope dep
+            | _ ->
                 let relativeWks = FS.workspaceRelative options.Workspace projectDir dep |> String.toLower
                 format_project_id SCOPE_PATH relativeWks)
 

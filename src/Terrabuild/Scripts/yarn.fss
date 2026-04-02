@@ -44,7 +44,10 @@ let dependencies_from (package: Package) =
     |> Option.map dependencies_from
     |> Option.defaultValue []
 
-  { Id = None; Outputs = ["dist/**"]; Dependencies = dependencies }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["dist/**"]
+    Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).</summary>
 /// <param name="args" default="" example="&quot;cache clean&quot;">Extra arguments for the yarn command.</param>

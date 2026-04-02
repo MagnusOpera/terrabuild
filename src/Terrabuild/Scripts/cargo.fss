@@ -9,7 +9,10 @@ let with_profile profile =
 /// <param name="ignores" example="[ ]"></param>
 /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
-  { Id = None; Outputs = ["target/debug/"; "target/release/"]; Dependencies = [] }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["target/debug/"; "target/release/"]
+    Dependencies = [] }
 
 /// <summary>Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).</summary>
 /// <param name="args" default="" example="&quot;check --locked&quot;">Extra arguments for the subcommand.</param>

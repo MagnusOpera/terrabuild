@@ -19,7 +19,7 @@ locals {
     }
 
     versions = {
-        dotnet_sdk: "10.0.100" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
+        dotnet_sdk: "10.0.201" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
         pnpm: "22-10" # https://hub.docker.com/r/guergeiro/pnpm/tags
     }
 }

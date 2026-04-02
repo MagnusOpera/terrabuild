@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add explicit extension dependency resolution metadata (`Path` or `Scope`) so scripts can declare whether dependency identifiers resolve by workspace path or extension scope, keeping canonical project IDs stable for pnpm-style packages.
+- Upgrade embedded FScript dependencies to `0.61.0`, picking up the runtime fix that preserves missing optional JSON/XML record fields as `None` during extension deserialization.
+
 ## [0.192.4]
 
 - Add a live `.NET` remote-cache integration smoke test that runs the in-process graph pipeline through Docker, verifies `@dotnet restore/build` command emission, and proves a cached project-reference target is restored without recompilation on a fresh worker cache.

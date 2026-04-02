@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,8 +13,8 @@
 
   <ItemGroup Condition="'$(UseLocalFScript)' != 'true'">
     <PackageReference Include="FSharp.Compiler.Service" Version="43.10.102" />
-    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.59.0" />
-    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.59.0" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.61.0" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.61.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' == 'true'">

@@ -98,7 +98,10 @@ let with_configuration configuration =
     |> Option.map (fun project_file -> dependency_dirs context.Directory (project_refs_from project_file))
     |> Option.defaultValue []
 
-  { Id = None; Outputs = ["bin/"; "obj/"; "**/*.binlog"]; Dependencies = dependencies }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["bin/"; "obj/"; "**/*.binlog"]
+    Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).</summary>
 /// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>

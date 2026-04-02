@@ -11,7 +11,10 @@ let format_vars variables =
 /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;*.planfile&quot; ]"></param>
 [<export>] let defaults (context: Protocol.ActionContext) =
-  { Id = None; Outputs = ["*.planfile"]; Dependencies = [] }
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["*.planfile"]
+    Dependencies = [] }
 
 /// <summary>Runs an arbitrary Terraform command (action name is forwarded to `terraform`).</summary>
 /// <param name="args" default="" example="&quot;fmt -write=false&quot;">Extra arguments for the Terraform subcommand.</param>

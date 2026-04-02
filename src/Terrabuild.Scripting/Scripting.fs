@@ -533,6 +533,16 @@ and private Conversions =
                     | "None", _ -> FScript.Language.VOption None
                     | "Some", [| item |] -> FScript.Language.VOption (Some (valueConverter item))
                     | _ -> raiseTypeError $"Unsupported option value '{unionCase.Name}'"
+        elif FSharpType.IsUnion(valueType, true)
+             && (not valueType.IsGenericType || valueType.GetGenericTypeDefinition() <> typedefof<list<_>>) then
+            let unionCases = FSharpType.GetUnionCases(valueType)
+            if unionCases |> Array.exists (fun unionCase -> unionCase.GetFields().Length <> 0) then
+                raiseTypeError $"Unsupported script argument type '{valueType.FullName}'"
+            fun (objValue: objnull) ->
+                let unionCase, fields = FSharpValue.GetUnionFields(nonNull objValue, valueType)
+                match fields with
+                | [| |] -> FScript.Language.VUnionCase(valueType.Name, unionCase.Name, None)
+                | _ -> raiseTypeError $"Unsupported union value '{unionCase.Name}'"
         elif valueType.IsGenericType && valueType.GetGenericTypeDefinition() = typedefof<list<_>> then
             let elementConverter = valueType.GetGenericArguments()[0] |> Conversions.getObjectConverter
             fun (objValue: objnull) ->
@@ -664,6 +674,25 @@ and private Conversions =
                         array
                     | _ -> raiseTypeError $"Expected list return type to decode set, got {value}"
                 genericOfSeq.Invoke(null, [| values |])
+        elif FSharpType.IsUnion(targetType, true) then
+            let unionCases = FSharpType.GetUnionCases(targetType)
+            if unionCases |> Array.exists (fun unionCase -> unionCase.GetFields().Length <> 0) then
+                raiseTypeError $"Unsupported script return type '{targetType.FullName}'"
+            fun value ->
+                match value with
+                | FScript.Language.VUnionCase(_, caseName, None) ->
+                    let unionCase =
+                        unionCases
+                        |> Array.tryFind (fun item -> String.Equals(item.Name, caseName, StringComparison.OrdinalIgnoreCase))
+                        |> Option.defaultWith (fun () -> raiseTypeError $"Unknown union case '{caseName}' for '{targetType.FullName}'")
+                    FSharpValue.MakeUnion(unionCase, [| |])
+                | FScript.Language.VString caseName ->
+                    let unionCase =
+                        unionCases
+                        |> Array.tryFind (fun item -> String.Equals(item.Name, caseName, StringComparison.OrdinalIgnoreCase))
+                        |> Option.defaultWith (fun () -> raiseTypeError $"Unknown union case '{caseName}' for '{targetType.FullName}'")
+                    FSharpValue.MakeUnion(unionCase, [| |])
+                | _ -> raiseTypeError $"Expected union return type, got {value}"
         elif FSharpType.IsRecord(targetType, true) then
             let fields = FSharpType.GetRecordFields(targetType)
             let fieldDecoders = fields |> Array.map (fun fieldInfo -> fieldInfo.Name, Conversions.getFScriptDecoder fieldInfo.PropertyType)

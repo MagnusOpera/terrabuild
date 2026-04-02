@@ -12,8 +12,13 @@ type ActionContext =
       Directory: string
       Batch: BatchContext option }
 
+type DependencyResolution =
+  | Path
+  | Scope
+
 type ProjectInfo =
     { Id: string option
+      DependencyResolution: DependencyResolution option
       Outputs: string list
       Dependencies: string list }
 

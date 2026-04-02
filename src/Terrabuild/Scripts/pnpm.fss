@@ -59,7 +59,10 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Option.map dependencies_from
     |> Option.defaultValue []
 
-  { Id = id; Outputs = ["dist/**"]; Dependencies = dependencies }
+  { Id = id
+    DependencyResolution = Some Scope
+    Outputs = ["dist/**"]
+    Dependencies = dependencies }
 
 /// <summary>Runs an arbitrary pnpm command (Terrabuild action name is forwarded to `pnpm`).</summary>
 /// <param name="args" default="" example="&quot;store status&quot;">Extra arguments for the pnpm command.</param>

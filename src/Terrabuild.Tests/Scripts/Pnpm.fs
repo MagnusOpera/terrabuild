@@ -11,7 +11,35 @@ let ``pnpm defaults expose package id and workspace dependencies`` () =
     let result = invokeDefaults "@pnpm" context
 
     result.Id |> should equal (Some "npm-app")
+    result.DependencyResolution |> should equal (Some DependencyResolution.Scope)
     result.Dependencies |> should equal (set [ "@npm-lib" ])
+
+[<Test>]
+let ``pnpm defaults keep scoped id when dependencies are missing`` () =
+    let context = localContext "build" (fixtureDir "npm-lib")
+    let result = invokeDefaults "@pnpm" context
+
+    result.Id |> should equal (Some "npm-lib")
+    result.DependencyResolution |> should equal (Some DependencyResolution.Scope)
+    result.Dependencies.Count |> should equal 0
+
+[<Test>]
+let ``pnpm defaults keep scoped id when dependencies are empty`` () =
+    let context = localContext "build" (fixtureDir "npm-emptydeps")
+    let result = invokeDefaults "@pnpm" context
+
+    result.Id |> should equal (Some "npm-emptydeps")
+    result.DependencyResolution |> should equal (Some DependencyResolution.Scope)
+    result.Dependencies.Count |> should equal 0
+
+[<Test>]
+let ``pnpm defaults keep package scope in generated id`` () =
+    let context = localContext "build" (fixtureDir "npm-scoped")
+    let result = invokeDefaults "@pnpm" context
+
+    result.Id |> should equal (Some "@matis/investapi")
+    result.DependencyResolution |> should equal (Some DependencyResolution.Scope)
+    result.Dependencies.Count |> should equal 0
 
 [<Test>]
 let ``pnpm install batched uses recursive filters`` () =
