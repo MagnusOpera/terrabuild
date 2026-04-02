@@ -1,0 +1,28 @@
+type DependencyResolution =
+  | Path
+  | Scope
+
+type ProjectInfo =
+    { Id: string option
+      DependencyResolution: DependencyResolution option
+      Outputs: string list
+      Dependencies: string list }
+
+[<export>] let defaults (context: {| Directory: string |}) =
+  { Id = None
+    DependencyResolution = None
+    Outputs = []
+    Dependencies =
+      [ "src"
+        "src\\Terrabuild\\Terrabuild.fsproj"
+        "src\\Terrabuild.Configuration\\Terrabuild.Configuration.fsproj" ] }
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof defaults] = [Default] }

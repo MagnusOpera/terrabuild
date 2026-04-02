@@ -51,7 +51,7 @@ let parseWorkspace() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = "scripts/npm.fsx" |> Expr.String |> Some
+              Script = "scripts/npm.fss" |> Expr.String |> Some
               Defaults = None
               Env = Map [ "CI", Expr.String "true" ] |> Some }
 

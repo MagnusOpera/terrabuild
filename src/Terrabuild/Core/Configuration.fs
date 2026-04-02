@@ -341,13 +341,13 @@ let private loadProjectDef
         | Some projectType ->
             let result =
                 Extensions.getScript projectType scripts
-                |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
+                |> Extensions.invokeScriptDefault<ProjectInfo> parseContext
             let defaults =
                 match result with
                 | Extensions.Success result -> result
                 | Extensions.ScriptNotFound -> raiseSymbolError $"Script {projectType} was not found"
                 | Extensions.TargetNotFound -> ProjectInfo.Default
-                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{projectType}'", exn)
+                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of default metadata for extension '{projectType}'", exn)
             match defaults.Id with
             | Some canonicalId -> defaults, canonicalId, $"{projectType}"
             | _ -> defaults, projectId |> String.toLower, SCOPE_PATH
@@ -361,14 +361,14 @@ let private loadProjectDef
         initializersForDefaults |> Set.fold (fun projectInfo init ->
             let result =
                 Extensions.getScript init scripts
-                |> Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" parseContext
+                |> Extensions.invokeScriptDefault<ProjectInfo> parseContext
 
             let initProjectInfo =
                 match result with
                 | Extensions.Success result -> result
                 | Extensions.ScriptNotFound -> raiseSymbolError $"Script {init} was not found"
-                | Extensions.TargetNotFound -> ProjectInfo.Default // NOTE: if __defaults__ is not found - this will silently use default configuration, probably emit warning
-                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of command '__defaults__' for extension '{init}'", exn)
+                | Extensions.TargetNotFound -> ProjectInfo.Default // NOTE: if no default metadata is exported - this will silently use default configuration, probably emit warning
+                | Extensions.ErrorTarget exn -> forwardExternalError($"Invocation failure of default metadata for extension '{init}'", exn)
 
             { projectInfo with
                 ProjectInfo.Outputs = projectInfo.Outputs + initProjectInfo.Outputs

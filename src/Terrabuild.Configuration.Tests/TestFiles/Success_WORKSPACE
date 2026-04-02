@@ -44,7 +44,7 @@ extension docker {
 
 extension npmext {
     image = "node:20"
-    script = "scripts/npm.fsx"
+    script = "scripts/npm.fss"
 
     env {
         CI = "true"

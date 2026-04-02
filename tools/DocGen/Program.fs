@@ -204,18 +204,13 @@ let private parseScriptDocs (scriptPath: string) (extensionName: string) : Scrip
         clearPending ()
 
     let applyAsCommandDoc (commandName: string) =
-        let name =
-            match commandName.Trim().ToLowerInvariant() with
-            | "dispatch" -> "__dispatch__"
-            | "defaults" -> "__defaults__"
-            | other -> other
         let summary, title, args =
             match parseXmlDocBlock scriptPath pendingDoc with
             | Some(summary, title, args) -> summary, title, args
             | None -> None, None, []
         clearPending ()
-        let value = { Name = name; Summary = summary; Title = title; Args = args }
-        commands.[name] <- value
+        let value = { Name = commandName; Summary = summary; Title = title; Args = args }
+        commands.[commandName] <- value
 
     for rawLine in lines do
         let line = rawLine.Trim()
@@ -369,10 +364,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
     let commands =
         descriptor
         |> List.map (fun (functionName, flags) ->
-            let commandName =
-                if flags |> List.contains "dispatch" then "__dispatch__"
-                elif flags |> List.contains "default" then "__defaults__"
-                else functionName
+            let commandName = functionName
 
             let functionMeta =
                 match functionParams |> Map.tryFind functionName with
@@ -398,7 +390,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                 functionArgs
                 |> List.tryFind (fun arg -> normalizeParamNameForCompare arg.Name = normalizeParamNameForCompare docArgName)
 
-            if commandName <> "__defaults__" then
+            if commandName <> "defaults" then
                 for docArg in docArgs do
                     match findFunctionArg docArg.Name with
                     | None ->
@@ -411,7 +403,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
 
             let fromDocOrder =
                 docArgs
-                |> List.filter (fun arg -> arg.Name <> "__dispatch__")
+                |> List.filter (fun arg -> arg.Name <> "command")
                 |> List.map (fun arg ->
                     let annotation =
                         findFunctionArg arg.Name
@@ -443,7 +435,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                            TypeAnnotation = Some name.TypeAnnotation } : Parameter))
 
             let commandParameters: Parameter list =
-                if commandName = "__defaults__" then
+                if commandName = "defaults" then
                     fromDocOrder
                 elif not (List.isEmpty fromDocOrder) then
                     let documented =
@@ -533,7 +525,6 @@ let private tryReadExistingArgOrder (commandFile: string) =
 let private reorderParameters (command: Command) (commandFile: string) =
     let existingOrder =
         tryReadExistingArgOrder commandFile
-        |> List.map (fun name -> if command.Name = "__dispatch__" && name = "command" then "__dispatch__" else name)
     if List.isEmpty existingOrder then
         command.Parameters
     else
@@ -573,7 +564,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
         else "no"
 
     match command.Name with
-    | "__defaults__" -> ()
+    | "defaults" -> ()
     | _ ->
         let commandFile = Path.Combine(extensionDir, $"{command.Name}.md")
         let existingWeight = tryReadExistingWeight commandFile
@@ -590,11 +581,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 summary
         let commandContent = [
             "---"
-            match command.Name with
-            | "__dispatch__" ->
-                $"title: \"<command>\""
-            | _ ->
-                $"title: \"{command.Name}\""
+            $"title: \"{command.Name}\""
             if effectiveWeight |> Option.isSome then $"weight: {effectiveWeight.Value}"
             "---"
 
@@ -605,10 +592,6 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 | Some nameOverride -> nameOverride.Example
                 | _ -> command.Name
 
-            match command.Name with
-            | "__dispatch__" -> $"Example for command `{name}`:"
-            | _ -> ()
-
             "```"
             match orderedParameters with
             | [] -> $"@{extension.Name} {name} {{ }}"
@@ -617,9 +600,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 for prm in prms do
                     match prm.Name with
                     | "context" -> ()
-                    | _ ->
-                        if prm.Name <> "__dispatch__" then
-                            $"    {prm.Name} = {sampleValue prm}"
+                    | _ -> $"    {prm.Name} = {sampleValue prm}"
                 "}"
             "```"
 
@@ -641,10 +622,9 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                     match prm.Name with
                     | "context" -> ()
                     | _ ->
-                        let prmName = if prm.Name = "__dispatch__" then "command" else prm.Name
                         let required = if prm.Required then "Required" else "Optional"
                         let summary = formatArgumentSummary prm
-                        $"* `{prmName}` - ({required}) {summary}"
+                        $"* `{prm.Name}` - ({required}) {summary}"
 
             match batchCommand with
             | Some batchCommand ->
@@ -702,15 +682,13 @@ let writeExtension extensionDir (extension: Extension) =
                 "|---------|-------------|"
                 for cmd in extension.Commands do
                     match cmd.Name with
-                    | "__defaults__" ->
+                    | "defaults" ->
                         ()
-                    | "__dispatch__" ->
-                        $"| [&lt;command&gt;](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
                     | name when name.StartsWith("__") -> ()
                     | _ ->
                         $"| [{cmd.Name}](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
 
-                match extension.Commands |> List.tryFind (fun cmd -> cmd.Name = "__defaults__") with
+                match extension.Commands |> List.tryFind (fun cmd -> cmd.Name = "defaults") with
                 | Some init ->
                     ""
                     $"## Project Initializer"

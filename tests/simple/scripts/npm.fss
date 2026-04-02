@@ -1,0 +1,136 @@
+type ActionContext =
+    { Command: string
+      Directory: string }
+
+type ExtensionContext =
+    { Directory: string }
+
+type DependencyResolution =
+  | Path
+  | Scope
+
+type ProjectInfo =
+    { Id: string option
+      DependencyResolution: DependencyResolution option
+      Outputs: string list
+      Dependencies: string list }
+
+type ShellOperation =
+    { Command: string
+      Arguments: string
+      ErrorLevel: int }
+
+type CommandResult =
+    { Batchable: bool
+      Operations: ShellOperation list }
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+type Package =
+    { dependencies: string map option
+      devDependencies: string map option }
+
+let with_args (args: string option) =
+  args |> Option.defaultValue ""
+
+let append_part command value =
+  if value = "" then command
+  elif command = "" then value
+  else $"{command} {value}"
+
+let shell_op command arguments =
+  { Command = command
+    Arguments = arguments
+    ErrorLevel = 0 }
+
+let load_package directory =
+  let package_file = Fs.combinePath directory "package.json"
+  let content = Fs.readText package_file |> Option.defaultValue ""
+  Json.deserialize (typeof Package) content
+
+let collect_local_dependency acc key value =
+  match Regex.matchGroups "^file:(.*)$" value with
+  | Some [project] -> project :: acc
+  | _ -> acc
+
+let collect_local_dependencies map =
+  Map.fold collect_local_dependency [] map
+
+let dependencies_from (package: Package) =
+  let dependencies =
+    package.dependencies
+    |> Option.map collect_local_dependencies
+    |> Option.defaultValue []
+
+  let dev_dependencies =
+    package.devDependencies
+    |> Option.map collect_local_dependencies
+    |> Option.defaultValue []
+
+  List.append dependencies dev_dependencies
+  |> List.distinct
+
+[<export>] let defaults (context: ExtensionContext) =
+  let dependencies =
+    context.Directory
+    |> load_package
+    |> Option.map dependencies_from
+    |> Option.defaultValue []
+
+  { Id = None
+    DependencyResolution = None
+    Outputs = ["dist/**"]
+    Dependencies = dependencies }
+
+[<export>] let dispatch (context: ActionContext) (arguments: string option) =
+  let command =
+    ""
+    |> append_part context.Command
+    |> append_part (with_args arguments)
+
+  { Batchable = false
+    Operations = [ shell_op "npm" command ] }
+
+[<export>] let install (context: ActionContext) =
+  { Batchable = false
+    Operations = [ shell_op "npm" "ci" ] }
+
+[<export>] let build (context: ActionContext) (arguments: string option) =
+  let command =
+    ""
+    |> append_part "run build --"
+    |> append_part (with_args arguments)
+
+  { Batchable = false
+    Operations = [ shell_op "npm" command ] }
+
+[<export>] let test (context: ActionContext) (arguments: string option) =
+  let command =
+    ""
+    |> append_part "run test --"
+    |> append_part (with_args arguments)
+
+  { Batchable = false
+    Operations = [ shell_op "npm" command ] }
+
+[<export>] let run (context: ActionContext) (command: string) (arguments: string option) =
+  let command =
+    ""
+    |> append_part $"run {command} --"
+    |> append_part (with_args arguments)
+
+  { Batchable = false
+    Operations = [ shell_op "npm" command ] }
+
+{ [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof install] = [Local]
+  [nameof build] = [Remote]
+  [nameof test] = [Remote]
+  [nameof run] = [Local] }

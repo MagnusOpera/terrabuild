@@ -70,7 +70,7 @@ let invokeResult extensionName method context (args: Map<string, Value>) =
     |> failInvoke $"{extensionName}:{method}"
 
 let invokeDefaults extensionName context =
-    Extensions.invokeScriptMethod<ProjectInfo> "__defaults__" (withContext context Map.empty) (script extensionName |> Some)
+    Extensions.invokeScriptDefault<ProjectInfo> (withContext context Map.empty) (script extensionName |> Some)
     |> failInvoke $"{extensionName}:defaults"
 
 let cacheability extensionName method =

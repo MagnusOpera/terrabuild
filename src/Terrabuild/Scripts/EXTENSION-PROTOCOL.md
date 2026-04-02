@@ -2,6 +2,8 @@
 
 This document defines the normative protocol between Terrabuild and FScript extensions.
 
+Terrabuild supports FScript extension scripts only. Custom extension scripts **MUST** use the `.fss` file extension.
+
 ## Conformance Language
 
 The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
@@ -11,6 +13,7 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
 1. Extension entrypoints **MUST** be declared with `[<export>] let`.
 2. Only exported functions are considered extension entrypoints.
 3. Descriptor entries **MUST** reference exported function names only.
+4. Legacy compiled F# extension scripts such as `.fsx` **MUST NOT** be used.
 
 ## 2. Function Signature Contract
 
@@ -108,6 +111,8 @@ Supported flags:
 1. Command resolution **MUST** use exact exported function name when present.
 2. If no exact command function exists, Terrabuild **MUST** use the function flagged `dispatch` when present.
 3. Default metadata resolution **MUST** use the function flagged `default` when present.
+
+Legacy entrypoint names such as `__dispatch__` and `__defaults__` are not supported.
 
 ## 7. Return Contract
 
@@ -236,6 +241,13 @@ Template usage rules:
 5. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 6. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
 7. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Never`, `Local`, `External`, `Remote`.
+
+Migration rules for legacy compiled extension scripts:
+
+1. Rename custom extension files from `.fsx` to `.fss`.
+2. Replace `__dispatch__` with an exported function flagged `Dispatch`.
+3. Replace `__defaults__` with an exported function flagged `Default`.
+4. Replace any reflection or attribute-based cacheability metadata with descriptor flags.
 
 Parameter XML documentation attributes:
 

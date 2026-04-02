@@ -109,6 +109,16 @@ let ``Built-in extension script override is rejected``() =
     |> should (throwWithMessage "Script override is not allowed for built-in extension '@dotnet'") typeof<TerrabuildException>
 
 [<Test>]
+let ``Legacy fsx extension script is rejected``() =
+    withTempWorkspace (fun root ->
+        writeFile root "scripts/custom.fsx" "let value = 1"
+
+        let loader = Extensions.lazyLoadScript root [ ".git" ] "@custom" (Some "scripts/custom.fsx")
+        Assert.That(
+            (fun () -> loader.Value |> ignore),
+            Throws.TypeOf<TerrabuildException>().With.Message.Contains("Legacy F# extension scripts are no longer supported")))
+
+[<Test>]
 let ``Local extension import cannot escape workspace``() =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
     let workspace = Path.Combine(root, "workspace")
@@ -241,3 +251,34 @@ target build {
         let project = config.Projects["workspace/path#apps/api"]
 
         project.Dependencies |> should contain "workspace/path#libs/shared")
+
+[<Test>]
+let ``Configuration rejects project scripts using fsx`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {
+}
+
+target build {
+}
+
+extension @custom {
+  script = "scripts/custom.fsx"
+}
+"""
+
+        writeFile root "scripts/custom.fsx" "let value = 1"
+
+        writeFile root "app/PROJECT" """
+project app {
+  @custom { }
+}
+
+target build {
+  @custom build { }
+}
+"""
+
+        Assert.That(
+            (fun () -> Configuration.read (baseOptions root (Set [ "build" ])) |> ignore),
+            Throws.TypeOf<TerrabuildException>()))

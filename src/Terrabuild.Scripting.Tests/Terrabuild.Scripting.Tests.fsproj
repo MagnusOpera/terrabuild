@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Invocable.fs" />
     <Compile Include="Scripting.fs" />
   </ItemGroup>
 

@@ -45,7 +45,7 @@ let parseProject() =
               Platform = None
               Cpus = None
               Variables = None
-              Script = "dummy.fsx" |> Expr.String |> Some
+              Script = "dummy.fss" |> Expr.String |> Some
               Defaults = None
               Env = Map [ "DUMMY_VAR", Expr.String "tagada" ] |> Some }
 

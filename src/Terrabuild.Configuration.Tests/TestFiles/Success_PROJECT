@@ -17,7 +17,7 @@ extension @docker {
 }
 
 extension dummy {
-    script = "dummy.fsx"
+    script = "dummy.fss"
 
     env {
         DUMMY_VAR = "tagada"

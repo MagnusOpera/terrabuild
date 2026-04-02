@@ -13,25 +13,31 @@ open System.IO
 [<Test>]
 let loadScript() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/Toto.fsx"
-    let invocable = script.GetMethod("Tagada")
+    let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Toto.fss"
+    let invocable = script.GetMethod("tagada")
     let context = { ExtensionContext.Debug= false; ExtensionContext.Directory = "this is a path"; ExtensionContext.CI = false }
     let args = Value.Map (Map [ "context", Value.Object context])
-    let res = invocable.Value.Invoke args
+    let res = invocable.Value.Invoke<string> args
     res |> should equal context.Directory
 
 [<Test>]
-let loadScriptWithError() =
+let legacyScriptIsRejected() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    (fun () -> Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/Failure.fsx" |> ignore)
-    |> should (throwWithMessage "Failed to identify function scope (either module or root class 'Failure')") typeof<TerrabuildException>
+    let legacyScript = Path.Combine(root, "TestFiles", "Legacy.fsx")
+    File.WriteAllText(legacyScript, "let value = 1")
+    try
+        (fun () -> Terrabuild.Scripting.loadScript root [] legacyScript |> ignore)
+        |> should (throwWithMessage $"Legacy F# extension scripts are no longer supported; migrate '{legacyScript}' to '.fss'") typeof<TerrabuildException>
+    finally
+        if File.Exists(legacyScript) then
+            File.Delete(legacyScript)
 
 [<Test>]
 let loadVSSolution() =
     let testDir = System.IO.Path.Combine(NUnit.Framework.TestContext.CurrentContext.TestDirectory, "TestFiles")
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-    let script = Terrabuild.Scripting.loadScript root [ "Terrabuild.Scripting.dll" ] "TestFiles/VSSolution.fsx"
-    let invocable = script.GetMethod("__defaults__")
+    let script = Terrabuild.Scripting.loadScript root [] "TestFiles/VSSolution.fss"
+    let invocable = script.GetMethod("defaults")
     let context = { ExtensionContext.Debug= false; ExtensionContext.Directory = testDir; ExtensionContext.CI = false }
     let args = Value.Map (Map [ "context", Value.Object context])
 

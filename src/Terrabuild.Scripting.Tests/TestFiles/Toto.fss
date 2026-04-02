@@ -1,0 +1,12 @@
+[<export>] let tagada (context: {| Directory: string |}) =
+  context.Directory
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof tagada] = [Local] }

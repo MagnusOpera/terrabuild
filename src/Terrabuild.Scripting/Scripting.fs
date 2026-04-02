@@ -2,12 +2,9 @@ module Terrabuild.Scripting
 
 open System
 open System.IO
-open System.Reflection
 open System.Diagnostics
 open System.Threading
 open System.Collections.Concurrent
-open FSharp.Compiler.CodeAnalysis
-open FSharp.Compiler.Diagnostics
 open Microsoft.FSharp.Reflection
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
@@ -127,134 +124,25 @@ module private Performance =
 let resetPerformanceMetrics () = Performance.reset()
 let getPerformanceSnapshot () = Performance.snapshot()
 
-type Invocable private (methodOpt: MethodInfo option, runtimeInvoker: RuntimeInvoker option) =
-    let expectString (name: string) (value: objnull) =
-        match value with
-        | :? string as str -> str
-        | _ -> raiseTypeError $"Can't assign value to parameter '{name}' as string"
-
-    let convertToNone (parameterType: System.Type) =
-        let template = typedefof<option<_>>
-        let genericType = template.MakeGenericType([| parameterType.GetGenericArguments()[0] |])
-        let noneCase = FSharpType.GetUnionCases(genericType) |> Array.find (fun unionCase -> unionCase.Name = "None")
-        FSharpValue.MakeUnion(noneCase, [| |])
-
-    let convertToSome (parameterType: System.Type) (value: obj) =
-        let template = typedefof<option<_>>
-        let genericType = template.MakeGenericType([| parameterType.GetGenericArguments()[0] |])
-        let someCase = FSharpType.GetUnionCases(genericType) |> Array.find (fun unionCase -> unionCase.Name = "Some")
-        FSharpValue.MakeUnion(someCase, [| value |])
-
-    let rec mapParameter (value: Terrabuild.Expression.Value) (name: string) (parameterType: System.Type) =
-        match value with
-        | Terrabuild.Expression.Value.Nothing ->
-            if parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToNone parameterType
-            elif parameterType.IsGenericType && parameterType = typeof<Map<string, string>> then
-                let emptyMap: Map<string, string> = Map.empty
-                box emptyMap
-            else
-                raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expression.Value.Bool boolValue ->
-            if boolValue.GetType().IsAssignableTo(parameterType) then box boolValue
-            elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType boolValue
-            else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expression.Value.String stringValue ->
-            if stringValue.GetType().IsAssignableTo(parameterType) then box stringValue
-            elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType stringValue
-            else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expression.Value.Number numberValue ->
-            if numberValue.GetType().IsAssignableTo(parameterType) then box numberValue
-            elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType numberValue
-            else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expression.Value.Enum enumValue ->
-            if enumValue.GetType().IsAssignableTo(parameterType) then box enumValue
-            elif parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() = typedefof<option<_>> then convertToSome parameterType enumValue
-            else raiseTypeError $"Can't assign default value to parameter '{name}'"
-        | Terrabuild.Expression.Value.Object objectValue -> objectValue
-        | Terrabuild.Expression.Value.Map mapValue ->
-            match TypeHelpers.getKind parameterType with
-            | TypeHelpers.TypeKind.FsRecord ->
-                let ctor = FSharpValue.PreComputeRecordConstructor(parameterType)
-                let fields = FSharpType.GetRecordFields(parameterType)
-                let fieldIndices = fields |> Array.mapi (fun index field -> field.Name, index) |> Map.ofArray
-                let fieldValues = Array.create fields.Length (false, null)
-
-                for KeyValue(fieldName, mapItemValue) in mapValue do
-                    match fieldIndices |> Map.tryFind fieldName with
-                    | None -> raiseSymbolError $"Property {fieldName} does not exists"
-                    | Some index ->
-                        let field = fields[index]
-                        let mapped = mapParameter mapItemValue field.Name field.PropertyType
-                        fieldValues[index] <- true, mapped
-
-                let ctorValues =
-                    fieldValues
-                    |> Array.mapi (fun index (initialized, itemValue) ->
-                        if initialized then itemValue
-                        else
-                            let field = fields[index]
-                            mapParameter Terrabuild.Expression.Value.Nothing field.Name field.PropertyType)
-                ctor ctorValues
-            | TypeHelpers.TypeKind.FsMap ->
-                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> |> expectString itemName)
-                box mapped
-            | TypeHelpers.TypeKind.FsOption ->
-                let mapped = mapValue |> Map.map (fun itemName itemValue -> mapParameter itemValue itemName typeof<string> |> expectString itemName)
-                convertToSome parameterType mapped
-            | typeKind ->
-                raiseTypeError $"Can't assign map to parameter '{name}' of type '{typeKind}'"
-        | Terrabuild.Expression.Value.List listValue ->
-            match TypeHelpers.getKind parameterType with
-            | TypeHelpers.TypeKind.FsList ->
-                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> |> expectString name)
-                box mapped
-            | TypeHelpers.TypeKind.FsOption ->
-                let mapped = listValue |> List.map (fun itemValue -> mapParameter itemValue name typeof<string> |> expectString name)
-                convertToSome parameterType mapped
-            | typeKind ->
-                raiseTypeError $"Can't assign list to parameter '{name}' of type '{typeKind}'"
-
-    let mapParameters (map: Map<string, Terrabuild.Expression.Value>) (parameters: ParameterInfo array) =
-        parameters
-        |> Array.map (fun parameterInfo ->
-            let parameterName = parameterInfo.Name |> nonNull
-            match map |> Map.tryFind parameterName with
-            | None -> mapParameter Terrabuild.Expression.Value.Nothing parameterName parameterInfo.ParameterType
-            | Some parameterValue -> mapParameter parameterValue parameterName parameterInfo.ParameterType)
-
-    let buildArgs (value: Terrabuild.Expression.Value) (methodInfo: MethodInfo) =
-        match value with
-        | Terrabuild.Expression.Value.Map map ->
-            let parameters = methodInfo.GetParameters()
-            mapParameters map parameters
-        | _ ->
-            raiseTypeError "Expecting a map for build arguments"
-
+type Invocable private (runtimeInvoker: RuntimeInvoker) =
     member _.Invoke<'t>(value: Terrabuild.Expression.Value) =
-        match runtimeInvoker, methodOpt with
-        | Some invokeRuntime, _ ->
-            invokeRuntime value typeof<'t> :?> 't
-        | None, Some methodInfo ->
-            let args = buildArgs value methodInfo
-            methodInfo.Invoke(null, args) :?> 't
-        | _ ->
-            raiseBugError "Invalid invocable state"
-
-    new (methodInfo: MethodInfo) = Invocable(Some methodInfo, None)
+        runtimeInvoker value typeof<'t> :?> 't
 
     static member internal FromRuntime(runtimeInvoke: RuntimeInvoker) =
-        Invocable(None, Some runtimeInvoke)
+        Invocable(runtimeInvoke)
 
-type ScriptRuntime =
-    | Legacy of System.Type
-    | FScript of string * FScript.Runtime.ScriptHost.LoadedScript * Set<string> * ScriptDescriptor * string option * string option
-
-type Script internal (runtime: ScriptRuntime) =
+type Script internal
+    (
+        scriptId: string,
+        loaded: FScript.Runtime.ScriptHost.LoadedScript,
+        exportedFunctions: Set<string>,
+        descriptor: ScriptDescriptor,
+        dispatchMethod: string option,
+        defaultMethod: string option
+    ) =
     let methodCache = ConcurrentDictionary<string, Invocable option>(StringComparer.Ordinal)
     let commandResolutionCache = ConcurrentDictionary<string, string option>(StringComparer.Ordinal)
     let mutable defaultResolutionCache: string option option = None
-
-    new(mainType: System.Type) = Script(Legacy mainType)
 
     member _.GetMethod(name: string) =
         methodCache.GetOrAdd(
@@ -262,72 +150,66 @@ type Script internal (runtime: ScriptRuntime) =
             Func<_, _>(fun methodName ->
                 let startedAt = Stopwatch.GetTimestamp()
                 let resolved =
-                    match runtime with
-                    | Legacy mainType ->
-                        match mainType.GetMethod(methodName, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
-                        | Null -> None
-                        | NonNull methodInfo -> Invocable(methodInfo) |> Some
-                    | FScript(scriptId, loaded, exportedFunctions, _, _, _) ->
-                        if exportedFunctions |> Set.contains methodName then
-                            let signature =
-                                match loaded.ExportedFunctionSignatures |> Map.tryFind methodName with
-                                | Some value -> value
-                                | None -> raiseInvalidArg $"Missing signature metadata for exported function '{methodName}'"
+                    if exportedFunctions |> Set.contains methodName then
+                        let signature =
+                            match loaded.ExportedFunctionSignatures |> Map.tryFind methodName with
+                            | Some value -> value
+                            | None -> raiseInvalidArg $"Missing signature metadata for exported function '{methodName}'"
 
-                            let parameterPlan =
-                                match signature.ParameterNames, signature.ParameterTypes with
-                                | contextParam :: remainingParams, contextType :: remainingTypes ->
-                                    if contextParam <> "context" then
-                                        raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
-                                    contextType, List.zip remainingParams remainingTypes
-                                | _ ->
+                        let parameterPlan =
+                            match signature.ParameterNames, signature.ParameterTypes with
+                            | contextParam :: remainingParams, contextType :: remainingTypes ->
+                                if contextParam <> "context" then
                                     raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
+                                contextType, List.zip remainingParams remainingTypes
+                            | _ ->
+                                raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
 
-                            let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expression.Value) =
-                                match parameterType with
-                                | FScript.Language.TOption _ ->
-                                    match value with
-                                    | Terrabuild.Expression.Value.Nothing -> FScript.Language.VOption None
-                                    | _ ->
-                                        match Conversions.ToFScriptValue value with
-                                        | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
-                                        | converted -> FScript.Language.VOption (Some converted)
+                        let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expression.Value) =
+                            match parameterType with
+                            | FScript.Language.TOption _ ->
+                                match value with
+                                | Terrabuild.Expression.Value.Nothing -> FScript.Language.VOption None
                                 | _ ->
-                                    Conversions.ToFScriptValue value
+                                    match Conversions.ToFScriptValue value with
+                                    | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
+                                    | converted -> FScript.Language.VOption (Some converted)
+                            | _ ->
+                                Conversions.ToFScriptValue value
 
-                            let runtimeInvoke (args: Terrabuild.Expression.Value) (targetType: System.Type) =
-                                let invokeStartedAt = Stopwatch.GetTimestamp()
-                                let inputMap =
-                                    match args with
-                                    | Terrabuild.Expression.Value.Map map -> map
-                                    | _ -> raiseTypeError $"FScript function '{methodName}' expects map-based arguments"
+                        let runtimeInvoke (args: Terrabuild.Expression.Value) (targetType: System.Type) =
+                            let invokeStartedAt = Stopwatch.GetTimestamp()
+                            let inputMap =
+                                match args with
+                                | Terrabuild.Expression.Value.Map map -> map
+                                | _ -> raiseTypeError $"FScript function '{methodName}' expects map-based arguments"
 
-                                let contextType, remainingPlan = parameterPlan
-                                let contextArg =
-                                    match inputMap |> Map.tryFind "context" with
-                                    | Some value -> toFScriptArgument contextType value
-                                    | None -> raiseTypeError $"Missing required argument 'context' for function '{methodName}'"
+                            let contextType, remainingPlan = parameterPlan
+                            let contextArg =
+                                match inputMap |> Map.tryFind "context" with
+                                | Some value -> toFScriptArgument contextType value
+                                | None -> raiseTypeError $"Missing required argument 'context' for function '{methodName}'"
 
-                                let remainingArgs =
-                                    remainingPlan
-                                    |> List.map (fun (parameterName, parameterType) ->
-                                        match inputMap |> Map.tryFind parameterName with
-                                        | Some value -> toFScriptArgument parameterType value
-                                        | None ->
-                                            match parameterType with
-                                            | FScript.Language.TOption _ -> FScript.Language.VOption None
-                                            | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{methodName}'")
+                            let remainingArgs =
+                                remainingPlan
+                                |> List.map (fun (parameterName, parameterType) ->
+                                    match inputMap |> Map.tryFind parameterName with
+                                    | Some value -> toFScriptArgument parameterType value
+                                    | None ->
+                                        match parameterType with
+                                        | FScript.Language.TOption _ -> FScript.Language.VOption None
+                                        | _ -> raiseTypeError $"Missing required argument '{parameterName}' for function '{methodName}'")
 
-                                let scriptInvokeStartedAt = Stopwatch.GetTimestamp()
-                                let result = FScript.Runtime.ScriptHost.invoke loaded methodName (contextArg :: remainingArgs)
-                                Performance.trackScriptInvoke $"{scriptId}:{methodName}" (Stopwatch.GetTimestamp() - scriptInvokeStartedAt)
-                                let mappedResult = Conversions.FromFScriptValue(targetType, result)
-                                Performance.trackRuntimeInvoke(Stopwatch.GetTimestamp() - invokeStartedAt)
-                                mappedResult
+                            let scriptInvokeStartedAt = Stopwatch.GetTimestamp()
+                            let result = FScript.Runtime.ScriptHost.invoke loaded methodName (contextArg :: remainingArgs)
+                            Performance.trackScriptInvoke $"{scriptId}:{methodName}" (Stopwatch.GetTimestamp() - scriptInvokeStartedAt)
+                            let mappedResult = Conversions.FromFScriptValue(targetType, result)
+                            Performance.trackRuntimeInvoke(Stopwatch.GetTimestamp() - invokeStartedAt)
+                            mappedResult
 
-                            Invocable.FromRuntime(runtimeInvoke) |> Some
-                        else
-                            None
+                        Invocable.FromRuntime(runtimeInvoke) |> Some
+                    else
+                        None
                 Performance.trackMethodResolution(Stopwatch.GetTimestamp() - startedAt)
                 resolved
             )
@@ -337,17 +219,8 @@ type Script internal (runtime: ScriptRuntime) =
         commandResolutionCache.GetOrAdd(
             command,
             Func<_, _>(fun commandName ->
-                match runtime with
-                | Legacy mainType ->
-                    if mainType.GetMethod(commandName, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                        Some commandName
-                    elif mainType.GetMethod("__dispatch__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                        Some "__dispatch__"
-                    else
-                        None
-                | FScript(_, _, exportedFunctions, _, dispatchMethod, _) ->
-                    if exportedFunctions |> Set.contains commandName then Some commandName
-                    else dispatchMethod
+                if exportedFunctions |> Set.contains commandName then Some commandName
+                else dispatchMethod
             )
         )
 
@@ -355,45 +228,14 @@ type Script internal (runtime: ScriptRuntime) =
         match defaultResolutionCache with
         | Some methodName -> methodName
         | None ->
-            let resolved =
-                match runtime with
-                | Legacy mainType ->
-                    if mainType.GetMethod("__defaults__", BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) |> isNull |> not then
-                        Some "__defaults__"
-                    else
-                        None
-                | FScript(_, _, _, _, _, defaultMethod) ->
-                    defaultMethod
+            let resolved = defaultMethod
             defaultResolutionCache <- Some resolved
             resolved
 
     member _.TryGetFunctionFlags(name: string) =
-        match runtime with
-        | Legacy mainType ->
-            match mainType.GetMethod(name, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
-            | Null -> None
-            | NonNull methodInfo ->
-                let flags =
-                    [ match methodInfo.GetCustomAttribute(typeof<CacheableAttribute>) with
-                      | :? CacheableAttribute as cacheable -> ExportFlag.Cache cacheable.Cacheability
-                      | _ -> () ]
-                Some flags
-        | FScript(_, _, exportedFunctions, descriptor, _, _) ->
-            if exportedFunctions |> Set.contains name then
-                descriptor |> Map.tryFind name |> Option.defaultValue [] |> Some
-            else
-                None
-
-    member _.GetAttribute<'a when 'a :> Attribute>(name: string) =
-        match runtime with
-        | Legacy mainType ->
-            match mainType.GetMethod(name, BindingFlags.IgnoreCase ||| BindingFlags.Public ||| BindingFlags.Static) with
-            | Null -> None
-            | NonNull methodInfo ->
-                match methodInfo.GetCustomAttribute(typeof<'a>) with
-                | NonNull attributeValue -> attributeValue :?> 'a |> Some
-                | _ -> None
-        | FScript _ ->
+        if exportedFunctions |> Set.contains name then
+            descriptor |> Map.tryFind name |> Option.defaultValue [] |> Some
+        else
             None
 
 and private Descriptor =
@@ -730,37 +572,8 @@ and private Conversions =
         Performance.trackFromFScriptConversion(Stopwatch.GetTimestamp() - startedAt)
         decoded
 
-let private checker = FSharpChecker.Create()
 let mutable private cache = Map.empty<string, Script>
 let private loadLock = obj ()
-
-let private loadLegacyScript (references: string list) (scriptFile: string) =
-    let fullScriptPath = Path.GetFullPath(scriptFile)
-    let outputDllName = $"{Path.GetTempFileName()}.dll"
-
-    let compilerArgs =
-        [| "-a"
-           fullScriptPath
-           "--targetprofile:netcore"
-           "--target:library"
-           $"--out:{outputDllName}"
-           "--define:TERRABUILD_SCRIPT"
-           for reference in references do
-               $"--reference:{reference}" |]
-
-    let errors, _ = checker.Compile(compilerArgs) |> Async.RunSynchronously
-    let firstError = errors |> Array.tryFind (fun diagnostic -> diagnostic.Severity = FSharpDiagnosticSeverity.Error)
-    if firstError.IsSome then
-        raiseExternalError $"Error while compiling script {fullScriptPath}: {firstError.Value}"
-
-    let assembly = Assembly.LoadFile(outputDllName)
-    let expectedMainTypeName = Path.GetFileNameWithoutExtension(fullScriptPath)
-    let mainType =
-        match assembly.GetTypes() |> Seq.tryFind (fun assemblyType -> String.Compare(assemblyType.Name, expectedMainTypeName, true) = 0) with
-        | Some assemblyType -> assemblyType
-        | _ -> raiseInvalidArg $"Failed to identify function scope (either module or root class '{expectedMainTypeName}')"
-
-    Script(mainType)
 
 let private toFScriptScript (scriptIdentity: string) (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     loaded.ExportedFunctionNames
@@ -775,7 +588,7 @@ let private toFScriptScript (scriptIdentity: string) (loaded: FScript.Runtime.Sc
     let descriptor = Descriptor.Parse(loaded.ExportedFunctionNames, loaded.LastValue)
     let dispatchMethod, defaultMethod = Descriptor.ResolveDispatchAndDefault descriptor
     let exportedFunctions = loaded.ExportedFunctionNames |> Set.ofList
-    Script(FScript(scriptIdentity, loaded, exportedFunctions, descriptor, dispatchMethod, defaultMethod))
+    Script(scriptIdentity, loaded, exportedFunctions, descriptor, dispatchMethod, defaultMethod)
 
 let private toFScriptStringLiteral (value: string) =
     let escaped =
@@ -899,7 +712,7 @@ let private loadFScriptFromSourceWithIncludes
             resolveImportedSource
     toFScriptScript entryFile loaded
 
-let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string list) (deniedPathGlobs: string list) (scriptFile: string) =
+let loadScriptWithDeniedPathGlobs (rootDirectory: string) (_references: string list) (deniedPathGlobs: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
     let fullRootDirectory = Path.GetFullPath(rootDirectory)
     let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
@@ -916,10 +729,11 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (references: string li
                 | null
                 | "" -> ""
                 | value -> value.ToLowerInvariant()
-            let script =
-                match extension with
-                | ".fss" -> loadFScript fullRootDirectory deniedPathGlobs fullScriptPath
-                | _ -> loadLegacyScript references fullScriptPath
+
+            if extension <> ".fss" then
+                raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{scriptFile}' to '.fss'"
+
+            let script = loadFScript fullRootDirectory deniedPathGlobs fullScriptPath
             cache <- cache |> Map.add cacheKey script
             Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
             script)

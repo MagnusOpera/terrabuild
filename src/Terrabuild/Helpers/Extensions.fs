@@ -108,6 +108,16 @@ let private ensureHttpsUri (extensionName: string) (uri: Uri) =
         raiseInvalidArg $"Only HTTPS script URLs are allowed for extension '{extensionName}'"
     uri
 
+let private ensureFScriptOrigin (displayPath: string) =
+    let extension =
+        match Path.GetExtension(displayPath) with
+        | null
+        | "" -> ""
+        | value -> value.ToLowerInvariant()
+
+    if extension <> ".fss" then
+        raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{displayPath}' to '.fss'"
+
 let private isWithinWorkspace (workspaceRoot: string) (candidatePath: string) =
     let normalize (path: string) =
         let full = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
@@ -279,8 +289,10 @@ let private loadScriptFromOriginWithIncludes
             let virtualPath, rawSource =
                 match origin with
                 | LocalFile path ->
+                    ensureFScriptOrigin path
                     path, File.ReadAllText(path)
                 | RemoteUrl uri ->
+                    ensureFScriptOrigin uri.AbsoluteUri
                     let virtualPath = toUrlVirtualPath workspaceRoot uri
                     let source =
                         match remoteSourceCache.TryGetValue(uri.AbsoluteUri) with
@@ -382,13 +394,27 @@ let invokeScriptMethod<'r> (method: string) (args: Value) (script: Script option
     match script with
     | None -> ScriptNotFound
     | Some script ->
-        let resolveMethodName () =
-            if String.Equals(method, "__defaults__", StringComparison.OrdinalIgnoreCase) then
-                script.ResolveDefaultMethod()
-            else
-                script.ResolveCommandMethod(method)
+        match script.ResolveCommandMethod(method) with
+        | None -> TargetNotFound
+        | Some resolvedMethod ->
+            let invocable = script.GetMethod(resolvedMethod)
+            match invocable with
+            | Some invocable ->
+                try
+                    Success (invocable.Invoke<'r> args)
+                with
+                | :? Reflection.TargetInvocationException as exn ->
+                    match exn.InnerException with
+                    | NonNull innerExn -> ErrorTarget innerExn
+                    | _ -> ErrorTarget exn
+                | exn -> ErrorTarget exn
+            | None -> TargetNotFound
 
-        match resolveMethodName () with
+let invokeScriptDefault<'r> (args: Value) (script: Script option) =
+    match script with
+    | None -> ScriptNotFound
+    | Some script ->
+        match script.ResolveDefaultMethod() with
         | None -> TargetNotFound
         | Some resolvedMethod ->
             let invocable = script.GetMethod(resolvedMethod)
