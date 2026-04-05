@@ -4,9 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Discover project-version references from effectively used extension configuration during graph construction, so inherited workspace extension images such as `project.pnpm.version` resolve before `finalizeProject`.
-- Add regression coverage for workspace extension identifier preservation and inherited extension project-reference discovery.
-- Keep smoke-test container snapshots pinned to `linux/amd64` so local runs and GitHub Actions produce the same debug artifacts.
+- Fix inherited extension project-version dependency discovery, add regression coverage, and keep smoke-test snapshots pinned to `linux/amd64`.
 
 ## [0.193.0-next]
 
