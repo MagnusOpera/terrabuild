@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {
   MantineProvider,
+  type MantineTheme,
   createTheme,
   localStorageColorSchemeManager,
 } from "@mantine/core";
@@ -18,7 +19,7 @@ const colorSchemeManager = localStorageColorSchemeManager({
 const theme = createTheme({
   components: {
     Notification: {
-      styles: (mantineTheme) => ({
+      styles: (mantineTheme: MantineTheme) => ({
         root: {
           border: `1px solid ${mantineTheme.colors.gray[3]}`,
           borderRadius: 8,

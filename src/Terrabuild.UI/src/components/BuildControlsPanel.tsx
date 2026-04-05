@@ -96,7 +96,7 @@ const BuildControlsPanel = ({
         disabled={controlsDisabled}
         style={{ margin: 0, padding: 0, border: "none", minInlineSize: 0 }}
       >
-        <Stack spacing="sm">
+        <Stack gap="sm">
           <MultiSelect
             data={targets.map((target) => ({ value: target, label: target }))}
             label="Targets"
@@ -107,7 +107,7 @@ const BuildControlsPanel = ({
             onChange={onTargetsChange}
           />
 
-          <Group spacing="md">
+          <Group gap="md">
             <Checkbox
               label="Force"
               checked={forceBuild}
@@ -173,7 +173,7 @@ const BuildControlsPanel = ({
             <Accordion.Item value="advanced">
               <Accordion.Control>Advanced</Accordion.Control>
               <Accordion.Panel>
-                <Stack spacing="sm">
+                <Stack gap="sm">
                   <MultiSelect
                     data={projects
                       .filter((project) => project.name)
@@ -240,7 +240,7 @@ const BuildControlsPanel = ({
             </Accordion.Item>
           </Accordion>
 
-          <Group spacing="xs" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap">
             <Button
               onClick={onStartBuild}
               disabled={buildRunning || selectedTargets.length === 0}

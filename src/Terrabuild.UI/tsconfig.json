@@ -9,8 +9,7 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "types": ["vite/client"]
+    "isolatedModules": true
   },
   "include": ["src"]
 }

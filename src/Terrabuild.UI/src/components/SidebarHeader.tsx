@@ -4,7 +4,7 @@ import ThemeSwitcher from "./ThemeSwitcher";
 const SidebarHeader = () => {
   return (
     <Group justify="space-between" align="center">
-      <Group spacing="sm" align="center">
+      <Group gap="sm" align="center">
         <Box
           component="svg"
           xmlns="http://www.w3.org/2000/svg"

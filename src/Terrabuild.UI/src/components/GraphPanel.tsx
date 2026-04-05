@@ -54,7 +54,7 @@ const GraphPanel = ({
       }}
     >
       <Group justify="space-between" align="center" mb="sm">
-        <Group spacing="xs" align="center">
+        <Group gap="xs" align="center">
           <Title order={4}>Execution Graph</Title>
           {graphError && (
             <Text size="sm" c="red">
@@ -62,7 +62,7 @@ const GraphPanel = ({
             </Text>
           )}
         </Group>
-        <Group spacing="xs" align="center" justify="flex-end">
+        <Group gap="xs" align="center" justify="flex-end">
           <ActionIcon
             size="lg"
             variant="subtle"
@@ -101,7 +101,7 @@ const GraphPanel = ({
             </ReactFlow>
           </Box>
         ) : (
-          <Group position="center" style={{ height: "100%" }}>
+          <Group justify="center" style={{ height: "100%" }}>
             <Text size="sm" c="dimmed">
               Select at least one target to view the graph.
             </Text>

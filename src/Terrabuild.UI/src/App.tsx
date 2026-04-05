@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Stack,
@@ -268,7 +268,10 @@ const App = () => {
     applyTerminalTheme();
   }, [effectiveColorScheme, theme]);
 
-  const getNodeStyle = (nodeId: string, isNamedProject: boolean) => {
+  const getNodeStyle = (
+    nodeId: string,
+    isNamedProject: boolean
+  ): CSSProperties => {
     const isDark = effectiveColorScheme === "dark";
     const defaultBorder = isDark ? theme.colors.dark[3] : theme.colors.gray[6];
     const selectedBorder = theme.colors.blue[6];
@@ -585,12 +588,13 @@ const App = () => {
             stroke,
             strokeWidth: isConnected ? 2 : 1,
           },
-          markerStart: edge.markerStart
-            ? {
-                ...edge.markerStart,
-                color: stroke,
-              }
-            : edge.markerStart,
+          markerStart:
+            edge.markerStart && typeof edge.markerStart === "object"
+              ? {
+                  ...edge.markerStart,
+                  color: stroke,
+                }
+              : edge.markerStart,
         };
       })
     );
@@ -1157,7 +1161,7 @@ const App = () => {
             paddingRight: theme.spacing.xs,
           }}
         >
-          <Stack spacing="md">
+          <Stack gap="md">
             <BuildControlsPanel
               targets={targets}
               selectedTargets={selectedTargets}

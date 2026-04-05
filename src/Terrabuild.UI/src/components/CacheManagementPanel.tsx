@@ -27,9 +27,9 @@ const CacheManagementPanel = ({
         disabled={disabled}
         style={{ margin: 0, padding: 0, border: "none", minInlineSize: 0 }}
       >
-        <Stack spacing="sm">
+        <Stack gap="sm">
           <Text fw={600}>Cache Management</Text>
-          <Group spacing="md">
+          <Group gap="md">
             <Checkbox
               label="Cache"
               checked={clearCache}

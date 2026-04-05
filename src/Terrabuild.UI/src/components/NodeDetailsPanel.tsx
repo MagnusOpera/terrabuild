@@ -34,12 +34,12 @@ const NodeDetailsPanel = ({
     : [];
   return (
     <Paper withBorder p="md" radius="md" shadow="md">
-      <Stack spacing="xs">
+      <Stack gap="xs">
         <Text fw={600}>Node Details</Text>
         {selectedProject ? (
           <>
             <Text fw={600}>{selectedProject.directory}</Text>
-            <Stack spacing="xs">
+            <Stack gap="xs">
               {sortedTargets.map((target) => {
                 const cacheKey =
                   `${target.projectHash}/${target.target}/${target.targetHash}`;

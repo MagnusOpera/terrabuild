@@ -20,11 +20,11 @@ const BuildDetailsPanel = ({
 }: BuildDetailsPanelProps) => {
   return (
     <Paper withBorder p="md" radius="md" shadow="md">
-      <Stack spacing="xs">
+      <Stack gap="xs">
         <Text fw={600}>Build Details</Text>
         {graph ? (
           <>
-            <Group position="apart">
+            <Group justify="space-between">
               <Text size="sm" c="dimmed">
                 Nodes
               </Text>
@@ -32,7 +32,7 @@ const BuildDetailsPanel = ({
                 {nodeCount}
               </Text>
             </Group>
-            <Group position="apart">
+            <Group justify="space-between">
               <Text size="sm" c="dimmed">
                 Root nodes
               </Text>
@@ -40,7 +40,7 @@ const BuildDetailsPanel = ({
                 {rootNodeCount}
               </Text>
             </Group>
-            <Group position="apart">
+            <Group justify="space-between">
               <Text size="sm" c="dimmed">
                 Configuration
               </Text>
@@ -48,7 +48,7 @@ const BuildDetailsPanel = ({
                 {configurationLabel}
               </Text>
             </Group>
-            <Group position="apart">
+            <Group justify="space-between">
               <Text size="sm" c="dimmed">
                 Environment
               </Text>
@@ -56,7 +56,7 @@ const BuildDetailsPanel = ({
                 {environmentLabel}
               </Text>
             </Group>
-            <Group position="apart">
+            <Group justify="space-between">
               <Text size="sm" c="dimmed">
                 Engine
               </Text>
