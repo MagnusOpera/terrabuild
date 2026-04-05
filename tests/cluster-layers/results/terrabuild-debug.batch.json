@@ -1,34 +1,36 @@
 {
   "nodes": {
-    "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A": {
-      "id": "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A",
-      "projectId": "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A",
+    "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE": {
+      "id": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "projectId": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
       "projectDir": ".",
       "target": "build",
       "dependencies": [
         "workspace/path#c:build"
       ],
       "outputs": [],
-      "projectHash": "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A",
-      "targetHash": "FC01E16AD9E2210A21BB4AEF81D3B276082812FC687FB2A4C39D92B446A6C46C",
-      "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+      "projectHash": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "targetHash": "68ECA5E382CE15118FCF56C7CD175495A26CF83CA835616FB4A285579674EBB8",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
           "command": "dotnet",
-          "arguments": "restore \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.slnx\u0022 --locked-mode",
+          "arguments": "restore \u0022.terrabuild/7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE.slnx\u0022 --locked-mode",
           "errorLevel": 0
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
           "command": "dotnet",
-          "arguments": "build \u0022.terrabuild/E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A.slnx\u0022 --configuration Debug",
+          "arguments": "build \u0022.terrabuild/7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE.slnx\u0022 --configuration Debug",
           "errorLevel": 0
         }
       ],
@@ -51,7 +53,7 @@
         "obj/"
       ],
       "projectHash": "6B49C78B5D4B0F165B1B0FA2BBB1A4EF2FC4DE3C7841E4F66FD9413145D89214",
-      "targetHash": "0458875DA77BA9C3BCBFC0AF0F97C4FA0F77645DC297BC109CA05B6921BD865E",
+      "targetHash": "B31AF2F817BB365F68263DF9DAADD5630338064686AFAC1D1159B4E6394CDE65",
       "operations": [
         {
           "variables": [],
@@ -63,6 +65,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -72,6 +75,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -99,7 +103,7 @@
         "obj/"
       ],
       "projectHash": "01345D569057E2FD8A92F2AD59BF68AB19BF45C5CF7ECD7FFF59933023C45537",
-      "targetHash": "00D71680F4CA7498D6BAB191EB111D52121AC397B491EAAA1DC7E6011936F687",
+      "targetHash": "FA390DF81EEC7FA25786BA9A2FD5E145F285B38553DEE2538A7FB869C136993F",
       "operations": [
         {
           "variables": [],
@@ -111,6 +115,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -120,6 +125,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -148,7 +154,7 @@
         "dist/**"
       ],
       "projectHash": "02D45D98B32F44F389695AFEC1566173117830C12F0E897D3CC5AD1C1FED2168",
-      "targetHash": "AF037931C24B946922462DF339FF657304C9DC51735F777A5339BA8FB48F2855",
+      "targetHash": "33088215E13017024CA2F748731BE9718193D0E230AA064D7DC3B5D1F4635968",
       "operations": [
         {
           "variables": [],
@@ -160,6 +166,7 @@
         },
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm install",
@@ -169,6 +176,7 @@
         },
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm build",
@@ -198,11 +206,12 @@
         "obj/"
       ],
       "projectHash": "2792C85A2D1FC427C1ED01CF550B00BA5CA45EC1E5D613BE6C832A02E20AC5F3",
-      "targetHash": "FC01E16AD9E2210A21BB4AEF81D3B276082812FC687FB2A4C39D92B446A6C46C",
-      "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+      "targetHash": "68ECA5E382CE15118FCF56C7CD175495A26CF83CA835616FB4A285579674EBB8",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -212,6 +221,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -241,11 +251,12 @@
         "obj/"
       ],
       "projectHash": "B8EA7C9BC1515C3F5B3D1FB46C34610BA305E56A68DAC873FBBB4003F0A867E2",
-      "targetHash": "EC62F834DA7105BCEC50031C21B824234331E09E788D62B1C44A592BDEBC4685",
-      "clusterHash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+      "targetHash": "C442372360392DA4928EB29DF8B35CB43C3101E038535A55141B56ED57397393",
+      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
       "operations": [
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet restore",
@@ -255,6 +266,7 @@
         },
         {
           "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@dotnet build",
@@ -283,10 +295,11 @@
         "dist/**"
       ],
       "projectHash": "7B96B4038B2DC9D12A979EE492A14DD11644D783BBA872CC313D4D94056047AC",
-      "targetHash": "FC024EEFE5ACF62C47EF8F94620AB7B4AEB315F7D6D458148795D188804541FD",
+      "targetHash": "4A0562F11DD51ED0D157083F4C44326D86712725042A8ABF0B430F0C1786ECBB",
       "operations": [
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm install",
@@ -296,6 +309,7 @@
         },
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm build",
@@ -323,10 +337,11 @@
         "dist/**"
       ],
       "projectHash": "64263FB8970C9D9A05EFBD564B3B81056F03079175D32FE99D98A02E5DBDB55E",
-      "targetHash": "288E80DFF04F598AFFE6B0789D3058EFAAFEC97F7E09440DE70CBDB5C0554810",
+      "targetHash": "1F99347CC543471396AE80992F4D2A80C15F5F5B5E7F1E4F026457725DABE748",
       "operations": [
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm install",
@@ -336,6 +351,7 @@
         },
         {
           "image": "node:20",
+          "platform": "linux/amd64",
           "variables": [],
           "envs": {},
           "metaCommand": "@npm build",
@@ -356,7 +372,7 @@
     "workspace/path#g:build"
   ],
   "batches": {
-    "E9F9EAB602D8614CED8FCEE27AE1A6FC62F00B8884B792287351A7EE49CF7C1A": [
+    "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE": [
       "workspace/path#d:build",
       "workspace/path#e:build"
     ]

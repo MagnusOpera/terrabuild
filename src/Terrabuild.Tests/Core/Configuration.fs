@@ -253,6 +253,54 @@ target build {
         project.Dependencies |> should contain "workspace/path#libs/shared")
 
 [<Test>]
+let ``used workspace extension project references are added to project dependencies`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {
+}
+
+target build {
+}
+
+extension @pnpm {
+  image = "ghcr.io/acme/pnpm:${project.pnpm.version}"
+}
+"""
+
+        writeFile root "toolchains/pnpm/PROJECT" """
+project pnpm {
+  labels = [ "toolchain" ]
+  @docker { }
+}
+
+target build {
+  @docker build { }
+}
+"""
+
+        writeFile root "apps/web/PROJECT" """
+project web {
+  @pnpm { }
+}
+
+target build {
+  @pnpm build { }
+}
+"""
+
+        writeFile root "apps/web/package.json" """
+{
+  "name": "web",
+  "version": "1.0.0"
+}
+"""
+
+        let _, config = Configuration.read (baseOptions root (Set [ "build" ]))
+        let project = config.Projects["@pnpm#web"]
+
+        project.Dependencies |> should contain "workspace/path#toolchains/pnpm")
+
+[<Test>]
 let ``Configuration rejects project scripts using fsx`` () =
     withTempWorkspace (fun root ->
         writeFile root "WORKSPACE" """

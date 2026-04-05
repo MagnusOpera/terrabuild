@@ -26,7 +26,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "hash": "BA3182303806239390FD7C9D55134D1D02CBF5F61239B09AAA88FBD710B55EA0",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -55,8 +55,9 @@
               ]
             },
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -73,8 +74,9 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -110,7 +112,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "81599BD76CC256A0E9C3CF927869F3FD30AB37AED7714178F2D390BDD477E590",
+          "hash": "BA3182303806239390FD7C9D55134D1D02CBF5F61239B09AAA88FBD710B55EA0",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -139,8 +141,9 @@
               ]
             },
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -157,8 +160,9 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -198,7 +202,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "23CD6C07165F99D32FB02EF8EC9817467A787E3C2040F3FC9CB0AEC056F3E478",
+          "hash": "8A0A07183F55F13AA4F38EEFD8E0F7DC30102A9D6A520CA9961A30F87B6F5AAB",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -225,8 +229,9 @@
               ]
             },
             {
-              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -238,8 +243,9 @@
               ]
             },
             {
-              "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
+              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -272,7 +278,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -284,8 +290,9 @@
           ],
           "operations": [
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -302,8 +309,9 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -341,7 +349,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "89F54C1D6CCEDA2279E58F176EEC7D265891E610EFCBC76C9725473565B6A245",
+          "hash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -353,8 +361,9 @@
           ],
           "operations": [
             {
-              "hash": "D8CEB4FF6F3F4D3DE92CA538D1882B9855CC656F28082ED42668E6AAC6FF3D23",
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -371,8 +380,9 @@
               ]
             },
             {
-              "hash": "FD3560333C686B049DD524191E409F2B96EE93A6A0E1BA65FF540BE80CE66074",
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@dotnet",
@@ -412,7 +422,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -422,8 +432,9 @@
           ],
           "operations": [
             {
-              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -435,8 +446,9 @@
               ]
             },
             {
-              "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
+              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -470,7 +482,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "304D5C1EA81C44255643B0F217F738283ACA731523F690F8472125D3B3363073",
+          "hash": "139697D78AC56D09B51B526D93C2F1B5AF11579B57BF52EA0D56A76CFBD439F2",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -480,8 +492,9 @@
           ],
           "operations": [
             {
-              "hash": "5D1CA473C4E0EE1D5B441D8B95189E80945854DA387A0E0BD2C43FC3C7D71AF7",
+              "hash": "77149B5936FB4236610BEDCCD0097DEFA75D9F298CB287F82ACEF4D9F25C92D5",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -493,8 +506,9 @@
               ]
             },
             {
-              "hash": "8054CA404BB10F07A0DA6A96755B6F1D19373B6DAB213FFAB5905269575E74E3",
+              "hash": "0FDC5C8592AC168370CF0B46AC57CF266E7419D115E47BB6975CD6152C21273D",
               "image": "node:20",
+              "platform": "linux/amd64",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",

@@ -382,12 +382,36 @@ let private loadProjectDef
             ProjectInfo.Outputs = projectTypeDefaults.Outputs + initProjectInfo.Outputs
             ProjectInfo.Dependencies = projectTypeDefaults.Dependencies + initProjectInfo.Dependencies }
 
+    let usedExtensions =
+        let projectType =
+            declaredProjectType
+            |> Option.map Set.singleton
+            |> Option.defaultValue Set.empty
+
+        let targetExtensions =
+            projectConfig.Targets
+            |> Seq.collect (fun (KeyValue(_, target)) -> target.Steps |> Seq.map _.Extension)
+            |> Set.ofSeq
+
+        projectType
+        |> Set.union projectConfig.Project.Initializers
+        |> Set.union targetExtensions
+
+    let usedExtensionProjectReferences =
+        usedExtensions
+        |> Seq.choose (fun extensionName -> extensions |> Map.tryFind extensionName)
+        |> Seq.toList
+        |> fun usedExtensions ->
+            (Dependencies.reflectionFind usedExtensions)
+            |> Set.union (Dependencies.reflectionFindProjectReferences usedExtensions |> Set.map (fun dep -> $"project.{dep}"))
+
     let dependsOn =
         // collect dependencies for all the project
         // NOTE we are keeping only project dependencies as we want to construct project graph
         projectConfig.Project.DependsOn |> Option.defaultValue Set.empty
         |> Set.union (Dependencies.reflectionFind projectConfig)
         |> Set.union (projectConfig |> Dependencies.reflectionFindProjectReferences |> Set.map (fun dep -> $"project.{dep}"))
+        |> Set.union usedExtensionProjectReferences
         |> Set.choose (fun dep ->
             match dep with
             | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId

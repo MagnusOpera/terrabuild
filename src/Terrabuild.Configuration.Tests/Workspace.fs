@@ -164,6 +164,18 @@ let duplicatedExtensionIsError() =
     (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore) |> should (throwWithMessage "duplicated extension '@dotnet'") typeof<Errors.TerrabuildException>
 
 [<Test>]
+let workspaceExtensionIdentifierPreservesAtPrefix() =
+    let content =
+        """
+workspace {}
+extension @pnpm {}
+"""
+
+    let workspace = Terrabuild.Configuration.FrontEnd.Workspace.parse content
+
+    workspace.Extensions |> Map.containsKey "@pnpm" |> should equal true
+
+[<Test>]
 let duplicatedTargetIsError() =
     let content = File.ReadAllText("TestFiles/Error_Workspace_DuplicatedTarget")
     (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore) |> should (throwWithMessage "duplicated target 'build'") typeof<Errors.TerrabuildException>

@@ -74,4 +74,3 @@ extension @openapi {
 extension @playwright {
   image = "mcr.microsoft.com/playwright:v1.54.0-noble"
 }
-
