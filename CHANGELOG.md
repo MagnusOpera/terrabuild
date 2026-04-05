@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.1-next]
+
+
 - Upgrade `Terrabuild.UI` to Mantine 9, Vite 8, and React 19, including the required Mantine 8.x to 9.x component/layout API migrations.
 - Fix inherited extension project-version dependency discovery, add regression coverage, and keep smoke-test snapshots pinned to `linux/amd64`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.0-next...0.193.1-next
 
 ## [0.193.0-next]
 
