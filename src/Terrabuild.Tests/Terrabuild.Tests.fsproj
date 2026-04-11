@@ -11,6 +11,7 @@
     <Compile Include="Scripts/Cargo.fs" />
     <Compile Include="Scripts/Docker.fs" />
     <Compile Include="Scripts/Dotnet.fs" />
+    <Compile Include="Scripts/FScript.fs" />
     <Compile Include="Scripts/Gradle.fs" />
     <Compile Include="Scripts/Make.fs" />
     <Compile Include="Scripts/Npm.fs" />

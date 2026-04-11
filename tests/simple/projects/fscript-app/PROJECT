@@ -1,0 +1,12 @@
+project fscript_app {
+    labels = [ "app" ]
+    outputs = [ "dist/**" ]
+}
+
+target build {
+    @fscript execute {
+        script = "scripts/write-version.fss"
+        args = [ terrabuild.version ]
+    }
+    @shell cat { args = "dist/version.txt" }
+}

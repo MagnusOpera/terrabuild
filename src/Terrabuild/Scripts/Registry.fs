@@ -7,6 +7,7 @@ let BuiltInScriptFiles =
         "@cargo", "Scripts/cargo.fss"
         "@docker", "Scripts/docker.fss"
         "@dotnet", "Scripts/dotnet.fss"
+        "@fscript", "Scripts/fscript.fss"
         "@gradle", "Scripts/gradle.fss"
         "@make", "Scripts/make.fss"
         "@npm", "Scripts/npm.fss"
