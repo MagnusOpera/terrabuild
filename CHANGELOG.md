@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Split Runner command formatting into explicit Docker, Podman, and host execution paths, and cache discovered container home directories per engine/image so Podman no longer reuses Docker-specific execution metadata.
+
 ## [0.193.1-next]
 
 

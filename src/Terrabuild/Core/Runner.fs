@@ -41,61 +41,99 @@ type Summary = {
 
 let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
 
+type private BuiltCommand = string * string * string * string * string option * int * Map<string, string>
+
+[<RequireQualifiedAccess>]
+type private EngineRequestPath =
+    | Docker
+    | Podman
+    | Host
+
+let private resolveEngineRequestPath (engine: string option) =
+    match engine with
+    | Some "docker" -> EngineRequestPath.Docker
+    | Some "podman" -> EngineRequestPath.Podman
+    | _ -> EngineRequestPath.Host
+
+let private formatPlatform (operation: GraphDef.ContaineredShellOperation) =
+    operation.Platform |> Option.map (fun platform -> $"--platform={platform}") |> Option.defaultValue ""
+
+let private formatCpus (operation: GraphDef.ContaineredShellOperation) =
+    match operation.Cpus with
+    | Some cpus -> $"--cpus={cpus}"
+    | _ -> ""
+
+let private resolveContainerHome engineCommand workspace nodeTargetHash platform image =
+    let cacheKey = $"{engineCommand}:{image}"
+
+    match containerInfos.TryGetValue(cacheKey) with
+    | true, containerHome ->
+        Log.Debug("Reusing USER '{ContainerHome}' for '{Container}' with '{Engine}'", containerHome, image, engineCommand)
+        containerHome
+    | _ ->
+        let args = $"run --rm --name {nodeTargetHash} {platform} --entrypoint sh {image} -c \"echo -n $HOME\""
+        let containerHome =
+            match Exec.execCaptureOutput workspace engineCommand args Map.empty with
+            | Exec.Success (containerHome, _) -> containerHome.Trim()
+            | Exec.Error (errMsg, code) ->
+                Log.Debug("USER identification failed for '{Container}' with error '{ErrorMsg}' and code {Code}, using root instead", image, errMsg, code)
+                "/root"
+
+        Log.Debug("Using USER '{ContainerHome}' for '{Container}' with '{Engine}'", containerHome, image, engineCommand)
+        containerInfos.TryAdd(cacheKey, containerHome) |> ignore
+        containerHome
+
+let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) containerHome =
+    let matcher = Matcher()
+    matcher.AddIncludePatterns(operation.Variables)
+    envVars()
+    |> Seq.choose (fun entry ->
+        let key = entry.Key
+        let value = entry.Value
+        if matcher.Match([ key ]).HasMatches then
+            let expandedValue = value |> expandTerrabuildHome containerHome
+            if value = expandedValue then Some $"-e {key}"
+            else Some $"-e {key}={expandedValue}"
+        else None)
+    |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
+    |> String.join " "
+
+let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
+    operation.MetaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
+
+let private buildContainerCommand engineCommand extraArgs (node: GraphDef.Node) (operation: GraphDef.ContaineredShellOperation) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir : BuiltCommand =
+    let wsDir = currentDir()
+    let platform = formatPlatform operation
+    let cpus = formatCpus operation
+    let image = operation.Image.Value
+    let containerHome = resolveContainerHome engineCommand options.Workspace node.TargetHash platform image
+    let envs = formatContainerEnvs operation containerHome
+    let args =
+        $"run --rm --name {node.TargetHash} {cpus} {extraArgs} -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
+
+    operation.MetaCommand, options.Workspace, engineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs
+
+let private buildDockerCommand node operation options projectDirectory homeDir tmpDir =
+    let dockerArgs = "--net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock"
+    buildContainerCommand "docker" dockerArgs node operation options projectDirectory homeDir tmpDir
+
+let private buildPodmanCommand node operation options projectDirectory homeDir tmpDir =
+    let podmanArgs = "--net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock"
+    buildContainerCommand "podman" podmanArgs node operation options projectDirectory homeDir tmpDir
+
 let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
-    node.Operations |> List.map (fun operation ->
-        let metaCommand = operation.MetaCommand
-        match options.Engine, operation.Image with
-        | Some cmd, Some image ->
-            let wsDir = currentDir()
+    let enginePath = resolveEngineRequestPath options.Engine
 
-            // add platform
-            let platform = operation.Platform |> Option.map (fun platform -> $"--platform={platform}") |> Option.defaultValue ""
-
-            let containerHome =
-                match containerInfos.TryGetValue(image) with
-                | true, containerHome ->
-                    Log.Debug("Reusing USER '{ContainerHome}' for '{Container}'", containerHome, image)
-                    containerHome
-                | _ ->
-                    // discover USER
-                    let args = $"run --rm --name {node.TargetHash} {platform} --entrypoint sh {image} -c \"echo -n $HOME\""
-                    let containerHome =
-                        match Exec.execCaptureOutput options.Workspace cmd args Map.empty with
-                        | Exec.Success (containerHome, _) -> containerHome.Trim()
-                        | Exec.Error (errMsg, code) ->
-                            Log.Debug("USER identification failed for '{Container}' with error '{ErrorMsg}' and code {Code}, using root instead", image, errMsg, code)
-                            "/root"
-
-                    Log.Debug("Using USER '{ContainerHome}' for '{Container}'", containerHome, image)
-                    containerInfos.TryAdd(image, containerHome) |> ignore
-                    containerHome
-
-            let envs =
-                let matcher = Matcher()
-                matcher.AddIncludePatterns(operation.Variables)
-                envVars()
-                |> Seq.choose (fun entry ->
-                    let key = entry.Key
-                    let value = entry.Value
-                    if matcher.Match([ key ]).HasMatches then
-                        let expandedValue = value |> expandTerrabuildHome containerHome
-                        if value = expandedValue then Some $"-e {key}"
-                        else Some $"-e {key}={expandedValue}"
-                    else None)
-                |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
-                |> String.join " "
-
-            let cpus =
-                match operation.Cpus with
-                | Some cpus -> $"--cpus={cpus}"
-                | _ -> ""
-
-            let args =
-                $"run --rm --name {node.TargetHash} {cpus} --net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
-            metaCommand, options.Workspace, cmd, args, operation.Image, operation.ErrorLevel, operation.Envs
-        | _ ->
-            metaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
-    )
+    node.Operations
+    |> List.map (fun operation ->
+        match enginePath, operation.Image with
+        | EngineRequestPath.Docker, Some _ ->
+            buildDockerCommand node operation options projectDirectory homeDir tmpDir
+        | EngineRequestPath.Podman, Some _ ->
+            buildPodmanCommand node operation options projectDirectory homeDir tmpDir
+        | EngineRequestPath.Host, _
+        | _, None ->
+            buildHostCommand operation projectDirectory)
 
 let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     let stepLogs = List<Cache.OperationSummary>()
