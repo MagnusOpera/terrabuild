@@ -21,12 +21,13 @@ jobs:
       - name: Cloning repository
         uses: actions/checkout@v4
 
-      - name: Install Terrabuild
-        uses: magnusopera/action-install-gh-release@feature/prerelease
+      - name: Setup Tools
+        uses: ./.github/actions/setup-tools
         with:
-          repo: magnusopera/terrabuild
-          tag: ${{ inputs.version }}
-          prerelease: ${{ inputs.prerelease }}
+          install_terrabuild: "true"
+          terrabuild_version: ${{ inputs.version }}
+          terrabuild_prerelease: ${{ inputs.prerelease }}
+          install_fscript: "true"
 
       - name: Info
         run: |

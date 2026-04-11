@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add a built-in `@fscript` extension that dispatches project-scoped `.fss` scripts through the `fscript` CLI with `--root .`, plus unit coverage for defaults, command emission, and cacheability.
+- Add an end-to-end smoke-test fixture for `@fscript execute`, including a script that writes outputs with `Fs.writeText`, snapshot coverage for graph/debug artifacts, and CI tool setup that installs `fscript` from `magnusopera/fscript`.
+
 ## [0.193.1-next]
 
 

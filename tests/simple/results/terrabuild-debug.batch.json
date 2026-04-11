@@ -333,6 +333,50 @@
       "action": "exec",
       "required": true
     },
+    "workspace/path#projects/fscript-app:build": {
+      "id": "workspace/path#projects/fscript-app:build",
+      "projectId": "workspace/path#projects/fscript-app",
+      "projectName": "fscript_app",
+      "projectDir": "projects/fscript-app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485",
+      "targetHash": "256BAB7F5C9276E3777586BB15B87177A33F6FC858EDE2CF52329F841715D14C",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell dotnet",
+          "command": "dotnet",
+          "arguments": "tool restore",
+          "errorLevel": 0
+        },
+        {
+          "variables": [],
+          "envs": {
+            "PATH": "../../.tools/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+          },
+          "metaCommand": "@fscript execute",
+          "command": "fscript",
+          "arguments": "--root . \u0022scripts/write-version.fss\u0022 -- \u0022DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485\u0022",
+          "errorLevel": 0
+        },
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell cat",
+          "command": "cat",
+          "arguments": "dist/version.txt",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
+      "build": "always",
+      "batch": "single",
+      "action": "exec",
+      "required": true
+    },
     "workspace/path#projects/make-app:build": {
       "id": "workspace/path#projects/make-app:build",
       "projectId": "workspace/path#projects/make-app",
@@ -465,6 +509,7 @@
   },
   "rootNodes": [
     "workspace/path#deployments/terraform-deploy:build",
+    "workspace/path#projects/fscript-app:build",
     "workspace/path#projects/make-app:build",
     "workspace/path#projects/open-api:build",
     "workspace/path#projects/rust-app:build",

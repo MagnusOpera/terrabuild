@@ -74,3 +74,9 @@ extension @openapi {
 extension @playwright {
   image = "mcr.microsoft.com/playwright:v1.54.0-noble"
 }
+
+extension @fscript {
+  env {
+    PATH = "../../.tools/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+  }
+}

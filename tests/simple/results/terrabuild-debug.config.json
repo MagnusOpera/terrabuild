@@ -6,6 +6,7 @@
     "workspace/path#libraries/dotnet-lib",
     "workspace/path#libraries/shell-lib",
     "workspace/path#projects/dotnet-app",
+    "workspace/path#projects/fscript-app",
     "workspace/path#projects/make-app",
     "workspace/path#projects/open-api",
     "workspace/path#projects/rust-app",
@@ -616,6 +617,97 @@
       "types": [
         "@dotnet"
       ]
+    },
+    "workspace/path#projects/fscript-app": {
+      "id": "workspace/path#projects/fscript-app",
+      "name": "fscript_app",
+      "directory": "projects/fscript-app",
+      "hash": "DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485",
+      "dependencies": [],
+      "files": [
+        "PROJECT",
+        "scripts/write-version.fss"
+      ],
+      "targets": {
+        "build": {
+          "hash": "FDDA8CA0C756E0826BC62860FB676786B18DDF2C5F6B905C6BEEC3E1F5966F10",
+          "batch": "single",
+          "dependsOn": [
+            "^build"
+          ],
+          "outputs": [
+            "dist/**"
+          ],
+          "operations": [
+            {
+              "hash": "089AFCABF8E3262BD79BDBE3F305960912D69928267BA61AE7A4A7D83F476ADE",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@shell",
+              "command": "dotnet",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "string",
+                    "tool restore"
+                  ]
+                }
+              ]
+            },
+            {
+              "hash": "399D3D95A9FBFA923B81FFBF937855E021196D051A8AEC5C9685D85716CB09D7",
+              "containerVariables": [],
+              "envs": {
+                "PATH": "../../.tools/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+              },
+              "extension": "@fscript",
+              "command": "execute",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485"
+                      ]
+                    ]
+                  ],
+                  "script": [
+                    "string",
+                    "scripts/write-version.fss"
+                  ]
+                }
+              ]
+            },
+            {
+              "hash": "EF474EB81B4C94B88A65FF45EE62C49160A95A89711742DF951B3DC8C34A1D1D",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@shell",
+              "command": "cat",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "string",
+                    "dist/version.txt"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app"
+      ],
+      "types": []
     },
     "workspace/path#projects/make-app": {
       "id": "workspace/path#projects/make-app",

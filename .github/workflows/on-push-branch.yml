@@ -25,20 +25,14 @@ jobs:
       - name: Cloning repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+      - name: Setup Tools
+        uses: ./.github/actions/setup-tools
         with:
-          dotnet-version: 10.0.201
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
+          install_dotnet: "true"
+          install_node: "true"
+          install_pnpm: "true"
+          install_podman: "true"
+          install_fscript: "true"
 
       - name: Self Build
         run: |

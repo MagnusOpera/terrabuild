@@ -1,0 +1,99 @@
+name: Setup Terrabuild Tools
+description: Installs tools required by Terrabuild CI workflows
+
+inputs:
+  install_dotnet:
+    description: Whether to install .NET SDK
+    default: "false"
+
+  dotnet_version:
+    description: .NET SDK version to install
+    default: "10.0.201"
+
+  install_node:
+    description: Whether to install Node.js
+    default: "false"
+
+  node_version:
+    description: Node.js version to install
+    default: "22"
+
+  install_pnpm:
+    description: Whether to install pnpm
+    default: "false"
+
+  pnpm_version:
+    description: pnpm version to install
+    default: "9.15.0"
+
+  install_terrabuild:
+    description: Whether to install Terrabuild from GitHub releases
+    default: "false"
+
+  terrabuild_version:
+    description: Terrabuild version or tag to install
+    default: "latest"
+
+  terrabuild_prerelease:
+    description: Whether prerelease Terrabuild versions are allowed
+    default: "true"
+
+  install_podman:
+    description: Whether to install Podman from GitHub releases
+    default: "false"
+
+  install_fscript:
+    description: Whether to install FScript from GitHub releases
+    default: "true"
+
+  fscript_version:
+    description: FScript version or tag to install
+    default: "latest"
+
+  fscript_prerelease:
+    description: Whether prerelease FScript versions are allowed
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup .NET
+      if: ${{ inputs.install_dotnet == 'true' }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet_version }}
+
+    - name: Setup Node.js
+      if: ${{ inputs.install_node == 'true' }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+
+    - name: Setup pnpm
+      if: ${{ inputs.install_pnpm == 'true' }}
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm_version }}
+
+    - name: Install Terrabuild
+      if: ${{ inputs.install_terrabuild == 'true' }}
+      uses: magnusopera/action-install-gh-release@feature/prerelease
+      with:
+        repo: magnusopera/terrabuild
+        tag: ${{ inputs.terrabuild_version }}
+        prerelease: ${{ inputs.terrabuild_prerelease }}
+
+    - name: Install Podman
+      if: ${{ inputs.install_podman == 'true' }}
+      uses: magnusopera/action-install-gh-release@feature/prerelease
+      with:
+        repo: containers/podman
+        binaries-location: bin
+
+    - name: Install FScript
+      if: ${{ inputs.install_fscript == 'true' }}
+      uses: magnusopera/action-install-gh-release@feature/prerelease
+      with:
+        repo: magnusopera/fscript
+        tag: ${{ inputs.fscript_version }}
+        prerelease: ${{ inputs.fscript_prerelease }}

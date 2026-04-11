@@ -1,0 +1,7 @@
+let version =
+  Env.Arguments
+  |> List.tryHead
+  |> Option.defaultValue "missing"
+
+Fs.writeText "dist/version.txt" version |> ignore
+()
