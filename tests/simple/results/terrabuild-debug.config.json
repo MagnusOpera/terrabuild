@@ -622,7 +622,7 @@
       "id": "workspace/path#projects/fscript-app",
       "name": "fscript_app",
       "directory": "projects/fscript-app",
-      "hash": "DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485",
+      "hash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D",
       "dependencies": [],
       "files": [
         "PROJECT",
@@ -630,7 +630,7 @@
       ],
       "targets": {
         "build": {
-          "hash": "FDDA8CA0C756E0826BC62860FB676786B18DDF2C5F6B905C6BEEC3E1F5966F10",
+          "hash": "2DD05D7DE0E075E9687A5A2DAF5D599666A1069E60FEB06C04808C5A6E253BDE",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -640,28 +640,9 @@
           ],
           "operations": [
             {
-              "hash": "089AFCABF8E3262BD79BDBE3F305960912D69928267BA61AE7A4A7D83F476ADE",
-              "containerVariables": [],
-              "envs": {},
-              "extension": "@shell",
-              "command": "dotnet",
-              "script": {},
-              "context": [
-                "map",
-                {
-                  "args": [
-                    "string",
-                    "tool restore"
-                  ]
-                }
-              ]
-            },
-            {
               "hash": "399D3D95A9FBFA923B81FFBF937855E021196D051A8AEC5C9685D85716CB09D7",
               "containerVariables": [],
-              "envs": {
-                "PATH": "../../.tools/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-              },
+              "envs": {},
               "extension": "@fscript",
               "command": "execute",
               "script": {},
@@ -673,7 +654,7 @@
                     [
                       [
                         "string",
-                        "DB23F7A1DABB804C5CE3E6B97F9DDC6562BB40F40E77E15A44B9B51BE4255485"
+                        "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D"
                       ]
                     ]
                   ],

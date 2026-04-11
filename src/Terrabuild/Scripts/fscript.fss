@@ -23,16 +23,8 @@ let append_quoted_part value acc =
 
 /// <summary>Executes a `.fss` file through the `fscript` CLI with the current project as sandbox root.</summary>
 /// <param name="script" example="&quot;scripts/write-version.fss&quot;">Path to the FScript file, relative to the current project unless absolute.</param>
-/// <param name="command" default="&quot;fscript&quot;" example="&quot;dotnet&quot;">Executable used to launch FScript.</param>
-/// <param name="command_args" default="" example="[ &quot;tool&quot; &quot;run&quot; &quot;fscript&quot; &quot;--&quot; ]">Arguments inserted before the script path, useful for wrappers such as `dotnet tool run fscript --`.</param>
 /// <param name="args" default="" example="[ &quot;arg1&quot; &quot;arg 2&quot; ]">Arguments forwarded after `--`.</param>
-[<export>] let execute (context: Protocol.ActionContext) (script: string) (command: string option) (command_args: string list option) (args: string list option) =
-  let executable = command |> Option.defaultValue "fscript"
-  let commandPrefix =
-    command_args
-    |> Option.defaultValue []
-    |> List.fold append_quoted ""
-
+[<export>] let execute (context: Protocol.ActionContext) (script: string) (args: string list option) =
   let scriptArgs =
     args
     |> Option.defaultValue []
@@ -45,13 +37,12 @@ let append_quoted_part value acc =
 
   let operationArgs =
     ""
-    |> Helpers.append_part commandPrefix
     |> Helpers.append_part "--root ."
     |> append_quoted_part script
     |> Helpers.append_part forwardedArgs
 
   { Batchable = false
-    Operations = [ { Command = executable
+    Operations = [ { Command = "fscript"
                      Arguments = operationArgs
                      ErrorLevel = 0 } ] }
 

@@ -29,22 +29,5 @@ let ``fscript execute runs script with project root sandbox and forwarded args``
         [ op "fscript" "--root . \"scripts/write-version.fss\" -- \"arg1\" \"arg 2\"" 0 ]
 
 [<Test>]
-let ``fscript execute supports wrapped command invocation`` () =
-    let context = localContext "execute" (fixtureDir "")
-    let args =
-        Map.ofList
-            [ "command", str "dotnet"
-              "command_args", list [ str "tool"; str "run"; str "fscript"; str "--" ]
-              "script", str "scripts/write-version.fss"
-              "args", list [ str "arg1" ] ]
-
-    let result = invokeResult "@fscript" "execute" context args
-
-    result.Operations
-    |> normalizeOps
-    |> should equal
-        [ op "dotnet" "\"tool\" \"run\" \"fscript\" \"--\" --root . \"scripts/write-version.fss\" -- \"arg1\"" 0 ]
-
-[<Test>]
 let ``fscript execute cacheability is never`` () =
     cacheability "@fscript" "execute" |> should equal (Some Cacheability.Never)

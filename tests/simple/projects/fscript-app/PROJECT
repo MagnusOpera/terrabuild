@@ -4,7 +4,6 @@ project fscript_app {
 }
 
 target build {
-    @shell dotnet { args = "tool restore" }
     @fscript execute {
         script = "scripts/write-version.fss"
         args = [ terrabuild.version ]
