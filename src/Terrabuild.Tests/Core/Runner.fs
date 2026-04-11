@@ -85,20 +85,15 @@ let private writeExecutableScript (path: string) (content: string) =
     if not (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
         File.SetUnixFileMode(path, UnixFileMode.UserRead ||| UnixFileMode.UserWrite ||| UnixFileMode.UserExecute)
 
-let private withFakeEngine workspace engineName containerHome action =
-    let binDir = Path.Combine(workspace, "bin")
-    Directory.CreateDirectory(binDir) |> ignore
-    let enginePath = Path.Combine(binDir, engineName)
-    writeExecutableScript enginePath ("#!/bin/sh\nprintf '%s' '" + containerHome + "'\n")
+let private linuxRuntime =
+    { Runner.HostRuntime.Platform = Environment.HostPlatform.Linux
+      Runner.HostRuntime.UserId = Some 1000u
+      Runner.HostRuntime.GroupId = Some 1001u }
 
-    let currentPath = Environment.GetEnvironmentVariable("PATH")
-    let nextPath =
-        [ Some binDir
-          currentPath |> Option.ofObj ]
-        |> List.choose id
-        |> String.concat (string Path.PathSeparator)
-
-    withEnvironmentVariable "PATH" nextPath action
+let private macRuntime =
+    { Runner.HostRuntime.Platform = Environment.HostPlatform.MacOS
+      Runner.HostRuntime.UserId = Some 501u
+      Runner.HostRuntime.GroupId = Some 20u }
 
 let private buildOperation command arguments image =
     { GraphDef.ContaineredShellOperation.Image = image
@@ -192,53 +187,85 @@ type private FakeApiClient() =
             useCalls.Add(projectHash, targetHash)
 
 [<Test>]
-let ``buildCommands formats docker container requests through docker path`` () =
+let ``buildCommands formats docker container requests through docker path on linux`` () =
     withTempWorkspace (fun workspace ->
-        withFakeEngine workspace "docker" "/docker-home" (fun () ->
-            withEnvironmentVariable "TB_SAMPLE" "$TERRABUILD_HOME/cache" (fun () ->
-                let operation = buildOperation "dotnet" "build App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
-                let node = buildNode "node-docker" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-                let options = { baseOptions workspace with Engine = Some "docker" }
+        withEnvironmentVariable "TB_SAMPLE" "$TERRABUILD_HOME/cache" (fun () ->
+            let operation = buildOperation "dotnet" "build App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
+            let node = buildNode "node-docker" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+            let options = { baseOptions workspace with Engine = Some "docker" }
 
-                let commands = Runner.buildCommands node options "src/App" workspace workspace
-                commands.Length |> should equal 1
-
-                let metaCommand, workDir, cmd, args, image, errorLevel, envs = commands[0]
-                metaCommand |> should equal "test"
-                workDir |> should equal workspace
-                cmd |> should equal "docker"
-                image |> should equal operation.Image
-                errorLevel |> should equal 0
-                envs |> should equal operation.Envs
-                args |> should contain "--entrypoint dotnet"
-                args |> should contain "--platform=linux/amd64"
-                args |> should contain "--cpus=2"
-                args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock"
-                args |> should contain $"-v {workspace}:/docker-home"
-                args |> should contain "-e TB_SAMPLE=/docker-home/cache"
-                args |> should contain "-e FROM_ENV_MAP"
-                args |> should contain "mcr.microsoft.com/dotnet/sdk:8.0"
-                args |> should contain "build App.csproj"))
-        )
-
-[<Test>]
-let ``buildCommands formats podman container requests through podman path`` () =
-    withTempWorkspace (fun workspace ->
-        withFakeEngine workspace "podman" "/podman-home" (fun () ->
-            let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
-            let node = buildNode "node-podman" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-            let options = { baseOptions workspace with Engine = Some "podman" }
-
-            let commands = Runner.buildCommands node options "src/App" workspace workspace
+            let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
             commands.Length |> should equal 1
 
-            let _, workDir, cmd, args, _, _, _ = commands[0]
+            let metaCommand, workDir, cmd, args, image, errorLevel, envs = commands[0]
+            metaCommand |> should equal "test"
             workDir |> should equal workspace
-            cmd |> should equal "podman"
+            cmd |> should equal "docker"
+            image |> should equal operation.Image
+            errorLevel |> should equal 0
+            envs |> should equal operation.Envs
             args |> should contain "--entrypoint dotnet"
-            args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock"
-            args |> should contain $"-v {workspace}:/podman-home"
-            args |> should contain "restore App.csproj"))
+            args |> should contain "--platform=linux/amd64"
+            args |> should contain "--cpus=2"
+            args |> should contain "--user 1000:1001"
+            args |> should not' (contain "-v /var/run/docker.sock:/var/run/docker.sock")
+            args |> should contain $"-v {workspace}:/terrabuild-home"
+            args |> should contain $"-v {workspace}:/terrabuild-tmp"
+            args |> should contain "-e HOME=/terrabuild-home"
+            args |> should contain "-e TERRABUILD_HOME=/terrabuild-home"
+            args |> should contain "-e TMPDIR=/terrabuild-tmp"
+            args |> should contain "-e TB_SAMPLE=/terrabuild-home/cache"
+            args |> should contain "-e FROM_ENV_MAP"
+            args |> should contain "mcr.microsoft.com/dotnet/sdk:8.0"
+            args |> should contain "build App.csproj"))
+
+[<Test>]
+let ``buildCommands omits docker user mapping on macos`` () =
+    withTempWorkspace (fun workspace ->
+        let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
+        let node = buildNode "node-docker-macos" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = Some "docker" }
+
+        let commands = Runner.buildCommandsForRuntime macRuntime node options "src/App" workspace workspace
+        commands.Length |> should equal 1
+
+        let _, _, cmd, args, _, _, _ = commands[0]
+        cmd |> should equal "docker"
+        args |> should not' (contain "--user 501:20"))
+
+[<Test>]
+let ``buildCommands formats podman container requests through podman path on linux`` () =
+    withTempWorkspace (fun workspace ->
+        let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
+        let node = buildNode "node-podman" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = Some "podman" }
+
+        let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
+        commands.Length |> should equal 1
+
+        let _, workDir, cmd, args, _, _, _ = commands[0]
+        workDir |> should equal workspace
+        cmd |> should equal "podman"
+        args |> should contain "--entrypoint dotnet"
+        args |> should contain "--userns=keep-id"
+        args |> should contain "--security-opt label=disable"
+        args |> should contain $"--mount type=bind,src={workspace},target=/terrabuild-home"
+        args |> should contain $"--mount type=bind,src={workspace},target=/terrabuild-tmp"
+        args |> should contain $"--mount type=bind,src={workspace},target=/terrabuild"
+        args |> should contain "restore App.csproj")
+
+[<Test>]
+let ``buildCommands mounts docker socket only for docker client commands`` () =
+    withTempWorkspace (fun workspace ->
+        let operation = buildOperation "docker" "version" (Some "docker:27-cli")
+        let node = buildNode "node-docker-socket" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = Some "docker" }
+
+        let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
+        commands.Length |> should equal 1
+
+        let _, _, _, args, _, _, _ = commands[0]
+        args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock")
 
 [<Test>]
 let ``buildCommands uses explicit host path when engine is none even with image`` () =
@@ -258,19 +285,18 @@ let ``buildCommands uses explicit host path when engine is none even with image`
 [<Test>]
 let ``buildCommands uses host path when operation has no image regardless of engine`` () =
     withTempWorkspace (fun workspace ->
-        withFakeEngine workspace "docker" "/docker-home" (fun () ->
-            let operation = buildOperation "/usr/bin/true" "--flag" None
-            let node = buildNode "node-no-image" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-            let options = { baseOptions workspace with Engine = Some "docker" }
+        let operation = buildOperation "/usr/bin/true" "--flag" None
+        let node = buildNode "node-no-image" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = Some "docker" }
 
-            let commands = Runner.buildCommands node options "src/App" workspace workspace
-            commands.Length |> should equal 1
+        let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
+        commands.Length |> should equal 1
 
-            let _, workDir, cmd, args, image, _, _ = commands[0]
-            workDir |> should equal "src/App"
-            cmd |> should equal "/usr/bin/true"
-            args |> should equal "--flag"
-            image |> should equal None))
+        let _, workDir, cmd, args, image, _, _ = commands[0]
+        workDir |> should equal "src/App"
+        cmd |> should equal "/usr/bin/true"
+        args |> should equal "--flag"
+        image |> should equal None)
 
 [<Test>]
 let ``buildBatchSchedule flattens member labels in GitHub mode`` () =

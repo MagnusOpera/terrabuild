@@ -9,6 +9,7 @@
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Contracts/Api.fs" />
     <Compile Include="Contracts/Storage.fs" />
     <Compile Include="Contracts/SourceControl.fs" />

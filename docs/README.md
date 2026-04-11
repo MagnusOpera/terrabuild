@@ -5,6 +5,7 @@ This directory contains repository-local documentation for internal architecture
 ## Architecture
 
 - [Graph pipeline](architecture/graph-pipeline.md)
+- [Container engines](architecture/container-engines.md)
 
 ## Guides
 

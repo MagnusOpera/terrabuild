@@ -1,6 +1,8 @@
 module Runner
 open System
+open System.IO
 open System.Collections.Generic
+open System.Runtime.InteropServices
 open Collections
 open Serilog
 open Terrabuild.PubSub
@@ -39,9 +41,19 @@ type Summary = {
     Nodes: Map<string, NodeInfo>
 }
 
-let private containerInfos = Concurrent.ConcurrentDictionary<string, string>()
-
 type private BuiltCommand = string * string * string * string * string option * int * Map<string, string>
+
+type internal HostRuntime = {
+    Platform: Environment.HostPlatform
+    UserId: uint32 option
+    GroupId: uint32 option
+}
+
+type private ContainerEnginePolicy = {
+    EngineCommand: string
+    ExtraArgs: string list
+    MountArgs: string list
+}
 
 [<RequireQualifiedAccess>]
 type private EngineRequestPath =
@@ -55,6 +67,30 @@ let private resolveEngineRequestPath (engine: string option) =
     | Some "podman" -> EngineRequestPath.Podman
     | _ -> EngineRequestPath.Host
 
+module private Native =
+    module Posix =
+        [<DllImport("libc", SetLastError = true)>]
+        extern uint32 getuid()
+
+        [<DllImport("libc", SetLastError = true)>]
+        extern uint32 getgid()
+
+let private containerHome = "/terrabuild-home"
+let private containerTmp = "/terrabuild-tmp"
+
+let private detectHostRuntime () =
+    let platform = detectHostPlatform ()
+
+    let userId, groupId =
+        match platform with
+        | Environment.HostPlatform.Linux
+        | Environment.HostPlatform.MacOS -> Some (Native.Posix.getuid()), Some (Native.Posix.getgid())
+        | _ -> None, None
+
+    { Platform = platform
+      UserId = userId
+      GroupId = groupId }
+
 let private formatPlatform (operation: GraphDef.ContaineredShellOperation) =
     operation.Platform |> Option.map (fun platform -> $"--platform={platform}") |> Option.defaultValue ""
 
@@ -63,74 +99,132 @@ let private formatCpus (operation: GraphDef.ContaineredShellOperation) =
     | Some cpus -> $"--cpus={cpus}"
     | _ -> ""
 
-let private resolveContainerHome engineCommand workspace nodeTargetHash platform image =
-    let cacheKey = $"{engineCommand}:{image}"
-
-    match containerInfos.TryGetValue(cacheKey) with
-    | true, containerHome ->
-        Log.Debug("Reusing USER '{ContainerHome}' for '{Container}' with '{Engine}'", containerHome, image, engineCommand)
-        containerHome
-    | _ ->
-        let args = $"run --rm --name {nodeTargetHash} {platform} --entrypoint sh {image} -c \"echo -n $HOME\""
-        let containerHome =
-            match Exec.execCaptureOutput workspace engineCommand args Map.empty with
-            | Exec.Success (containerHome, _) -> containerHome.Trim()
-            | Exec.Error (errMsg, code) ->
-                Log.Debug("USER identification failed for '{Container}' with error '{ErrorMsg}' and code {Code}, using root instead", image, errMsg, code)
-                "/root"
-
-        Log.Debug("Using USER '{ContainerHome}' for '{Container}' with '{Engine}'", containerHome, image, engineCommand)
-        containerInfos.TryAdd(cacheKey, containerHome) |> ignore
-        containerHome
-
 let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) containerHome =
     let matcher = Matcher()
     matcher.AddIncludePatterns(operation.Variables)
-    envVars()
-    |> Seq.choose (fun entry ->
-        let key = entry.Key
-        let value = entry.Value
-        if matcher.Match([ key ]).HasMatches then
-            let expandedValue = value |> expandTerrabuildHome containerHome
-            if value = expandedValue then Some $"-e {key}"
-            else Some $"-e {key}={expandedValue}"
-        else None)
-    |> Seq.append (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}"))
+    let fixedEnvs =
+        [ "HOME", containerHome
+          "TERRABUILD_HOME", containerHome
+          "TMPDIR", containerTmp ]
+        |> List.map (fun (key, value) -> $"-e {key}={value}")
+
+    let passthroughEnvs =
+        envVars()
+        |> Seq.choose (fun entry ->
+            let key = entry.Key
+            let value = entry.Value
+            if matcher.Match([ key ]).HasMatches then
+                let expandedValue = value |> expandTerrabuildHome containerHome
+                if value = expandedValue then Some $"-e {key}"
+                else Some $"-e {key}={expandedValue}"
+            else None)
+        |> List.ofSeq
+
+    [ yield! fixedEnvs
+      yield! passthroughEnvs
+      yield! (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}")) ]
     |> String.join " "
 
 let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
     operation.MetaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
 
-let private buildContainerCommand engineCommand extraArgs (node: GraphDef.Node) (operation: GraphDef.ContaineredShellOperation) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir : BuiltCommand =
+let private requiresContainerSocket (command: string) =
+    let fileName = command |> Path.GetFileName
+    fileName = "docker"
+
+let private formatDockerMount source target =
+    $"-v {source}:{target}"
+
+let private formatPodmanMount source target =
+    $"--mount type=bind,src={source},target={target}"
+
+let private buildDockerPolicy (runtime: HostRuntime) (operation: GraphDef.ContaineredShellOperation) homeDir tmpDir wsDir =
+    let extraArgs =
+        [ "--net=host"
+          "--pid=host"
+          "--ipc=host"
+          match runtime.Platform, runtime.UserId, runtime.GroupId with
+          | Environment.HostPlatform.Linux, Some userId, Some groupId -> $"--user {userId}:{groupId}"
+          | _ -> ()
+          if requiresContainerSocket operation.Command then
+              "-v /var/run/docker.sock:/var/run/docker.sock" ]
+
+    let mountArgs =
+        [ formatDockerMount homeDir containerHome
+          formatDockerMount tmpDir containerTmp
+          formatDockerMount wsDir "/terrabuild" ]
+
+    { EngineCommand = "docker"
+      ExtraArgs = extraArgs
+      MountArgs = mountArgs }
+
+let private buildPodmanPolicy (runtime: HostRuntime) (operation: GraphDef.ContaineredShellOperation) homeDir tmpDir wsDir =
+    let extraArgs =
+        [ "--net=host"
+          "--pid=host"
+          "--ipc=host"
+          match runtime.Platform with
+          | Environment.HostPlatform.Linux ->
+              "--userns=keep-id"
+              "--security-opt"
+              "label=disable"
+          | _ -> () ]
+
+    let mountArgs =
+        [ formatPodmanMount homeDir containerHome
+          formatPodmanMount tmpDir containerTmp
+          formatPodmanMount wsDir "/terrabuild" ]
+
+    { EngineCommand = "podman"
+      ExtraArgs = extraArgs
+      MountArgs = mountArgs }
+
+let private buildContainerPolicy runtime engineRequestPath operation homeDir tmpDir wsDir =
+    match engineRequestPath with
+    | EngineRequestPath.Docker -> buildDockerPolicy runtime operation homeDir tmpDir wsDir
+    | EngineRequestPath.Podman -> buildPodmanPolicy runtime operation homeDir tmpDir wsDir
+    | EngineRequestPath.Host -> invalidArg "engineRequestPath" "Host engine does not support container policy"
+
+let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node) (operation: GraphDef.ContaineredShellOperation) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir : BuiltCommand =
     let wsDir = currentDir()
     let platform = formatPlatform operation
     let cpus = formatCpus operation
     let image = operation.Image.Value
-    let containerHome = resolveContainerHome engineCommand options.Workspace node.TargetHash platform image
     let envs = formatContainerEnvs operation containerHome
+    let policy = buildContainerPolicy runtime engineRequestPath operation homeDir tmpDir wsDir
+    let runArgs =
+        [ "run"
+          "--rm"
+          $"--name {node.TargetHash}"
+          cpus ]
+        @ policy.ExtraArgs
+        @ policy.MountArgs
+        @ [ $"-w /terrabuild/{projectDirectory}"
+            platform
+            $"--entrypoint {operation.Command}"
+            envs
+            image
+            operation.Arguments ]
     let args =
-        $"run --rm --name {node.TargetHash} {cpus} {extraArgs} -v {homeDir}:{containerHome} -v {tmpDir}:/tmp -v {wsDir}:/terrabuild -w /terrabuild/{projectDirectory} {platform} --entrypoint {operation.Command} {envs} {image} {operation.Arguments}"
+        runArgs
+        |> List.filter (String.IsNullOrWhiteSpace >> not)
+        |> String.join " "
 
-    operation.MetaCommand, options.Workspace, engineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs
+    operation.MetaCommand, options.Workspace, policy.EngineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs
 
-let private buildDockerCommand node operation options projectDirectory homeDir tmpDir =
-    let dockerArgs = "--net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock"
-    buildContainerCommand "docker" dockerArgs node operation options projectDirectory homeDir tmpDir
+let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
+    buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir
 
-let private buildPodmanCommand node operation options projectDirectory homeDir tmpDir =
-    let podmanArgs = "--net=host --pid=host --ipc=host -v /var/run/docker.sock:/var/run/docker.sock"
-    buildContainerCommand "podman" podmanArgs node operation options projectDirectory homeDir tmpDir
-
-let buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
+and internal buildCommandsForRuntime (runtime: HostRuntime) (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     let enginePath = resolveEngineRequestPath options.Engine
 
     node.Operations
     |> List.map (fun operation ->
         match enginePath, operation.Image with
         | EngineRequestPath.Docker, Some _ ->
-            buildDockerCommand node operation options projectDirectory homeDir tmpDir
+            buildContainerCommand runtime EngineRequestPath.Docker node operation options projectDirectory homeDir tmpDir
         | EngineRequestPath.Podman, Some _ ->
-            buildPodmanCommand node operation options projectDirectory homeDir tmpDir
+            buildContainerCommand runtime EngineRequestPath.Podman node operation options projectDirectory homeDir tmpDir
         | EngineRequestPath.Host, _
         | _, None ->
             buildHostCommand operation projectDirectory)

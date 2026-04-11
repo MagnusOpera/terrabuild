@@ -2,6 +2,29 @@ module Environment
 open System
 open System.Collections
 open System.Text.RegularExpressions
+open System.Runtime.InteropServices
+
+[<RequireQualifiedAccess>]
+type HostPlatform =
+    | Linux
+    | MacOS
+    | Windows
+    | Other
+
+let detectHostPlatform () =
+    if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) then HostPlatform.Linux
+    elif RuntimeInformation.IsOSPlatform(OSPlatform.OSX) then HostPlatform.MacOS
+    elif RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then HostPlatform.Windows
+    else HostPlatform.Other
+
+let isWindowsHost () =
+    detectHostPlatform () = HostPlatform.Windows
+
+let isPosixHost () =
+    match detectHostPlatform () with
+    | HostPlatform.Linux
+    | HostPlatform.MacOS -> true
+    | _ -> false
 
 let envVar (varName: string) =
     varName |> Environment.GetEnvironmentVariable |> Option.ofObj

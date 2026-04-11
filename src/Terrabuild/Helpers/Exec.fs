@@ -85,7 +85,7 @@ module Native =
             )
 
         let assign (proc: Process) =
-            if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+            if isWindowsHost () then
                 let hJob = jobHandle.Value
                 if not (AssignProcessToJobObject(hJob, proc.Handle)) then
                     failwithf "Failed to assign process %d to Job Object" proc.Id
@@ -119,10 +119,9 @@ let private createProcess workingDir command args envs redirect =
 
     children.Add proc
 
-    if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+    if isWindowsHost () then
         Native.Windows.assign proc
-    elif RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
-         RuntimeInformation.IsOSPlatform(OSPlatform.OSX) then
+    elif isPosixHost () then
         // Put child in its own process group
         Native.Posix.setpgid(proc.Id, 0) |> ignore
 
