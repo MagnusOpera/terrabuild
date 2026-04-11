@@ -9,8 +9,6 @@ We discuss features and file bugs on GitHub via [Issues](https://github.com/magn
 
 ### Issues
 
-Feel free to pick up any existing issue that looks interesting to you or fix a bug you stumble across while using Terrabuild. No matter the size, we welcome all improvements.
-
 Please keep in mind Terrabuild is a young product. We are doing our best to move forward while keeping product simple.
 
 ### Feature Work
