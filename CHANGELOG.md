@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix smoke tests
+
 ## [0.193.3-next]
 
 

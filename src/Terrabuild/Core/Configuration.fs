@@ -175,7 +175,7 @@ let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: Conf
               "terrabuild.retry", Value.Bool options.Retry 
               "terrabuild.force", Value.Bool options.Force 
               "terrabuild.ci", Value.Bool options.Run.IsSome
-              "terrabuild.engine", $"{engine}" |> String.toLower |> Value.Enum
+              "terrabuild.engine", options.Engine |> string |> String.toLower |> Value.Enum
               "terrabuild.debug", Value.Bool options.Debug 
               "terrabuild.tag", tagValue 
               "terrabuild.note", noteValue
@@ -807,7 +807,7 @@ let read (options: ConfigOptions.Options) =
             if options.WhatIf then "whatif" ] |> String.join(" ")    
         [
             if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
-            $"Engine {options.Engine}"
+            $"Engine {options.Engine |> string |> String.toLower}"
             if options.Run.IsSome then $"Source control {options.Run.Value.Name}"
             if options.Configuration.IsSome then $"Configuration {options.Configuration.Value}"
             if options.Environment.IsSome then $"Environment {options.Environment.Value}"

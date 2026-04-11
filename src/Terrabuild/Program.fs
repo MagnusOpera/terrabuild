@@ -187,7 +187,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     if options.LocalOnly then $"| LocalOnly | {options.LocalOnly} |"
                     $"| MaxConcurrency | {options.MaxConcurrency} |"
                     match options.Note with | Some value ->  $"| Note | {value} |" | _ -> ()
-                    $"| Engine | {options.Engine} |"
+                    $"| Engine | {options.Engine |> string |> String.toLower} |"
                     if options.WhatIf then $"| WhatIf | {options.WhatIf} |"
                     if options.Debug then $"| Debug | {options.Debug} |"
                     ""
