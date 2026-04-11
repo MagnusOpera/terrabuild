@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade `Terrabuild.UI` from Vite `8.0.2` to `8.0.8` and refresh the UI lockfile to the matching transitive dependency set.
 - Upgrade embedded FScript runtime/language to `0.62.0`, move built-in extension ownership into `Terrabuild.Extensions` with scripts under `src/Terrabuild.Extensions/Scripts`, split extension coverage into `Terrabuild.Extensions.Tests`, move the protocol doc to `docs/architecture/fscript-extension-protocol.md`, and remove the registry-level `@shell`/`@npx` default `args = ""` special case.
 
 ## [0.193.4-next]
