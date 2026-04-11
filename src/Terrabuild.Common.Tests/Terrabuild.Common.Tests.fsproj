@@ -11,6 +11,7 @@
     <Compile Include="FS.fs" />
     <Compile Include="Collections.fs" />
     <Compile Include="Hash.fs" />
+    <Compile Include="Json.fs" />
     <Compile Include="String.fs" />
     <Compile Include="Converters.fs" />
     <Compile Include="Humanizer.fs" />

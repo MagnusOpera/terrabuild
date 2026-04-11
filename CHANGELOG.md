@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add unit coverage for `Terrabuild.Common.Json` discriminated-union serialization and option unwrapping/skipped-field behavior.
+
 ## [0.193.2-next]
 
 
