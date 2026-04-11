@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Split Runner command formatting into explicit Docker, Podman, and host execution paths, and cache discovered container home directories per engine/image so Podman no longer reuses Docker-specific execution metadata.
 - Add a built-in `@fscript` extension backed by the standalone `fscript` executable, with unit coverage, smoke-test coverage, and CI setup that installs `fscript` from `magnusopera/fscript`.
 
 ## [0.193.1-next]

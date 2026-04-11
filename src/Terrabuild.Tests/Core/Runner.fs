@@ -2,6 +2,7 @@ module Terrabuild.Tests.Core.Runner
 open System
 open System.IO
 open System.Collections.Generic
+open System.Runtime.InteropServices
 open FsUnit
 open NUnit.Framework
 open Contracts
@@ -69,6 +70,46 @@ let private withTempWorkspace action =
         Environment.CurrentDirectory <- oldCurrentDir
         if Directory.Exists(root) then
             Directory.Delete(root, true)
+
+let private withEnvironmentVariable name value action =
+    let previous = Environment.GetEnvironmentVariable(name)
+    Environment.SetEnvironmentVariable(name, value)
+    try
+        action ()
+    finally
+        Environment.SetEnvironmentVariable(name, previous)
+
+let private writeExecutableScript (path: string) (content: string) =
+    File.WriteAllText(path, content)
+
+    if not (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
+        File.SetUnixFileMode(path, UnixFileMode.UserRead ||| UnixFileMode.UserWrite ||| UnixFileMode.UserExecute)
+
+let private withFakeEngine workspace engineName containerHome action =
+    let binDir = Path.Combine(workspace, "bin")
+    Directory.CreateDirectory(binDir) |> ignore
+    let enginePath = Path.Combine(binDir, engineName)
+    writeExecutableScript enginePath ("#!/bin/sh\nprintf '%s' '" + containerHome + "'\n")
+
+    let currentPath = Environment.GetEnvironmentVariable("PATH")
+    let nextPath =
+        [ Some binDir
+          currentPath |> Option.ofObj ]
+        |> List.choose id
+        |> String.concat (string Path.PathSeparator)
+
+    withEnvironmentVariable "PATH" nextPath action
+
+let private buildOperation command arguments image =
+    { GraphDef.ContaineredShellOperation.Image = image
+      GraphDef.ContaineredShellOperation.Platform = Some "linux/amd64"
+      GraphDef.ContaineredShellOperation.Cpus = Some 2
+      GraphDef.ContaineredShellOperation.Variables = Set [ "TB_SAMPLE" ]
+      GraphDef.ContaineredShellOperation.Envs = Map [ "FROM_ENV_MAP", "set-by-terrabuild" ]
+      GraphDef.ContaineredShellOperation.MetaCommand = "test"
+      GraphDef.ContaineredShellOperation.Command = command
+      GraphDef.ContaineredShellOperation.Arguments = arguments
+      GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
 type private FakeEntry(root: string, id: string, completed: ResizeArray<string>) =
     let entryRoot = Path.Combine(root, id.Replace("/", "_"))
@@ -149,6 +190,87 @@ type private FakeApiClient() =
 
         member _.UseArtifact projectHash targetHash =
             useCalls.Add(projectHash, targetHash)
+
+[<Test>]
+let ``buildCommands formats docker container requests through docker path`` () =
+    withTempWorkspace (fun workspace ->
+        withFakeEngine workspace "docker" "/docker-home" (fun () ->
+            withEnvironmentVariable "TB_SAMPLE" "$TERRABUILD_HOME/cache" (fun () ->
+                let operation = buildOperation "dotnet" "build App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
+                let node = buildNode "node-docker" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+                let options = { baseOptions workspace with Engine = Some "docker" }
+
+                let commands = Runner.buildCommands node options "src/App" workspace workspace
+                commands.Length |> should equal 1
+
+                let metaCommand, workDir, cmd, args, image, errorLevel, envs = commands[0]
+                metaCommand |> should equal "test"
+                workDir |> should equal workspace
+                cmd |> should equal "docker"
+                image |> should equal operation.Image
+                errorLevel |> should equal 0
+                envs |> should equal operation.Envs
+                args |> should contain "--entrypoint dotnet"
+                args |> should contain "--platform=linux/amd64"
+                args |> should contain "--cpus=2"
+                args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock"
+                args |> should contain $"-v {workspace}:/docker-home"
+                args |> should contain "-e TB_SAMPLE=/docker-home/cache"
+                args |> should contain "-e FROM_ENV_MAP"
+                args |> should contain "mcr.microsoft.com/dotnet/sdk:8.0"
+                args |> should contain "build App.csproj"))
+        )
+
+[<Test>]
+let ``buildCommands formats podman container requests through podman path`` () =
+    withTempWorkspace (fun workspace ->
+        withFakeEngine workspace "podman" "/podman-home" (fun () ->
+            let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
+            let node = buildNode "node-podman" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+            let options = { baseOptions workspace with Engine = Some "podman" }
+
+            let commands = Runner.buildCommands node options "src/App" workspace workspace
+            commands.Length |> should equal 1
+
+            let _, workDir, cmd, args, _, _, _ = commands[0]
+            workDir |> should equal workspace
+            cmd |> should equal "podman"
+            args |> should contain "--entrypoint dotnet"
+            args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock"
+            args |> should contain $"-v {workspace}:/podman-home"
+            args |> should contain "restore App.csproj"))
+
+[<Test>]
+let ``buildCommands uses explicit host path when engine is none even with image`` () =
+    withTempWorkspace (fun workspace ->
+        let operation = buildOperation "/usr/bin/env" "printenv" (Some "ignored:latest")
+        let node = buildNode "node-host" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+
+        let commands = Runner.buildCommands node (baseOptions workspace) "src/App" workspace workspace
+        commands.Length |> should equal 1
+
+        let _, workDir, cmd, args, image, _, _ = commands[0]
+        workDir |> should equal "src/App"
+        cmd |> should equal "/usr/bin/env"
+        args |> should equal "printenv"
+        image |> should equal operation.Image)
+
+[<Test>]
+let ``buildCommands uses host path when operation has no image regardless of engine`` () =
+    withTempWorkspace (fun workspace ->
+        withFakeEngine workspace "docker" "/docker-home" (fun () ->
+            let operation = buildOperation "/usr/bin/true" "--flag" None
+            let node = buildNode "node-no-image" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
+            let options = { baseOptions workspace with Engine = Some "docker" }
+
+            let commands = Runner.buildCommands node options "src/App" workspace workspace
+            commands.Length |> should equal 1
+
+            let _, workDir, cmd, args, image, _, _ = commands[0]
+            workDir |> should equal "src/App"
+            cmd |> should equal "/usr/bin/true"
+            args |> should equal "--flag"
+            image |> should equal None))
 
 [<Test>]
 let ``buildBatchSchedule flattens member labels in GitHub mode`` () =
