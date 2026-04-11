@@ -6,6 +6,7 @@
     "workspace/path#libraries/dotnet-lib",
     "workspace/path#libraries/shell-lib",
     "workspace/path#projects/dotnet-app",
+    "workspace/path#projects/fscript-app",
     "workspace/path#projects/make-app",
     "workspace/path#projects/open-api",
     "workspace/path#projects/rust-app",
@@ -616,6 +617,78 @@
       "types": [
         "@dotnet"
       ]
+    },
+    "workspace/path#projects/fscript-app": {
+      "id": "workspace/path#projects/fscript-app",
+      "name": "fscript_app",
+      "directory": "projects/fscript-app",
+      "hash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D",
+      "dependencies": [],
+      "files": [
+        "PROJECT",
+        "scripts/write-version.fss"
+      ],
+      "targets": {
+        "build": {
+          "hash": "2DD05D7DE0E075E9687A5A2DAF5D599666A1069E60FEB06C04808C5A6E253BDE",
+          "batch": "single",
+          "dependsOn": [
+            "^build"
+          ],
+          "outputs": [
+            "dist/**"
+          ],
+          "operations": [
+            {
+              "hash": "399D3D95A9FBFA923B81FFBF937855E021196D051A8AEC5C9685D85716CB09D7",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@fscript",
+              "command": "execute",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "list",
+                    [
+                      [
+                        "string",
+                        "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D"
+                      ]
+                    ]
+                  ],
+                  "script": [
+                    "string",
+                    "scripts/write-version.fss"
+                  ]
+                }
+              ]
+            },
+            {
+              "hash": "EF474EB81B4C94B88A65FF45EE62C49160A95A89711742DF951B3DC8C34A1D1D",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@shell",
+              "command": "cat",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "string",
+                    "dist/version.txt"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app"
+      ],
+      "types": []
     },
     "workspace/path#projects/make-app": {
       "id": "workspace/path#projects/make-app",

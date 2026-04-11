@@ -32,6 +32,8 @@ workspace/path#libraries/shell-lib:build("<b>build shell_lib</b>
 libraries/shell-lib")
 workspace/path#projects/dotnet-app:build("<b>build dotnet_app</b> 
 projects/dotnet-app")
+workspace/path#projects/fscript-app:build("<b>build fscript_app</b> 
+projects/fscript-app")
 workspace/path#projects/make-app:build("<b>build</b> 
 projects/make-app")
 workspace/path#projects/open-api:build("<b>build</b> 
@@ -52,6 +54,7 @@ class workspace/path#libraries/dotnet-lib:build ignore
 class workspace/path#libraries/shell-lib:build ignore
 workspace/path#projects/dotnet-app:build --> workspace/path#libraries/dotnet-lib:build
 class workspace/path#projects/dotnet-app:build ignore
+class workspace/path#projects/fscript-app:build ignore
 workspace/path#projects/make-app:build --> workspace/path#libraries/shell-lib:build
 class workspace/path#projects/make-app:build ignore
 class workspace/path#projects/open-api:build ignore

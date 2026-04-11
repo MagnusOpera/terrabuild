@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add a built-in `@fscript` extension backed by the standalone `fscript` executable, with unit coverage, smoke-test coverage, and CI setup that installs `fscript` from `magnusopera/fscript`.
+
 ## [0.193.1-next]
 
 

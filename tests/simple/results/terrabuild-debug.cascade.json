@@ -251,6 +251,40 @@
       "action": "exec",
       "required": true
     },
+    "workspace/path#projects/fscript-app:build": {
+      "id": "workspace/path#projects/fscript-app:build",
+      "projectId": "workspace/path#projects/fscript-app",
+      "projectName": "fscript_app",
+      "projectDir": "projects/fscript-app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D",
+      "targetHash": "5AA5B6ADE35A5921947D07A83849CA04A70B2E9EB9974033C936489F3D31C9A2",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@fscript execute",
+          "command": "fscript",
+          "arguments": "--root . \u0022scripts/write-version.fss\u0022 -- \u0022E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D\u0022",
+          "errorLevel": 0
+        },
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell cat",
+          "command": "cat",
+          "arguments": "dist/version.txt",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
+      "build": "always",
+      "batch": "single",
+      "action": "exec",
+      "required": true
+    },
     "workspace/path#projects/make-app:build": {
       "id": "workspace/path#projects/make-app:build",
       "projectId": "workspace/path#projects/make-app",
@@ -383,6 +417,7 @@
   },
   "rootNodes": [
     "workspace/path#deployments/terraform-deploy:build",
+    "workspace/path#projects/fscript-app:build",
     "workspace/path#projects/make-app:build",
     "workspace/path#projects/open-api:build",
     "workspace/path#projects/rust-app:build",
