@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.4-next]
+
+
 - Fix smoke tests
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.3-next...0.193.4-next
 
 ## [0.193.3-next]
 
