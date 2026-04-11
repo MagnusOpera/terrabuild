@@ -1,0 +1,12 @@
+
+project {
+    @dotnet { }
+}
+
+target install {
+    @dotnet restore { }
+}
+
+target build {
+    @dotnet build { }
+}

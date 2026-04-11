@@ -4,6 +4,8 @@
     <Project Path="src/Terrabuild.Common/Terrabuild.Common.fsproj" />
     <Project Path="src/Terrabuild.Configuration.Tests/Terrabuild.Configuration.Tests.fsproj" />
     <Project Path="src/Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
+    <Project Path="src/Terrabuild.Extensions/Terrabuild.Extensions.fsproj" />
+    <Project Path="src/Terrabuild.Extensions.Tests/Terrabuild.Extensions.Tests.fsproj" />
     <Project Path="src/Terrabuild.Expression.Tests/Terrabuild.Expression.Tests.fsproj" />
     <Project Path="src/Terrabuild.Expression/Terrabuild.Expression.fsproj" />
     <Project Path="src/Terrabuild.Lang.Tests/Terrabuild.Lang.Tests.fsproj" />

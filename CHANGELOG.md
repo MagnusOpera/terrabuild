@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade embedded FScript runtime/language to `0.62.0`, move built-in extension ownership into `Terrabuild.Extensions` with scripts under `src/Terrabuild.Extensions/Scripts`, split extension coverage into `Terrabuild.Extensions.Tests`, move the protocol doc to `docs/architecture/fscript-extension-protocol.md`, and remove the registry-level `@shell`/`@npx` default `args = ""` special case.
+
 ## [0.193.4-next]
 
 

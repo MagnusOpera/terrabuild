@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- <EnableNUnitRunner>true</EnableNUnitRunner> -->
+    <!-- <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Scripts/Helpers.fs" />
+    <Compile Include="Scripts/Cargo.fs" />
+    <Compile Include="Scripts/Docker.fs" />
+    <Compile Include="Scripts/Dotnet.fs" />
+    <Compile Include="Scripts/FScript.fs" />
+    <Compile Include="Scripts/Gradle.fs" />
+    <Compile Include="Scripts/Make.fs" />
+    <Compile Include="Scripts/Npm.fs" />
+    <Compile Include="Scripts/Npx.fs" />
+    <Compile Include="Scripts/Null.fs" />
+    <Compile Include="Scripts/OpenApi.fs" />
+    <Compile Include="Scripts/Playwright.fs" />
+    <Compile Include="Scripts/Pnpm.fs" />
+    <Compile Include="Scripts/Sentry.fs" />
+    <Compile Include="Scripts/Shell.fs" />
+    <Compile Include="Scripts/Terraform.fs" />
+    <Compile Include="Scripts/Yarn.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FsUnit" Version="7.1.1" />
+    <PackageReference Include="NUnit" Version="4.4.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.2.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestFiles/**/*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Terrabuild/Terrabuild.fsproj" />
+  </ItemGroup>
+
+</Project>

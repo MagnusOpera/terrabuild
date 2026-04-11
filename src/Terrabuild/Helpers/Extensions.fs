@@ -1,4 +1,5 @@
 module Extensions
+module ExtensionRegistry = Terrabuild.Extensions.ScriptRegistry
 open System
 open System.IO
 open System.Net.Http
@@ -18,7 +19,7 @@ type InvocationResult<'t> =
     | TargetNotFound
     | ErrorTarget of Exception
 
-let SystemExtensions = ScriptRegistry.SystemExtensions
+let SystemExtensions = ExtensionRegistry.SystemExtensions
 
 let private extensionCandidates (name: string) =
     if String.IsNullOrWhiteSpace name then [ name ]
@@ -68,8 +69,8 @@ let private tryReadEmbeddedScript (assembly: Assembly) (relativeScriptPath: stri
 
 let private embeddedScriptSources =
     lazy
-        (let assembly = Assembly.GetExecutingAssembly()
-         ScriptRegistry.EmbeddedScriptFiles
+        (let assembly = typeof<Terrabuild.Extensions.AssemblyMarker>.Assembly
+         ExtensionRegistry.EmbeddedScriptFiles
          |> List.choose (fun relativeScriptPath ->
              let virtualPath = toEmbeddedScriptVirtualPath relativeScriptPath
              match tryReadEmbeddedScript assembly relativeScriptPath with
@@ -348,7 +349,7 @@ let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name:
     let initScript () =
         match script with
         | Some script ->
-            if ScriptRegistry.BuiltInScriptFiles |> Map.containsKey name then
+            if ExtensionRegistry.BuiltInScriptFiles |> Map.containsKey name then
                 raiseInvalidArg $"Script override is not allowed for built-in extension '{name}'"
             match tryGetScriptUri script with
             | Some uri ->
@@ -362,7 +363,7 @@ let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name:
         | _ ->
             let systemScriptPath =
                 extensionCandidates name
-                |> List.tryPick (fun candidate -> ScriptRegistry.BuiltInScriptFiles |> Map.tryFind candidate)
+                |> List.tryPick (fun candidate -> ExtensionRegistry.BuiltInScriptFiles |> Map.tryFind candidate)
             match systemScriptPath with
             | Some relativePath ->
                 let entryPath = toEmbeddedScriptVirtualPath relativePath

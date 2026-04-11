@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Compile Include="Registry.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\*.fss">
+      <LogicalName>scripts\%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
+    <ProjectReference Include="../Terrabuild.Expression/Terrabuild.Expression.fsproj" />
+  </ItemGroup>
+
+</Project>

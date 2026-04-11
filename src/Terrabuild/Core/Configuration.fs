@@ -1,4 +1,5 @@
 module Configuration
+module ExtensionRegistry = Terrabuild.Extensions.ScriptRegistry
 open System.IO
 open Collections
 open System
@@ -235,7 +236,7 @@ let private isHttpScriptUrl (script: string) =
     | :? System.UriFormatException -> false
 
 let private isProtectedBuiltInExtension (extensionName: string) =
-    ScriptRegistry.BuiltInScriptFiles |> Map.containsKey extensionName
+    ExtensionRegistry.BuiltInScriptFiles |> Map.containsKey extensionName
 
 let private validateExtensionScriptOverride (extensionName: string) (script: string option) =
     if isProtectedBuiltInExtension extensionName && script.IsSome then
