@@ -4,6 +4,12 @@ open Collections
 open Contracts
 
 [<RequireQualifiedAccess>]
+type Engine =
+    | Docker
+    | Podman
+    | Host
+
+[<RequireQualifiedAccess>]
 type Options = {
     Workspace: string
     HomeDir: string
@@ -26,7 +32,7 @@ type Options = {
     Labels: string set option
     Projects: string set option
     Variables: Map<string, string>
-    Engine: string option
+    Engine: Engine
 
     // from SourceControl
     BranchOrTag: string

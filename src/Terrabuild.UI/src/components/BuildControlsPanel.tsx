@@ -20,9 +20,9 @@ import { ProjectInfo } from "../types";
 
 const engineOptions = [
   { value: "default", label: "Default" },
-  { value: "none", label: "None" },
   { value: "docker", label: "Docker" },
   { value: "podman", label: "Podman" },
+  { value: "host", label: "Host" },
 ];
 
 type BuildControlsPanelProps = {

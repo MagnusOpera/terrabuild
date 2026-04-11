@@ -47,7 +47,7 @@ let private baseOptions workspace =
       ConfigOptions.Options.Labels = None
       ConfigOptions.Options.Projects = None
       ConfigOptions.Options.Variables = Map.empty
-      ConfigOptions.Options.Engine = None
+      ConfigOptions.Options.Engine = ConfigOptions.Engine.Host
       ConfigOptions.Options.BranchOrTag = "main"
       ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
@@ -192,7 +192,7 @@ let ``buildCommands formats docker container requests through docker path on lin
         withEnvironmentVariable "TB_SAMPLE" "$TERRABUILD_HOME/cache" (fun () ->
             let operation = buildOperation "dotnet" "build App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
             let node = buildNode "node-docker" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-            let options = { baseOptions workspace with Engine = Some "docker" }
+            let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
 
             let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
             commands.Length |> should equal 1
@@ -224,7 +224,7 @@ let ``buildCommands omits docker user mapping on macos`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
         let node = buildNode "node-docker-macos" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-        let options = { baseOptions workspace with Engine = Some "docker" }
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
 
         let commands = Runner.buildCommandsForRuntime macRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
@@ -238,7 +238,7 @@ let ``buildCommands formats podman container requests through podman path on lin
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
         let node = buildNode "node-podman" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-        let options = { baseOptions workspace with Engine = Some "podman" }
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Podman }
 
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
@@ -259,7 +259,7 @@ let ``buildCommands mounts docker socket only for docker client commands`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "docker" "version" (Some "docker:27-cli")
         let node = buildNode "node-docker-socket" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-        let options = { baseOptions workspace with Engine = Some "docker" }
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
 
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
@@ -268,7 +268,7 @@ let ``buildCommands mounts docker socket only for docker client commands`` () =
         args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock")
 
 [<Test>]
-let ``buildCommands uses explicit host path when engine is none even with image`` () =
+let ``buildCommands uses explicit host path when engine is host even with image`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "/usr/bin/env" "printenv" (Some "ignored:latest")
         let node = buildNode "node-host" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
@@ -287,7 +287,7 @@ let ``buildCommands uses host path when operation has no image regardless of eng
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "/usr/bin/true" "--flag" None
         let node = buildNode "node-no-image" "src/App" "build" GraphDef.RunAction.Exec [ operation ]
-        let options = { baseOptions workspace with Engine = Some "docker" }
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
 
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1

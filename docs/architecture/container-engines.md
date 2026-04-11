@@ -8,6 +8,13 @@ Terrabuild supports three execution paths in `Runner.fs`:
 
 This document describes the current container runtime arguments used by each engine.
 
+## Selection rules
+
+- Terrabuild defaults to Docker when no engine is selected.
+- `workspace.engine` in `WORKSPACE` forces the engine for that workspace and overrides CLI or Graph UI selection.
+- CLI and Graph UI engine selection only applies when `workspace.engine` is not set.
+- `host` is the explicit engine name for direct host execution.
+
 ## Shared container shape
 
 For containerized operations, Terrabuild always starts from:
@@ -91,10 +98,12 @@ Podman does not currently receive a conditional container socket mount.
 
 ## Host execution
 
-When no engine is selected, or when an operation has no `image`, Terrabuild runs the command directly on the host:
+Terrabuild runs the command directly on the host when the effective engine is `host`, or when an operation has no `image`:
 
 - working directory is the project directory
 - command is the operation command
 - arguments are the operation arguments
+
+Operations without an `image` always use this path, even when the selected engine is Docker or Podman.
 
 No container-specific arguments are added in this path.

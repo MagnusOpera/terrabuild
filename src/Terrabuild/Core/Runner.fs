@@ -61,12 +61,6 @@ type private EngineRequestPath =
     | Podman
     | Host
 
-let private resolveEngineRequestPath (engine: string option) =
-    match engine with
-    | Some "docker" -> EngineRequestPath.Docker
-    | Some "podman" -> EngineRequestPath.Podman
-    | _ -> EngineRequestPath.Host
-
 module private Native =
     module Posix =
         [<DllImport("libc", SetLastError = true)>]
@@ -216,17 +210,16 @@ let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) pro
     buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir
 
 and internal buildCommandsForRuntime (runtime: HostRuntime) (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
-    let enginePath = resolveEngineRequestPath options.Engine
+    let enginePath = options.Engine
 
     node.Operations
     |> List.map (fun operation ->
         match enginePath, operation.Image with
-        | EngineRequestPath.Docker, Some _ ->
+        | ConfigOptions.Engine.Docker, Some _ ->
             buildContainerCommand runtime EngineRequestPath.Docker node operation options projectDirectory homeDir tmpDir
-        | EngineRequestPath.Podman, Some _ ->
+        | ConfigOptions.Engine.Podman, Some _ ->
             buildContainerCommand runtime EngineRequestPath.Podman node operation options projectDirectory homeDir tmpDir
-        | EngineRequestPath.Host, _
-        | _, None ->
+        | _ ->
             buildHostCommand operation projectDirectory)
 
 let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =

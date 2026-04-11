@@ -32,7 +32,7 @@ type RunTargetOptions = {
     Labels: string set option
     Projects: string set option
     Variables: Map<string, string>
-    Engine: string option
+    Engine: Engine option
 }
 
 
@@ -107,7 +107,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Labels = options.Labels
             ConfigOptions.Options.Projects = options.Projects
             ConfigOptions.Options.Variables = options.Variables
-            ConfigOptions.Options.Engine = options.Engine
+            ConfigOptions.Options.Engine =
+                match options.Engine with
+                | None | Some Engine.Docker -> ConfigOptions.Engine.Docker
+                | Some Engine.Podman -> ConfigOptions.Engine.Podman
+                | Some Engine.Host -> ConfigOptions.Engine.Host
             ConfigOptions.Options.HeadCommit = sourceControl.HeadCommit
             ConfigOptions.Options.CommitLog = sourceControl.CommitLog
             ConfigOptions.Options.BranchOrTag = sourceControl.BranchOrTag
@@ -183,7 +187,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     if options.LocalOnly then $"| LocalOnly | {options.LocalOnly} |"
                     $"| MaxConcurrency | {options.MaxConcurrency} |"
                     match options.Note with | Some value ->  $"| Note | {value} |" | _ -> ()
-                    match options.Engine with | Some value ->  $"| Engine | {value} |" | _ -> ()
+                    $"| Engine | {options.Engine} |"
                     if options.WhatIf then $"| WhatIf | {options.WhatIf} |"
                     if options.Debug then $"| Debug | {options.Debug} |"
                     ""
@@ -276,12 +280,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let localOnly = runArgs.Contains(RunArgs.Local_Only)
         let tag = runArgs.TryGetResult(RunArgs.Tag)
         let whatIf = runArgs.Contains(RunArgs.What_If)
-        let engine =
-            match runArgs.TryGetResult(RunArgs.Engine) with
-            | Some Engine.Docker -> Some "docker"
-            | Some Engine.Podman -> Some "podman"
-            | Some Engine.None -> None
-            | _ -> None
+        let engine = runArgs.TryGetResult(RunArgs.Engine)
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.WhatIf = whatIf

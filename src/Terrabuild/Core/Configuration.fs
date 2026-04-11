@@ -135,7 +135,7 @@ let private resolve_dependency_scope (projectInfo: ProjectInfo) =
     projectInfo.DependencyResolution
     |> Option.defaultValue DependencyResolution.Path
 
-let private buildEvaluationContext engine (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
+let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
         match options.Label with
         | Some tag -> Value.String tag
@@ -168,11 +168,6 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
             | Some env -> Value.String env
             | _ -> Value.Nothing
 
-        let engine =
-            match engine with
-            | Some engine -> Value.Enum engine
-            | None -> Value.Enum "none"
-
         Map [ "terrabuild.configuration", configValue
               "terrabuild.environment", envValue
               "terrabuild.branch_or_tag", Value.String options.BranchOrTag 
@@ -180,7 +175,7 @@ let private buildEvaluationContext engine (options: ConfigOptions.Options) (work
               "terrabuild.retry", Value.Bool options.Retry 
               "terrabuild.force", Value.Bool options.Force 
               "terrabuild.ci", Value.Bool options.Run.IsSome
-              "terrabuild.engine", engine
+              "terrabuild.engine", $"{engine}" |> String.toLower |> Value.Enum
               "terrabuild.debug", Value.Bool options.Debug 
               "terrabuild.tag", tagValue 
               "terrabuild.note", noteValue
@@ -788,10 +783,11 @@ let read (options: ConfigOptions.Options) =
             forwardParseError("Failed to read WORKSPACE configuration file", exn)
 
     let engine =
-        match options.Engine |> Option.orElse workspaceConfig.Workspace.Engine with
-        | Some "docker" | None -> "docker" |> Some
-        | Some "podman" -> "podman" |> Some
-        | Some "none" -> None
+        match workspaceConfig.Workspace.Engine with
+        | None -> options.Engine
+        | Some "docker" -> ConfigOptions.Engine.Docker
+        | Some "podman" -> ConfigOptions.Engine.Podman
+        | Some "host" -> ConfigOptions.Engine.Host
         | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
 
     let options =
@@ -811,7 +807,7 @@ let read (options: ConfigOptions.Options) =
             if options.WhatIf then "whatif" ] |> String.join(" ")    
         [
             if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
-            if options.Engine.IsSome then $"Engine {options.Engine.Value}"
+            $"Engine {options.Engine}"
             if options.Run.IsSome then $"Source control {options.Run.Value.Name}"
             if options.Configuration.IsSome then $"Configuration {options.Configuration.Value}"
             if options.Environment.IsSome then $"Environment {options.Environment.Value}"

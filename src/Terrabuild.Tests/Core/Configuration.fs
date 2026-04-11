@@ -29,7 +29,7 @@ let private baseOptions workspace targets =
       ConfigOptions.Options.Labels = None
       ConfigOptions.Options.Projects = None
       ConfigOptions.Options.Variables = Map.empty
-      ConfigOptions.Options.Engine = None
+      ConfigOptions.Options.Engine = ConfigOptions.Engine.Host
       ConfigOptions.Options.BranchOrTag = "main"
       ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
@@ -299,6 +299,35 @@ target build {
         let project = config.Projects["@pnpm#web"]
 
         project.Dependencies |> should contain "workspace/path#toolchains/pnpm")
+
+[<Test>]
+let ``workspace expressions can compare terrabuild engine with docker enum`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {
+}
+
+target build {
+  build = terrabuild.engine == ~docker ? ~always : ~lazy
+}
+"""
+
+        writeFile root "app/PROJECT" """
+project app { @shell {} }
+
+target build {
+  @shell echo { arguments = "app" }
+}
+"""
+
+        let options =
+            { baseOptions root (Set [ "build" ]) with
+                ConfigOptions.Options.Engine = ConfigOptions.Engine.Docker }
+
+        let _, config = Configuration.read options
+        let project = config.Projects["workspace/path#app"]
+
+        project.Targets["build"].Build |> should equal (Some GraphDef.BuildMode.Always))
 
 [<Test>]
 let ``Configuration rejects project scripts using fsx`` () =

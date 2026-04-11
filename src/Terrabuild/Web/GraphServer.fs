@@ -122,11 +122,14 @@ let private readQueryValue (ctx: HttpContext) (name: string) =
         if String.IsNullOrWhiteSpace(value) then None else Some value
     | _ -> None
 
-let private parseEngineOption (value: string option) =
+let private normalizeEngineOption (value: string option) =
     value
     |> Option.map (fun v -> v.Trim().ToLowerInvariant())
     |> Option.bind (fun v ->
-        if String.IsNullOrWhiteSpace(v) || v = "default" then None else Some v)
+        match v with
+        | "" | "default" -> None
+        | "none" -> Some "host"
+        | _ -> Some v)
 
 let private buildConfig
     (workspace: string)
@@ -166,7 +169,12 @@ let private buildConfig
               ConfigOptions.Options.Labels = None
               ConfigOptions.Options.Projects = projects |> Option.map (fun items -> items |> Seq.map String.toLower |> Set)
               ConfigOptions.Options.Variables = Map.empty
-              ConfigOptions.Options.Engine = engine
+              ConfigOptions.Options.Engine =
+                match engine |> normalizeEngineOption with
+                | None | Some "docker" -> ConfigOptions.Engine.Docker
+                | Some "podman" -> ConfigOptions.Engine.Podman
+                | Some "host" -> ConfigOptions.Engine.Host
+                | _ -> failwith $"Invalid engine option {engine}"
               ConfigOptions.Options.HeadCommit = sourceControl.HeadCommit
               ConfigOptions.Options.CommitLog = sourceControl.CommitLog
               ConfigOptions.Options.BranchOrTag = sourceControl.BranchOrTag
@@ -240,7 +248,7 @@ let private createBuildCommand (workspace: string) (request: BuildRequest) =
         | Some value -> $" --environment \"{value}\""
         | _ -> ""
     let engineArg =
-        match request.Engine |> Option.bind (fun value -> if String.IsNullOrWhiteSpace(value) then None else Some value) with
+        match request.Engine |> normalizeEngineOption with
         | Some value -> $" --engine {value}"
         | _ -> ""
     let forceArg = if request.Force |> Option.defaultValue false then " -f" else ""
@@ -432,7 +440,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             let projects = ctx.Request.Query.["projects"] |> parseCsvValues |> function | [] -> None | values -> Some values
             let configuration = readQueryValue ctx "configuration"
             let environment = readQueryValue ctx "environment"
-            let engine = readQueryValue ctx "engine" |> parseEngineOption
+            let engine = readQueryValue ctx "engine" |> normalizeEngineOption
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
@@ -458,7 +466,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             let projects = ctx.Request.Query.["projects"] |> parseCsvValues |> function | [] -> None | values -> Some values
             let configuration = readQueryValue ctx "configuration"
             let environment = readQueryValue ctx "environment"
-            let engine = readQueryValue ctx "engine" |> parseEngineOption
+            let engine = readQueryValue ctx "engine" |> normalizeEngineOption
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else

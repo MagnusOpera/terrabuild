@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Add unit coverage for `Terrabuild.Common.Json` discriminated-union serialization and option unwrapping/skipped-field behavior.
+- Replace string-based engine selection with a typed Docker/Podman/host model, make `workspace.engine` authoritative over CLI and Graph UI selection, expose `host` consistently in the UI/docs, keep `terrabuild.engine` expression values lowercase, and add regression coverage for engine-based workspace expressions.
 
 ## [0.193.2-next]
 

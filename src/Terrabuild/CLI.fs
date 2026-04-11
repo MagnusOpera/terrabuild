@@ -5,7 +5,7 @@ open Argu
 type Engine =
     | Docker
     | Podman
-    | None
+    | Host
 
 [<RequireQualifiedAccess>]
 type ScaffoldArgs =
@@ -79,7 +79,7 @@ with
             | Local_Only -> "Use local cache only."
             | Note _ -> "Note for the build."
             | Tag _ -> "Tag for build."
-            | Engine _ -> "Container engine to use (docker, podman or none)."
+            | Engine _ -> "Container engine to use (docker, podman or host)."
             | What_If -> "Prepare the action but do not apply."
 
 [<RequireQualifiedAccess>]
