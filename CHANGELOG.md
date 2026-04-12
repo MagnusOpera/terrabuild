@@ -4,6 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Switch website tooling and release workflows from npm to pnpm, including lockfile generation and Pages/release workflow updates.
+- Fix the stable docs website build and Docusaurus release dependencies so tagged release builds can snapshot docs and publish successfully in GitHub Actions.
+- Adjust website publishing rules so GA and `-next` releases both build/deploy Pages as intended, and expose the docs version selector on the published site with `Next` plus all published stable versions.
+
 ## [0.193.6]
 
 - Move the public website into the Terrabuild repository under `website/`, migrate the existing docs/blog/site content from `terrabuild.io` into Docusaurus, and keep extension docs generated into the in-repo versioned documentation tree.
