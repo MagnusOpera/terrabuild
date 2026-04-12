@@ -85,6 +85,13 @@ const config: Config = {
 
   plugins: [
     [
+      path.resolve(process.cwd(), 'plugins/google-analytics/index.cjs'),
+      {
+        trackingID: 'G-40K057W4NR',
+        allowedHosts: ['terrabuild.io', 'www.terrabuild.io'],
+      },
+    ],
+    [
       '@docusaurus/plugin-content-pages',
       {
         path: 'pages',
