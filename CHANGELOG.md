@@ -4,6 +4,27 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.6]
+
+- Move the public website into the Terrabuild repository under `website/`, migrate the existing docs/blog/site content from `terrabuild.io` into Docusaurus, and keep extension docs generated into the in-repo versioned documentation tree.
+- Add release-aware website workflows so `make release-prepare version=X.Y.Z` snapshots stable docs versions, GitHub Pages is published from release artifacts, and `make website`/`make website-build` let local preview/build flows regenerate extension docs without cutting a release.
+- Rework the migrated site navigation and styling to match the existing Terrabuild site more closely, including ordered docs sidebars, Mermaid rendering in docs/blog content, always-underlined content links with inline Magnus Opera/GitHub icons, a slimmer footer, and a working full mobile docs sidebar on `/docs`.
+- Upgrade `Terrabuild.UI` from Vite `8.0.2` to `8.0.8` and refresh the UI lockfile to the matching transitive dependency set.
+- Upgrade embedded FScript runtime/language to `0.62.0`, move built-in extension ownership into `Terrabuild.Extensions` with scripts under `src/Terrabuild.Extensions/Scripts`, split extension coverage into `Terrabuild.Extensions.Tests`, move the protocol doc to `docs/architecture/fscript-extension-protocol.md`, and remove the registry-level `@shell`/`@npx` default `args = ""` special case.
+- Fix smoke tests
+- Add unit coverage for `Terrabuild.Common.Json` discriminated-union serialization and option unwrapping/skipped-field behavior.
+- Replace string-based engine selection with a typed Docker/Podman/host model, make `workspace.engine` authoritative over CLI and Graph UI selection, expose `host` consistently in the UI/docs, keep `terrabuild.engine` expression values lowercase, and add regression coverage for engine-based workspace expressions.
+- Split Runner command formatting into explicit Docker, Podman, and host execution paths, and cache discovered container home directories per engine/image so Podman no longer reuses Docker-specific execution metadata.
+- Add a built-in `@fscript` extension backed by the standalone `fscript` executable, with unit coverage, smoke-test coverage, and CI setup that installs `fscript` from `magnusopera/fscript`.
+- Upgrade `Terrabuild.UI` to Mantine 9, Vite 8, and React 19, including the required Mantine 8.x to 9.x component/layout API migrations.
+- Fix inherited extension project-version dependency discovery, add regression coverage, and keep smoke-test snapshots pinned to `linux/amd64`.
+- Add explicit extension dependency resolution metadata (`Path` or `Scope`) so scripts can declare whether dependency identifiers resolve by workspace path or extension scope, keeping canonical project IDs stable for pnpm-style packages.
+- Remove the legacy compiled F# extension compatibility layer; Terrabuild now supports only FScript `.fss` extension scripts and rejects `.fsx` extension paths with a migration error.
+- Remove the Terrabuild scripting dependency on `FSharp.Compiler.Service` by loading extension scripts exclusively through the FScript runtime.
+- Upgrade embedded FScript dependencies to `0.61.0`, picking up the runtime fix that preserves missing optional JSON/XML record fields as `None` during extension deserialization.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.4...0.193.6
+
 ## [0.193.6-next]
 
 
