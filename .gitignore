@@ -238,6 +238,12 @@ ClientBin/
 ~$*
 *~
 *.dbmdl
+node_modules/
+website/node_modules/
+build/
+.docusaurus/
+website/build/
+website/.docusaurus/
 *.dbproj.schemaview
 *.jfm
 *.pfx

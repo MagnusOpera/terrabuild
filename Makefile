@@ -17,7 +17,7 @@ dryrun ?= false
 current_dir = $(shell pwd)
 
 
-.PHONY: docs
+.PHONY: docs try-docs website website-build website-prepare
 
 
 #
@@ -80,10 +80,26 @@ publish-windows: webui
 publish-all: clean publish publish-darwin publish-linux publish-windows
 
 docs:
-	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- ../terrabuild.io/content/docs/extensions --write
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- website/site-docs/extensions --write
+	cd website && node ./scripts/normalize-extension-docs.mjs
 
 try-docs:
-	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- ../terrabuild.tagada
+	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- .out/try-docs
+
+website-prepare:
+	cd website && pnpm install --frozen-lockfile
+	$(MAKE) docs
+
+website: website-prepare
+	cd website && pnpm start
+
+website-build: website-prepare
+	@if [ "$(version)" != "0.0.0" ] && echo "$(version)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
+		cd website && pnpm docs:version "$(version)"; \
+		cd website && TERRABUILD_DOCS_LAST_VERSION="$(version)" pnpm build; \
+	else \
+		cd website && pnpm build; \
+	fi
 
 self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only

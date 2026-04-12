@@ -191,8 +191,10 @@ if [[ "$dryrun" == "true" ]]; then
   echo "[DRY RUN] Would update CHANGELOG.md, commit and create annotated tag '${version}'."
   if [[ "$is_next" == "true" ]]; then
     echo "[DRY RUN] Mode: preview (Unreleased-only notes)."
+    echo "[DRY RUN] Would refresh public docs and build the website without creating a docs snapshot."
   else
     echo "[DRY RUN] Mode: stable aggregation (Unreleased + sections since previous stable)."
+    echo "[DRY RUN] Would refresh public docs, snapshot docs version ${version}, and build the website."
   fi
   echo "[DRY RUN] Previous tag: ${previous_tag}"
   echo "[DRY RUN] Compare link: ${compare_link}"
@@ -201,7 +203,21 @@ fi
 
 cp "$updated_changelog" CHANGELOG.md
 
-git add CHANGELOG.md
+make website-prepare
+
+if [[ "$is_next" != "true" ]]; then
+  (cd website && pnpm docs:version "${version}")
+  (cd website && TERRABUILD_DOCS_LAST_VERSION="${version}" pnpm build)
+else
+  (cd website && pnpm build)
+fi
+
+git add CHANGELOG.md website/site-docs website/blog website/static website/versions.json
+
+if [[ -d website/versioned_docs || -d website/versioned_sidebars ]]; then
+  git add website/versioned_docs website/versioned_sidebars
+fi
+
 git commit -m "chore(release): ${version}"
 git tag -a "${version}" -m "Release ${version}"
 

@@ -39,10 +39,6 @@ jobs:
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
           make self-ci engine=podman
 
-      - name: Check Docs
-        run: |
-          make try-docs
-
       - name: Create Test Report
         uses: magnusopera/test-reporter@main
         if: always()
