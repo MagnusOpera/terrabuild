@@ -14,7 +14,7 @@ const publishedVersions = existsSync(versionsPath)
   : [];
 const hasPublishedVersions =
   Array.isArray(publishedVersions) && publishedVersions.length > 0;
-const lastVersion = 'current';
+const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
 const showVersionDropdown = hasPublishedVersions;
 
 const config: Config = {
