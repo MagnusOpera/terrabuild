@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Refine the desktop website header so the local-search bar is larger and centered, while the docs version selector stays on the right before the GitHub link.
+
 ## [0.193.8-next]
 
 
