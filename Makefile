@@ -95,8 +95,7 @@ website: website-prepare
 
 website-build: website-prepare
 	@if [ "$(version)" != "0.0.0" ] && echo "$(version)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		cd website && pnpm docs:version "$(version)"; \
-		cd website && TERRABUILD_DOCS_LAST_VERSION="$(version)" pnpm build; \
+		cd website && pnpm docs:version "$(version)" && TERRABUILD_DOCS_LAST_VERSION="$(version)" pnpm build; \
 	else \
 		cd website && pnpm build; \
 	fi
