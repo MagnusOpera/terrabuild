@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.8-next]
+
+
 - Treat the newest stable docs version as the maintained stable line so the outdated-version warning is shown only for older stable releases, not for the latest stable tag.
 - Remove the Terrabuild blog from the Docusaurus site now that release/blog content has moved to the Magnus Opera corporate website.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.7-next...0.193.8-next
 
 ## [0.193.7-next]
 
