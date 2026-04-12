@@ -275,4 +275,52 @@
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
+
+  .tb-navbar-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .tb-navbar-left,
+  .tb-navbar-right {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .tb-navbar-right {
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .tb-navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(38rem, calc(100vw - 34rem));
+    z-index: 1;
+  }
+
+  .tb-navbar-search,
+  .tb-navbar-search .navbar__search,
+  .tb-navbar-search .searchBarContainer_V7YW,
+  .tb-navbar-search .navbar__search-input,
+  .tb-navbar-search .DocSearch-Button {
+    width: 100%;
+  }
+
+  .tb-navbar-search {
+    padding: 0;
+  }
+
+  .tb-navbar-search .navbar__search,
+  .tb-navbar-search .searchBarContainer_V7YW {
+    max-width: none;
+    padding: 0;
+  }
+
+  .tb-navbar-search .DocSearch-Button {
+    min-width: 30rem;
+  }
 }

@@ -116,16 +116,16 @@ const config: Config = {
           label: 'Documentation',
           position: 'left',
         },
+        {type: 'search', position: 'right'},
         ...(showVersionDropdown
           ? [
               {
                 type: 'docsVersionDropdown' as const,
-                position: 'left' as const,
+                position: 'right' as const,
                 dropdownActiveClassDisabled: true,
               },
             ]
           : []),
-        {type: 'search', position: 'right'},
         {
           href: 'https://github.com/MagnusOpera/Terrabuild',
           label: 'GitHub',
