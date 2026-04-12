@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.6-next]
+
+
 - Move the public website into the Terrabuild repository under `website/`, migrate the existing docs/blog/site content from `terrabuild.io` into Docusaurus, and keep extension docs generated into the in-repo versioned documentation tree.
 - Add release-aware website workflows so `make release-prepare version=X.Y.Z` snapshots stable docs versions, GitHub Pages is published from release artifacts, and `make website`/`make website-build` let local preview/build flows regenerate extension docs without cutting a release.
 - Rework the migrated site navigation and styling to match the existing Terrabuild site more closely, including ordered docs sidebars, Mermaid rendering in docs/blog content, always-underlined content links with inline Magnus Opera/GitHub icons, a slimmer footer, and a working full mobile docs sidebar on `/docs`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.5-next...0.193.6-next
 
 ## [0.193.5-next]
 
