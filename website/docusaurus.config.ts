@@ -57,16 +57,7 @@ const config: Config = {
           },
           editUrl: 'https://github.com/MagnusOpera/Terrabuild/tree/main/',
         },
-        blog: {
-          path: 'blog',
-          routeBasePath: 'blog',
-          editUrl: 'https://github.com/MagnusOpera/Terrabuild/tree/main/',
-          blogSidebarCount: 'ALL',
-          blogTitle: 'Terrabuild Blog',
-          blogDescription: 'Product notes and release updates for Terrabuild.',
-          onUntruncatedBlogPosts: 'ignore',
-          showReadingTime: true,
-        },
+        blog: false,
         pages: false,
         theme: {
           customCss: './theme/custom.css',
@@ -96,7 +87,7 @@ const config: Config = {
       {
         docsDir: docsDirs,
         indexDocs: true,
-        indexBlog: true,
+        indexBlog: false,
         indexPages: true,
         docsRouteBasePath: '/docs',
         hashed: true,
@@ -125,7 +116,6 @@ const config: Config = {
           label: 'Documentation',
           position: 'left',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         ...(showVersionDropdown
           ? [
               {
