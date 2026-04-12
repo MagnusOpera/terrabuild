@@ -165,22 +165,22 @@
 .markdown a[href*='github.com'],
 .markdown a[href*='insights.magnusopera.io'],
 .markdown a[href*='magnusopera.io'] {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
   text-decoration-line: underline;
+  white-space: nowrap;
 }
 
 .markdown a[href*='github.com']::before,
 .markdown a[href*='insights.magnusopera.io']::before,
 .markdown a[href*='magnusopera.io']::before {
   content: '';
-  flex: 0 0 auto;
+  display: inline-block;
   width: 1.05em;
   height: 1.05em;
+  margin-right: 0.28rem;
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
+  vertical-align: -0.14em;
 }
 
 .markdown a[href*='github.com']::before {
