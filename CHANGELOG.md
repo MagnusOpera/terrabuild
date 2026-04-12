@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.9-next]
+
+
 - Refine the desktop website header so the local-search bar is larger and centered, while the docs version selector stays on the right before the GitHub link.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.8-next...0.193.9-next
 
 ## [0.193.8-next]
 
