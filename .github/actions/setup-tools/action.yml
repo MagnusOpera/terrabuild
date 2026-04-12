@@ -24,7 +24,7 @@ inputs:
 
   pnpm_version:
     description: pnpm version to install
-    default: "9.15.0"
+    default: "10.33.0"
 
   install_terrabuild:
     description: Whether to install Terrabuild from GitHub releases

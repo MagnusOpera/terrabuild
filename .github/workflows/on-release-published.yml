@@ -28,20 +28,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache: pnpm
+          cache-dependency-path: website/pnpm-lock.yaml
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
 
       - name: Install website dependencies
         run: |
           cd website
-          npm ci
+          pnpm install --frozen-lockfile
 
       - name: Build website
         env:
           TERRABUILD_DOCS_LAST_VERSION: ${{ github.event.release.tag_name || github.ref_name || 'current' }}
         run: |
           cd website
-          npm run build
+          pnpm build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

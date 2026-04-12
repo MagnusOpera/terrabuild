@@ -4,7 +4,7 @@ import {spawnSync} from 'node:child_process';
 
 const version = process.argv[2];
 if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
-  console.error('Usage: npm run docs:version -- X.Y.Z');
+  console.error('Usage: pnpm docs:version X.Y.Z');
   process.exit(2);
 }
 

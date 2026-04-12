@@ -87,18 +87,18 @@ try-docs:
 	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- .out/try-docs
 
 website-prepare:
-	cd website && npm ci
+	cd website && pnpm install --frozen-lockfile
 	$(MAKE) docs
 
 website: website-prepare
-	cd website && npm run start
+	cd website && pnpm start
 
 website-build: website-prepare
 	@if [ "$(version)" != "0.0.0" ] && echo "$(version)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		cd website && npm run docs:version -- "$(version)"; \
-		cd website && TERRABUILD_DOCS_LAST_VERSION="$(version)" npm run build; \
+		cd website && pnpm docs:version "$(version)"; \
+		cd website && TERRABUILD_DOCS_LAST_VERSION="$(version)" pnpm build; \
 	else \
-		cd website && npm run build; \
+		cd website && pnpm build; \
 	fi
 
 self: clean publish

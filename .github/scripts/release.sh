@@ -206,10 +206,10 @@ cp "$updated_changelog" CHANGELOG.md
 make website-prepare
 
 if [[ "$is_next" != "true" ]]; then
-  (cd website && npm run docs:version -- "${version}")
-  (cd website && TERRABUILD_DOCS_LAST_VERSION="${version}" npm run build)
+  (cd website && pnpm docs:version "${version}")
+  (cd website && TERRABUILD_DOCS_LAST_VERSION="${version}" pnpm build)
 else
-  (cd website && npm run build)
+  (cd website && pnpm build)
 fi
 
 git add CHANGELOG.md website/site-docs website/blog website/static website/versions.json
