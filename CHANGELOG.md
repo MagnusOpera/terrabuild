@@ -4,6 +4,17 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.193.9]
+
+- Refine the desktop website header so the local-search bar is larger and centered, while the docs version selector stays on the right before the GitHub link.
+- Treat the newest stable docs version as the maintained stable line so the outdated-version warning is shown only for older stable releases, not for the latest stable tag.
+- Remove the Terrabuild blog from the Docusaurus site now that release/blog content has moved to the Magnus Opera corporate website.
+- Switch website tooling and release workflows from npm to pnpm, including lockfile generation and Pages/release workflow updates.
+- Fix the stable docs website build and Docusaurus release dependencies so tagged release builds can snapshot docs and publish successfully in GitHub Actions.
+- Adjust website publishing rules so GA and `-next` releases both build/deploy Pages as intended, and expose the docs version selector on the published site with `Next` plus all published stable versions.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.6...0.193.9
+
 ## [0.193.9-next]
 
 
