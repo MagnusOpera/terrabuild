@@ -4,12 +4,6 @@ import path from 'node:path';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-const stableTagPattern = /^\d+\.\d+\.\d+$/;
-const requestedLastVersion = process.env.TERRABUILD_DOCS_LAST_VERSION;
-const isStableSiteBuild =
-  requestedLastVersion !== undefined && stableTagPattern.test(requestedLastVersion);
-const lastVersion =
-  isStableSiteBuild && requestedLastVersion ? requestedLastVersion : 'current';
 const docsDirs = ['site-docs'];
 if (existsSync(path.join(process.cwd(), 'versioned_docs'))) {
   docsDirs.push('versioned_docs');
@@ -20,9 +14,8 @@ const publishedVersions = existsSync(versionsPath)
   : [];
 const hasPublishedVersions =
   Array.isArray(publishedVersions) && publishedVersions.length > 0;
-const docsOnlyIncludeVersions =
-  isStableSiteBuild && requestedLastVersion ? [requestedLastVersion] : undefined;
-const showVersionDropdown = !isStableSiteBuild && hasPublishedVersions;
+const lastVersion = 'current';
+const showVersionDropdown = hasPublishedVersions;
 
 const config: Config = {
   title: 'Terrabuild',
@@ -57,7 +50,6 @@ const config: Config = {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
           lastVersion,
-          onlyIncludeVersions: docsOnlyIncludeVersions,
           versions: {
             current: {
               label: 'Next',
