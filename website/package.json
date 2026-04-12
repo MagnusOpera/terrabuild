@@ -1,0 +1,52 @@
+{
+  "name": "terrabuild-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear",
+    "typecheck": "tsc",
+    "docs:sync": "node ./scripts/sync-site-content.mjs",
+    "docs:version": "node ./scripts/version-docs.mjs"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/plugin-content-pages": "3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "@docusaurus/theme-mermaid": "3.9.2",
+    "@easyops-cn/docusaurus-search-local": "0.55.1",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.9.2",
+    "@docusaurus/tsconfig": "3.9.2",
+    "@docusaurus/types": "3.9.2",
+    "typescript": "~5.6.2"
+  },
+  "overrides": {
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/plugin-content-blog": "3.9.2",
+    "@docusaurus/plugin-content-docs": "3.9.2",
+    "@docusaurus/plugin-content-pages": "3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "@docusaurus/theme-mermaid": "3.9.2",
+    "@docusaurus/theme-common": "3.9.2",
+    "@docusaurus/theme-search-algolia": "3.9.2",
+    "@docusaurus/theme-translations": "3.9.2",
+    "@docusaurus/types": "3.9.2",
+    "@docusaurus/utils": "3.9.2",
+    "@docusaurus/utils-common": "3.9.2",
+    "@docusaurus/utils-validation": "3.9.2",
+    "webpack": "5.105.3"
+  },
+  "engines": {
+    "node": ">=20.0"
+  }
+}

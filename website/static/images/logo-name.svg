@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="150" height="40" viewBox="0, 0, 150, 40">
+	<defs>
+		<linearGradient id="Gradient_1" gradientUnits="userSpaceOnUse" x1="595.589" y1="349.555" x2="620.689" y2="349.555" gradientTransform="matrix(1, 0, 0, 1, -579.81, -329.555)">
+			<stop offset="0" stop-color="#FF0080" />
+			<stop offset="1" stop-color="#FF8000" />
+		</linearGradient>
+		<linearGradient id="Gradient_2" gradientUnits="userSpaceOnUse" x1="581.18" y1="349.586" x2="606.28" y2="349.586" gradientTransform="matrix(1, -0.01, 0.01, 1, -581.92, -323.713)">
+			<stop offset="0" stop-color="#7A7ECF" />
+			<stop offset="1" stop-color="#00BBFF" />
+		</linearGradient>
+	</defs>
+	<g id="Image">
+		<g>
+			<path d="M39.119,16.675 L22.857,6.677 C19.84,4.823 15.971,6.994 15.941,10.56 L15.928,12.008 L17.955,12.008 C18.393,9.67 21.169,8.367 23.371,9.668 L36.247,17.274 C38.105,18.396 38.105,21.019 36.247,22.141 L23.387,29.908 C20.987,31.358 17.9,29.746 17.772,27.058 L15.799,27.058 L15.78,29.265 C15.748,32.961 19.769,35.238 22.878,33.284 L39.12,23.074 C41.466,21.598 41.466,18.15 39.119,16.675 z" fill="url(#Gradient_1)" />
+			<path d="M26.07,16.481 L9.705,6.653 C6.669,4.83 2.823,7.041 2.829,10.607 L2.863,29.313 C2.869,33.009 6.914,35.244 10.002,33.258 L26.137,22.88 C28.468,21.38 28.432,17.932 26.07,16.481 z M23.379,22.173 L10.81,30.071 C8.405,31.582 5.255,29.882 5.25,27.071 L5.228,12.841 C5.224,10.129 8.219,8.445 10.584,9.832 L23.329,17.305 C25.168,18.408 25.195,21.031 23.379,22.173 z" fill="url(#Gradient_2)" />
+		</g>
+		<text transform="matrix(1, 0, 0, 1, 90, 20)">
+			<tspan x="-45.316" y="7" font-family="GillSans" font-size="24" fill="#000000">
+				Terrabuild
+			</tspan>
+		</text>
+	</g>
+</svg>

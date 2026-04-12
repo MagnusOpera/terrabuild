@@ -43,6 +43,12 @@ jobs:
         run: |
           make try-docs
 
+      - name: Build Website
+        run: |
+          cd website
+          npm ci
+          npm run build
+
       - name: Create Test Report
         uses: magnusopera/test-reporter@main
         if: always()

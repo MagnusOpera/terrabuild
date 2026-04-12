@@ -1,0 +1,245 @@
+import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+
+const sidebars: SidebarsConfig = {
+  docs: [
+    {
+      type: 'doc',
+      id: 'index',
+      className: 'tb-sidebar-hidden-item',
+    },
+    {
+      type: 'category',
+      label: 'Getting Started',
+      link: {type: 'doc', id: 'getting-started/index'},
+      items: [
+        'getting-started/graph',
+        'getting-started/caching',
+        'getting-started/tasks',
+        'getting-started/batch',
+        'getting-started/install',
+        'getting-started/quick-start',
+        'getting-started/scaffolding',
+        'getting-started/key-concepts',
+        'getting-started/glossary',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Syntax',
+      link: {type: 'doc', id: 'syntax/index'},
+      items: [
+        'syntax/vscode',
+        'syntax/comments',
+        'syntax/block',
+        'syntax/attribute',
+        'syntax/identifier',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Expression',
+      link: {type: 'doc', id: 'expression/index'},
+      items: [
+        'expression/types',
+        'expression/variables',
+        'expression/functions',
+        'expression/predefined-variables',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Workspace',
+      link: {type: 'doc', id: 'workspace/index'},
+      items: [
+        'workspace/workspace',
+        'workspace/locals',
+        'workspace/variable',
+        'workspace/extension',
+        'workspace/target',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Project',
+      link: {type: 'doc', id: 'project/index'},
+      items: [
+        'project/project',
+        'project/locals',
+        'project/extension',
+        'project/target',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Extensions',
+      link: {type: 'doc', id: 'extensions/index'},
+      items: [
+        {
+          type: 'category',
+          label: 'Cargo',
+          link: {type: 'doc', id: 'extensions/cargo/index'},
+          items: [
+            'extensions/cargo/build',
+            'extensions/cargo/dispatch',
+            'extensions/cargo/test',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Docker',
+          link: {type: 'doc', id: 'extensions/docker/index'},
+          items: [
+            'extensions/docker/build',
+            'extensions/docker/dispatch',
+            'extensions/docker/push',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Dotnet',
+          link: {type: 'doc', id: 'extensions/dotnet/index'},
+          items: [
+            'extensions/dotnet/build',
+            'extensions/dotnet/dispatch',
+            'extensions/dotnet/pack',
+            'extensions/dotnet/publish',
+            'extensions/dotnet/restore',
+            'extensions/dotnet/test',
+            'extensions/dotnet/tool',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'FScript',
+          link: {type: 'doc', id: 'extensions/fscript/index'},
+          items: ['extensions/fscript/execute'],
+        },
+        {
+          type: 'category',
+          label: 'Gradle',
+          link: {type: 'doc', id: 'extensions/gradle/index'},
+          items: [
+            'extensions/gradle/build',
+            'extensions/gradle/dispatch',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Make',
+          link: {type: 'doc', id: 'extensions/make/index'},
+          items: ['extensions/make/dispatch'],
+        },
+        {
+          type: 'category',
+          label: 'Npm',
+          link: {type: 'doc', id: 'extensions/npm/index'},
+          items: [
+            'extensions/npm/build',
+            'extensions/npm/dispatch',
+            'extensions/npm/exec',
+            'extensions/npm/install',
+            'extensions/npm/run',
+            'extensions/npm/test',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Npx',
+          link: {type: 'doc', id: 'extensions/npx/index'},
+          items: ['extensions/npx/run'],
+        },
+        {
+          type: 'category',
+          label: 'OpenAPI',
+          link: {type: 'doc', id: 'extensions/openapi/index'},
+          items: ['extensions/openapi/generate'],
+        },
+        {
+          type: 'category',
+          label: 'Playwright',
+          link: {type: 'doc', id: 'extensions/playwright/index'},
+          items: ['extensions/playwright/test'],
+        },
+        {
+          type: 'category',
+          label: 'Pnpm',
+          link: {type: 'doc', id: 'extensions/pnpm/index'},
+          items: [
+            'extensions/pnpm/build',
+            'extensions/pnpm/dispatch',
+            'extensions/pnpm/install',
+            'extensions/pnpm/run',
+            'extensions/pnpm/test',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Sentry',
+          link: {type: 'doc', id: 'extensions/sentry/index'},
+          items: ['extensions/sentry/sourcemaps'],
+        },
+        {
+          type: 'category',
+          label: 'Shell',
+          link: {type: 'doc', id: 'extensions/shell/index'},
+          items: ['extensions/shell/dispatch'],
+        },
+        {
+          type: 'category',
+          label: 'Terraform',
+          link: {type: 'doc', id: 'extensions/terraform/index'},
+          items: [
+            'extensions/terraform/apply',
+            'extensions/terraform/destroy',
+            'extensions/terraform/dispatch',
+            'extensions/terraform/init',
+            'extensions/terraform/plan',
+            'extensions/terraform/select',
+            'extensions/terraform/validate',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Yarn',
+          link: {type: 'doc', id: 'extensions/yarn/index'},
+          items: [
+            'extensions/yarn/build',
+            'extensions/yarn/dispatch',
+            'extensions/yarn/install',
+            'extensions/yarn/run',
+            'extensions/yarn/test',
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Extensibility',
+      link: {type: 'doc', id: 'extensibility/index'},
+      items: [
+        'extensibility/container',
+        'extensibility/script',
+        'extensibility/types',
+      ],
+    },
+    'usage',
+    'troubleshooting',
+    {
+      type: 'html',
+      value: '<div style="margin-top:1.75rem;font-weight:700;color:var(--ifm-heading-color);">More</div>',
+      defaultStyle: true,
+    },
+    {
+      type: 'link',
+      label: 'Insights',
+      href: 'https://insights.magnusopera.io',
+    },
+    {
+      type: 'link',
+      label: 'Magnus Opera',
+      href: 'https://magnusopera.io',
+    },
+  ],
+};
+
+export default sidebars;
