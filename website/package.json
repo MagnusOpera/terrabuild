@@ -9,7 +9,6 @@
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
     "typecheck": "tsc",
-    "docs:sync": "node ./scripts/sync-site-content.mjs",
     "docs:version": "node ./scripts/version-docs.mjs"
   },
   "dependencies": {

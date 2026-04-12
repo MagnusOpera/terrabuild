@@ -88,7 +88,6 @@ try-docs:
 
 website-prepare:
 	cd website && npm ci
-	cd website && npm run docs:sync
 	$(MAKE) docs
 
 website: website-prepare
