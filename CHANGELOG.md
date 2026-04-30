@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.1-next]
+
+
 - Send optional Terrabuild project names with artifact publication so downstream consumers can surface stable project identities instead of only project directories.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.0-next...0.194.1-next
 
 ## [0.194.0-next]
 
