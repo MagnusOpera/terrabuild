@@ -21,6 +21,8 @@ type RunInfo = {
     RunId: string
     IsTag: bool
     RunAttempt: int
+    ActorName: string option
+    ActorId: string option
 }
 
 type ISourceControl =

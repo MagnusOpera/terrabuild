@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Capture `GITHUB_ACTOR` and `GITHUB_ACTOR_ID` in the GitHub source-control integration.
+
 ## [0.193.9]
 
 - Refine the desktop website header so the local-search bar is larger and centered, while the docs version selector stays on the right before the GitHub link.

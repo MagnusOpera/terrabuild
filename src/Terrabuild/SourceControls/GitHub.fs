@@ -44,6 +44,8 @@ type GitHub() =
     let runId = "GITHUB_RUN_ID" |> envVar |> Option.get
     let repository = "GITHUB_REPOSITORY" |> envVar |> Option.get
     let runAttempt = "GITHUB_RUN_ATTEMPT" |> envVar  |> Option.get |> int
+    let actorName = "GITHUB_ACTOR" |> envVar
+    let actorId = "GITHUB_ACTOR_ID" |> envVar
     let commitLog = currentDir() |> Git.getCommitLog
     let commit = commitLog.Head
     let otherCommits = "GITHUB_EVENT_PATH" |> envVar  |> Option.get |> GitHubEventReader.findOtherCommits |> List.ofSeq
@@ -77,7 +79,9 @@ type GitHub() =
                    RunId = runId
                    OtherCommits = otherCommits
                    Repository = repository
-                   RunAttempt = runAttempt }
+                   RunAttempt = runAttempt
+                   ActorName = actorName
+                   ActorId = actorId }
 
         override _.LogTypes = [ Contracts.LogType.Markdown stepSummary; Contracts.LogType.GitHubActions ]
 

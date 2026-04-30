@@ -97,7 +97,9 @@ module private Build =
           OtherCommits: CommitInput seq
           IsTag: bool
           Id: string
-          Attempt: int }
+          Attempt: int
+          ActorName: string option
+          ActorId: string option }
 
     [<RequireQualifiedAccess>]
     type BuildContextInput =
@@ -250,6 +252,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                     Build.RunInfoInput.Id = run.RunId
                     Build.RunInfoInput.IsTag = run.IsTag
                     Build.RunInfoInput.Attempt = run.RunAttempt
+                    Build.RunInfoInput.ActorName = run.ActorName
+                    Build.RunInfoInput.ActorId = run.ActorId
                     Build.RunInfoInput.OtherCommits = run.OtherCommits |> List.map mapCommit
                 })
 
