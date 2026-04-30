@@ -130,6 +130,7 @@ module private Build =
     [<RequireQualifiedAccess>]
     type AddArtifactInput =
         { Project: string
+          ProjectName: string option
           Target: string
           ProjectHash: string
           TargetHash: string
@@ -171,8 +172,9 @@ module private Build =
           StartBuildInput.Context = context }
         |> Http.post headers "/builds"
 
-    let addArtifact headers buildId project target projectHash targetHash files success startedAt endedAt: Unit =
+    let addArtifact headers buildId project projectName target projectHash targetHash files success startedAt endedAt: Unit =
         { AddArtifactInput.Project = project
+          AddArtifactInput.ProjectName = projectName
           AddArtifactInput.Target = target
           AddArtifactInput.ProjectHash = projectHash
           AddArtifactInput.TargetHash = targetHash
@@ -284,8 +286,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.CompleteBuild success =
             Build.completeBuild headers buildId.Value success
 
-        member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
-            Build.addArtifact headers buildId.Value project target projectHash targetHash files success startedAt endedAt
+        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
+            Build.addArtifact headers buildId.Value project projectName target projectHash targetHash files success startedAt endedAt
 
         member _.UseArtifact projectHash hash =
             Build.useArtifact headers buildId.Value projectHash hash

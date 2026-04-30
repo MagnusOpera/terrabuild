@@ -10,6 +10,7 @@ open GraphDef
 
 type private ArtifactAddCall =
     { Project: string
+      ProjectName: string option
       Target: string
       ProjectHash: string
       TargetHash: string
@@ -72,9 +73,10 @@ and private RecordingApiClient() =
         member _.GetArtifact _path =
             Uri("https://example.invalid/artifact")
 
-        member _.AddArtifact project target projectHash targetHash files success _startedAt _endedAt =
+        member _.AddArtifact project projectName target projectHash targetHash files success _startedAt _endedAt =
             addCalls.Enqueue(
                 { Project = project
+                  ProjectName = projectName
                   Target = target
                   ProjectHash = projectHash
                   TargetHash = targetHash
@@ -478,6 +480,7 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
         assertSucceeded phase1.Summary phase1ActionB.Id
         phase1.Summary.IsSuccess |> should equal true
         phase1.Api.AddCalls |> List.map (fun call -> call.Project) |> Set.ofList |> should equal (Set [ "A"; "B" ])
+        phase1.Api.AddCalls |> List.map (fun call -> call.ProjectName) |> Set.ofList |> should equal (Set [ Some "a"; Some "b" ])
         phase1.Api.AddCalls |> List.forall (fun call -> call.Success) |> should equal true
 
         assertDockerSummary "restore" "build --no-dependencies --configuration Debug -p:CacheNonce=phase-1" (phase1.Cache :> Cache.ICache) (buildCacheKey phase1A)
@@ -513,6 +516,7 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
         phase2.Api.UseCalls |> should contain (phase2B.ProjectHash, phase2B.TargetHash)
         phase2.Api.AddCalls.Length |> should equal 1
         phase2.Api.AddCalls[0].Project |> should equal "A"
+        phase2.Api.AddCalls[0].ProjectName |> should equal (Some "a")
         phase2.Cache.EntryCalls |> List.contains (buildCacheKey phase2B) |> should equal false
         phase2.Cache.EntryCalls |> should contain (buildCacheKey phase2A)
         phase2.Cache.SummaryOnlyCalls |> should contain (buildCacheKey phase2B)

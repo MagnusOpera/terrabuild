@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Send optional Terrabuild project names with artifact publication so downstream consumers can surface stable project identities instead of only project directories.
+
 ## [0.194.0-next]
 
 

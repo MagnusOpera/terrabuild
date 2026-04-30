@@ -157,7 +157,7 @@ type private FakeCache(root: string) =
                 entry :> Cache.IEntry
 
 type private FakeApiClient() =
-    let addCalls = ResizeArray<string * string * string * string * string list * bool * DateTime * DateTime>()
+    let addCalls = ResizeArray<string * string option * string * string * string * string list * bool * DateTime * DateTime>()
     let useCalls = ResizeArray<string * string>()
     let graphUploads = ResizeArray<string * BuildGraphNode list>()
     let lifecycle = ResizeArray<string>()
@@ -180,8 +180,8 @@ type private FakeApiClient() =
 
         member _.GetArtifact(_path) = Uri("https://example.invalid/artifact")
 
-        member _.AddArtifact project target projectHash targetHash files success startedAt endedAt =
-            addCalls.Add(project, target, projectHash, targetHash, files, success, startedAt, endedAt)
+        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
+            addCalls.Add(project, projectName, target, projectHash, targetHash, files, success, startedAt, endedAt)
 
         member _.UseArtifact projectHash targetHash =
             useCalls.Add(projectHash, targetHash)
@@ -366,9 +366,10 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         cache.Completed |> should equal [ GraphDef.buildCacheKey execMember ]
         api.AddCalls.Length |> should equal 1
-        let (_, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
+        let (_, _, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
         api.AddCalls[0] |> should equal (
             execMember.ProjectDir,
+            execMember.ProjectName,
             execMember.Target,
             execMember.ProjectHash,
             execMember.TargetHash,
@@ -529,9 +530,10 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
         File.ReadAllText(Path.Combine(genProjectDir, "generated.txt")) |> should equal "gen-output"
         cache.Completed |> should equal [ GraphDef.buildCacheKey buildNode ]
         api.AddCalls.Length |> should equal 1
-        let (_, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
+        let (_, _, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
         api.AddCalls[0] |> should equal (
             buildNode.ProjectDir,
+            buildNode.ProjectName,
             buildNode.Target,
             buildNode.ProjectHash,
             buildNode.TargetHash,
