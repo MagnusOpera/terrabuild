@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.0-next]
+
+
 - Capture `GITHUB_ACTOR` and `GITHUB_ACTOR_ID` in the GitHub source-control integration.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.9-next...0.194.0-next
 
 ## [0.193.9]
 
