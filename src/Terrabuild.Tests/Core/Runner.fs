@@ -383,6 +383,22 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         api.GraphUploads.Length |> should equal 1
         let (_, uploadedNodes) = api.GraphUploads[0]
         uploadedNodes |> List.map (fun node -> node.Id) |> Set.ofList |> should equal (Set [ execMember.Id; restoreMember.Id; batchNode.Id ])
+        uploadedNodes |> List.find (fun node -> node.Id = execMember.Id) |> should equal {
+            Contracts.BuildGraphNode.Id = execMember.Id
+            Contracts.BuildGraphNode.ProjectId = execMember.ProjectId
+            Contracts.BuildGraphNode.ProjectName = execMember.ProjectName
+            Contracts.BuildGraphNode.ProjectDir = execMember.ProjectDir
+            Contracts.BuildGraphNode.Target = execMember.Target
+            Contracts.BuildGraphNode.ProjectHash = execMember.ProjectHash
+            Contracts.BuildGraphNode.TargetHash = execMember.TargetHash
+            Contracts.BuildGraphNode.Dependencies = execMember.Dependencies |> Seq.sort |> List.ofSeq
+            Contracts.BuildGraphNode.Artifacts = string execMember.Artifacts
+            Contracts.BuildGraphNode.Build = string execMember.Build
+            Contracts.BuildGraphNode.Batch = string execMember.Batch
+            Contracts.BuildGraphNode.Action = string execMember.Action
+            Contracts.BuildGraphNode.Required = execMember.Required
+            Contracts.BuildGraphNode.IsBatchNode = false
+        }
 
         match summary.Nodes[execMember.Id].Request with
         | Runner.TaskRequest.Exec -> ()

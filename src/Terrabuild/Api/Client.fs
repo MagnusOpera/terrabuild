@@ -151,6 +151,8 @@ module private Build =
           ProjectName: string option
           ProjectDir: string
           Target: string
+          ProjectHash: string
+          TargetHash: string
           Dependencies: string list
           Artifacts: string
           Build: string
@@ -204,6 +206,8 @@ module private Build =
                     BuildGraphNodeInput.ProjectName = node.ProjectName
                     BuildGraphNodeInput.ProjectDir = node.ProjectDir
                     BuildGraphNodeInput.Target = node.Target
+                    BuildGraphNodeInput.ProjectHash = node.ProjectHash
+                    BuildGraphNodeInput.TargetHash = node.TargetHash
                     BuildGraphNodeInput.Dependencies = node.Dependencies
                     BuildGraphNodeInput.Artifacts = node.Artifacts
                     BuildGraphNodeInput.Build = node.Build

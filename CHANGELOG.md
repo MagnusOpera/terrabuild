@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Include `ProjectHash` and `TargetHash` in uploaded build-graph nodes so downstream Insights snapshots can resolve and persist optional artifact links per node.
+
 ## [0.194.1-next]
 
 

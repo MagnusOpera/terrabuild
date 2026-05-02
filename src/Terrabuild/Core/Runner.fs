@@ -331,6 +331,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Contracts.BuildGraphNode.ProjectName = node.ProjectName
                   Contracts.BuildGraphNode.ProjectDir = node.ProjectDir
                   Contracts.BuildGraphNode.Target = node.Target
+                  Contracts.BuildGraphNode.ProjectHash = node.ProjectHash
+                  Contracts.BuildGraphNode.TargetHash = node.TargetHash
                   Contracts.BuildGraphNode.Dependencies = node.Dependencies |> Seq.sort |> List.ofSeq
                   Contracts.BuildGraphNode.Artifacts = string node.Artifacts
                   Contracts.BuildGraphNode.Build = string node.Build
