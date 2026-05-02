@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.2-next]
+
+
 - Include `ProjectHash` and `TargetHash` in uploaded build-graph nodes so downstream Insights snapshots can resolve and persist optional artifact links per node.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.1-next...0.194.2-next
 
 ## [0.194.1-next]
 
