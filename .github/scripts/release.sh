@@ -212,7 +212,11 @@ else
   (cd website && pnpm build)
 fi
 
-git add CHANGELOG.md website/site-docs website/blog website/static website/versions.json
+git add CHANGELOG.md website/site-docs website/static website/versions.json
+
+if [[ -d website/blog ]]; then
+  git add website/blog
+fi
 
 if [[ -d website/versioned_docs || -d website/versioned_sidebars ]]; then
   git add website/versioned_docs website/versioned_sidebars
