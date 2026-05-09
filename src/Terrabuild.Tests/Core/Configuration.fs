@@ -115,7 +115,7 @@ let ``Legacy fsx extension script is rejected``() =
 
         let loader = Extensions.lazyLoadScript root [ ".git" ] "@custom" (Some "scripts/custom.fsx")
         Assert.That(
-            (fun () -> loader.Value |> ignore),
+            Action(fun () -> loader.Value |> ignore),
             Throws.TypeOf<TerrabuildException>().With.Message.Contains("Legacy F# extension scripts are no longer supported")))
 
 [<Test>]
@@ -356,6 +356,4 @@ target build {
 }
 """
 
-        Assert.That(
-            (fun () -> Configuration.read (baseOptions root (Set [ "build" ])) |> ignore),
-            Throws.TypeOf<TerrabuildException>()))
+        Assert.That(Action(fun () -> Configuration.read (baseOptions root (Set [ "build" ])) |> ignore), Throws.TypeOf<TerrabuildException>()))
