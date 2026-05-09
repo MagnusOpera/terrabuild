@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix GitHub Security alert `#43` by upgrading the Docusaurus website stack to `3.10.1`, adding the Mermaid layout peer dependency, pinning patched `fast-uri`/`serialize-javascript` transitive versions, and refreshing the `Terrabuild.UI` npm package set and lockfiles.
+
 ## [0.194.2-next]
 
 

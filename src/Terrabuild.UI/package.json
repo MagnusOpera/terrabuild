@@ -10,15 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.0.4",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
-    "@mantine/core": "^9.0.0",
-    "@mantine/hooks": "^9.0.0",
-    "@mantine/notifications": "^9.0.0",
-    "@tabler/icons-react": "^3.36.0",
-    "@dagrejs/dagre": "^1.0.4",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "@mantine/core": "^9.1.1",
+    "@mantine/hooks": "^9.1.1",
+    "@mantine/notifications": "^9.1.1",
+    "@tabler/icons-react": "^3.44.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "reactflow": "^11.11.3",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
@@ -27,8 +27,8 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.28.0",
     "typescript": "^5.9.3",
-    "vite": "8.0.8"
+    "vite": "8.0.11"
   }
 }
