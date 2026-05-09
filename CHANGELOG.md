@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.3-next]
+
+
 - NuGet upgrades.
 - Upgrade embedded FScript runtime/language packages to `0.68.0`.
 - Fix GitHub Security alert `#43` by upgrading the Docusaurus website stack to `3.10.1`, adding the Mermaid layout peer dependency, pinning patched `fast-uri`/`serialize-javascript` transitive versions, and refreshing the `Terrabuild.UI` npm package set and lockfiles.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.2-next...0.194.3-next
 
 ## [0.194.2-next]
 
