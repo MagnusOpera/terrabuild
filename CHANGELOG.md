@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.4-next]
+
+
 - Upgrade embedded FScript runtime/language packages to `0.71.0`.
 - Restrict the Terrabuild FScript host registry to disable `Task.spawn`, `Task.await`, and `Console.readLine` for extension scripts while keeping the remaining default host functions available.
 - Document the Terrabuild-exposed FScript host functions in the extensibility docs.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.3-next...0.194.4-next
 
 ## [0.194.3-next]
 
