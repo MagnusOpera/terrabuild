@@ -218,6 +218,7 @@ const sidebars: SidebarsConfig = {
       link: {type: 'doc', id: 'extensibility/index'},
       items: [
         'extensibility/container',
+        'extensibility/functions',
         'extensibility/script',
         'extensibility/types',
       ],

@@ -395,3 +395,63 @@ type ExportFlag =
         let args = Value.Map (Map [ "context", Value.Object context ])
         let result = invocable.Value.Invoke<string> args
         result |> should equal "true|false")
+
+[<Test>]
+let fscriptRegistryExcludesConsoleReadLine() =
+    withTemporaryWorkspace (fun root ->
+        let entryFile = Path.Combine(root, "ConsoleReadLineBlocked.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  Console.readLine ()
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        (fun () ->
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                source
+                (fun _ -> None)
+            |> ignore)
+        |> should throw typeof<FScript.Language.TypeException>)
+
+[<Test>]
+let fscriptRegistryExcludesTaskSpawnAndAwait() =
+    withTemporaryWorkspace (fun root ->
+        let entryFile = Path.Combine(root, "TaskBlocked.fss")
+        let source =
+            """
+[<export>] let inspect (context: {| Command: string |}) =
+  Task.await (Task.spawn (fun () -> "ok"))
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+        (fun () ->
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                source
+                (fun _ -> None)
+            |> ignore)
+        |> should throw typeof<FScript.Language.TypeException>)

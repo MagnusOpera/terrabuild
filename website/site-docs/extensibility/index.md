@@ -27,6 +27,7 @@ Custom extensions follow the Terrabuild FScript protocol:
 
 See:
 - [Script](/docs/extensibility/script)
+- [Functions](/docs/extensibility/functions)
 - [Types](/docs/extensibility/types)
 - [Container](/docs/extensibility/container)
 
