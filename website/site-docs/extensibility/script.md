@@ -166,6 +166,6 @@ export let build (context: ActionContext) (configuration: string option) (args: 
 - Filesystem external functions are sandboxed to workspace scope and can be further denied with `workspace.deny`.
 - `workspace.deny` accepts glob paths and defaults to `[ ".git" ]` when omitted.
 - Security bypass attempts (for example traversal through denied paths) are blocked by the runtime sandbox.
-- Available host functions are documented in [Functions](/docs/extensibility/functions).
+- Available host functions are documented in [Functions](./functions).
 - For protocol details, see `src/Terrabuild/Scripts/EXTENSION-PROTOCOL.md` in the Terrabuild repository.
 - FScript repository: https://github.com/MagnusOpera/FScript

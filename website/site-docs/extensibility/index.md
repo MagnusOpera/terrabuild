@@ -26,10 +26,10 @@ Custom extensions follow the Terrabuild FScript protocol:
 - a descriptor map declares capabilities with DU flags (`Dispatch`, `Default`, `Batchable`, `Never|Local|External|Remote`)
 
 See:
-- [Script](/docs/extensibility/script)
-- [Functions](/docs/extensibility/functions)
-- [Types](/docs/extensibility/types)
-- [Container](/docs/extensibility/container)
+- [Script](./script)
+- [Functions](./functions)
+- [Types](./types)
+- [Container](./container)
 
 ## FScript
 
