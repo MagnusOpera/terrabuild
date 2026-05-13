@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="SourceControls/Factory.fs" />
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="SourceControls/Repository.fs" />
     <Compile Include="Core/Configuration.fs" />

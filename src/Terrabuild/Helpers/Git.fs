@@ -5,6 +5,11 @@ open LibGit2Sharp
 open System.IO
 open System.Text.RegularExpressions
 
+let isRepository (dir: string) =
+    Repository.Discover(dir)
+    |> String.IsNullOrWhiteSpace
+    |> not
+
 let getBranchOrTag (dir: string) =
     // https://stackoverflow.com/questions/18659425/get-git-current-branch-tag-name
     match Exec.execCaptureOutput dir "git" "symbolic-ref -q --short HEAD" Map.empty with

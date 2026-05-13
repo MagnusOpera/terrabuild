@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fail fast with a user-facing invalid-argument error when Terrabuild runs in a workspace that is not a git repository, instead of surfacing that source-control initialization failure to Sentry.
+
 ## [0.194.4-next]
 
 
