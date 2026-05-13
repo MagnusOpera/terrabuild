@@ -4,6 +4,20 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.194.4]
+
+- Upgrade embedded FScript runtime/language packages to `0.71.0`.
+- Restrict the Terrabuild FScript host registry to disable `Task.spawn`, `Task.await`, and `Console.readLine` for extension scripts while keeping the remaining default host functions available.
+- Document the Terrabuild-exposed FScript host functions in the extensibility docs.
+- NuGet upgrades.
+- Upgrade embedded FScript runtime/language packages to `0.68.0`.
+- Fix GitHub Security alert `#43` by upgrading the Docusaurus website stack to `3.10.1`, adding the Mermaid layout peer dependency, pinning patched `fast-uri`/`serialize-javascript` transitive versions, and refreshing the `Terrabuild.UI` npm package set and lockfiles.
+- Include `ProjectHash` and `TargetHash` in uploaded build-graph nodes so downstream Insights snapshots can resolve and persist optional artifact links per node.
+- Send optional Terrabuild project names with artifact publication so downstream consumers can surface stable project identities instead of only project directories.
+- Capture `GITHUB_ACTOR` and `GITHUB_ACTOR_ID` in the GitHub source-control integration.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.9...0.194.4
+
 ## [0.194.4-next]
 
 
