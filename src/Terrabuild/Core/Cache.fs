@@ -89,10 +89,12 @@ let private getOrigin entryDir =
 
 let clearCache () =
     IO.deleteAny (createCache())
-    IO.deleteAny (createTmp())
 
 let clearHomeCache () =
     IO.deleteAny (createHome())
+
+let clearTemp () =
+    IO.deleteAny (createTmp())
 
 let createDirectories() =
     createTerrabuildProfile() |> ignore

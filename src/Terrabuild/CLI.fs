@@ -121,6 +121,7 @@ with
 type ClearArgs =
     | [<Unique>] Cache
     | [<Unique>] Home
+    | [<Unique>] Temporary
     | [<Unique>] All
 with
     interface IArgParserTemplate with
@@ -128,6 +129,7 @@ with
             match this with
             | Cache -> "Clear build cache."
             | Home -> "Clear home cache."
+            | Temporary -> "Clear tmp cache."
             | All -> "Clear all caches."
 
 [<RequireQualifiedAccess>]
