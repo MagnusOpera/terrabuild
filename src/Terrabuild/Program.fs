@@ -396,6 +396,16 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     let clear (clearArgs: ParseResults<ClearArgs>) =
         if clearArgs.Contains(ClearArgs.Cache) || clearArgs.Contains(ClearArgs.All) then Cache.clearCache()
         if clearArgs.Contains(ClearArgs.Home) || clearArgs.Contains(ClearArgs.All) then Cache.clearHomeCache()
+        if clearArgs.Contains(ClearArgs.Temporary) || clearArgs.Contains(ClearArgs.All) then Cache.clearTemp()
+        0
+
+    let prune (pruneArgs: ParseResults<PruneArgs>) =
+        let days = pruneArgs.GetResult(PruneArgs.Days)
+        if days < 0 then
+            raiseInvalidArg "Prune threshold must be zero or greater."
+
+        let summary = Cache.pruneCache days
+        $"Pruned local cache entries: scanned={summary.Scanned}, pruned={summary.Pruned}, skipped={summary.Skipped}" |> Terminal.writeLine
         0
 
     let login (loginArgs: ParseResults<LoginArgs>) =
@@ -424,6 +434,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | p when p.Contains(TerrabuildArgs.Serve) -> p.GetResult(TerrabuildArgs.Serve) |> serve
     | p when p.Contains(TerrabuildArgs.Console) -> p.GetResult(TerrabuildArgs.Console) |> console
     | p when p.Contains(TerrabuildArgs.Clear) -> p.GetResult(TerrabuildArgs.Clear) |> clear
+    | p when p.Contains(TerrabuildArgs.Prune) -> p.GetResult(TerrabuildArgs.Prune) |> prune
     | p when p.Contains(TerrabuildArgs.Login) -> p.GetResult(TerrabuildArgs.Login) |> login
     | p when p.Contains(TerrabuildArgs.Logout) -> p.GetResult(TerrabuildArgs.Logout) |> logout
     | p when p.Contains(TerrabuildArgs.Version) -> version()

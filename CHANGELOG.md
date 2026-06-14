@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add `terrabuild prune <days>` to remove stale local cache entries from `~/.terrabuild/cache`, refresh cache-entry access timestamps on local reads, and document the new cache-retention workflow.
+
 ## [0.194.5]
 
 - Fail fast with a user-facing invalid-argument error when Terrabuild runs in a workspace that is not a git repository, instead of surfacing that source-control initialization failure to Sentry.
