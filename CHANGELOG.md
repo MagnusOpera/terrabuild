@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Remove macOS Intel (`darwin-x64` / `osx-x64`) build and release artifacts from the Make publish flow, release automation, Homebrew tap metadata, scaffold lockfiles, and install documentation so Terrabuild ships only the supported macOS arm64 binary.
+
 ## [0.194.5]
 
 - Fail fast with a user-facing invalid-argument error when Terrabuild runs in a workspace that is not a git repository, instead of surfacing that source-control initialization failure to Sentry.

@@ -34,7 +34,7 @@ brew upgrade magnusopera/tap/terrabuild
 Download Terrabuild from [GitHub Releases](https://github.com/magnusopera/terrabuild/releases).
 
 Select your target platform, Terrabuild is available for following platforms:
-* MacOS (darwin-x64 / darwin-arm64)
+* MacOS (darwin-arm64)
 * Linux (linux-x64 / linux-arm64)
 * Windows (windows-x64)
 * It's also available as a universal dotnet tool

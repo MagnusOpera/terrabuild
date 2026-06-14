@@ -66,7 +66,6 @@ publish: webui
 	dotnet pack -c $(config) $(dotnet_props) -p:Version=$(version) -o .out
 
 publish-darwin: webui
-	dotnet publish -c $(config) $(dotnet_props) -r osx-x64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/x64 src/Terrabuild
 	dotnet publish -c $(config) $(dotnet_props) -r osx-arm64 -p:PublishSingleFile=true --self-contained -p:Version=$(version) -p:IncludeNativeLibrariesForSelfExtract=true -o $(PWD)/.out/darwin/arm64 src/Terrabuild
 
 publish-linux: webui
