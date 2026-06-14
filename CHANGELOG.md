@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Remove macOS Intel (`darwin-x64` / `osx-x64`) build and release artifacts from the Make publish flow, release automation, Homebrew tap metadata, scaffold lockfiles, and install documentation so Terrabuild ships only the supported macOS arm64 binary.
+- Add `terrabuild prune <days>` to remove stale local cache entries from `~/.terrabuild/cache`, refresh cache-entry access timestamps on local reads, and document the new cache-retention workflow.
 
 ## [0.194.5]
 

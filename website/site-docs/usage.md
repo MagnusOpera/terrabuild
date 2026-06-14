@@ -15,6 +15,7 @@ SUBCOMMANDS:
     run <options>         Run specified targets.
     serve <options>       Serve specified targets.
     clear <options>       Clear specified caches.
+    prune <options>       Prune stale local build cache entries.
     login <options>       Connect to backend.
     logout <options>      Disconnect from backend.
 
@@ -68,15 +69,38 @@ OPTIONS:
 Command `clear` allows you to clear local cache. This is useful when you want to force a complete build or free up disk space:
 ```
 > terrabuild clear --help
-USAGE: terrabuild clear [--help] [--cache] [--home] [--all]
+USAGE: terrabuild clear [--help] [--cache] [--home] [--temporary] [--all]
 
 OPTIONS:
 
     --cache               Clear build cache.
     --home                Clear home cache.
+    --temporary           Clear tmp cache.
     --all                 Clear all caches.
     --help                display this list of options.
 ```
+
+## Prune Local Cache
+Command `prune` removes stale entries from `~/.terrabuild/cache` while leaving `~/.terrabuild/home` and `~/.terrabuild/tmp` untouched:
+```
+> terrabuild prune --help
+USAGE: terrabuild prune [--help] <days>
+
+TARGET:
+
+    <days>                Prune local build cache entries not accessed for more than <days> days.
+
+OPTIONS:
+
+    --help                display this list of options.
+```
+
+Example:
+```
+> terrabuild prune 7
+```
+
+Freshness is based on Terrabuild-managed access timestamps on each cache entry `origin` file, not filesystem last-access (`atime`) behavior.
 
 ## Connect to a Shared Cache
 The `login` command lets you connect to a shared cache (Insights workspace), enabling faster builds by sharing artifacts between machines and CI/CD pipelines. All artifacts are encrypted on the client side and never stored unencrypted.

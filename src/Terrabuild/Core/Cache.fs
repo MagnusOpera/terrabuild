@@ -41,6 +41,13 @@ type ArtifactInfo = {
     Size: int
 }
 
+[<RequireQualifiedAccess>]
+type PruneSummary = {
+    Scanned: int
+    Pruned: int
+    Skipped: int
+}
+
 
 type IEntry =
     abstract NextLogFile: unit -> string
@@ -87,18 +94,64 @@ let private getOrigin entryDir =
     let originFile = FS.combinePath entryDir originFilename
     originFile |> IO.readTextFile |> Json.Deserialize<Origin>
 
+let private touchOrigin entryDir =
+    let originFile = FS.combinePath entryDir originFilename
+    if File.Exists originFile then
+        File.SetLastWriteTimeUtc(originFile, DateTime.UtcNow)
+
 let clearCache () =
     IO.deleteAny (createCache())
-    IO.deleteAny (createTmp())
 
 let clearHomeCache () =
     IO.deleteAny (createHome())
+
+let clearTemp () =
+    IO.deleteAny (createTmp())
 
 let createDirectories() =
     createTerrabuildProfile() |> ignore
     createCache() |> ignore
     createHome() |> ignore
     createTmp() |> ignore
+
+let pruneCacheEntries cacheDir cutoff =
+    let emptySummary: PruneSummary = {
+        Scanned = 0
+        Pruned = 0
+        Skipped = 0
+    }
+
+    if Directory.Exists cacheDir |> not then
+        emptySummary
+    else
+        let pruneEntry (summary: PruneSummary) entryDir =
+            let originFile = FS.combinePath entryDir originFilename
+            let summary =
+                { summary with
+                    Scanned = summary.Scanned + 1 }
+
+            if File.Exists originFile |> not then
+                { summary with Skipped = summary.Skipped + 1 }
+            else
+                let lastAccessedAt = File.GetLastWriteTimeUtc(originFile)
+                if lastAccessedAt > cutoff then
+                    { summary with Skipped = summary.Skipped + 1 }
+                else
+                    try
+                        Directory.Delete(entryDir, true)
+                        { summary with Pruned = summary.Pruned + 1 }
+                    with exn ->
+                        Log.Warning(exn, "Failed to prune cache entry {EntryDir}", entryDir)
+                        { summary with Skipped = summary.Skipped + 1 }
+
+        IO.enumerateDirs cacheDir
+        |> Seq.collect IO.enumerateDirs
+        |> Seq.collect IO.enumerateDirs
+        |> Seq.fold pruneEntry emptySummary
+
+let pruneCache days =
+    let cutoff = DateTime.UtcNow - TimeSpan.FromDays(days |> float)
+    pruneCacheEntries (createCache()) cutoff
 
 
 type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.IStorage, masterKey: byte[] option) =
@@ -251,10 +304,13 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
     interface ICache with
         // NOTE: do not use when building - only use for graph building
         member _.TryGetSummaryOnly useRemote id : (Origin * TargetSummary) option =
+            let entryDir = FS.combinePath (createCache()) id
             match cachedSummaries.TryGetValue(id) with
+            | true, (Some _ as originSummary) ->
+                touchOrigin entryDir
+                originSummary
             | true, originSummary -> originSummary
             | false, _ ->
-                let entryDir = FS.combinePath (createCache()) id
                 let logsDir = FS.combinePath entryDir "logs"
                 let outputsDir = FS.combinePath entryDir "outputs"
                 let summaryFile = FS.combinePath logsDir summaryFilename
@@ -266,6 +322,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                     match tryLoadSummary logsDir outputsDir summaryFile with
                     | Some summary ->
                         let origin = getOrigin entryDir
+                        touchOrigin entryDir
                         cachedSummaries.TryAdd(id, Some (origin, summary)) |> ignore
                         Some (origin, summary)
                     | _ -> None
