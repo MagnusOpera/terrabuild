@@ -4,11 +4,6 @@ class Terrabuild${TERRABUILD_SUFFIX} < Formula
   homepage "https://terrabuild.io"
   version "${TERRABUILD_VERSION}"
 
-  if OS.mac? && Hardware::CPU.intel?
-    url "${TERRABUILD_DARWIN_X64_URL}"
-    sha256 "${TERRABUILD_DARWIN_X64_SHA256}"
-  end
-
   if OS.mac? && Hardware::CPU.arm?
     url "${TERRABUILD_DARWIN_ARM64_URL}"
     sha256 "${TERRABUILD_DARWIN_ARM64_SHA256}"
