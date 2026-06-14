@@ -133,6 +133,15 @@ with
             | All -> "Clear all caches."
 
 [<RequireQualifiedAccess>]
+type PruneArgs =
+    | [<ExactlyOnce; MainCommand; First>] Days of days:int
+with
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Days _ -> "Prune local build cache entries not accessed for more than <days> days."
+
+[<RequireQualifiedAccess>]
 type LoginArgs =
     | [<ExactlyOnce>] Workspace of id:string
     | [<ExactlyOnce>] Token of token:string
@@ -162,6 +171,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Serve of ParseResults<ServeArgs>
     | [<CliPrefix(CliPrefix.None)>] Console of ParseResults<ConsoleArgs>
     | [<CliPrefix(CliPrefix.None)>] Clear of ParseResults<ClearArgs>
+    | [<CliPrefix(CliPrefix.None)>] Prune of ParseResults<PruneArgs>
     | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<LoginArgs>
     | [<CliPrefix(CliPrefix.None)>] Logout of ParseResults<LogoutArgs>
     | [<CliPrefix(CliPrefix.None)>] Version
@@ -177,6 +187,7 @@ with
             | Serve _ -> "Serve specified targets."
             | Console _ -> "Launch web console."
             | Clear _ -> "Clear specified caches."
+            | Prune _ -> "Prune stale local build cache entries."
             | Login _ -> "Connect to backend."
             | Logout _ -> "Disconnect from backend."
             | Version -> "Show current Terrabuild version."
