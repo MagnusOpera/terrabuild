@@ -32,7 +32,7 @@ Command to run one or more targets. This is the primary command for building you
 ```
 > terrabuild run --help
 USAGE: terrabuild run [--help] [--workspace <path>] [--configuration <name>] [--environment <name>] [--variable <variable>=<value>] [--label [<labels>...]] [--type [<types>...]]
-                      [--project [<projects>...]] [--force] [--retry] [--parallel <max>] [--local-only] [--note <note>] [--tag <tag>] [--engine <engine>] [--what-if] <target>...
+                      [--project [<projects>...]] [--force] [--retry] [--parallel <max>] [--local-only] [--note <note>] [--tag <tag>] [--engine <engine>] [--what-if] [--result <path>] <target>...
 
 TARGET:
 
@@ -62,7 +62,76 @@ OPTIONS:
     --tag <tag>           Tag for build.
     --engine <engine>     Container engine to use (docker, podman or none).
     --what-if             Prepare the action but do not apply.
+    --result <path>       Write machine-readable result JSON to file.
     --help                display this list of options.
+```
+
+### Machine-readable Result Report
+
+Use `--result <path>` to write a JSON report describing the planned impacts of the run and, for normal executions, the final outcomes.
+
+Example:
+
+```bash
+terrabuild run build --result artifacts/run-result.json
+```
+
+Example with `--what-if`:
+
+```bash
+terrabuild run build --what-if --result artifacts/run-result.json
+```
+
+The report uses `lowercase(ProjectName):target` as the public identifier.
+Projects without an assigned `name` are intentionally omitted from the report.
+
+Normal runs produce both `impacts` and `results`:
+
+```json
+{
+  "status": "success",
+  "targets": ["build"],
+  "startedAt": "2026-04-11T16:42:46.595161Z",
+  "endedAt": "2026-04-11T16:43:28.917020Z",
+  "impacts": {
+    "app:build": "build",
+    "lib:test": "restore"
+  },
+  "results": {
+    "app:build": "success",
+    "lib:test": "ignored"
+  }
+}
+```
+
+`impacts` is computed before the runner executes and is always present when `--result` is used.
+Possible impact values are:
+
+- `build`: Terrabuild will execute the target.
+- `restore`: Terrabuild will restore artifacts from cache.
+- `report`: Terrabuild will surface an existing failed state without rebuilding.
+- `ignore`: The node exists in the computed graph but no action is planned.
+
+`results` is written only for non-`--what-if` runs.
+Possible result values are:
+
+- `success`: At least one matching node completed successfully and none failed.
+- `failure`: At least one matching node failed.
+- `ignored`: The named node existed in the graph but produced no runner result.
+
+When `--what-if` is used, the report still includes `impacts` but omits `results`:
+
+```json
+{
+  "status": "what-if",
+  "targets": ["build"],
+  "startedAt": "2026-04-11T16:42:46.595161Z",
+  "endedAt": "2026-04-11T16:42:50.000000Z",
+  "impacts": {
+    "app:build": "build",
+    "lib:test": "restore"
+  }
+}
 ```
 
 ## Clear Local Cache
