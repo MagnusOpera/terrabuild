@@ -31,6 +31,7 @@
     <Compile Include="Core/Scaffold.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/GraphPipeline/Node.fs" />
+    <Compile Include="Core/GraphPipeline/Selection.fs" />
     <Compile Include="Core/GraphPipeline/Action.fs" />
     <Compile Include="Core/GraphPipeline/Batch.fs" />
     <Compile Include="Core/GraphPipeline/Cascade.fs" />

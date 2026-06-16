@@ -63,12 +63,21 @@ let private hasJsonProperty (json: JsonElement) propertyName =
     json.EnumerateObject() |> Seq.exists (fun property -> property.Name = propertyName)
 
 [<Test>]
-let ``CLI parses result argument`` () =
+let ``CLI parses out argument for run`` () =
     let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
-    let result = parser.ParseCommandLine([| "run"; "build"; "--result"; "out.json" |], raiseOnUsage = true)
+    let result = parser.ParseCommandLine([| "run"; "build"; "--out"; "out.json" |], raiseOnUsage = true)
     let runArgs = result.GetResult(TerrabuildArgs.Run)
 
-    runArgs.GetResult(RunArgs.Result) |> should equal "out.json"
+    runArgs.GetResult(RunArgs.Out) |> should equal "out.json"
+
+[<Test>]
+let ``CLI parses impact base and out arguments`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let result = parser.ParseCommandLine([| "impact"; "build"; "--base"; "abc123"; "--out"; "impact.json" |], raiseOnUsage = true)
+    let impactArgs = result.GetResult(TerrabuildArgs.Impact)
+
+    impactArgs.GetResult(ImpactArgs.Base) |> should equal "abc123"
+    impactArgs.GetResult(ImpactArgs.Out) |> should equal "impact.json"
 
 [<Test>]
 let ``buildRunResult produces minimal jq friendly structure`` () =
@@ -205,3 +214,112 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
         results.GetProperty("root:build").GetString() |> should equal "failure"
         results.GetProperty("app:test").GetString() |> should equal "ignored"
         hasJsonProperty results "unnamed:build" |> should equal false)
+
+[<Test>]
+let ``writeImpactResultFile writes JSON`` () =
+    withTempDir (fun root ->
+        let path = Path.Combine(root, "impact", "impact-result.json")
+        let impactResult: global.Program.ImpactResult =
+            { Base = "base-sha"
+              Head = "head-sha"
+              Targets = [ "build" ]
+              Impacts = Map [ "app:build", "changed" ] }
+
+        global.Program.writeImpactResultFile path impactResult
+
+        File.Exists(path) |> should equal true
+
+        use doc = JsonDocument.Parse(File.ReadAllText(path))
+        let json = doc.RootElement
+        json.GetProperty("base").GetString() |> should equal "base-sha"
+        json.GetProperty("head").GetString() |> should equal "head-sha"
+        json.GetProperty("impacts").GetProperty("app:build").GetString() |> should equal "changed")
+
+[<Test>]
+let ``buildImpactResult reports changed and dependency impacts from target hashes`` () =
+    let currentGraph =
+        buildGraph
+            [ { buildGraphNode "lib-build" (Some "Lib") "src/Lib" "build" with
+                    GraphDef.Node.TargetHash = "hash-lib-current" }
+              { buildGraphNode "app-build" (Some "App") "src/App" "build" with
+                    GraphDef.Node.TargetHash = "hash-app"
+                    GraphDef.Node.Dependencies = Set [ "lib-build" ] }
+              { buildGraphNode "batch" None ".terrabuild" "build" with
+                    GraphDef.Node.Dependencies = Set [ "app-build" ] } ]
+
+    let baseGraph =
+        { Contracts.CommitGraph.Repository = "acme/repo"
+          Contracts.CommitGraph.Commit = "base-sha"
+          Contracts.CommitGraph.GraphHash = "graph-base"
+          Contracts.CommitGraph.Nodes =
+            [ { Contracts.BuildGraphNode.Id = "lib-build"
+                ProjectId = "lib"
+                ProjectName = Some "Lib"
+                ProjectDir = "src/Lib"
+                Target = "build"
+                ProjectHash = "project-lib"
+                TargetHash = "hash-lib-base"
+                Dependencies = []
+                Artifacts = "Workspace"
+                Build = "Auto"
+                Batch = "Single"
+                Action = "Exec"
+                Required = true
+                IsBatchNode = false }
+              { Contracts.BuildGraphNode.Id = "app-build"
+                ProjectId = "app"
+                ProjectName = Some "App"
+                ProjectDir = "src/App"
+                Target = "build"
+                ProjectHash = "project-app"
+                TargetHash = "hash-app"
+                Dependencies = [ "lib-build" ]
+                Artifacts = "Workspace"
+                Build = "Auto"
+                Batch = "Single"
+                Action = "Exec"
+                Required = true
+                IsBatchNode = false } ] }
+
+    let impactResult =
+        global.Program.buildImpactResult "base-sha"
+                                         { Sha = "head-sha"
+                                           Message = "head"
+                                           Author = "dev"
+                                           Email = "dev@example.com"
+                                           Timestamp = DateTime.UtcNow }
+                                         (Set [ "build" ])
+                                         currentGraph
+                                         baseGraph
+
+    impactResult.Base |> should equal "base-sha"
+    impactResult.Head |> should equal "head-sha"
+    impactResult.Impacts["lib:build"] |> should equal "changed"
+    impactResult.Impacts["app:build"] |> should equal "dependency"
+
+[<Test>]
+let ``buildImpactResult marks missing base nodes as changed and skips unnamed nodes`` () =
+    let currentGraph =
+        buildGraph
+            [ buildGraphNode "root-build" (Some "Root") "." "build"
+              buildGraphNode "unnamed-build" None "src/Generated" "build" ]
+
+    let baseGraph =
+        { Contracts.CommitGraph.Repository = "acme/repo"
+          Contracts.CommitGraph.Commit = "base-sha"
+          Contracts.CommitGraph.GraphHash = "graph-base"
+          Contracts.CommitGraph.Nodes = [] }
+
+    let impactResult =
+        global.Program.buildImpactResult "base-sha"
+                                         { Sha = "head-sha"
+                                           Message = "head"
+                                           Author = "dev"
+                                           Email = "dev@example.com"
+                                           Timestamp = DateTime.UtcNow }
+                                         (Set [ "build" ])
+                                         currentGraph
+                                         baseGraph
+
+    impactResult.Impacts.Count |> should equal 1
+    impactResult.Impacts["root:build"] |> should equal "changed"

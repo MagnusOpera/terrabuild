@@ -35,11 +35,11 @@ let private baseOptions workspace targets =
       ConfigOptions.Options.BranchOrTag = "main"
       ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
-        { Contracts.Commit.Sha = "deadbeef"
-          Contracts.Commit.Author = "test"
-          Contracts.Commit.Email = "test@example.com"
-          Contracts.Commit.Message = "test"
-          Contracts.Commit.Timestamp = DateTime.UtcNow }
+        { Sha = "deadbeef"
+          Author = "test"
+          Email = "test@example.com"
+          Message = "test"
+          Timestamp = DateTime.UtcNow }
       ConfigOptions.Options.CommitLog = []
       ConfigOptions.Options.Run = None }
 

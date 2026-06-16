@@ -33,11 +33,11 @@ let private buildOptions (markdownFile: string) =
       ConfigOptions.Options.BranchOrTag = "main"
       ConfigOptions.Options.Repository = "acme/repo"
       ConfigOptions.Options.HeadCommit =
-        { Contracts.Commit.Sha = "sha"
-          Contracts.Commit.Message = "msg"
-          Contracts.Commit.Author = "author"
-          Contracts.Commit.Email = "mail"
-          Contracts.Commit.Timestamp = DateTime.UtcNow }
+        { Sha = "sha"
+          Message = "msg"
+          Author = "author"
+          Email = "mail"
+          Timestamp = DateTime.UtcNow }
       ConfigOptions.Options.CommitLog = []
       ConfigOptions.Options.Run = None }
 

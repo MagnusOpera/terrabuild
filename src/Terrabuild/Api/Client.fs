@@ -166,6 +166,13 @@ module private Build =
         { GraphHash: string
           Nodes: BuildGraphNodeInput list }
 
+    [<RequireQualifiedAccess>]
+    type CommitGraphOutput =
+        { Repository: string
+          Commit: string
+          GraphHash: string
+          Nodes: BuildGraphNodeInput list }
+
     let startBuild headers branchOrTag headCommit commitLog run context : StartBuildOutput =
         { StartBuildInput.BranchOrTag = branchOrTag
           StartBuildInput.Commit = headCommit
@@ -217,6 +224,11 @@ module private Build =
                     BuildGraphNodeInput.IsBatchNode = node.IsBatchNode
                 }) }
         payload |> Http.post<UploadBuildGraphInput, Unit> headers $"/builds/{buildId}/graph"
+
+    let getCommitGraph headers (repository: string) (commit: string) : CommitGraphOutput =
+        let repository = Uri.EscapeDataString(repository)
+        let commit = Uri.EscapeDataString(commit)
+        Http.get<Unit, CommitGraphOutput> headers $"/builds/graph?repository={repository}&commit={commit}" ()
 
 
 module private Artifact =
@@ -299,3 +311,27 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.GetArtifact path =
             let resp = Artifact.getArtifact headers path
             Uri(resp.Uri)
+
+        member _.GetCommitGraph repository commit =
+            let resp = Build.getCommitGraph headers repository commit
+            { Contracts.CommitGraph.Repository = resp.Repository
+              Commit = resp.Commit
+              GraphHash = resp.GraphHash
+              Nodes =
+                resp.Nodes
+                |> List.map (fun node -> {
+                    Contracts.BuildGraphNode.Id = node.Id
+                    ProjectId = node.ProjectId
+                    ProjectName = node.ProjectName
+                    ProjectDir = node.ProjectDir
+                    Target = node.Target
+                    ProjectHash = node.ProjectHash
+                    TargetHash = node.TargetHash
+                    Dependencies = node.Dependencies
+                    Artifacts = node.Artifacts
+                    Build = node.Build
+                    Batch = node.Batch
+                    Action = node.Action
+                    Required = node.Required
+                    IsBatchNode = node.IsBatchNode
+                }) }

@@ -175,11 +175,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
   
         if processedNodes.TryAdd(nodeId, true) then processNode()
 
-    configuration.SelectedProjects |> Seq.iter (fun project ->
-        options.Targets |> Seq.iter (fun target ->
-            configuration.Projects
-            |> Map.tryFind project
-            |> Option.iter (fun projectConfig -> if projectConfig.Targets |> Map.containsKey target then buildNode project target)))
+    configuration.Projects
+    |> Map.iter (fun projectId projectConfig ->
+        projectConfig.Targets
+        |> Map.keys
+        |> Seq.iter (fun target -> buildNode projectId target))
 
     let rootNodes =
         let allNodeIds = allNodes.Keys |> Set

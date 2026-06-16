@@ -41,6 +41,7 @@ type private RecordingCache(inner: Cache.ICache) =
 
 type private PhaseResult =
     { GraphNode: Graph
+      GraphSelection: Graph
       GraphAction: Graph
       GraphCascade: Graph
       GraphBatch: Graph
@@ -72,6 +73,12 @@ and private RecordingApiClient() =
 
         member _.GetArtifact _path =
             Uri("https://example.invalid/artifact")
+
+        member _.GetCommitGraph _repository _commit =
+            { Contracts.CommitGraph.Repository = "acme/repo"
+              Contracts.CommitGraph.Commit = "base"
+              Contracts.CommitGraph.GraphHash = "graph"
+              Contracts.CommitGraph.Nodes = [] }
 
         member _.AddArtifact project projectName target projectHash targetHash files success _startedAt _endedAt =
             addCalls.Enqueue(
@@ -391,12 +398,14 @@ let private runPhase (storage: FolderStorage) workspace homeRoot variables =
             let options = createOptions workspace variables
             let options, config = Configuration.read options
             let graphNode = GraphPipeline.Node.build options config
-            let graphAction = GraphPipeline.Action.build options (cache :> Cache.ICache) graphNode
+            let graphSelection = GraphPipeline.Selection.build options config graphNode
+            let graphAction = GraphPipeline.Action.build options (cache :> Cache.ICache) graphSelection
             let graphCascade = GraphPipeline.Cascade.build graphAction
             let graphBatch = GraphPipeline.Batch.build options config graphCascade
-            let summary = Runner.run options (cache :> Cache.ICache) (Some (api :> IApiClient)) graphBatch
+            let summary = Runner.run options (cache :> Cache.ICache) (Some (api :> IApiClient)) graphNode graphBatch
 
             { GraphNode = graphNode
+              GraphSelection = graphSelection
               GraphAction = graphAction
               GraphCascade = graphCascade
               GraphBatch = graphBatch
