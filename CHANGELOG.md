@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.1-next]
+
+
 - Add `terrabuild run --out <path>` and `terrabuild impact --base <sha> --out <path>` for machine-readable JSON reports.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.0-next...0.195.1-next
 
 ## [0.195.0-next]
 
