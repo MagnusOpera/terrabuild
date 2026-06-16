@@ -354,11 +354,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
         let fullGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
-        if options.Debug then fullGraph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
+        if options.Debug then fullGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
 
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
         let graph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config fullGraph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"selection.json")
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
         let graph = runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph)

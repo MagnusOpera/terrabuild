@@ -32,6 +32,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         graph.Nodes
         |> Map.filter (fun nodeId _ -> activeNodes |> Set.contains nodeId)
 
+    let rootNodes =
+        let allNodeIds = nodes |> Map.keys |> Set.ofSeq
+        let allDependencyIds = nodes |> Map.values |> Seq.collect (fun node -> node.Dependencies) |> Set.ofSeq
+        allNodeIds - allDependencyIds
+
     { Graph.Nodes = nodes
-      Graph.RootNodes = selectedRoots |> Set.filter (fun nodeId -> nodes |> Map.containsKey nodeId)
+      Graph.RootNodes = rootNodes
       Graph.Batches = Map.empty }
