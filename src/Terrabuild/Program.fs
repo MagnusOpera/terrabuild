@@ -5,6 +5,7 @@ open Serilog
 open Errors
 open Collections
 open Environment
+open System.IO
 open System.Runtime.InteropServices
 open Humanizer
 
@@ -15,6 +16,7 @@ open Humanizer
 [<RequireQualifiedAccess>]
 type RunTargetOptions = {
     Workspace: string
+    RunResultFile: string option
     WhatIf: bool
     Debug: bool
     MaxConcurrency: int
@@ -34,6 +36,57 @@ type RunTargetOptions = {
     Variables: Map<string, string>
     Engine: Engine option
 }
+
+[<RequireQualifiedAccess>]
+type RunResult = {
+    Status: string
+    Targets: string list
+    StartedAt: DateTime
+    EndedAt: DateTime
+    Results: Map<string, string>
+}
+
+let buildRunResult (summary: Runner.Summary) =
+    let buildResultKey (project: string) (target: string) =
+        if project.EndsWith(".") then $"{project}{target}"
+        else $"{project}.{target}"
+
+    let results =
+        summary.Nodes
+        |> Map.values
+        |> Seq.fold (fun state node ->
+            let key = buildResultKey node.Project node.Target
+            let status = if node.Status.IsSuccess then "success" else "failure"
+
+            let aggregated =
+                match state |> Map.tryFind key with
+                | Some "failure" -> "failure"
+                | Some _ when status = "failure" -> "failure"
+                | Some existing -> existing
+                | None -> status
+
+            state |> Map.add key aggregated
+        ) Map.empty
+
+    { RunResult.Status = if summary.IsSuccess then "success" else "failure"
+      RunResult.Targets = summary.Targets |> Set.toList
+      RunResult.StartedAt = summary.StartedAt
+      RunResult.EndedAt = summary.EndedAt
+      RunResult.Results = results }
+
+let writeRunResultFile (filePath: string) (summary: Runner.Summary) =
+    match Path.GetDirectoryName(filePath) with
+    | null -> ()
+    | outputDir when String.IsNullOrWhiteSpace(outputDir) -> ()
+    | outputDir -> IO.createDirectory outputDir
+
+    summary
+    |> buildRunResult
+    |> Json.Serialize
+    |> IO.writeTextFile filePath
+
+let tryWriteRunResultFile (filePath: string option) (summary: Runner.Summary) =
+    filePath |> Option.iter (fun path -> writeRunResultFile path summary)
 
 
 let launchDir = currentDir()
@@ -77,6 +130,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("Changing current directory to {directory}", options.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
         Terrabuild.Scripting.resetPerformanceMetrics()
+        let runResultFile = options.RunResultFile
 
         let homeDir = Cache.createHome()
         let tmpDir = Cache.createTmp()
@@ -210,6 +264,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
+                tryWriteRunResultFile runResultFile summary
 
                 if log || not summary.IsSuccess then
                     Logs.dumpLogs runId options cache graph summary
@@ -272,6 +327,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
+        let runResultFile = runArgs.TryGetResult(RunArgs.Run_Result)
         let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = runArgs.TryGetResult(RunArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
@@ -283,6 +339,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let engine = runArgs.TryGetResult(RunArgs.Engine)
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
+                        RunTargetOptions.RunResultFile = runResultFile |> Option.map FS.fullPath
                         RunTargetOptions.WhatIf = whatIf
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = runArgs.Contains(RunArgs.Force)
@@ -318,6 +375,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let projects = serveArgs.TryGetResult(ServeArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
         let variables = serveArgs.GetResults(ServeArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
+                        RunTargetOptions.RunResultFile = None
                         RunTargetOptions.WhatIf = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
@@ -373,6 +431,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let variables = logsArgs.GetResults(LogsArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
+                        RunTargetOptions.RunResultFile = None
                         RunTargetOptions.WhatIf = true
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false

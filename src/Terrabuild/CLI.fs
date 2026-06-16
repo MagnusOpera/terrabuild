@@ -47,6 +47,7 @@ with
 type RunArgs =
     | [<ExactlyOnce; MainCommand; First>] Target of target:string list
     | [<Unique; AltCommandLine("-w")>] Workspace of path:string
+    | [<Unique>] Run_Result of path:string
     | [<Unique; AltCommandLine("-c")>] Configuration of name:string
     | [<Unique; AltCommandLine("-e")>] Environment of name:string
     | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
@@ -67,6 +68,7 @@ with
             match this with
             | Target _ -> "Specify build target."
             | Workspace _ -> "Root of workspace. If not specified, current directory is used."
+            | Run_Result _ -> "Write machine-readable run result JSON to file."
             | Configuration _ -> "Configuration to use."
             | Environment _ -> "Environment to use."
             | Variable _ -> "Set variable."
