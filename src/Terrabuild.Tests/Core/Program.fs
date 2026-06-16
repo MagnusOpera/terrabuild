@@ -57,12 +57,12 @@ let private withTempDir action =
             Directory.Delete(root, true)
 
 [<Test>]
-let ``CLI parses run-result argument`` () =
+let ``CLI parses result argument`` () =
     let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
-    let result = parser.ParseCommandLine([| "run"; "build"; "--run-result"; "out.json" |], raiseOnUsage = true)
+    let result = parser.ParseCommandLine([| "run"; "build"; "--result"; "out.json" |], raiseOnUsage = true)
     let runArgs = result.GetResult(TerrabuildArgs.Run)
 
-    runArgs.GetResult(RunArgs.Run_Result) |> should equal "out.json"
+    runArgs.GetResult(RunArgs.Result) |> should equal "out.json"
 
 [<Test>]
 let ``buildRunResult produces minimal jq friendly structure`` () =
@@ -82,9 +82,9 @@ let ``buildRunResult produces minimal jq friendly structure`` () =
 
     runResult.Status |> should equal "success"
     runResult.Targets |> should equal [ "build"; "test" ]
-    runResult.Results[".build"] |> should equal "success"
-    runResult.Results["src/Terrabuild.Common.build"] |> should equal "success"
-    runResult.Results["src/Terrabuild.Common.Tests.test"] |> should equal "success"
+    runResult.Results[".:build"] |> should equal "success"
+    runResult.Results["src/Terrabuild.Common:build"] |> should equal "success"
+    runResult.Results["src/Terrabuild.Common.Tests:test"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult collapses duplicate project target keys with failure dominance`` () =
@@ -104,8 +104,8 @@ let ``buildRunResult collapses duplicate project target keys with failure domina
 
     runResult.Status |> should equal "failure"
     runResult.Results.Count |> should equal 2
-    runResult.Results["src/App.build"] |> should equal "failure"
-    runResult.Results["src/Lib.build"] |> should equal "success"
+    runResult.Results["src/App:build"] |> should equal "failure"
+    runResult.Results["src/Lib:build"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult marks graph nodes without runtime results as ignored`` () =
@@ -123,9 +123,9 @@ let ``buildRunResult marks graph nodes without runtime results as ignored`` () =
     let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "success"
-    runResult.Results[".build"] |> should equal "success"
-    runResult.Results["src/App.test"] |> should equal "ignored"
-    runResult.Results["src/Lib.build"] |> should equal "success"
+    runResult.Results[".:build"] |> should equal "success"
+    runResult.Results["src/App:test"] |> should equal "ignored"
+    runResult.Results["src/Lib:build"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult uses failure then success then ignored precedence for duplicate keys`` () =
@@ -142,7 +142,7 @@ let ``buildRunResult uses failure then success then ignored precedence for dupli
     let runResult = global.Program.buildRunResult graph summary
 
     runResult.Results.Count |> should equal 1
-    runResult.Results["src/App.build"] |> should equal "success"
+    runResult.Results["src/App:build"] |> should equal "success"
 
 [<Test>]
 let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
@@ -164,8 +164,8 @@ let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "success"
         json.GetProperty("targets").EnumerateArray() |> Seq.map (fun item -> item.GetString()) |> Seq.toList |> should equal [ "build"; "test" ]
-        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "success"
-        json.GetProperty("results").GetProperty("src/App.test").GetString() |> should equal "ignored")
+        json.GetProperty("results").GetProperty(".:build").GetString() |> should equal "success"
+        json.GetProperty("results").GetProperty("src/App:test").GetString() |> should equal "ignored")
 
 [<Test>]
 let ``writeRunResultFile writes JSON for failed summary and optional writer skips None`` () =
@@ -189,5 +189,5 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "failure"
-        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "failure"
-        json.GetProperty("results").GetProperty("src/App.test").GetString() |> should equal "ignored")
+        json.GetProperty("results").GetProperty(".:build").GetString() |> should equal "failure"
+        json.GetProperty("results").GetProperty("src/App:test").GetString() |> should equal "ignored")

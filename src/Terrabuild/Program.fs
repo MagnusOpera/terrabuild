@@ -47,8 +47,7 @@ type RunResult = {
 }
 
 let private buildResultKey (project: string) (target: string) =
-    if project.EndsWith(".") then $"{project}{target}"
-    else $"{project}.{target}"
+    $"{project}:{target}"
 
 let private mergeRunResultStatus currentStatus nextStatus =
     let priority status =
@@ -339,7 +338,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
-        let runResultFile = runArgs.TryGetResult(RunArgs.Run_Result)
+        let runResultFile = runArgs.TryGetResult(RunArgs.Result)
         let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = runArgs.TryGetResult(RunArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
