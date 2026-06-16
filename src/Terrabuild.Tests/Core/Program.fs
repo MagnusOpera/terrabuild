@@ -24,6 +24,29 @@ let private buildSummary isSuccess nodes =
       Runner.Summary.Targets = Set [ "build"; "test" ]
       Runner.Summary.Nodes = nodes |> Map.ofList }
 
+let private buildGraph (nodes: GraphDef.Node list) =
+    { GraphDef.Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
+      GraphDef.Graph.RootNodes = nodes |> List.map (fun node -> node.Id) |> Set.ofList
+      GraphDef.Graph.Batches = Map.empty }
+
+let private buildGraphNode id project target =
+    { GraphDef.Node.Id = id
+      GraphDef.Node.ProjectId = id
+      GraphDef.Node.ProjectName = None
+      GraphDef.Node.ProjectDir = project
+      GraphDef.Node.Target = target
+      GraphDef.Node.Dependencies = Set.empty
+      GraphDef.Node.Outputs = Set.empty
+      GraphDef.Node.ProjectHash = $"project-{id}"
+      GraphDef.Node.TargetHash = $"target-{id}"
+      GraphDef.Node.ClusterHash = None
+      GraphDef.Node.Operations = []
+      GraphDef.Node.Artifacts = GraphDef.ArtifactMode.Workspace
+      GraphDef.Node.Build = GraphDef.BuildMode.Auto
+      GraphDef.Node.Batch = GraphDef.BatchMode.Single
+      GraphDef.Node.Action = GraphDef.RunAction.Ignore
+      GraphDef.Node.Required = true }
+
 let private withTempDir action =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-program-tests-{Guid.NewGuid():N}")
     Directory.CreateDirectory(root) |> ignore
@@ -43,13 +66,19 @@ let ``CLI parses run-result argument`` () =
 
 [<Test>]
 let ``buildRunResult produces minimal jq friendly structure`` () =
+    let graph =
+        buildGraph
+            [ buildGraphNode "node-a" "." "build"
+              buildGraphNode "node-b" "src/Terrabuild.Common" "build"
+              buildGraphNode "node-c" "src/Terrabuild.Common.Tests" "test" ]
+
     let summary =
         buildSummary true
             [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Success DateTime.UtcNow)
               "node-b", buildNodeInfo "src/Terrabuild.Common" "build" (Runner.TaskStatus.Success DateTime.UtcNow)
               "node-c", buildNodeInfo "src/Terrabuild.Common.Tests" "test" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult summary
+    let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "success"
     runResult.Targets |> should equal [ "build"; "test" ]
@@ -59,13 +88,19 @@ let ``buildRunResult produces minimal jq friendly structure`` () =
 
 [<Test>]
 let ``buildRunResult collapses duplicate project target keys with failure dominance`` () =
+    let graph =
+        buildGraph
+            [ buildGraphNode "node-a" "src/App" "build"
+              buildGraphNode "node-b" "src/App" "build"
+              buildGraphNode "node-c" "src/Lib" "build" ]
+
     let summary =
         buildSummary false
             [ "node-a", buildNodeInfo "src/App" "build" (Runner.TaskStatus.Success DateTime.UtcNow)
               "node-b", buildNodeInfo "src/App" "build" (Runner.TaskStatus.Failure (DateTime.UtcNow, "boom"))
               "node-c", buildNodeInfo "src/Lib" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult summary
+    let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "failure"
     runResult.Results.Count |> should equal 2
@@ -73,14 +108,55 @@ let ``buildRunResult collapses duplicate project target keys with failure domina
     runResult.Results["src/Lib.build"] |> should equal "success"
 
 [<Test>]
-let ``writeRunResultFile writes JSON for successful summary`` () =
+let ``buildRunResult marks graph nodes without runtime results as ignored`` () =
+    let graph =
+        buildGraph
+            [ buildGraphNode "node-a" "." "build"
+              buildGraphNode "node-b" "src/App" "test"
+              buildGraphNode "node-c" "src/Lib" "build" ]
+
+    let summary =
+        buildSummary true
+            [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Success DateTime.UtcNow)
+              "node-c", buildNodeInfo "src/Lib" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
+
+    let runResult = global.Program.buildRunResult graph summary
+
+    runResult.Status |> should equal "success"
+    runResult.Results[".build"] |> should equal "success"
+    runResult.Results["src/App.test"] |> should equal "ignored"
+    runResult.Results["src/Lib.build"] |> should equal "success"
+
+[<Test>]
+let ``buildRunResult uses failure then success then ignored precedence for duplicate keys`` () =
+    let graph =
+        buildGraph
+            [ buildGraphNode "node-a" "src/App" "build"
+              buildGraphNode "node-b" "src/App" "build"
+              buildGraphNode "node-c" "src/App" "build" ]
+
+    let summary =
+        buildSummary true
+            [ "node-b", buildNodeInfo "src/App" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
+
+    let runResult = global.Program.buildRunResult graph summary
+
+    runResult.Results.Count |> should equal 1
+    runResult.Results["src/App.build"] |> should equal "success"
+
+[<Test>]
+let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
     withTempDir (fun root ->
         let path = Path.Combine(root, "nested", "run-result.json")
+        let graph =
+            buildGraph
+                [ buildGraphNode "node-a" "." "build"
+                  buildGraphNode "node-b" "src/App" "test" ]
         let summary =
             buildSummary true
                 [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-        global.Program.writeRunResultFile path summary
+        global.Program.writeRunResultFile path graph summary
 
         File.Exists(path) |> should equal true
 
@@ -88,19 +164,24 @@ let ``writeRunResultFile writes JSON for successful summary`` () =
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "success"
         json.GetProperty("targets").EnumerateArray() |> Seq.map (fun item -> item.GetString()) |> Seq.toList |> should equal [ "build"; "test" ]
-        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "success")
+        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "success"
+        json.GetProperty("results").GetProperty("src/App.test").GetString() |> should equal "ignored")
 
 [<Test>]
 let ``writeRunResultFile writes JSON for failed summary and optional writer skips None`` () =
     withTempDir (fun root ->
         let path = Path.Combine(root, "run-result.json")
         let missingPath = Path.Combine(root, "missing.json")
+        let graph =
+            buildGraph
+                [ buildGraphNode "node-a" "." "build"
+                  buildGraphNode "node-b" "src/App" "test" ]
         let summary =
             buildSummary false
                 [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Failure (DateTime.UtcNow, "failed")) ]
 
-        global.Program.writeRunResultFile path summary
-        global.Program.tryWriteRunResultFile None summary
+        global.Program.writeRunResultFile path graph summary
+        global.Program.tryWriteRunResultFile None graph summary
 
         File.Exists(path) |> should equal true
         File.Exists(missingPath) |> should equal false
@@ -108,4 +189,5 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "failure"
-        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "failure")
+        json.GetProperty("results").GetProperty(".build").GetString() |> should equal "failure"
+        json.GetProperty("results").GetProperty("src/App.test").GetString() |> should equal "ignored")

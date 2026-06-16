@@ -46,23 +46,35 @@ type RunResult = {
     Results: Map<string, string>
 }
 
-let buildRunResult (summary: Runner.Summary) =
-    let buildResultKey (project: string) (target: string) =
-        if project.EndsWith(".") then $"{project}{target}"
-        else $"{project}.{target}"
+let private buildResultKey (project: string) (target: string) =
+    if project.EndsWith(".") then $"{project}{target}"
+    else $"{project}.{target}"
 
+let private mergeRunResultStatus currentStatus nextStatus =
+    let priority status =
+        match status with
+        | "failure" -> 2
+        | "success" -> 1
+        | _ -> 0
+
+    if priority nextStatus > priority currentStatus then nextStatus
+    else currentStatus
+
+let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary) =
     let results =
-        summary.Nodes
+        graph.Nodes
         |> Map.values
         |> Seq.fold (fun state node ->
-            let key = buildResultKey node.Project node.Target
-            let status = if node.Status.IsSuccess then "success" else "failure"
+            let key = buildResultKey node.ProjectDir node.Target
+            let status =
+                match summary.Nodes |> Map.tryFind node.Id with
+                | Some nodeSummary when nodeSummary.Status.IsSuccess -> "success"
+                | Some _ -> "failure"
+                | None -> "ignored"
 
             let aggregated =
                 match state |> Map.tryFind key with
-                | Some "failure" -> "failure"
-                | Some _ when status = "failure" -> "failure"
-                | Some existing -> existing
+                | Some existing -> mergeRunResultStatus existing status
                 | None -> status
 
             state |> Map.add key aggregated
@@ -74,19 +86,19 @@ let buildRunResult (summary: Runner.Summary) =
       RunResult.EndedAt = summary.EndedAt
       RunResult.Results = results }
 
-let writeRunResultFile (filePath: string) (summary: Runner.Summary) =
+let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runner.Summary) =
     match Path.GetDirectoryName(filePath) with
     | null -> ()
     | outputDir when String.IsNullOrWhiteSpace(outputDir) -> ()
     | outputDir -> IO.createDirectory outputDir
 
     summary
-    |> buildRunResult
+    |> buildRunResult graph
     |> Json.Serialize
     |> IO.writeTextFile filePath
 
-let tryWriteRunResultFile (filePath: string option) (summary: Runner.Summary) =
-    filePath |> Option.iter (fun path -> writeRunResultFile path summary)
+let tryWriteRunResultFile (filePath: string option) (graph: GraphDef.Graph) (summary: Runner.Summary) =
+    filePath |> Option.iter (fun path -> writeRunResultFile path graph summary)
 
 
 let launchDir = currentDir()
@@ -264,7 +276,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
-                tryWriteRunResultFile runResultFile summary
+                tryWriteRunResultFile runResultFile graph summary
 
                 if log || not summary.IsSuccess then
                     Logs.dumpLogs runId options cache graph summary
