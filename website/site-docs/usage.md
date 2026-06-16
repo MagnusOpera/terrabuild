@@ -68,7 +68,7 @@ OPTIONS:
 
 ### Machine-readable Result Report
 
-Use `--result <path>` to write a JSON report describing the planned impacts of the run and, for normal executions, the final outcomes.
+Use `--result <path>` to write a JSON report describing the final outcomes of a run.
 
 Example:
 
@@ -76,16 +76,8 @@ Example:
 terrabuild run build --result artifacts/run-result.json
 ```
 
-Example with `--what-if`:
-
-```bash
-terrabuild run build --what-if --result artifacts/run-result.json
-```
-
 The report uses `lowercase(ProjectName):target` as the public identifier.
 Projects without an assigned `name` are intentionally omitted from the report.
-
-Normal runs produce both `impacts` and `results`:
 
 ```json
 {
@@ -93,10 +85,6 @@ Normal runs produce both `impacts` and `results`:
   "targets": ["build"],
   "startedAt": "2026-04-11T16:42:46.595161Z",
   "endedAt": "2026-04-11T16:43:28.917020Z",
-  "impacts": {
-    "app:build": "build",
-    "lib:test": "restore"
-  },
   "results": {
     "app:build": "success",
     "lib:test": "ignored"
@@ -104,35 +92,11 @@ Normal runs produce both `impacts` and `results`:
 }
 ```
 
-`impacts` is computed before the runner executes and is always present when `--result` is used.
-Possible impact values are:
-
-- `build`: Terrabuild will execute the target.
-- `restore`: Terrabuild will restore artifacts from cache.
-- `report`: Terrabuild will surface an existing failed state without rebuilding.
-- `ignore`: The node exists in the computed graph but no action is planned.
-
-`results` is written only for non-`--what-if` runs.
 Possible result values are:
 
 - `success`: At least one matching node completed successfully and none failed.
 - `failure`: At least one matching node failed.
 - `ignored`: The named node existed in the graph but produced no runner result.
-
-When `--what-if` is used, the report still includes `impacts` but omits `results`:
-
-```json
-{
-  "status": "what-if",
-  "targets": ["build"],
-  "startedAt": "2026-04-11T16:42:46.595161Z",
-  "endedAt": "2026-04-11T16:42:50.000000Z",
-  "impacts": {
-    "app:build": "build",
-    "lib:test": "restore"
-  }
-}
-```
 
 ## Clear Local Cache
 Command `clear` allows you to clear local cache. This is useful when you want to force a complete build or free up disk space:

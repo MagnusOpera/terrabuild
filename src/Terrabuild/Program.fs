@@ -43,8 +43,7 @@ type RunResult = {
     Targets: string list
     StartedAt: DateTime
     EndedAt: DateTime
-    Impacts: Map<string, string>
-    Results: Map<string, string> option
+    Results: Map<string, string>
 }
 
 let private buildResultKey (projectName: string) (target: string) =
@@ -59,93 +58,47 @@ let private mergeRunResultStatus currentStatus nextStatus =
 
     if priority nextStatus > priority currentStatus then nextStatus
     else currentStatus
-
-let private buildImpactAction action =
-    match action with
-    | GraphDef.RunAction.Exec -> "build"
-    | GraphDef.RunAction.Restore -> "restore"
-    | GraphDef.RunAction.Summary -> "report"
-    | GraphDef.RunAction.Ignore -> "ignore"
-
-let private mergeImpactAction currentAction nextAction =
-    let priority action =
-        match action with
-        | "build" -> 3
-        | "restore" -> 2
-        | "report" -> 1
-        | _ -> 0
-
-    if priority nextAction > priority currentAction then nextAction
-    else currentAction
-
-let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
-    let impacts =
+let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary) =
+    let results =
         graph.Nodes
         |> Map.values
         |> Seq.fold (fun state node ->
             match node.ProjectName with
             | Some projectName ->
                 let key = buildResultKey projectName node.Target
-                let impact = buildImpactAction node.Action
+                let status =
+                    match summary.Nodes |> Map.tryFind node.Id with
+                    | Some nodeSummary when nodeSummary.Status.IsSuccess -> "success"
+                    | Some _ -> "failure"
+                    | None -> "ignored"
+
                 let aggregated =
                     match state |> Map.tryFind key with
-                    | Some existing -> mergeImpactAction existing impact
-                    | None -> impact
+                    | Some existing -> mergeRunResultStatus existing status
+                    | None -> status
+
                 state |> Map.add key aggregated
             | None -> state
         ) Map.empty
 
-    let results =
-        summary
-        |> Option.map (fun summary ->
-            graph.Nodes
-            |> Map.values
-            |> Seq.fold (fun state node ->
-                match node.ProjectName with
-                | Some projectName ->
-                    let key = buildResultKey projectName node.Target
-                    let status =
-                        match summary.Nodes |> Map.tryFind node.Id with
-                        | Some nodeSummary when nodeSummary.Status.IsSuccess -> "success"
-                        | Some _ -> "failure"
-                        | None -> "ignored"
-
-                    let aggregated =
-                        match state |> Map.tryFind key with
-                        | Some existing -> mergeRunResultStatus existing status
-                        | None -> status
-
-                    state |> Map.add key aggregated
-                | None -> state
-            ) Map.empty
-        )
-
-    { RunResult.Status =
-        match summary with
-        | Some summary when summary.IsSuccess -> "success"
-        | Some _ -> "failure"
-        | None -> "what-if"
-      RunResult.Targets =
-        match summary with
-        | Some summary -> summary.Targets |> Set.toList
-        | None -> graph.RootNodes |> Seq.map (fun nodeId -> graph.Nodes[nodeId].Target) |> Set.ofSeq |> Set.toList
-      RunResult.StartedAt = startedAt
-      RunResult.EndedAt = endedAt
-      RunResult.Impacts = impacts
+    { RunResult.Status = if summary.IsSuccess then "success" else "failure"
+      RunResult.Targets = summary.Targets |> Set.toList
+      RunResult.StartedAt = summary.StartedAt
+      RunResult.EndedAt = summary.EndedAt
       RunResult.Results = results }
 
-let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
+let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runner.Summary) =
     match Path.GetDirectoryName(filePath) with
     | null -> ()
     | outputDir when String.IsNullOrWhiteSpace(outputDir) -> ()
     | outputDir -> IO.createDirectory outputDir
 
-    buildRunResult graph summary startedAt endedAt
+    buildRunResult graph summary
     |> Json.Serialize
     |> IO.writeTextFile filePath
 
-let tryWriteRunResultFile (filePath: string option) (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
-    filePath |> Option.iter (fun path -> writeRunResultFile path graph summary startedAt endedAt)
+let tryWriteRunResultFile (filePath: string option) (graph: GraphDef.Graph) (summary: Runner.Summary) =
+    filePath |> Option.iter (fun path -> writeRunResultFile path graph summary)
 
 
 let launchDir = currentDir()
@@ -314,9 +267,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             markdown |> IO.writeLines (logFile "info.md")
 
         let errCode =
-            if options.WhatIf then
-                tryWriteRunResultFile runResultFile graph None options.StartedAt DateTime.UtcNow
-                0
+            if options.WhatIf then 0
             else
                 Log.Debug("====[ Runner ]========================================================")
                 let summary = runPhase "runner" (fun () -> Runner.run options cache api graph)
@@ -325,7 +276,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
-                tryWriteRunResultFile runResultFile graph (Some summary) summary.StartedAt summary.EndedAt
+                tryWriteRunResultFile runResultFile graph summary
 
                 if log || not summary.IsSuccess then
                     Logs.dumpLogs runId options cache graph summary
