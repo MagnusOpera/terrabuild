@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add `terrabuild impact --base <sha> --out <path>` and `terrabuild run --out <path>` for machine-readable build reports.
+
 ## [0.195.1-next]
 
 
