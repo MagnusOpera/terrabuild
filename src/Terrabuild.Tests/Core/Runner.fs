@@ -178,6 +178,12 @@ type private FakeApiClient() =
         member _.CompleteBuild(_success) =
             lifecycle.Add("complete")
 
+        member _.GetCommitGraph _repository _commit =
+            { Contracts.CommitGraph.Repository = "acme/repo"
+              Contracts.CommitGraph.Commit = "base"
+              Contracts.CommitGraph.GraphHash = "graph"
+              Contracts.CommitGraph.Nodes = [] }
+
         member _.GetArtifact(_path) = Uri("https://example.invalid/artifact")
 
         member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
@@ -362,7 +368,7 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         let cache = FakeCache(workspace)
         let api = FakeApiClient()
-        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
 
         cache.Completed |> should equal [ GraphDef.buildCacheKey execMember ]
         api.AddCalls.Length |> should equal 1
@@ -440,7 +446,7 @@ let ``run includes repository in uploaded graph hash`` () =
             let options =
                 { baseOptions workspace with
                     ConfigOptions.Options.Repository = repository }
-            Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph |> ignore
+            Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph |> ignore
             let (graphHash, _) = api.GraphUploads |> List.exactlyOne
             graphHash
 
@@ -478,7 +484,7 @@ let ``run normalizes equivalent repository identities in uploaded graph hash`` (
             let options =
                 { baseOptions workspace with
                     ConfigOptions.Options.Repository = repository }
-            Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph |> ignore
+            Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph |> ignore
             let (graphHash, _) = api.GraphUploads |> List.exactlyOne
             graphHash
 
@@ -541,7 +547,7 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
               Cache.TargetSummary.Cache = node.Artifacts }
 
         cache.SetSummary(GraphDef.buildCacheKey genNode, makeSummary genNode "generated.txt" "gen-output")
-        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
 
         File.ReadAllText(Path.Combine(genProjectDir, "generated.txt")) |> should equal "gen-output"
         cache.Completed |> should equal [ GraphDef.buildCacheKey buildNode ]

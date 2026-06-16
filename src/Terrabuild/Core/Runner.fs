@@ -305,7 +305,7 @@ let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode:
       | None ->
           (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
 
-let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (graph: GraphDef.Graph) =
+let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (uploadGraph: GraphDef.Graph) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
     let repository =
         options.Repository
@@ -323,7 +323,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         api.StartBuild()
 
         let graphNodes =
-            graph.Nodes.Values
+            uploadGraph.Nodes.Values
             |> Seq.sortBy (fun node -> node.Id)
             |> Seq.map (fun node ->
                 { Contracts.BuildGraphNode.Id = node.Id
@@ -339,7 +339,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Contracts.BuildGraphNode.Batch = string node.Batch
                   Contracts.BuildGraphNode.Action = string node.Action
                   Contracts.BuildGraphNode.Required = node.Required
-                  Contracts.BuildGraphNode.IsBatchNode = graph.Batches.ContainsKey(node.Id) })
+                  Contracts.BuildGraphNode.IsBatchNode = uploadGraph.Batches.ContainsKey(node.Id) })
             |> List.ofSeq
         let graphHash =
             graphNodes

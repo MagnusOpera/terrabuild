@@ -63,12 +63,21 @@ let private hasJsonProperty (json: JsonElement) propertyName =
     json.EnumerateObject() |> Seq.exists (fun property -> property.Name = propertyName)
 
 [<Test>]
-let ``CLI parses result argument`` () =
+let ``CLI parses out argument for run`` () =
     let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
-    let result = parser.ParseCommandLine([| "run"; "build"; "--result"; "out.json" |], raiseOnUsage = true)
+    let result = parser.ParseCommandLine([| "run"; "build"; "--out"; "out.json" |], raiseOnUsage = true)
     let runArgs = result.GetResult(TerrabuildArgs.Run)
 
-    runArgs.GetResult(RunArgs.Result) |> should equal "out.json"
+    runArgs.GetResult(RunArgs.Out) |> should equal "out.json"
+
+[<Test>]
+let ``CLI parses impact base and out arguments`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let result = parser.ParseCommandLine([| "impact"; "build"; "--base"; "abc123"; "--out"; "impact.json" |], raiseOnUsage = true)
+    let impactArgs = result.GetResult(TerrabuildArgs.Impact)
+
+    impactArgs.GetResult(ImpactArgs.Base) |> should equal "abc123"
+    impactArgs.GetResult(ImpactArgs.Out) |> should equal "impact.json"
 
 [<Test>]
 let ``buildRunResult produces minimal jq friendly structure`` () =
@@ -84,16 +93,13 @@ let ``buildRunResult produces minimal jq friendly structure`` () =
               "node-b", buildNodeInfo "src/Terrabuild.Common" "build" (Runner.TaskStatus.Success DateTime.UtcNow)
               "node-c", buildNodeInfo "src/Terrabuild.Common.Tests" "test" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult graph (Some summary) summary.StartedAt summary.EndedAt
+    let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "success"
     runResult.Targets |> should equal [ "build"; "test" ]
-    runResult.Impacts["root:build"] |> should equal "build"
-    runResult.Impacts["terrabuild.common:build"] |> should equal "restore"
-    runResult.Impacts["terrabuild.common.tests:test"] |> should equal "report"
-    runResult.Results.Value["root:build"] |> should equal "success"
-    runResult.Results.Value["terrabuild.common:build"] |> should equal "success"
-    runResult.Results.Value["terrabuild.common.tests:test"] |> should equal "success"
+    runResult.Results["root:build"] |> should equal "success"
+    runResult.Results["terrabuild.common:build"] |> should equal "success"
+    runResult.Results["terrabuild.common.tests:test"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult collapses duplicate project target keys with failure dominance`` () =
@@ -109,14 +115,12 @@ let ``buildRunResult collapses duplicate project target keys with failure domina
               "node-b", buildNodeInfo "src/App" "build" (Runner.TaskStatus.Failure (DateTime.UtcNow, "boom"))
               "node-c", buildNodeInfo "src/Lib" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult graph (Some summary) summary.StartedAt summary.EndedAt
+    let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "failure"
-    runResult.Impacts["app:build"] |> should equal "build"
-    runResult.Impacts["lib:build"] |> should equal "restore"
-    runResult.Results.Value.Count |> should equal 2
-    runResult.Results.Value["app:build"] |> should equal "failure"
-    runResult.Results.Value["lib:build"] |> should equal "success"
+    runResult.Results.Count |> should equal 2
+    runResult.Results["app:build"] |> should equal "failure"
+    runResult.Results["lib:build"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult marks named graph nodes without runtime results as ignored and skips unnamed nodes`` () =
@@ -132,16 +136,13 @@ let ``buildRunResult marks named graph nodes without runtime results as ignored 
             [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Success DateTime.UtcNow)
               "node-c", buildNodeInfo "src/Lib" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult graph (Some summary) summary.StartedAt summary.EndedAt
+    let runResult = global.Program.buildRunResult graph summary
 
     runResult.Status |> should equal "success"
-    runResult.Impacts["root:build"] |> should equal "build"
-    runResult.Impacts["app:test"] |> should equal "ignore"
-    runResult.Impacts["lib:build"] |> should equal "restore"
-    runResult.Results.Value.Count |> should equal 3
-    runResult.Results.Value["root:build"] |> should equal "success"
-    runResult.Results.Value["app:test"] |> should equal "ignored"
-    runResult.Results.Value["lib:build"] |> should equal "success"
+    runResult.Results.Count |> should equal 3
+    runResult.Results["root:build"] |> should equal "success"
+    runResult.Results["app:test"] |> should equal "ignored"
+    runResult.Results["lib:build"] |> should equal "success"
 
 [<Test>]
 let ``buildRunResult uses failure then success then ignored precedence for duplicate keys`` () =
@@ -155,29 +156,10 @@ let ``buildRunResult uses failure then success then ignored precedence for dupli
         buildSummary true
             [ "node-b", buildNodeInfo "src/App" "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-    let runResult = global.Program.buildRunResult graph (Some summary) summary.StartedAt summary.EndedAt
+    let runResult = global.Program.buildRunResult graph summary
 
-    runResult.Impacts["app:build"] |> should equal "build"
-    runResult.Results.Value.Count |> should equal 1
-    runResult.Results.Value["app:build"] |> should equal "success"
-
-[<Test>]
-let ``buildRunResult omits results for what-if and still reports impacts`` () =
-    let startedAt = DateTime.Parse("2026-04-11T16:42:46.595161Z").ToUniversalTime()
-    let endedAt = DateTime.Parse("2026-04-11T16:42:50.000000Z").ToUniversalTime()
-    let graph =
-        buildGraph
-            [ buildGraphNode "node-a" (Some "App") "src/App" "build" |> withAction GraphDef.RunAction.Exec
-              buildGraphNode "node-b" (Some "Lib") "src/Lib" "test" |> withAction GraphDef.RunAction.Restore
-              buildGraphNode "node-c" None "src/Unnamed" "build" |> withAction GraphDef.RunAction.Exec ]
-
-    let runResult = global.Program.buildRunResult graph None startedAt endedAt
-
-    runResult.Status |> should equal "what-if"
-    runResult.Impacts.Count |> should equal 2
-    runResult.Impacts["app:build"] |> should equal "build"
-    runResult.Impacts["lib:test"] |> should equal "restore"
-    runResult.Results |> should equal None
+    runResult.Results.Count |> should equal 1
+    runResult.Results["app:build"] |> should equal "success"
 
 [<Test>]
 let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
@@ -192,7 +174,7 @@ let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
             buildSummary true
                 [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Success DateTime.UtcNow) ]
 
-        global.Program.writeRunResultFile path graph (Some summary) summary.StartedAt summary.EndedAt
+        global.Program.writeRunResultFile path graph summary
 
         File.Exists(path) |> should equal true
 
@@ -200,10 +182,7 @@ let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "success"
         json.GetProperty("targets").EnumerateArray() |> Seq.map (fun item -> item.GetString()) |> Seq.toList |> should equal [ "build"; "test" ]
-        let impacts = json.GetProperty("impacts")
         let results = json.GetProperty("results")
-        impacts.GetProperty("root:build").GetString() |> should equal "ignore"
-        impacts.GetProperty("app:test").GetString() |> should equal "ignore"
         results.GetProperty("root:build").GetString() |> should equal "success"
         results.GetProperty("app:test").GetString() |> should equal "ignored"
         hasJsonProperty results "unnamed:build" |> should equal false)
@@ -222,8 +201,8 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
             buildSummary false
                 [ "node-a", buildNodeInfo "." "build" (Runner.TaskStatus.Failure (DateTime.UtcNow, "failed")) ]
 
-        global.Program.writeRunResultFile path graph (Some summary) summary.StartedAt summary.EndedAt
-        global.Program.tryWriteRunResultFile None graph (Some summary) summary.StartedAt summary.EndedAt
+        global.Program.writeRunResultFile path graph summary
+        global.Program.tryWriteRunResultFile None graph summary
 
         File.Exists(path) |> should equal true
         File.Exists(missingPath) |> should equal false
@@ -231,31 +210,116 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
         json.GetProperty("status").GetString() |> should equal "failure"
-        let impacts = json.GetProperty("impacts")
         let results = json.GetProperty("results")
-        impacts.GetProperty("root:build").GetString() |> should equal "ignore"
-        impacts.GetProperty("app:test").GetString() |> should equal "ignore"
         results.GetProperty("root:build").GetString() |> should equal "failure"
         results.GetProperty("app:test").GetString() |> should equal "ignored"
         hasJsonProperty results "unnamed:build" |> should equal false)
 
 [<Test>]
-let ``writeRunResultFile omits results node for what-if`` () =
+let ``writeImpactResultFile writes JSON`` () =
     withTempDir (fun root ->
-        let path = Path.Combine(root, "what-if.json")
-        let startedAt = DateTime.Parse("2026-04-11T16:42:46.595161Z").ToUniversalTime()
-        let endedAt = DateTime.Parse("2026-04-11T16:42:50.000000Z").ToUniversalTime()
-        let graph =
-            buildGraph
-                [ buildGraphNode "node-a" (Some "App") "src/App" "build" |> withAction GraphDef.RunAction.Exec
-                  buildGraphNode "node-b" (Some "Lib") "src/Lib" "test" |> withAction GraphDef.RunAction.Restore ]
+        let path = Path.Combine(root, "impact", "impact-result.json")
+        let impactResult: global.Program.ImpactResult =
+            { Base = "base-sha"
+              Head = "head-sha"
+              Targets = [ "build" ]
+              Impacts = Map [ "app:build", "changed" ] }
 
-        global.Program.writeRunResultFile path graph None startedAt endedAt
+        global.Program.writeImpactResultFile path impactResult
+
+        File.Exists(path) |> should equal true
 
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
-        json.GetProperty("status").GetString() |> should equal "what-if"
-        let impacts = json.GetProperty("impacts")
-        impacts.GetProperty("app:build").GetString() |> should equal "build"
-        impacts.GetProperty("lib:test").GetString() |> should equal "restore"
-        hasJsonProperty json "results" |> should equal false)
+        json.GetProperty("base").GetString() |> should equal "base-sha"
+        json.GetProperty("head").GetString() |> should equal "head-sha"
+        json.GetProperty("impacts").GetProperty("app:build").GetString() |> should equal "changed")
+
+[<Test>]
+let ``buildImpactResult reports changed and dependency impacts from target hashes`` () =
+    let currentGraph =
+        buildGraph
+            [ { buildGraphNode "lib-build" (Some "Lib") "src/Lib" "build" with
+                    GraphDef.Node.TargetHash = "hash-lib-current" }
+              { buildGraphNode "app-build" (Some "App") "src/App" "build" with
+                    GraphDef.Node.TargetHash = "hash-app"
+                    GraphDef.Node.Dependencies = Set [ "lib-build" ] }
+              { buildGraphNode "batch" None ".terrabuild" "build" with
+                    GraphDef.Node.Dependencies = Set [ "app-build" ] } ]
+
+    let baseGraph =
+        { Contracts.CommitGraph.Repository = "acme/repo"
+          Contracts.CommitGraph.Commit = "base-sha"
+          Contracts.CommitGraph.GraphHash = "graph-base"
+          Contracts.CommitGraph.Nodes =
+            [ { Contracts.BuildGraphNode.Id = "lib-build"
+                ProjectId = "lib"
+                ProjectName = Some "Lib"
+                ProjectDir = "src/Lib"
+                Target = "build"
+                ProjectHash = "project-lib"
+                TargetHash = "hash-lib-base"
+                Dependencies = []
+                Artifacts = "Workspace"
+                Build = "Auto"
+                Batch = "Single"
+                Action = "Exec"
+                Required = true
+                IsBatchNode = false }
+              { Contracts.BuildGraphNode.Id = "app-build"
+                ProjectId = "app"
+                ProjectName = Some "App"
+                ProjectDir = "src/App"
+                Target = "build"
+                ProjectHash = "project-app"
+                TargetHash = "hash-app"
+                Dependencies = [ "lib-build" ]
+                Artifacts = "Workspace"
+                Build = "Auto"
+                Batch = "Single"
+                Action = "Exec"
+                Required = true
+                IsBatchNode = false } ] }
+
+    let impactResult =
+        global.Program.buildImpactResult "base-sha"
+                                         { Sha = "head-sha"
+                                           Message = "head"
+                                           Author = "dev"
+                                           Email = "dev@example.com"
+                                           Timestamp = DateTime.UtcNow }
+                                         (Set [ "build" ])
+                                         currentGraph
+                                         baseGraph
+
+    impactResult.Base |> should equal "base-sha"
+    impactResult.Head |> should equal "head-sha"
+    impactResult.Impacts["lib:build"] |> should equal "changed"
+    impactResult.Impacts["app:build"] |> should equal "dependency"
+
+[<Test>]
+let ``buildImpactResult marks missing base nodes as changed and skips unnamed nodes`` () =
+    let currentGraph =
+        buildGraph
+            [ buildGraphNode "root-build" (Some "Root") "." "build"
+              buildGraphNode "unnamed-build" None "src/Generated" "build" ]
+
+    let baseGraph =
+        { Contracts.CommitGraph.Repository = "acme/repo"
+          Contracts.CommitGraph.Commit = "base-sha"
+          Contracts.CommitGraph.GraphHash = "graph-base"
+          Contracts.CommitGraph.Nodes = [] }
+
+    let impactResult =
+        global.Program.buildImpactResult "base-sha"
+                                         { Sha = "head-sha"
+                                           Message = "head"
+                                           Author = "dev"
+                                           Email = "dev@example.com"
+                                           Timestamp = DateTime.UtcNow }
+                                         (Set [ "build" ])
+                                         currentGraph
+                                         baseGraph
+
+    impactResult.Impacts.Count |> should equal 1
+    impactResult.Impacts["root:build"] |> should equal "changed"

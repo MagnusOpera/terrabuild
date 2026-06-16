@@ -17,6 +17,7 @@ open Humanizer
 type RunTargetOptions = {
     Workspace: string
     RunResultFile: string option
+    BaseCommit: string option
     WhatIf: bool
     Debug: bool
     MaxConcurrency: int
@@ -43,8 +44,24 @@ type RunResult = {
     Targets: string list
     StartedAt: DateTime
     EndedAt: DateTime
+    Results: Map<string, string>
+}
+
+[<RequireQualifiedAccess>]
+type ImpactResult = {
+    Base: string
+    Head: string
+    Targets: string list
     Impacts: Map<string, string>
-    Results: Map<string, string> option
+}
+
+type private PreparedRunTarget = {
+    RunOptions: RunTargetOptions
+    Options: ConfigOptions.Options
+    Cache: Cache.ICache
+    Api: Contracts.IApiClient option
+    FullGraph: GraphDef.Graph
+    Graph: GraphDef.Graph
 }
 
 let private buildResultKey (projectName: string) (target: string) =
@@ -60,92 +77,163 @@ let private mergeRunResultStatus currentStatus nextStatus =
     if priority nextStatus > priority currentStatus then nextStatus
     else currentStatus
 
-let private buildImpactAction action =
-    match action with
-    | GraphDef.RunAction.Exec -> "build"
-    | GraphDef.RunAction.Restore -> "restore"
-    | GraphDef.RunAction.Summary -> "report"
-    | GraphDef.RunAction.Ignore -> "ignore"
-
-let private mergeImpactAction currentAction nextAction =
-    let priority action =
-        match action with
-        | "build" -> 3
-        | "restore" -> 2
-        | "report" -> 1
+let private mergeImpactStatus currentStatus nextStatus =
+    let priority status =
+        match status with
+        | "changed" -> 2
+        | "dependency" -> 1
         | _ -> 0
 
-    if priority nextAction > priority currentAction then nextAction
-    else currentAction
+    if priority nextStatus > priority currentStatus then nextStatus
+    else currentStatus
 
-let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
-    let impacts =
+let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary) =
+    let results =
         graph.Nodes
         |> Map.values
         |> Seq.fold (fun state node ->
             match node.ProjectName with
             | Some projectName ->
                 let key = buildResultKey projectName node.Target
-                let impact = buildImpactAction node.Action
+                let status =
+                    match summary.Nodes |> Map.tryFind node.Id with
+                    | Some nodeSummary when nodeSummary.Status.IsSuccess -> "success"
+                    | Some _ -> "failure"
+                    | None -> "ignored"
+
                 let aggregated =
                     match state |> Map.tryFind key with
-                    | Some existing -> mergeImpactAction existing impact
-                    | None -> impact
+                    | Some existing -> mergeRunResultStatus existing status
+                    | None -> status
+
                 state |> Map.add key aggregated
             | None -> state
         ) Map.empty
 
-    let results =
-        summary
-        |> Option.map (fun summary ->
-            graph.Nodes
-            |> Map.values
-            |> Seq.fold (fun state node ->
+    { RunResult.Status = if summary.IsSuccess then "success" else "failure"
+      RunResult.Targets = summary.Targets |> Set.toList
+      RunResult.StartedAt = summary.StartedAt
+      RunResult.EndedAt = summary.EndedAt
+      RunResult.Results = results }
+
+let buildImpactResult (baseCommit: string) (headCommit: Contracts.Commit) (targets: string set) (currentGraph: GraphDef.Graph) (baseGraph: Contracts.CommitGraph) =
+    let buildCurrentKeyMap (graph: GraphDef.Graph) =
+        graph.Nodes
+        |> Map.values
+        |> Seq.choose (fun node ->
+            node.ProjectName
+            |> Option.map (fun projectName -> buildResultKey projectName node.Target, node))
+        |> Seq.groupBy fst
+        |> Seq.map (fun (key, items) -> key, items |> Seq.map snd |> Seq.toList)
+        |> Map.ofSeq
+
+    let buildBaseKeyMap (graph: Contracts.CommitGraph) =
+        graph.Nodes
+        |> Seq.choose (fun node ->
+            node.ProjectName
+            |> Option.map (fun projectName -> buildResultKey projectName node.Target, node))
+        |> Seq.groupBy fst
+        |> Seq.map (fun (key, items) -> key, items |> Seq.map snd |> Seq.toList)
+        |> Map.ofSeq
+
+    let currentByKey = buildCurrentKeyMap currentGraph
+    let baseByKey = buildBaseKeyMap baseGraph
+
+    let hasChanged key (currentNodes: GraphDef.Node list) =
+        let currentHashes =
+            currentNodes
+            |> Seq.map (fun node -> node.TargetHash)
+            |> Set.ofSeq
+
+        match baseByKey |> Map.tryFind key with
+        | None -> true
+        | Some baseNodes ->
+            let baseHashes =
+                baseNodes
+                |> Seq.map (fun node -> node.TargetHash)
+                |> Set.ofSeq
+
+            if baseNodes |> List.exists (fun node -> String.IsNullOrWhiteSpace(node.TargetHash)) then true
+            else currentHashes <> baseHashes
+
+    let reverseDependencies =
+        currentGraph.Nodes
+        |> Map.values
+        |> Seq.collect (fun node -> node.Dependencies |> Seq.map (fun dependency -> dependency, node.Id))
+        |> Seq.groupBy fst
+        |> Seq.map (fun (dependency, dependents) -> dependency, dependents |> Seq.map snd |> Set.ofSeq)
+        |> Map.ofSeq
+
+    let directChangedNodeIds =
+        currentByKey
+        |> Map.toSeq
+        |> Seq.choose (fun (key, currentNodes) ->
+            if hasChanged key currentNodes then
+                currentNodes |> Seq.map (fun node -> node.Id) |> Set.ofSeq |> Some
+            else None)
+        |> Seq.fold Set.union Set.empty
+
+    let rec visit queue visited =
+        match queue with
+        | [] -> visited
+        | current::rest when visited |> Set.contains current -> visit rest visited
+        | current::rest ->
+            let next =
+                reverseDependencies
+                |> Map.tryFind current
+                |> Option.defaultValue Set.empty
+                |> Set.toList
+            visit (rest @ next) (visited |> Set.add current)
+
+    let impactedNodeIds = visit (directChangedNodeIds |> Set.toList) Set.empty
+
+    let impacts =
+        impactedNodeIds
+        |> Seq.fold (fun state nodeId ->
+            match currentGraph.Nodes |> Map.tryFind nodeId with
+            | Some node ->
                 match node.ProjectName with
                 | Some projectName ->
                     let key = buildResultKey projectName node.Target
                     let status =
-                        match summary.Nodes |> Map.tryFind node.Id with
-                        | Some nodeSummary when nodeSummary.Status.IsSuccess -> "success"
-                        | Some _ -> "failure"
-                        | None -> "ignored"
-
+                        if directChangedNodeIds |> Set.contains nodeId then "changed"
+                        else "dependency"
                     let aggregated =
                         match state |> Map.tryFind key with
-                        | Some existing -> mergeRunResultStatus existing status
+                        | Some existing -> mergeImpactStatus existing status
                         | None -> status
-
                     state |> Map.add key aggregated
                 | None -> state
-            ) Map.empty
-        )
+            | None -> state
+        ) Map.empty
 
-    { RunResult.Status =
-        match summary with
-        | Some summary when summary.IsSuccess -> "success"
-        | Some _ -> "failure"
-        | None -> "what-if"
-      RunResult.Targets =
-        match summary with
-        | Some summary -> summary.Targets |> Set.toList
-        | None -> graph.RootNodes |> Seq.map (fun nodeId -> graph.Nodes[nodeId].Target) |> Set.ofSeq |> Set.toList
-      RunResult.StartedAt = startedAt
-      RunResult.EndedAt = endedAt
-      RunResult.Impacts = impacts
-      RunResult.Results = results }
+    { ImpactResult.Base = baseCommit
+      ImpactResult.Head = headCommit.Sha
+      ImpactResult.Targets = targets |> Set.toList
+      ImpactResult.Impacts = impacts }
 
-let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
+let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runner.Summary) =
     match Path.GetDirectoryName(filePath) with
     | null -> ()
     | outputDir when String.IsNullOrWhiteSpace(outputDir) -> ()
     | outputDir -> IO.createDirectory outputDir
 
-    buildRunResult graph summary startedAt endedAt
+    buildRunResult graph summary
     |> Json.Serialize
     |> IO.writeTextFile filePath
 
-let tryWriteRunResultFile (filePath: string option) (graph: GraphDef.Graph) (summary: Runner.Summary option) startedAt endedAt =
-    filePath |> Option.iter (fun path -> writeRunResultFile path graph summary startedAt endedAt)
+let writeImpactResultFile (filePath: string) (impactResult: ImpactResult) =
+    match Path.GetDirectoryName(filePath) with
+    | null -> ()
+    | outputDir when String.IsNullOrWhiteSpace(outputDir) -> ()
+    | outputDir -> IO.createDirectory outputDir
+
+    impactResult
+    |> Json.Serialize
+    |> IO.writeTextFile filePath
+
+let tryWriteRunResultFile (filePath: string option) (graph: GraphDef.Graph) (summary: Runner.Summary) =
+    filePath |> Option.iter (fun path -> writeRunResultFile path graph summary)
 
 
 let launchDir = currentDir()
@@ -184,13 +272,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("Terrabuild: {Version}", Version.informalVersion())
         Log.Debug("Environment: {OSDescription}, {OSArchitecture}, {Version}", RuntimeInformation.OSDescription, RuntimeInformation.OSArchitecture, Environment.Version)
 
-    let runTarget (options: RunTargetOptions) =
-        System.Environment.CurrentDirectory <- options.Workspace
-        Log.Debug("Changing current directory to {directory}", options.Workspace)
+    let prepareRunTarget (runOptions: RunTargetOptions) =
+        System.Environment.CurrentDirectory <- runOptions.Workspace
+        Log.Debug("Changing current directory to {directory}", runOptions.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
         Terrabuild.Scripting.resetPerformanceMetrics()
-        let runResultFile = options.RunResultFile
-
         let homeDir = Cache.createHome()
         let tmpDir = Cache.createTmp()
         let sharedDir = ".terrabuild"
@@ -199,29 +285,29 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let sourceControl = SourceControls.Factory.create()
 
         let options = {
-            ConfigOptions.Options.Workspace = options.Workspace
+            ConfigOptions.Options.Workspace = runOptions.Workspace
             ConfigOptions.Options.HomeDir = homeDir
             ConfigOptions.Options.TmpDir = tmpDir
             ConfigOptions.Options.SharedDir = sharedDir
-            ConfigOptions.Options.WhatIf = options.WhatIf
-            ConfigOptions.Options.Debug = options.Debug
-            ConfigOptions.Options.MaxConcurrency = options.MaxConcurrency
-            ConfigOptions.Options.Force = options.Force
-            ConfigOptions.Options.Retry = options.Retry
-            ConfigOptions.Options.LocalOnly = options.LocalOnly
-            ConfigOptions.Options.StartedAt = options.StartedAt
-            ConfigOptions.Options.Targets = options.Targets
+            ConfigOptions.Options.WhatIf = runOptions.WhatIf
+            ConfigOptions.Options.Debug = runOptions.Debug
+            ConfigOptions.Options.MaxConcurrency = runOptions.MaxConcurrency
+            ConfigOptions.Options.Force = runOptions.Force
+            ConfigOptions.Options.Retry = runOptions.Retry
+            ConfigOptions.Options.LocalOnly = runOptions.LocalOnly
+            ConfigOptions.Options.StartedAt = runOptions.StartedAt
+            ConfigOptions.Options.Targets = runOptions.Targets
             ConfigOptions.Options.LogTypes = sourceControl.LogTypes
-            ConfigOptions.Options.Configuration = options.Configuration
-            ConfigOptions.Options.Environment = options.Environment
-            ConfigOptions.Options.Note = options.Note
-            ConfigOptions.Options.Label = options.Label
-            ConfigOptions.Options.Types = options.Types
-            ConfigOptions.Options.Labels = options.Labels
-            ConfigOptions.Options.Projects = options.Projects
-            ConfigOptions.Options.Variables = options.Variables
+            ConfigOptions.Options.Configuration = runOptions.Configuration
+            ConfigOptions.Options.Environment = runOptions.Environment
+            ConfigOptions.Options.Note = runOptions.Note
+            ConfigOptions.Options.Label = runOptions.Label
+            ConfigOptions.Options.Types = runOptions.Types
+            ConfigOptions.Options.Labels = runOptions.Labels
+            ConfigOptions.Options.Projects = runOptions.Projects
+            ConfigOptions.Options.Variables = runOptions.Variables
             ConfigOptions.Options.Engine =
-                match options.Engine with
+                match runOptions.Engine with
                 | None | Some Engine.Docker -> ConfigOptions.Engine.Docker
                 | Some Engine.Podman -> ConfigOptions.Engine.Podman
                 | Some Engine.Host -> ConfigOptions.Engine.Host
@@ -267,7 +353,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
-        let graph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
+        let fullGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
+        if options.Debug then fullGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
+
+        Log.Debug("====[ GraphPipeline Selection ]========================================================")
+        let graph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config fullGraph)
         if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
@@ -313,19 +403,37 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     "" ]
             markdown |> IO.writeLines (logFile "info.md")
 
+        { PreparedRunTarget.RunOptions = runOptions
+          Options = options
+          Cache = cache
+          Api = api
+          FullGraph = fullGraph
+          Graph = graph }
+
+    let runTarget (options: RunTargetOptions) =
+        let prepared = prepareRunTarget options
+        let runOptions = prepared.RunOptions
+        let options = prepared.Options
+        let cache = prepared.Cache
+        let api = prepared.Api
+        let fullGraph = prepared.FullGraph
+        let graph = prepared.Graph
+
         let errCode =
-            if options.WhatIf then
-                tryWriteRunResultFile runResultFile graph None options.StartedAt DateTime.UtcNow
-                0
+            if options.WhatIf then 0
             else
                 Log.Debug("====[ Runner ]========================================================")
-                let summary = runPhase "runner" (fun () -> Runner.run options cache api graph)
+                let startedAt = DateTime.UtcNow
+                let summary = Runner.run options cache api fullGraph graph
+                let duration = DateTime.UtcNow - startedAt
+                if options.Debug then
+                    Log.Debug("Phase 'runner' duration: {DurationMs}ms", Math.Round(duration.TotalMilliseconds, 2))
 
                 Log.Debug("====[ Report ]========================================================")
                 if options.Debug then
                     let jsonBuild = Json.Serialize summary
                     jsonBuild |> IO.writeTextFile (logFile "build-result.json")
-                tryWriteRunResultFile runResultFile graph (Some summary) summary.StartedAt summary.EndedAt
+                tryWriteRunResultFile runOptions.RunResultFile graph summary
 
                 if log || not summary.IsSuccess then
                     Logs.dumpLogs runId options cache graph summary
@@ -369,6 +477,32 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         $"{emoji} Completed in {duration.HumanizeAbbreviated()}" |> Terminal.writeLine
         errCode
 
+    let impactTarget (options: RunTargetOptions) =
+        Terminal.mute()
+        let prepared =
+            try
+                prepareRunTarget options
+            finally
+                Terminal.unmute()
+        let runOptions = prepared.RunOptions
+        let options = prepared.Options
+        let api =
+            match prepared.Api with
+            | Some api -> api
+            | None -> raiseInvalidArg "impact requires an Insights connection. Run terrabuild login first."
+
+        let baseCommit =
+            match runOptions.BaseCommit with
+            | Some baseCommit -> baseCommit
+            | None -> raiseInvalidArg "impact requires a base commit."
+
+        let baseGraph = api.GetCommitGraph options.Repository baseCommit
+        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.Graph baseGraph
+        match runOptions.RunResultFile with
+        | Some filePath -> writeImpactResultFile filePath impactResult
+        | None -> raiseInvalidArg "impact requires an output file."
+        0
+
 
     let scaffold (scaffoldArgs: ParseResults<ScaffoldArgs>) =
         let wsDir = scaffoldArgs.GetResult(ScaffoldArgs.Workspace, defaultValue = ".")
@@ -388,7 +522,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
-        let runResultFile = runArgs.TryGetResult(RunArgs.Result)
+        let runResultFile = runArgs.TryGetResult(RunArgs.Out)
         let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
         let projects = runArgs.TryGetResult(RunArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
@@ -401,6 +535,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = runResultFile |> Option.map FS.fullPath
+                        RunTargetOptions.BaseCommit = None
                         RunTargetOptions.WhatIf = whatIf
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = runArgs.Contains(RunArgs.Force)
@@ -421,6 +556,47 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Engine = engine }
         runTarget options
 
+    let impact (impactArgs: ParseResults<ImpactArgs>) =
+        let wsDir =
+            match impactArgs.TryGetResult(ImpactArgs.Workspace) with
+            | Some ws -> ws
+            | _ ->
+                match currentDir() |> findWorkspace with
+                | Some ws -> ws
+                | _ -> raiseInvalidArg "Can't find workspace root directory. Check you are in a workspace."
+        let targets = impactArgs.GetResult(ImpactArgs.Target) |> Seq.map String.toLower
+        let baseCommit = impactArgs.GetResult(ImpactArgs.Base)
+        let outputFile = impactArgs.GetResult(ImpactArgs.Out)
+        let configuration = impactArgs.TryGetResult(ImpactArgs.Configuration)
+        let environment = impactArgs.TryGetResult(ImpactArgs.Environment)
+        let types = impactArgs.TryGetResult(ImpactArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
+        let labels = impactArgs.TryGetResult(ImpactArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
+        let projects = impactArgs.TryGetResult(ImpactArgs.Project) |> Option.map (fun projects -> projects |> Seq.map String.toLower |> Set)
+        let variables = impactArgs.GetResults(ImpactArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
+
+        let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
+                        RunTargetOptions.RunResultFile = Some (outputFile |> FS.fullPath)
+                        RunTargetOptions.BaseCommit = Some baseCommit
+                        RunTargetOptions.WhatIf = false
+                        RunTargetOptions.Debug = debug
+                        RunTargetOptions.Force = false
+                        RunTargetOptions.MaxConcurrency = 1
+                        RunTargetOptions.Retry = false
+                        RunTargetOptions.StartedAt = DateTime.UtcNow
+                        RunTargetOptions.IsLog = false
+                        RunTargetOptions.Targets = Set targets
+                        RunTargetOptions.LocalOnly = false
+                        RunTargetOptions.Configuration = configuration
+                        RunTargetOptions.Environment = environment
+                        RunTargetOptions.Note = None
+                        RunTargetOptions.Label = None
+                        RunTargetOptions.Types = types
+                        RunTargetOptions.Labels = labels
+                        RunTargetOptions.Projects = projects
+                        RunTargetOptions.Variables = variables
+                        RunTargetOptions.Engine = None }
+        impactTarget options
+
     let serve (serveArgs: ParseResults<ServeArgs>) =
         let wsDir =
             match serveArgs.TryGetResult(ServeArgs.Workspace) with
@@ -437,6 +613,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let variables = serveArgs.GetResults(ServeArgs.Variable) |> Seq.map (fun (k, v) -> (k |> String.toLower, v)) |> Map
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = None
+                        RunTargetOptions.BaseCommit = None
                         RunTargetOptions.WhatIf = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
@@ -493,6 +670,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = None
+                        RunTargetOptions.BaseCommit = None
                         RunTargetOptions.WhatIf = true
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
@@ -551,6 +729,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | p when p.Contains(TerrabuildArgs.Scaffold) -> p.GetResult(TerrabuildArgs.Scaffold) |> scaffold
     | p when p.Contains(TerrabuildArgs.Logs) -> p.GetResult(TerrabuildArgs.Logs) |> logs
     | p when p.Contains(TerrabuildArgs.Run) -> p.GetResult(TerrabuildArgs.Run) |> run
+    | p when p.Contains(TerrabuildArgs.Impact) -> p.GetResult(TerrabuildArgs.Impact) |> impact
     | p when p.Contains(TerrabuildArgs.Serve) -> p.GetResult(TerrabuildArgs.Serve) |> serve
     | p when p.Contains(TerrabuildArgs.Console) -> p.GetResult(TerrabuildArgs.Console) |> console
     | p when p.Contains(TerrabuildArgs.Clear) -> p.GetResult(TerrabuildArgs.Clear) |> clear

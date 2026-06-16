@@ -47,7 +47,7 @@ with
 type RunArgs =
     | [<ExactlyOnce; MainCommand; First>] Target of target:string list
     | [<Unique; AltCommandLine("-w")>] Workspace of path:string
-    | [<Unique>] Result of path:string
+    | [<Unique>] Out of path:string
     | [<Unique; AltCommandLine("-c")>] Configuration of name:string
     | [<Unique; AltCommandLine("-e")>] Environment of name:string
     | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
@@ -68,7 +68,7 @@ with
             match this with
             | Target _ -> "Specify build target."
             | Workspace _ -> "Root of workspace. If not specified, current directory is used."
-            | Result _ -> "Write machine-readable result JSON to file."
+            | Out _ -> "Write machine-readable JSON to file."
             | Configuration _ -> "Configuration to use."
             | Environment _ -> "Environment to use."
             | Variable _ -> "Set variable."
@@ -83,6 +83,33 @@ with
             | Tag _ -> "Tag for build."
             | Engine _ -> "Container engine to use (docker, podman or host)."
             | What_If -> "Prepare the action but do not apply."
+
+[<RequireQualifiedAccess>]
+type ImpactArgs =
+    | [<ExactlyOnce; MainCommand; First>] Target of target:string list
+    | [<ExactlyOnce; Unique>] Base of sha:string
+    | [<ExactlyOnce; Unique>] Out of path:string
+    | [<Unique; AltCommandLine("-w")>] Workspace of path:string
+    | [<Unique; AltCommandLine("-c")>] Configuration of name:string
+    | [<Unique; AltCommandLine("-e")>] Environment of name:string
+    | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
+    | [<Unique; AltCommandLine("-l")>] Label of labels:string list
+    | [<Unique; AltCommandLine("-t")>] Type of types:string list
+    | [<Unique; AltCommandLine("-p")>] Project of projects:string list
+with
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Target _ -> "Specify build target."
+            | Base _ -> "Base commit to compare against."
+            | Out _ -> "Write machine-readable JSON to file."
+            | Workspace _ -> "Root of workspace. If not specified, current directory is used."
+            | Configuration _ -> "Configuration to use."
+            | Environment _ -> "Environment to use."
+            | Variable _ -> "Set variable."
+            | Label _ -> "Select projects based on labels."
+            | Type _ -> "Select projects based on extension types."
+            | Project _ -> "Select projets base on id."
 
 [<RequireQualifiedAccess>]
 type ServeArgs =
@@ -170,6 +197,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Scaffold of ParseResults<ScaffoldArgs>
     | [<CliPrefix(CliPrefix.None)>] Logs of ParseResults<LogsArgs>
     | [<CliPrefix(CliPrefix.None)>] Run of ParseResults<RunArgs>
+    | [<CliPrefix(CliPrefix.None)>] Impact of ParseResults<ImpactArgs>
     | [<CliPrefix(CliPrefix.None)>] Serve of ParseResults<ServeArgs>
     | [<CliPrefix(CliPrefix.None)>] Console of ParseResults<ConsoleArgs>
     | [<CliPrefix(CliPrefix.None)>] Clear of ParseResults<ClearArgs>
@@ -186,6 +214,7 @@ with
             | Scaffold _ -> "Scaffold workspace."
             | Logs _ -> "dump logs."
             | Run _ -> "Run specified targets."
+            | Impact _ -> "Report impacted targets compared to a base commit."
             | Serve _ -> "Serve specified targets."
             | Console _ -> "Launch web console."
             | Clear _ -> "Clear specified caches."
