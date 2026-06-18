@@ -307,6 +307,7 @@ let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode:
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (uploadGraph: GraphDef.Graph) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
+    let graphEnvironment = options.Environment |> Option.defaultValue ""
     let repository =
         options.Repository
         |> Git.tryNormalizeRepositoryIdentity
@@ -361,7 +362,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 })
             |> Hash.sha256strings
 
-        api.UploadBuildGraph graphHash graphNodes)
+        api.UploadBuildGraph graphHash graphEnvironment graphNodes)
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
     let scheduledExec = Concurrent.ConcurrentDictionary<string, bool>()

@@ -6,6 +6,7 @@ open Argu
 open CLI
 open FsUnit
 open NUnit.Framework
+open Contracts
 
 let private buildNodeInfo project target status =
     { Runner.NodeInfo.Request = Runner.TaskRequest.Exec
@@ -61,6 +62,66 @@ let private withTempDir action =
 
 let private hasJsonProperty (json: JsonElement) propertyName =
     json.EnumerateObject() |> Seq.exists (fun property -> property.Name = propertyName)
+
+type private RecordingImpactApiClient() =
+    let mutable lastLookup: (string * string * string) option = None
+
+    member _.LastLookup = lastLookup
+
+    interface IApiClient with
+        member _.StartBuild() = ()
+        member _.UploadBuildGraph _graphHash _environment _nodes = ()
+        member _.CompleteBuild _success = ()
+        member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt = ()
+        member _.UseArtifact _projectHash _hash = ()
+        member _.GetArtifact _path = Uri("https://example.invalid/artifact")
+        member _.GetCommitGraph repository commit environment =
+            lastLookup <- Some (repository, commit, environment)
+            { CommitGraph.Repository = repository
+              CommitGraph.Commit = commit
+              CommitGraph.GraphHash = "graph"
+              CommitGraph.Nodes = [] }
+
+[<Test>]
+let ``getImpactBaseGraph uses resolved environment key`` () =
+    let api = RecordingImpactApiClient()
+    let options: ConfigOptions.Options =
+        { Workspace = "."
+          HomeDir = "."
+          TmpDir = "."
+          SharedDir = "."
+          WhatIf = false
+          Debug = false
+          MaxConcurrency = 1
+          Force = false
+          Retry = false
+          LocalOnly = false
+          StartedAt = DateTime.UtcNow
+          Targets = Set [ "build" ]
+          Configuration = None
+          Environment = Some "dev-staging"
+          LogTypes = []
+          Note = None
+          Label = None
+          Types = None
+          Labels = None
+          Projects = None
+          Variables = Map.empty
+          Engine = ConfigOptions.Engine.Host
+          BranchOrTag = "main"
+          Repository = "acme/repo"
+          HeadCommit =
+            { Commit.Sha = "head"
+              Commit.Author = "dev"
+              Commit.Email = "dev@example.com"
+              Commit.Message = "head"
+              Commit.Timestamp = DateTime.UtcNow }
+          CommitLog = []
+          Run = None }
+
+    global.Program.getImpactBaseGraph (api :> IApiClient) options "base-sha" |> ignore
+
+    api.LastLookup |> should equal (Some ("acme/repo", "base-sha", "dev-staging"))
 
 [<Test>]
 let ``CLI parses out argument for run`` () =

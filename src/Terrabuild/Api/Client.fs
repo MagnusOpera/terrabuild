@@ -164,12 +164,14 @@ module private Build =
     [<RequireQualifiedAccess>]
     type UploadBuildGraphInput =
         { GraphHash: string
+          Environment: string
           Nodes: BuildGraphNodeInput list }
 
     [<RequireQualifiedAccess>]
     type CommitGraphOutput =
         { Repository: string
           Commit: string
+          Environment: string
           GraphHash: string
           Nodes: BuildGraphNodeInput list }
 
@@ -202,9 +204,10 @@ module private Build =
         { CompleteBuildInput.Success = success }
         |> Http.post headers $"/builds/{buildId}/complete"
 
-    let uploadBuildGraph headers buildId graphHash (nodes: BuildGraphNode list): Unit =
+    let uploadBuildGraph headers buildId graphHash environment (nodes: BuildGraphNode list): Unit =
         let payload =
             { UploadBuildGraphInput.GraphHash = graphHash
+              UploadBuildGraphInput.Environment = environment
               UploadBuildGraphInput.Nodes =
                 nodes
                 |> List.map (fun node -> {
@@ -225,10 +228,11 @@ module private Build =
                 }) }
         payload |> Http.post<UploadBuildGraphInput, Unit> headers $"/builds/{buildId}/graph"
 
-    let getCommitGraph headers (repository: string) (commit: string) : CommitGraphOutput =
+    let getCommitGraph headers (repository: string) (commit: string) (environment: string) : CommitGraphOutput =
         let repository = Uri.EscapeDataString(repository)
         let commit = Uri.EscapeDataString(commit)
-        Http.get<Unit, CommitGraphOutput> headers $"/builds/graph?repository={repository}&commit={commit}" ()
+        let environment = Uri.EscapeDataString(environment)
+        Http.get<Unit, CommitGraphOutput> headers $"/builds/graph?repository={repository}&commit={commit}&environment={environment}" ()
 
 
 module private Artifact =
@@ -296,8 +300,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.StartBuild () =
             buildId.Force() |> ignore
 
-        member _.UploadBuildGraph graphHash nodes =
-            Build.uploadBuildGraph headers buildId.Value graphHash nodes
+        member _.UploadBuildGraph graphHash environment nodes =
+            Build.uploadBuildGraph headers buildId.Value graphHash environment nodes
 
         member _.CompleteBuild success =
             Build.completeBuild headers buildId.Value success
@@ -312,8 +316,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
             let resp = Artifact.getArtifact headers path
             Uri(resp.Uri)
 
-        member _.GetCommitGraph repository commit =
-            let resp = Build.getCommitGraph headers repository commit
+        member _.GetCommitGraph repository commit environment =
+            let resp = Build.getCommitGraph headers repository commit environment
             { Contracts.CommitGraph.Repository = resp.Repository
               Commit = resp.Commit
               GraphHash = resp.GraphHash

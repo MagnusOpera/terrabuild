@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Scope `terrabuild impact` commit-graph lookup by environment so preview and staging graphs for the same commit no longer overwrite each other.
+
 ## [0.195.2-next]
 
 

@@ -67,6 +67,12 @@ type private PreparedRunTarget = {
 let private buildResultKey (projectName: string) (target: string) =
     $"{projectName |> String.toLower}:{target}"
 
+let graphEnvironmentKey (options: ConfigOptions.Options) =
+    options.Environment |> Option.defaultValue ""
+
+let getImpactBaseGraph (api: Contracts.IApiClient) (options: ConfigOptions.Options) (baseCommit: string) =
+    api.GetCommitGraph options.Repository baseCommit (graphEnvironmentKey options)
+
 let private mergeRunResultStatus currentStatus nextStatus =
     let priority status =
         match status with
@@ -496,7 +502,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | Some baseCommit -> baseCommit
             | None -> raiseInvalidArg "impact requires a base commit."
 
-        let baseGraph = api.GetCommitGraph options.Repository baseCommit
+        let baseGraph = getImpactBaseGraph api options baseCommit
         let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.Graph baseGraph
         match runOptions.RunResultFile with
         | Some filePath -> writeImpactResultFile filePath impactResult

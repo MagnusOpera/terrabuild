@@ -64,7 +64,7 @@ and private RecordingApiClient() =
         member _.StartBuild() =
             lifecycle.Enqueue("start")
 
-        member _.UploadBuildGraph graphHash nodes =
+        member _.UploadBuildGraph graphHash _environment nodes =
             lifecycle.Enqueue("upload-graph")
             graphUploads.Enqueue(graphHash, nodes)
 
@@ -74,7 +74,7 @@ and private RecordingApiClient() =
         member _.GetArtifact _path =
             Uri("https://example.invalid/artifact")
 
-        member _.GetCommitGraph _repository _commit =
+        member _.GetCommitGraph _repository _commit _environment =
             { Contracts.CommitGraph.Repository = "acme/repo"
               Contracts.CommitGraph.Commit = "base"
               Contracts.CommitGraph.GraphHash = "graph"

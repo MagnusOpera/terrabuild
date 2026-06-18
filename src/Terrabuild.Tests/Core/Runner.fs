@@ -171,14 +171,14 @@ type private FakeApiClient() =
         member _.StartBuild() =
             lifecycle.Add("start")
 
-        member _.UploadBuildGraph graphHash nodes =
+        member _.UploadBuildGraph graphHash _environment nodes =
             lifecycle.Add("upload-graph")
             graphUploads.Add(graphHash, nodes)
 
         member _.CompleteBuild(_success) =
             lifecycle.Add("complete")
 
-        member _.GetCommitGraph _repository _commit =
+        member _.GetCommitGraph _repository _commit _environment =
             { Contracts.CommitGraph.Repository = "acme/repo"
               Contracts.CommitGraph.Commit = "base"
               Contracts.CommitGraph.GraphHash = "graph"
