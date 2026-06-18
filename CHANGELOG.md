@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Refine graph modeling so `impact` compares a raw source graph while `run` continues from a later execution-resolution stage.
+
 ## [0.195.3-next]
 
 

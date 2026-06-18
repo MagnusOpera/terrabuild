@@ -127,9 +127,10 @@ type private SummaryCache(summaryIds: string set) =
 let private runPipeline options =
     let options, config = Configuration.read options
     let graphNode = GraphPipeline.Node.build options config
-    let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphNode
+    let graphResolve = GraphPipeline.Resolve.build options config graphNode
+    let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphResolve
     let graphBatch = GraphPipeline.Batch.build options config graphAction
-    options, config, graphNode, graphAction, graphBatch
+    options, config, graphNode, graphResolve, graphAction, graphBatch
 
 let private assertKnownErrorContains (expected: string) action =
     try
@@ -164,7 +165,7 @@ target build {
 """
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, graphNode, _, graphBatch = runPipeline options
+        let _, _, graphNode, _, _, graphBatch = runPipeline options
 
         graphNode.Nodes.Count |> should equal 2
         graphNode.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
@@ -195,8 +196,8 @@ target build {
             { baseOptions workspace (Set [ "build" ]) with
                 ConfigOptions.Options.Repository = "acme/repo-b" }
 
-        let _, _, firstGraphNode, _, _ = runPipeline firstOptions
-        let _, _, secondGraphNode, _, _ = runPipeline secondOptions
+        let _, _, firstGraphNode, _, _, _ = runPipeline firstOptions
+        let _, _, secondGraphNode, _, _, _ = runPipeline secondOptions
         let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
         let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
 
@@ -226,8 +227,8 @@ target build {
             { baseOptions workspace (Set [ "build" ]) with
                 ConfigOptions.Options.Repository = "acme/repo" }
 
-        let _, _, firstGraphNode, _, _ = runPipeline firstOptions
-        let _, _, secondGraphNode, _, _ = runPipeline secondOptions
+        let _, _, firstGraphNode, _, _, _ = runPipeline firstOptions
+        let _, _, secondGraphNode, _, _, _ = runPipeline secondOptions
         let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
         let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
 
@@ -271,7 +272,7 @@ target build {
         writeDotnetProject workspace "src/c" "c" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, _, _, graphBatch = runPipeline options
+        let _, _, _, _, _, graphBatch = runPipeline options
 
         graphBatch.Batches.Count |> should equal 0
         graphBatch.Nodes.Count |> should equal 3
@@ -293,8 +294,8 @@ target build {
 """
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, graphNode, _, _ = runPipeline options
-        let node = graphNode.Nodes["workspace/path#src/a:build"]
+        let _, _, _, graphResolve, _, _ = runPipeline options
+        let node = graphResolve.Nodes["workspace/path#src/a:build"]
 
         node.Operations.Head.Arguments |> should equal node.ProjectHash)
 
@@ -333,7 +334,7 @@ target build {
         writeDotnetProject workspace "src/c" "c" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, _, _, graphBatch = runPipeline options
+        let _, _, _, _, _, graphBatch = runPipeline options
 
         graphBatch.Batches.Count |> should equal 1
         let (batchId, members) = graphBatch.Batches |> Seq.head |> (|KeyValue|)
@@ -376,9 +377,10 @@ target build {
         writeDotnetProject workspace "src/b" "b" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, graphNode, _, graphBatch = runPipeline options
+        let _, _, graphNode, graphResolve, _, graphBatch = runPipeline options
 
         graphNode.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
+        graphResolve.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
         graphBatch.Batches.Count |> should equal 0)
 
 [<Test>]
@@ -454,10 +456,11 @@ target build {
         let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
         let options, config = Configuration.read options
         let graphNode = GraphPipeline.Node.build options config
-        let buildNode = graphNode.Nodes["workspace/path#src/a:build"]
-        let genNode = graphNode.Nodes["workspace/path#src/a:gen"]
+        let graphResolve = GraphPipeline.Resolve.build options config graphNode
+        let buildNode = graphResolve.Nodes["workspace/path#src/a:build"]
+        let genNode = graphResolve.Nodes["workspace/path#src/a:gen"]
         let cachedIds = Set [ GraphDef.buildCacheKey buildNode; GraphDef.buildCacheKey genNode ]
-        let graphAction = GraphPipeline.Action.build options (SummaryCache(cachedIds) :> Cache.ICache) graphNode
+        let graphAction = GraphPipeline.Action.build options (SummaryCache(cachedIds) :> Cache.ICache) graphResolve
 
         graphAction.RootNodes |> should equal Set.empty<string>
         graphAction.Nodes[buildNode.Id].Action |> should equal RunAction.Restore
@@ -485,7 +488,8 @@ target gen {
         let options = { baseOptions workspace (Set [ "gen" ]) with Force = false }
         let options, config = Configuration.read options
         let graphNode = GraphPipeline.Node.build options config
-        let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphNode
+        let graphResolve = GraphPipeline.Resolve.build options config graphNode
+        let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphResolve
         let genNode = graphAction.Nodes["workspace/path#src/a:gen"]
 
         genNode.Action |> should equal RunAction.Exec

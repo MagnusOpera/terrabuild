@@ -184,6 +184,7 @@ endef
 define diff_results
 	$(call diff_file,$(1),terrabuild-debug.config.json)
 	$(call diff_file,$(1),terrabuild-debug.node.json)
+	$(call diff_file,$(1),terrabuild-debug.resolve.json)
 	$(call diff_file,$(1),terrabuild-debug.action.json)
 	$(call diff_file,$(1),terrabuild-debug.batch.json)
 	$(call diff_file,$(1),terrabuild-debug.cascade.json)

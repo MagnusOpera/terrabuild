@@ -7,13 +7,22 @@
       "projectDir": "app",
       "target": "build",
       "dependencies": [],
-      "outputs": [
-        "dist"
-      ],
+      "outputs": [],
       "projectHash": "BAA9EA23FDD888FA6F68D67F00F89DA2E3BFC147DCC84E690D683EC4C8DFA52F",
-      "targetHash": "905F7E440D4E83CB0187C8188613611F02DAB72529458F44A36BEA51D4E84951",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "AC6257CEA67AEF5E981AF8AF14DB7DBB841ECF0BFA2383D742D34FBA3D2BBEFA",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {
+            "TAGADA": "pouet pouet"
+          },
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building app with lib version: 8A903EC1BBC787E4F824019A1C30CB5FAD8663D2C43879B9181E1131C31EB841",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",

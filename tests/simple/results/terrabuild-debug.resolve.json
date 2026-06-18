@@ -44,7 +44,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "@pnpm#npm-lib:build": {
@@ -89,7 +89,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#deployments/terraform-deploy:build": {
@@ -131,7 +131,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#libraries/dotnet-lib:build": {
@@ -175,7 +175,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#libraries/shell-lib:build": {
@@ -201,7 +201,7 @@
       "artifacts": "none",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#projects/dotnet-app:build": {
@@ -248,7 +248,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#projects/fscript-app:build": {
@@ -282,7 +282,7 @@
       "artifacts": "none",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#projects/make-app:build": {
@@ -317,7 +317,7 @@
       "artifacts": "none",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#projects/open-api:build": {
@@ -344,7 +344,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#projects/rust-app:build": {
@@ -374,7 +374,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     },
     "workspace/path#tests/playwright:test": {
@@ -411,7 +411,7 @@
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
-      "action": "exec",
+      "action": "ignore",
       "required": true
     }
   },

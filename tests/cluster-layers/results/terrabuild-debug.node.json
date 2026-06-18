@@ -13,37 +13,8 @@
         "obj/"
       ],
       "projectHash": "6B49C78B5D4B0F165B1B0FA2BBB1A4EF2FC4DE3C7841E4F66FD9413145D89214",
-      "targetHash": "B31AF2F817BB365F68263DF9DAADD5630338064686AFAC1D1159B4E6394CDE65",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell echo",
-          "command": "echo",
-          "arguments": "building project",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "5E7759B40B8A970B4745880A65B9102D8AA2E646AEA0853A258CE309786BA070",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -63,37 +34,8 @@
         "obj/"
       ],
       "projectHash": "01345D569057E2FD8A92F2AD59BF68AB19BF45C5CF7ECD7FFF59933023C45537",
-      "targetHash": "FA390DF81EEC7FA25786BA9A2FD5E145F285B38553DEE2538A7FB869C136993F",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell echo",
-          "command": "echo",
-          "arguments": "building project",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "CC2134DF81F9D89C9D7C8A5DF51B5F757185CFDD2A7FEF559DB1A101B0BCDA05",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -114,37 +56,8 @@
         "dist/**"
       ],
       "projectHash": "02D45D98B32F44F389695AFEC1566173117830C12F0E897D3CC5AD1C1FED2168",
-      "targetHash": "33088215E13017024CA2F748731BE9718193D0E230AA064D7DC3B5D1F4635968",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell echo",
-          "command": "echo",
-          "arguments": "building project",
-          "errorLevel": 0
-        },
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "clean-install",
-          "errorLevel": 0
-        },
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm build",
-          "command": "npm",
-          "arguments": "run build --",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "6A54CA379EC76CE62C43823E2A41FEC3E2F463D02E998ECDE10552309F97B007",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -166,30 +79,8 @@
         "obj/"
       ],
       "projectHash": "2792C85A2D1FC427C1ED01CF550B00BA5CA45EC1E5D613BE6C832A02E20AC5F3",
-      "targetHash": "68ECA5E382CE15118FCF56C7CD175495A26CF83CA835616FB4A285579674EBB8",
-      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-      "operations": [
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "64B32D6687F7237E3BFDACC524597A5ADD7819C5D3E7D67EBBF125521FB56D77",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -211,30 +102,8 @@
         "obj/"
       ],
       "projectHash": "B8EA7C9BC1515C3F5B3D1FB46C34610BA305E56A68DAC873FBBB4003F0A867E2",
-      "targetHash": "C442372360392DA4928EB29DF8B35CB43C3101E038535A55141B56ED57397393",
-      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-      "operations": [
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "DD725D5BF7A7A7A3C22B8B17429A54B90B14958ABA268AA2D5406E7568656EC4",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -255,29 +124,8 @@
         "dist/**"
       ],
       "projectHash": "7B96B4038B2DC9D12A979EE492A14DD11644D783BBA872CC313D4D94056047AC",
-      "targetHash": "4A0562F11DD51ED0D157083F4C44326D86712725042A8ABF0B430F0C1786ECBB",
-      "operations": [
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "clean-install",
-          "errorLevel": 0
-        },
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm build",
-          "command": "npm",
-          "arguments": "run build --",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "775FB4BF1AB42AD0B2A746D0B3E7C22AF493B10599D1EA89638C8319C91EE290",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -297,29 +145,8 @@
         "dist/**"
       ],
       "projectHash": "64263FB8970C9D9A05EFBD564B3B81056F03079175D32FE99D98A02E5DBDB55E",
-      "targetHash": "1F99347CC543471396AE80992F4D2A80C15F5F5B5E7F1E4F026457725DABE748",
-      "operations": [
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "clean-install",
-          "errorLevel": 0
-        },
-        {
-          "image": "node:20",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm build",
-          "command": "npm",
-          "arguments": "run build --",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "997816984BAEE3CA8E93D97E5546B63C200D80A6650919EE9DC72EA47D83334E",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",

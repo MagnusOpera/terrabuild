@@ -136,8 +136,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let projectConfig = configuration.Projects[projectId]
             let targetConfig = projectConfig.Targets[headNode.Target]
             let batchCommands =
-                targetConfig.Operations
-                |> List.map (fun operation -> operation.Command)
+                targetConfig.Steps
+                |> List.map (fun step -> step.Command)
                 |> List.distinct
 
             let batchContext =
@@ -148,42 +148,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                     Terrabuild.ScriptingContracts.BatchContext.BatchCommands = batchCommands
                 }
 
-            let ops =
-                targetConfig.Operations
-                |> List.collect (fun operation ->
-                    let optContext =
-                        { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
-                          Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
-                          Terrabuild.ScriptingContracts.ActionContext.Command = operation.Command
-                          Terrabuild.ScriptingContracts.ActionContext.Hash = batch.ClusterHash
-                          Terrabuild.ScriptingContracts.ActionContext.Directory = projectConfig.Directory
-                          Terrabuild.ScriptingContracts.ActionContext.Batch = batchContext }
-
-                    let parameters =
-                        match operation.Context with
-                        | Terrabuild.Expression.Value.Map map ->
-                            map
-                            |> Map.add "context" (Terrabuild.Expression.Value.Object optContext)
-                            |> Terrabuild.Expression.Value.Map
-                        | _ -> raiseBugError "Failed to get context (internal error)"
-
-                    match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some operation.Script) with
-                    | Extensions.InvocationResult.Success executionRequest ->
-                        executionRequest.Operations |> List.map (fun shellOperation -> {
-                            ContaineredShellOperation.Image = operation.Image
-                            ContaineredShellOperation.Platform = operation.Platform
-                            ContaineredShellOperation.Cpus = operation.Cpus
-                            ContaineredShellOperation.Variables = operation.ContainerVariables
-                            ContaineredShellOperation.Envs = operation.Envs
-                            ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
-                            ContaineredShellOperation.Command = shellOperation.Command
-                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
-                            ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
-                    | Extensions.InvocationResult.ErrorTarget ex ->
-                        forwardInvalidArg($"{batch.BatchId}: Failed to get shell operation (extension error)", ex)
-                    | _ ->
-                        raiseInvalidArg $"{batch.BatchId}: Failed to get shell operation (extension error)"
-                )
+            let _, _, ops =
+                Resolve.resolveTargetOperations options projectConfig targetConfig batch.ClusterHash batchContext
 
             // Dependencies of the batch node:
             // union of member deps, minus members themselves.

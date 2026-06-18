@@ -42,6 +42,7 @@ type private RecordingCache(inner: Cache.ICache) =
 type private PhaseResult =
     { GraphNode: Graph
       GraphSelection: Graph
+      GraphResolve: Graph
       GraphAction: Graph
       GraphCascade: Graph
       GraphBatch: Graph
@@ -399,13 +400,15 @@ let private runPhase (storage: FolderStorage) workspace homeRoot variables =
             let options, config = Configuration.read options
             let graphNode = GraphPipeline.Node.build options config
             let graphSelection = GraphPipeline.Selection.build options config graphNode
-            let graphAction = GraphPipeline.Action.build options (cache :> Cache.ICache) graphSelection
+            let graphResolved = GraphPipeline.Resolve.build options config graphSelection
+            let graphAction = GraphPipeline.Action.build options (cache :> Cache.ICache) graphResolved
             let graphCascade = GraphPipeline.Cascade.build graphAction
             let graphBatch = GraphPipeline.Batch.build options config graphCascade
             let summary = Runner.run options (cache :> Cache.ICache) (Some (api :> IApiClient)) graphNode graphBatch
 
             { GraphNode = graphNode
               GraphSelection = graphSelection
+              GraphResolve = graphResolved
               GraphAction = graphAction
               GraphCascade = graphCascade
               GraphBatch = graphBatch
@@ -473,8 +476,8 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
 
         Directory.Exists(nugetPackagesDir home1) |> should equal false
         let phase1 = runPhase storage clone1 home1 Map.empty
-        let phase1A = findBuildNode phase1.GraphNode "a"
-        let phase1B = findBuildNode phase1.GraphNode "b"
+        let phase1A = findBuildNode phase1.GraphResolve "a"
+        let phase1B = findBuildNode phase1.GraphResolve "b"
         let phase1ActionA = findBuildNode phase1.GraphAction "a"
         let phase1ActionB = findBuildNode phase1.GraphAction "b"
 
@@ -500,8 +503,8 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
 
         Directory.Exists(nugetPackagesDir home2) |> should equal false
         let phase2 = runPhase storage clone2 home2 (Map.ofList [ "buildnonce", "phase-2" ])
-        let phase2A = findBuildNode phase2.GraphNode "a"
-        let phase2B = findBuildNode phase2.GraphNode "b"
+        let phase2A = findBuildNode phase2.GraphResolve "a"
+        let phase2B = findBuildNode phase2.GraphResolve "b"
         let phase2ActionA = findBuildNode phase2.GraphAction "a"
         let phase2ActionB = findBuildNode phase2.GraphAction "b"
 

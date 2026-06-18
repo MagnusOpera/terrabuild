@@ -61,6 +61,7 @@ type private PreparedRunTarget = {
     Cache: Cache.ICache
     Api: Contracts.IApiClient option
     FullGraph: GraphDef.Graph
+    SourceGraph: GraphDef.Graph
     Graph: GraphDef.Graph
 }
 
@@ -363,8 +364,12 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         if options.Debug then fullGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
 
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
-        let graph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config fullGraph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
+        let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config fullGraph)
+        if options.Debug then sourceGraph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
+
+        Log.Debug("====[ GraphPipeline Resolve ]========================================================")
+        let graph = runPhase "graph-resolve" (fun () -> GraphPipeline.Resolve.build options config sourceGraph)
+        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"resolve.json")
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
         let graph = runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph)
@@ -414,6 +419,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
           Cache = cache
           Api = api
           FullGraph = fullGraph
+          SourceGraph = sourceGraph
           Graph = graph }
 
     let runTarget (options: RunTargetOptions) =
@@ -503,7 +509,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | None -> raiseInvalidArg "impact requires a base commit."
 
         let baseGraph = getImpactBaseGraph api options baseCommit
-        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.Graph baseGraph
+        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.SourceGraph baseGraph
         match runOptions.RunResultFile with
         | Some filePath -> writeImpactResultFile filePath impactResult
         | None -> raiseInvalidArg "impact requires an output file."

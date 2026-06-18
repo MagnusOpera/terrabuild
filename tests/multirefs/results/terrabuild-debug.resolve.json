@@ -12,9 +12,18 @@
       ],
       "outputs": [],
       "projectHash": "4893EDAA832F94601199885EE7D8C9984DFA934DA730ACCC9D69F795B8F2F1E4",
-      "targetHash": "134610705DD9BEA95020FBF59DB57C1FC1F6197481787507BCD4E457C4429A3F",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "0F470961B491FF571D9CA32E5FEB8FC6C6BBA7C10674A49E9F385A94586A05C5",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building A",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -31,9 +40,18 @@
       ],
       "outputs": [],
       "projectHash": "FED241269B752C5B8E54770684335E0612CB9B6C5A520088292520CED58EF7BC",
-      "targetHash": "1B8AEEBD5ECD097C6701929ADC0192E26642114B153B38CB813F045CAC5BE0CB",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "41C2DC9D2E3A41772770175B17C0946D27805EE222ADFB3FA8EB34A9773E029F",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building B",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -48,9 +66,18 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "90152F87D7DF7DA14193678CA3F3E04C1402256BC368C5D8E3AF8399BB3E2CCE",
-      "targetHash": "90F22E8F2B79F97904FCF53C2A973CCA384FE202322985E6B317E18215A9AA77",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "90852059F182A732B9A568E043F367CC5EB8E960AFECAE67E093EF7287CCF2A6",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "building C",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",

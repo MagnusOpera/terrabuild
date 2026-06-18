@@ -13,34 +13,8 @@
         "dist/**"
       ],
       "projectHash": "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2",
-      "targetHash": "BA5F0972AB06CCE6CAE16712F509E2EEFE80FC04CED954CC47A61FF0856E134D",
-      "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-      "operations": [
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {
-            "CI": "true"
-          },
-          "metaCommand": "@pnpm install",
-          "command": "pnpm",
-          "arguments": "install --frozen-lockfile --link-workspace-packages",
-          "errorLevel": 0
-        },
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {
-            "CI": "true"
-          },
-          "metaCommand": "@pnpm build",
-          "command": "pnpm",
-          "arguments": "run build",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "D780619E29462ACB548A0C4D78D94EDD1B0D140DFFBFD9731BCEF0CA1A7554B5",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -58,34 +32,8 @@
         "dist/**"
       ],
       "projectHash": "7CC0D50969F50D3400C7BAFEDA87E0A21DFC21D46908058BB49F0816D4238006",
-      "targetHash": "AD57D894992EDD45342C4846C6381FE812FF7891B83E0B330BD0E0BE87085EE6",
-      "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
-      "operations": [
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {
-            "CI": "true"
-          },
-          "metaCommand": "@pnpm install",
-          "command": "pnpm",
-          "arguments": "install --frozen-lockfile --link-workspace-packages",
-          "errorLevel": 0
-        },
-        {
-          "image": "guergeiro/pnpm:20-10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {
-            "CI": "true"
-          },
-          "metaCommand": "@pnpm build",
-          "command": "pnpm",
-          "arguments": "run build",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "492642BDC250A19452E22557052BB345C57F83D5088D35E9C2F0B62495D9F59E",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -105,29 +53,8 @@
         "*.planfile"
       ],
       "projectHash": "0CDE8449DA4BE3834EA0A2E0492CBAE0081109CAF6DCBF6B12388C6633F6B357",
-      "targetHash": "F715ECD68DADCE5DDB71B2EA1A0A8559A08CDF5F511F7FC8578672C6774A9CA7",
-      "operations": [
-        {
-          "image": "hashicorp/terraform:1.10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@terraform init",
-          "command": "terraform",
-          "arguments": "init -reconfigure",
-          "errorLevel": 0
-        },
-        {
-          "image": "hashicorp/terraform:1.10",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@terraform plan",
-          "command": "terraform",
-          "arguments": "plan -out=terrabuild.planfile -var=\u0022dotnet_app_version=1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A\u0022 -var=\u0022npm_app_version=72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2\u0022",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "E87FDB01645F3F270BEB3B43E753C085F4928B2A4F784B125CE18D8131B79251",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -146,32 +73,8 @@
         "obj/"
       ],
       "projectHash": "D7695503391CECE4DECC4E77E79BD243EDEAE789831F67CC477ED629CD97D17C",
-      "targetHash": "444886950EAA079B7574B85753773ACC345929A21F277571303E3218E6C38533",
-      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-      "operations": [
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "EDDE08AAA7A392B5AEF46BCDF45B9E528FA87C61E576027EA13FE1CE6C714FA2",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -187,18 +90,9 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "290E8E7AC7693543F774F195B86A1AC3BBE4B298F91453D5C5089FE19BE87342",
-      "targetHash": "EA8C52D8FF1E8ED310D5FB3E74D6A0B049C435C241C0362C79E414C335ED774C",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell echo",
-          "command": "echo",
-          "arguments": "building library1",
-          "errorLevel": 0
-        }
-      ],
-      "artifacts": "none",
+      "targetHash": "44F7684151CCB4839B4728A32B907442FC896372620C03768E7A0444F3F8F1AC",
+      "operations": [],
+      "artifacts": "managed",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -219,32 +113,8 @@
         "obj/"
       ],
       "projectHash": "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A",
-      "targetHash": "DC8F1DECD9ECB2075CE203D071374F9927D5C750953D64A2E13F404045C70A7A",
-      "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
-      "operations": [
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet restore",
-          "command": "dotnet",
-          "arguments": "restore --locked-mode",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
-          "platform": "linux/amd64",
-          "cpus": 2,
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@dotnet build",
-          "command": "dotnet",
-          "arguments": "build --configuration Debug",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "9715FB6A9A8181BBC8C1F3588D8A5D0D55EA73D3F3485C92EC1BEF7B1E2EAAED",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -258,28 +128,13 @@
       "projectDir": "projects/fscript-app",
       "target": "build",
       "dependencies": [],
-      "outputs": [],
-      "projectHash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D",
-      "targetHash": "5AA5B6ADE35A5921947D07A83849CA04A70B2E9EB9974033C936489F3D31C9A2",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@fscript execute",
-          "command": "fscript",
-          "arguments": "--root . \u0022scripts/write-version.fss\u0022 -- \u0022E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D\u0022",
-          "errorLevel": 0
-        },
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell cat",
-          "command": "cat",
-          "arguments": "dist/version.txt",
-          "errorLevel": 0
-        }
+      "outputs": [
+        "dist/**"
       ],
-      "artifacts": "none",
+      "projectHash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D",
+      "targetHash": "AE410B5A6C2E6B24E3A21DD8E203EE6577B39B58698EC9301738A83170F89CB2",
+      "operations": [],
+      "artifacts": "managed",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -293,28 +148,13 @@
       "dependencies": [
         "workspace/path#libraries/shell-lib:build"
       ],
-      "outputs": [],
-      "projectHash": "D11150BC5F0464B756259344DF172B9B2CC44856C3E7DEEC8CFA1F2EB02246E6",
-      "targetHash": "AF1E260C574F772DBF364172E9F5BBE1108D8FDC597750E65745E77421D30D81",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@shell echo",
-          "command": "echo",
-          "arguments": "building project1",
-          "errorLevel": 0
-        },
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@make build",
-          "command": "make",
-          "arguments": "build secret=\u0022tagada\u0022",
-          "errorLevel": 0
-        }
+      "outputs": [
+        "dist"
       ],
-      "artifacts": "none",
+      "projectHash": "D11150BC5F0464B756259344DF172B9B2CC44856C3E7DEEC8CFA1F2EB02246E6",
+      "targetHash": "6F67A86B9B19AA4F49466AAC56DB4AB52C54EF98FE9F6851DBA469E197E1E486",
+      "operations": [],
+      "artifacts": "managed",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -328,19 +168,8 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "8D3EC02FB3C760C4389EFFDF8E7B125905D975E090B1079F939082B6D428B6ED",
-      "targetHash": "AF0893A2CCC0EE0263B51A2A304E32DBC3DBCD2354A1B1EFA31D4851615AD61D",
-      "operations": [
-        {
-          "image": "openapitools/openapi-generator-cli:v7.10.0",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@openapi generate",
-          "command": "docker-entrypoint.sh",
-          "arguments": "generate -i api.json -g typescript-axios -o src",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "E14D509CBEB659F27CB96DE076E3AB7D5A692EB044A5B3165A9315A56C09961A",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -358,19 +187,8 @@
         "target/release/"
       ],
       "projectHash": "70492DEE80C7B1494972FF7F6DFF5C192EE994345B7185182E3ED051F115E5E5",
-      "targetHash": "38E95B98882C0C0AD07642AB0B0F228CD90AB1A67E2E8C9A075E5FB31AE47AB3",
-      "operations": [
-        {
-          "image": "rust:1.81.0-slim",
-          "platform": "linux/amd64",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@cargo build",
-          "command": "cargo",
-          "arguments": "build --profile dev",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "7047B71EE2ACB73BC2AD8DBEFFC377469B052302D88C0F558CBF8F699F12B3D3",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",
@@ -388,26 +206,8 @@
         "dist/**"
       ],
       "projectHash": "EDE2B8AF5350411BF59F38EACF526CD066C29E582E1B3293F84A9514F1692740",
-      "targetHash": "83110A089654798FC1E0A7CC20D1125F916653AC68DB15387ABDA83C5AF2A636",
-      "operations": [
-        {
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@npm install",
-          "command": "npm",
-          "arguments": "clean-install",
-          "errorLevel": 0
-        },
-        {
-          "image": "mcr.microsoft.com/playwright:v1.54.0-noble",
-          "variables": [],
-          "envs": {},
-          "metaCommand": "@playwright test",
-          "command": "npx",
-          "arguments": "playwright test --project ci",
-          "errorLevel": 0
-        }
-      ],
+      "targetHash": "E93213C96E6676662CB0A8CAB87F14BD600E9A913582E830FAC61652307A4B46",
+      "operations": [],
       "artifacts": "managed",
       "build": "always",
       "batch": "single",

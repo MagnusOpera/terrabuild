@@ -16,8 +16,7 @@ open System.Runtime.InteropServices
 open GraphDef
 
 [<RequireQualifiedAccess>]
-type TargetOperation = {
-    Hash: string
+type TargetStep = {
     Image: string option
     Platform: string option
     Cpus: int option
@@ -37,7 +36,7 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: ArtifactMode option
-    Operations: TargetOperation list
+    Steps: TargetStep list
 }
 
 
@@ -135,6 +134,21 @@ let private format_project_id scope id = $"{scope}#{id}"
 let private resolve_dependency_scope (projectInfo: ProjectInfo) =
     projectInfo.DependencyResolution
     |> Option.defaultValue DependencyResolution.Path
+
+let private buildDeclaredTargetHash (target: AST.Project.TargetBlock) =
+    let normalizeExpr = Option.map Expr.StripLocations
+    let normalizeStep (step: AST.Project.Step) =
+        { step with
+            Parameters = step.Parameters |> Map.map (fun _ expr -> expr |> Expr.StripLocations) }
+
+    { target with
+        Outputs = target.Outputs |> normalizeExpr
+        Build = target.Build |> normalizeExpr
+        Cache = target.Cache |> normalizeExpr
+        Batch = target.Batch |> normalizeExpr
+        Steps = target.Steps |> List.map normalizeStep }
+    |> Json.Serialize
+    |> Hash.sha256
 
 let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
@@ -612,8 +626,8 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Ok x -> raiseParseError $"Invalid build value '{x}'"
                     | Error error -> raiseParseError error
 
-            let targetOperations =
-                target.Steps |> List.fold (fun (targetOperations) step ->
+            let targetSteps =
+                target.Steps |> List.fold (fun (targetSteps) step ->
                     let extensionName = step.Extension
                     let extension = 
                         match projectDef.Extensions |> Map.tryFind extensionName with
@@ -670,33 +684,20 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                         |> Option.map (Map.map (fun _ -> Eval.valueToString << Eval.eval evaluationContext))
                         |> Option.defaultValue Map.empty
 
-                    let hash =
-                        let containerDeps =
-                            match image with
-                            | Some container ->
-                                let lstVariables = variables |> List.ofSeq |> List.sort
-                                let lstPlatform = platform |> Option.map (fun p -> [ p ]) |> Option.defaultValue []
-                                container :: lstVariables @ lstPlatform
-                            | _ -> []
-
-                        [ extensionName; step.Command ] @ containerDeps
-                        |> Hash.sha256strings
-
                     let targetContext = {
-                        TargetOperation.Hash = hash
-                        TargetOperation.Image = image
-                        TargetOperation.Platform = platform
-                        TargetOperation.Cpus = cpus
-                        TargetOperation.ContainerVariables = variables
-                        TargetOperation.Envs = envs
-                        TargetOperation.Extension = extensionName
-                        TargetOperation.Command = step.Command
-                        TargetOperation.Script = script
-                        TargetOperation.Context = context
+                        TargetStep.Image = image
+                        TargetStep.Platform = platform
+                        TargetStep.Cpus = cpus
+                        TargetStep.ContainerVariables = variables
+                        TargetStep.Envs = envs
+                        TargetStep.Extension = extensionName
+                        TargetStep.Command = step.Command
+                        TargetStep.Script = script
+                        TargetStep.Context = context
                     }
 
-                    let operations = targetOperations @ [ targetContext ]
-                    operations
+                    let steps = targetSteps @ [ targetContext ]
+                    steps
                 ) []
 
             let targetDependsOn = target.DependsOn |> Option.defaultValue Set.empty
@@ -722,11 +723,6 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Ok x -> raiseParseError $"Invalid artifacts value '{x}'"
                     | Error error -> raiseParseError error
 
-            let targetHash =
-                targetOperations
-                |> List.map (fun ope -> ope.Hash)
-                |> Hash.sha256strings
-
             let targetBatch = 
                 let targetGroup =
                     target.Batch
@@ -742,13 +738,13 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                 | _ -> BatchMode.Single
 
             let target =
-                { Target.Hash = targetHash
+                { Target.Hash = buildDeclaredTargetHash target
                   Target.Build = targetBuild
                   Target.Batch = targetBatch
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Outputs = targetOutputs
-                  Target.Operations = targetOperations }
+                  Target.Steps = targetSteps }
 
             target
         )

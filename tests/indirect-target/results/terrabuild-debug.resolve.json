@@ -9,9 +9,18 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B",
-      "targetHash": "7016D98BE35F769FC238B2899B610AA2BF7F2D5F6380F96BE0681B7783D1E374",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "F38DC2C5DE82C4924B35DBFE708B8AC24B1F7DFF912D006050E335047A54133C",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "build A",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -28,9 +37,18 @@
       ],
       "outputs": [],
       "projectHash": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0",
-      "targetHash": "DDC3B356ED944BF0583FA783EC6DDFDFC615C8758D46CBDCB9CE6A2A09C34561",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "A677469A95C10D959B8B04A2A44F7E7A671C778FAA5D8D975B974035043C45E0",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "apply B",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -45,9 +63,18 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0",
-      "targetHash": "0B689E371D6D24D9085688BBA76A20A2209D36F3FEE8ECDD6ADBC6FF2E6AD089",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "8EC9C1D4EF17BF675BD8C77DF4E89CEAC7AFF3667694EFF4ACD61B49B58DED9F",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "plan B",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",
@@ -62,9 +89,18 @@
       "dependencies": [],
       "outputs": [],
       "projectHash": "491046BB8E901E005027D13A8E8F29957A3069413C28DDEBAAFB3A9D4FA6B2E9",
-      "targetHash": "679FBBFB55B56372D7153245CC836ED4929425639983734751FD309EB36C126D",
-      "operations": [],
-      "artifacts": "managed",
+      "targetHash": "7A343C5F6E023CE3BDD6A8961667208FBF824EAE2F82E487B2EF9234D74BBCC0",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "arguments": "build C",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
       "build": "always",
       "batch": "single",
       "action": "ignore",

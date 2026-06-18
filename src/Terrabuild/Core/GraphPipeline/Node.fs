@@ -72,70 +72,13 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             for (project, target) in allDeps do
                 buildNode project target
 
-            let cachable, batchable, ops =
-                targetConfig.Operations |> List.fold (fun (_, batchable, ops) operation ->
-                    let optContext =
-                        { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
-                          Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
-                          Terrabuild.ScriptingContracts.ActionContext.Command = operation.Command
-                          Terrabuild.ScriptingContracts.ActionContext.Hash = projectConfig.Hash
-                          Terrabuild.ScriptingContracts.ActionContext.Directory = projectConfig.Directory
-                          Terrabuild.ScriptingContracts.ActionContext.Batch = None }
-
-                    let parameters = 
-                        match operation.Context with
-                        | Terrabuild.Expression.Value.Map map ->
-                            map
-                            |> Map.add "context" (Terrabuild.Expression.Value.Object optContext)
-                            |> Terrabuild.Expression.Value.Map
-                        | _ -> raiseBugError "Failed to get context (internal error)"
-
-                    let cacheability =
-                        match Extensions.getScriptCacheability optContext.Command (Some operation.Script) with
-                        | Some cacheability ->
-                            match cacheability with
-                            | Terrabuild.ScriptingContracts.Cacheability.Never -> ArtifactMode.None
-                            | Terrabuild.ScriptingContracts.Cacheability.Local -> ArtifactMode.Workspace
-                            | Terrabuild.ScriptingContracts.Cacheability.Remote -> ArtifactMode.Managed
-                            | Terrabuild.ScriptingContracts.Cacheability.External -> ArtifactMode.External
-                        | _ -> raiseInvalidArg $"Failed to get cacheability for command {operation.Extension} {optContext.Command}"
-
-                    let executionResult =
-                        match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some operation.Script) with
-                        | Extensions.InvocationResult.Success executionRequest -> executionRequest
-                        | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{hash}: Failed to get shell operation (extension error)", ex)
-                        | _ -> raiseInvalidArg $"{hash}: Failed to get shell operation (extension error)"
-
-                    let newops =
-                        executionResult.Operations |> List.map (fun shellOperation -> {
-                            ContaineredShellOperation.Image = operation.Image
-                            ContaineredShellOperation.Platform = operation.Platform
-                            ContaineredShellOperation.Cpus = operation.Cpus
-                            ContaineredShellOperation.Variables = operation.ContainerVariables
-                            ContaineredShellOperation.Envs = operation.Envs
-                            ContaineredShellOperation.MetaCommand = $"{operation.Extension} {operation.Command}"
-                            ContaineredShellOperation.Command = shellOperation.Command
-                            ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
-                            ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
-
-                    let batchable = batchable && executionResult.Batchable
-
-                    cacheability, batchable, ops @ newops
-                ) (ArtifactMode.Managed, true, [])
-
-            let opsCmds = ops |> List.map Json.Serialize
-
-            let targetContent = opsCmds @ [
+            let targetContent = [
                 yield projectConfig.Hash
                 yield targetConfig.Hash
                 yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
             ]
             let targetHash = targetContent |> Hash.sha256strings
 
-            // cacheability can be overriden by the target
-            let cache = targetConfig.Cache |> Option.defaultValue cachable
-
-            // auto build by default unless force
             let build =
                 if options.Force then BuildMode.Always
                 else targetConfig.Build |> Option.defaultValue BuildMode.Auto
@@ -143,12 +86,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let required = build = BuildMode.Always
 
             let targetOutput =
-                if cache = ArtifactMode.None then Set.empty
+                if targetConfig.Cache = Some ArtifactMode.None then Set.empty
                 else targetConfig.Outputs
-
-            let targetClusterHash =
-                if batchable then Some targetConfig.Hash
-                else None
 
             let node =
                 { Node.Id = nodeId
@@ -157,14 +96,14 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.ProjectName = projectConfig.Name
                   Node.ProjectDir = projectConfig.Directory
                   Node.Target = target
-                  Node.Operations = ops
-                  Node.Artifacts = cache
+                  Node.Operations = []
+                  Node.Artifacts = targetConfig.Cache |> Option.defaultValue ArtifactMode.Managed
                   Node.Build = build
                   Node.Batch = targetConfig.Batch
                   Node.Dependencies = children
                   Node.Outputs = targetOutput
 
-                  Node.ClusterHash = targetClusterHash
+                  Node.ClusterHash = None
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
                   Node.Action = RunAction.Ignore
