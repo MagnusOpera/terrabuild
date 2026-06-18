@@ -3,6 +3,7 @@
 All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
+- Restore execution-specific batch clustering after the source-graph split so `run` avoids synthetic batch dependency cycles.
 
 ## [0.195.4-next]
 

@@ -97,7 +97,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 if cache = ArtifactMode.None then Set.empty
                 else targetConfig.Outputs
             let targetClusterHash =
-                if batchable then Some targetConfig.Hash
+                if batchable then Some targetConfig.ClusterHash
                 else None
 
             let node =

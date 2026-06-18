@@ -119,3 +119,28 @@ let ``check partition/all computation``() =
         expected |> List.map (fun b -> b.BatchId, b.ClusterHash, (b.Nodes |> List.map (fun n -> n.Id) |> Set.ofList))
                  |> Set.ofList
     )
+
+[<Test>]
+let ``batch computation skips candidates that would create an external dependency cycle``() =
+    let libA = buildNode "libA" (Some "hash-build") RunAction.Exec Set.empty BatchMode.Partition true
+    let libB = buildNode "libB" (Some "hash-build") RunAction.Exec Set.empty BatchMode.Partition true
+    let app = buildNode "app" (Some "hash-build") RunAction.Exec (Set [ "libA"; "libB"; "tool" ]) BatchMode.Partition true
+    let tool = buildNode "tool" (Some "hash-tool") RunAction.Exec (Set [ "libA"; "libB" ]) BatchMode.Partition true
+
+    let nodes =
+        Map.empty
+        |> addNode libA
+        |> addNode libB
+        |> addNode app
+        |> addNode tool
+
+    let graph =
+        { Graph.Nodes = nodes
+          Graph.RootNodes = Set [ "app" ]
+          Graph.Batches = Map.empty }
+
+    let batches = computeBatches graph
+
+    batches
+    |> List.exists (fun batch -> batch.Nodes |> List.exists (fun node -> node.Id = "app"))
+    |> should equal false

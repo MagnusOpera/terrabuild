@@ -68,6 +68,26 @@ let private partitionByDependencies (bucketNodes: Node list) =
 
     components |> List.ofSeq
 
+let private hasExternalDependencyCycle (graph: Graph) (candidateNodes: Node list) =
+    let memberIds = candidateNodes |> List.map (fun node -> node.Id) |> Set.ofList
+    let externalDependencies =
+        candidateNodes
+        |> Seq.collect (fun node -> node.Dependencies)
+        |> Set.ofSeq
+        |> Set.filter (fun depId -> memberIds |> Set.contains depId |> not)
+
+    let rec reachesMember visited nodeId =
+        if memberIds |> Set.contains nodeId then true
+        elif visited |> Set.contains nodeId then false
+        else
+            match graph.Nodes |> Map.tryFind nodeId with
+            | None -> false
+            | Some node ->
+                let visited = visited |> Set.add nodeId
+                node.Dependencies |> Seq.exists (reachesMember visited)
+
+    externalDependencies |> Seq.exists (reachesMember Set.empty)
+
 let computeBatches (graph: Graph) =
     // find clusters with at least one exec node
     let elligibleClusterHash =
@@ -108,6 +128,11 @@ let computeBatches (graph: Graph) =
             |> Seq.choose (fun comp ->
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None
+                elif hasExternalDependencyCycle graph comp then
+                    Log.Debug(
+                        "Skipping batch candidate in cluster '{ClusterHash}' because external dependencies would create a cycle",
+                        clusterHash)
+                    None
                 else
                     let batchId = computeBatchId clusterHash comp
                     Some { Batch.BatchId = batchId

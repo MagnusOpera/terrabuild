@@ -60,6 +60,7 @@
       "targets": {
         "build": {
           "hash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
+          "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -69,6 +70,7 @@
           ],
           "steps": [
             {
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
               "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -84,6 +86,7 @@
               ]
             },
             {
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
               "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -127,6 +130,7 @@
       "targets": {
         "build": {
           "hash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
+          "clusterHash": "F8D51FB2860142179111E84F61779ED89C44532A76FF7B0A82854EEC9A268DFD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -136,6 +140,7 @@
           ],
           "steps": [
             {
+              "hash": "97D64007404FFFCF3192CC6C66AE3BF949BEAA7DEBD3EE3995A2A1B3EB709A06",
               "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -151,6 +156,7 @@
               ]
             },
             {
+              "hash": "B31389C6AC54CD9A6EBDE2F235647CCA449C62CF648C00692172B7C3F289E932",
               "image": "guergeiro/pnpm:20-10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -194,6 +200,7 @@
       "targets": {
         "build": {
           "hash": "4B6B52D8E491FA25605F77B18D0D7A529B07AE08A5329FD30281EF1514A69F2D",
+          "clusterHash": "05C9D17B824DB3A4EC6F7597B38455361E19FD2BAAF4B940B6AD3B02019998E1",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -203,6 +210,7 @@
           ],
           "steps": [
             {
+              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
               "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -221,6 +229,7 @@
               ]
             },
             {
+              "hash": "A2ECFE80BD8663195DB0A044359ADE6D9F4E08C3831CED6767F4B2BF676A20DE",
               "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -255,6 +264,7 @@
         },
         "deploy": {
           "hash": "F356AD4B3C7C4FDCAF405B3C334458AC6460AFF01A818433C9CAC9D111F2CA04",
+          "clusterHash": "B3E1E648F36E350D97062C1E7799E556783366AC32DB75B59BCD8ADF32A7A696",
           "batch": "single",
           "dependsOn": [
             "push"
@@ -264,6 +274,7 @@
           ],
           "steps": [
             {
+              "hash": "D9CCDCE5FC4D0035BFCB8CB781078B05C1BDC45472A26459CD2F69D5C88B3B10",
               "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -282,6 +293,7 @@
               ]
             },
             {
+              "hash": "1AE28706B2980A4E84699A2D289D729BE4C880376A9313AFA12C32E1520F3B20",
               "image": "hashicorp/terraform:1.10",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -322,6 +334,7 @@
       "targets": {
         "build": {
           "hash": "D4CAEF6EABF90EA80595D85F2D1A1837E1B2A4C2FFC648B3E885C1209EB2840D",
+          "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -333,6 +346,7 @@
           ],
           "steps": [
             {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -356,6 +370,7 @@
               ]
             },
             {
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -394,6 +409,7 @@
       "targets": {
         "build": {
           "hash": "F7A64F81012F52F802DAB1AC3B21D4D0C459629776730240EF13B6B4571F92B9",
+          "clusterHash": "8B56DAA76BB451252D58A9AFF5D2E5A77D0568D8681204549E53A422C9FBDBF0",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -401,6 +417,7 @@
           "outputs": [],
           "steps": [
             {
+              "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
               "envs": {},
               "extension": "@shell",
@@ -440,6 +457,7 @@
       "targets": {
         "build": {
           "hash": "E97FC4A993034019AA0BB11CE05A09244CC6D0538BAACA198A29ABF5C645F6E3",
+          "clusterHash": "3CA5AE131AA04144ED0B54B7683F5A2B8972393E71713DC586BBF94F53BA3BDD",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -451,6 +469,7 @@
           ],
           "steps": [
             {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -474,6 +493,7 @@
               ]
             },
             {
+              "hash": "C420622D2E4A356A62A1B8E433375B345C91BD1E3ED5E2B6E74772F3BF839B31",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -500,6 +520,7 @@
         },
         "dist": {
           "hash": "3D9D24813DE1E182DD194BAC511A7B24F309BDA677178E4AB6DB45FD8500C52A",
+          "clusterHash": "71B04C660C84F005AA77AE72F1B798B933FC718D638C3DEEBC029BA8451DCA24",
           "batch": "single",
           "dependsOn": [
             "build"
@@ -511,6 +532,7 @@
           ],
           "steps": [
             {
+              "hash": "98DAFDAE119E09D67FB3D83208D6F614EA5EFFC057ABFA760B15D597C9D337ED",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -534,6 +556,7 @@
               ]
             },
             {
+              "hash": "83FFC378D8A4DE3E63A64813B19826BB598ECF58D153327B42418E1DB2483301",
               "image": "mcr.microsoft.com/dotnet/sdk:9.0.202",
               "platform": "linux/amd64",
               "cpus": 2,
@@ -556,6 +579,7 @@
         },
         "docker": {
           "hash": "94DA095BC7D92F8C766ADDC7CF1105A0C7F1057BF7B4BAF069121BA1A19A484A",
+          "clusterHash": "284192E5967E8DFA22895ABD89017A46E3516D76DEAE8AFE28318C78921D8A23",
           "batch": "single",
           "dependsOn": [
             "dist"
@@ -567,6 +591,7 @@
           ],
           "steps": [
             {
+              "hash": "4B539A162AEBDF8CE4C2958540E8E7E98D6678F81185F0EB540485EF7D38FD97",
               "containerVariables": [],
               "envs": {},
               "extension": "@docker",
@@ -615,6 +640,7 @@
       "targets": {
         "build": {
           "hash": "A1CB523F059E821AC943A51CFA1E32C0490B29FC1DD5F69D665689DE33AB0625",
+          "clusterHash": "2DD05D7DE0E075E9687A5A2DAF5D599666A1069E60FEB06C04808C5A6E253BDE",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -624,6 +650,7 @@
           ],
           "steps": [
             {
+              "hash": "399D3D95A9FBFA923B81FFBF937855E021196D051A8AEC5C9685D85716CB09D7",
               "containerVariables": [],
               "envs": {},
               "extension": "@fscript",
@@ -649,6 +676,7 @@
               ]
             },
             {
+              "hash": "EF474EB81B4C94B88A65FF45EE62C49160A95A89711742DF951B3DC8C34A1D1D",
               "containerVariables": [],
               "envs": {},
               "extension": "@shell",
@@ -686,6 +714,7 @@
       "targets": {
         "build": {
           "hash": "40CD3B22AC5F0A9E28B39FD297E2FFACD3A80379893032887CFD341823B29A28",
+          "clusterHash": "C6337486788B3103E3C2737C5C465A151569678B0F79EDBAF65D6409D1FDDCB4",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -695,6 +724,7 @@
           ],
           "steps": [
             {
+              "hash": "9A6077978162678FAB571475352B8B0AF63E6C2EED1A61094BCBDD35D8BDCCB2",
               "containerVariables": [],
               "envs": {},
               "extension": "@shell",
@@ -711,6 +741,7 @@
               ]
             },
             {
+              "hash": "9133AD23EB6E7EFB4A73F5C8A7084C6A815C421C8F44401D46F00CF291D0B491",
               "containerVariables": [],
               "envs": {},
               "extension": "@make",
@@ -752,6 +783,7 @@
       "targets": {
         "build": {
           "hash": "D01503395625DC5E32A127548D82D6EAEED44788E30DAB6D5DC574E47F8FDDA1",
+          "clusterHash": "368590893C4C4CB86F11CE435BED211B8E67BBAA776E88A26BA9786A25B48841",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -759,6 +791,7 @@
           "outputs": [],
           "steps": [
             {
+              "hash": "50D55A43B040D7588938348660FCC1E7DC7DE5F6B1BA6BBD75E552060D6FB2AC",
               "image": "openapitools/openapi-generator-cli:v7.10.0",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -806,6 +839,7 @@
       "targets": {
         "build": {
           "hash": "EA3577578C1E220B122DC610B236E1F1454D419144A195F754C3F527C62CF34D",
+          "clusterHash": "5F97E6095B871F9045214CFE08ABC4C8E778379ACCA4D34A94079C508D24D5C4",
           "batch": "single",
           "dependsOn": [
             "^build"
@@ -816,6 +850,7 @@
           ],
           "steps": [
             {
+              "hash": "72FA6B2BF806E80FDF3BFC4BFCC4CF397C740DCC43ACBD7CD4D0DABE6F22C85A",
               "image": "rust:1.81.0-slim",
               "platform": "linux/amd64",
               "containerVariables": [],
@@ -856,6 +891,7 @@
       "targets": {
         "test": {
           "hash": "3A622BD7DE31FF36DEB4D111EED40DA9989347E1C4357104BB4B212343E939A3",
+          "clusterHash": "7E353E272E8F3286607C89C806E14336C15B07A72D13193C02D31EC3B11DE9A9",
           "batch": "single",
           "dependsOn": [
             "build"
@@ -865,6 +901,7 @@
           ],
           "steps": [
             {
+              "hash": "F89A6D36576993F459C2C30C703CC644F6D9F7F3DE4C9915637C8E362E2250B9",
               "containerVariables": [],
               "envs": {},
               "extension": "@npm",
@@ -876,6 +913,7 @@
               ]
             },
             {
+              "hash": "26CAED596D284DAEE10025A87EE87FCFC06607A94726E7FE87348FF46DE8162A",
               "image": "mcr.microsoft.com/playwright:v1.54.0-noble",
               "containerVariables": [],
               "envs": {},

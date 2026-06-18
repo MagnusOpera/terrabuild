@@ -17,6 +17,7 @@ open GraphDef
 
 [<RequireQualifiedAccess>]
 type TargetStep = {
+    Hash: string
     Image: string option
     Platform: string option
     Cpus: int option
@@ -31,6 +32,7 @@ type TargetStep = {
 [<RequireQualifiedAccess>]
 type Target = {
     Hash: string
+    ClusterHash: string
     Build: BuildMode option
     Batch: BatchMode
     DependsOn: string set
@@ -684,7 +686,20 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                         |> Option.map (Map.map (fun _ -> Eval.valueToString << Eval.eval evaluationContext))
                         |> Option.defaultValue Map.empty
 
+                    let containerDeps =
+                        match image with
+                        | Some container ->
+                            let lstVariables = variables |> List.ofSeq |> List.sort
+                            let lstPlatform = platform |> Option.map (fun p -> [ p ]) |> Option.defaultValue []
+                            container :: lstVariables @ lstPlatform
+                        | _ -> []
+
+                    let targetStepHash =
+                        [ extensionName; step.Command ] @ containerDeps
+                        |> Hash.sha256strings
+
                     let targetContext = {
+                        TargetStep.Hash = targetStepHash
                         TargetStep.Image = image
                         TargetStep.Platform = platform
                         TargetStep.Cpus = cpus
@@ -737,8 +752,14 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Error error -> raiseParseError error
                 | _ -> BatchMode.Single
 
+            let clusterHash =
+                targetSteps
+                |> List.map (fun step -> step.Hash)
+                |> Hash.sha256strings
+
             let target =
                 { Target.Hash = buildDeclaredTargetHash target
+                  Target.ClusterHash = clusterHash
                   Target.Build = targetBuild
                   Target.Batch = targetBatch
                   Target.DependsOn = targetDependsOn

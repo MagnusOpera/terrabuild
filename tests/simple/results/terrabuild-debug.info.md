@@ -16,7 +16,9 @@ flowchart TD
 classDef build stroke:red,stroke-width:3px
 classDef restore stroke:orange,stroke-width:3px
 classDef ignore stroke:black,stroke-width:3px
-18EC023DB9537A3A95D4031414409CA1830DA7D462A4AF882E44C98B2A3FC40F("<b>build</b> 
+1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8("<b>build</b> 
+.")
+5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B("<b>build</b> 
 .")
 #pnpm#npm-app:build("<b>build npm_app</b> 
 projects/npm-app")
@@ -40,7 +42,8 @@ workspace/path#projects/rust-app:build("<b>build</b>
 projects/rust-app")
 workspace/path#tests/playwright:test("<b>test playwright_test</b> 
 tests/playwright")
-class 18EC023DB9537A3A95D4031414409CA1830DA7D462A4AF882E44C98B2A3FC40F ignore
+class 1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8 ignore
+class 5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B ignore
 #pnpm#npm-app:build --> #pnpm#npm-lib:build
 class #pnpm#npm-app:build ignore
 class #pnpm#npm-lib:build ignore
