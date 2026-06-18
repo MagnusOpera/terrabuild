@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.3-next]
+
+
 - Scope `terrabuild impact` commit-graph lookup by environment so preview and staging graphs for the same commit no longer overwrite each other.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.2-next...0.195.3-next
 
 ## [0.195.2-next]
 
