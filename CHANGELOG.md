@@ -3,7 +3,12 @@
 All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
+
+## [0.195.5-next]
+
 - Restore execution-specific batch clustering after the source-graph split so `run` avoids synthetic batch dependency cycles.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.4-next...0.195.5-next
 
 ## [0.195.4-next]
 
