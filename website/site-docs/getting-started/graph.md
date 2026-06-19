@@ -22,6 +22,27 @@ This graph structure enables Terrabuild to:
 - Skip building unchanged projects
 - Use cached artifacts when available
 
+## How Terrabuild Constructs the Graph
+
+Graph construction happens before any target command runs:
+
+1. Terrabuild reads `WORKSPACE` and `PROJECT` files.
+2. It builds the full graph for all configured project targets.
+3. It selects the requested targets and the dependencies reachable from them.
+4. It resolves extension commands, cacheability, outputs, hashes, and batch compatibility.
+5. It assigns each node an action: build, restore, or report a previous failed summary.
+6. It marks the required nodes and adds any valid batch nodes.
+7. The runner receives the final graph and starts executing only then.
+
+This means target dependencies, selected project filters, cache status, lazy targets, and batch constraints are all settled before execution begins.
+
+Dependency references are permissive by project:
+
+- `target.^build` adds the `build` target on upstream dependency projects that define it.
+- `target.build` adds the `build` target on the current project only when that project defines it.
+
+Circular target dependency chains are rejected during graph construction and reported with the cycle path.
+
 ## Example: How Projects Become a Graph
 
 The following example shows how multiple projects with dependencies become a build graph. Each project has its own `PROJECT` file, and dependencies are typically discovered automatically by Terrabuild's extensions (though you can also specify them explicitly).
@@ -134,9 +155,10 @@ The graph structure enables Terrabuild's core optimization: **only build what ch
 
 When you run a build:
 1. Terrabuild checks each node in the graph
-2. If a project's files or dependencies changed, that project needs building
-3. If nothing changed, the project can be restored from cache (see [Caching](/docs/getting-started/caching))
-4. Dependent projects are automatically marked for build if their dependencies changed
+2. If a node is forced, uncached, non-cacheable, or depends on a non-lazy node that must build, that node builds
+3. If a successful cache summary exists, the node can be restored from cache (see [Caching](/docs/getting-started/caching))
+4. If a failed cache summary exists, the failure is reported unless `--retry` is used
+5. Dependent projects are automatically marked for build if their dependencies changed
 
 This means:
 - **Most builds are fast** - Only changed projects are built

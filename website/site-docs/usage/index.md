@@ -27,7 +27,7 @@ SUBCOMMANDS:
 
 ## Command Pages
 
-- [run](./run): build or restore selected targets
+- [run](./run): build, restore, or report selected targets
 - [impact](./impact): compare the current graph with a base commit
 - [logs](./logs): read stored build logs
 - [serve](./serve): serve selected projects

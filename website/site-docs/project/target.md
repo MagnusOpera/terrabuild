@@ -23,16 +23,16 @@ target build {
 The following arguments are supported:
 
 * `identifier` - (Mandatory) Identifier of the target. This is the name used to reference the target when running `terrabuild run <target>`.
-* `depends_on` - (Optional) Override the `depends_on` value defined in [WORKSPACE](/docs/workspace/target#argument-reference) for this target. Use `depends_on = [...]` to declare the full dependency set for the project target.
+* `depends_on` - (Optional) Additional target references for this project target. Project-level dependencies are combined with workspace target dependencies for the same target. Use `target.^<name>` for upstream dependency projects and `target.<name>` for the same project. References only add targets that exist in the relevant project scope, and circular target dependency chains are reported during graph construction.
 * `outputs` - (Optional) Override default outputs for this target. By default, the value is the set of `outputs` from the project configuration and extensions used in the target. Specifies which files/directories should be cached as build artifacts.
 * `build` - (Optional) Override default build mode. By default, the target is built if the hash has changed (`~auto`). Possible values:
   * `~auto` - Build when changes are detected (default)
   * `~always` - Always build, ignoring cache
-  * `~lazy` - Build once only when needed by another node
-* `batch` - (Option) Override default batch mode. Extension must support batch mode to enable this feature. Possible values:
-  * `~single` - Build all affected nodes using a single batch (default)
+  * `~lazy` - Do not run as a selected root; build only when required by another node
+* `batch` - (Optional) Override default batch mode. Extension must support batch mode to enable this feature. Batching is applied only to required, compatible nodes in a cluster that contains at least one node that must build. Possible values:
+  * `~single` - Build all required compatible nodes in the cluster using a single batch (default)
   * `~never` - Build affected nodes without batching
-  * `~partition` - Create partitions for affected nodes and build each in its own batch
+  * `~partition` - Split compatible nodes into dependency-connected partitions and build each partition in its own batch
 * `artifacts` - (Optional) Override cacheability of the artifacts. By default, the value is the cacheability of the last command. Possible values:
   * `~none` - Do not cache artifacts
   * `~workspace` - Cache artifacts in workspace cache

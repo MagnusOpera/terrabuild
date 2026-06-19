@@ -4,6 +4,8 @@ title: impact
 
 `terrabuild impact` compares the current local graph with a graph previously stored for a base commit in Insights.
 
+The compared graph is the selected source graph after configuration and target selection, before extension command resolution, action assignment, cascading, batching, or command execution. This keeps impact focused on graph and configuration hash changes, not on the current cache state.
+
 ```text
 USAGE: terrabuild impact [--help] --base <sha> --out <path> [--workspace <path>]
                          [--configuration <name>] [--environment <name>]

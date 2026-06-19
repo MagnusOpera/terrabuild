@@ -56,6 +56,8 @@ Terrabuild uses target dependency syntax to describe execution order:
 - `target.^build`: run `build` for upstream dependency projects first
 - `target.build`: run `build` for the current project first
 
+Target references only create dependencies when the referenced target exists in the relevant project scope. Circular target dependency chains are invalid and are reported before commands run.
+
 ```hcl
 target build {
   depends_on = [ target.^build ]
@@ -66,11 +68,13 @@ target dist {
 }
 ```
 
-See [Workspace Target Block](/docs/workspace/target) for the reference form.
+Workspace target dependencies and project target dependencies are combined for the same target. See [Workspace Target Block](/docs/workspace/target) and [Project Target Block](/docs/project/target) for the reference form.
 
 ### Change Detection and Cache Keys
 
 Terrabuild hashes project files, dependency state, commands, and evaluated inputs to decide whether a task can be restored or must be built. Because the hash is deterministic, the same work can be reused across machines and branches when inputs match.
+
+A failed cached run is not restored as successful output. Terrabuild reports it as a summary unless you pass `--retry`, which makes the task build again.
 
 See [Caching](/docs/getting-started/caching) and [Tasks](/docs/getting-started/tasks).
 

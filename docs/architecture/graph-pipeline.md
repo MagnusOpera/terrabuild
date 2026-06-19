@@ -1,58 +1,120 @@
-
 # GraphPipeline
 
-The GraphPipeline coordinates the build process by sequencing several specialized components. Each component transforms the build graph, resolves dependencies, and determines execution strategy for efficient and correct builds.
+The graph pipeline turns workspace configuration into the executable graph that the runner consumes. Each phase has a narrow responsibility, and every phase runs before any target command is invoked.
 
 ```mermaid
 graph TD
-	A[Node.fs] --> B[Action.fs]
-	B --> C[Cascade.fs]
-	C --> D[Batch.fs]
+    A[Configuration.read] --> B[Node.fs]
+    B --> C[Selection.fs]
+    C --> D[Resolve.fs]
+    D --> E[Action.fs]
+    E --> F[Cascade.fs]
+    F --> G[Batch.fs]
+    G --> H[Runner.run]
 ```
+
+## Configuration.read
+
+Reads `WORKSPACE` and `PROJECT` files, expands selected projects and target definitions, evaluates expressions, and loads extension metadata. This phase produces the configuration model consumed by the graph pipeline.
 
 ## Node.fs
 
-Builds the initial dependency graph from the workspace configuration.  
-- Validates targets and projects.
-- Recursively creates nodes for each project and target, resolving all dependencies.
-- Discovers operations for each node using extension scripts.
-- Computes hashes for caching and clustering.
-- Initializes `Build` (defaults to `Always` when `--force` is set), and sets `Required = true` only for `BuildMode.Always`.
-- Produces the raw graph structure with nodes and root nodes (roots are nodes with no dependents).
+Builds the full source graph from configuration.
+
+- Validates that requested targets exist in `WORKSPACE`.
+- Creates one node per configured project target, before command operations are resolved.
+- Applies target dependency references:
+  - `target.^name` adds upstream dependency projects that define `name`.
+  - `target.name` adds the same-project target only when the project defines `name`.
+- Combines workspace-level and project-level target dependencies.
+- Detects circular target dependency chains and reports the chain as `Circular target dependency detected: ...`.
+- Initializes `Build` from `--force` or target configuration.
+- Sets `Required = true` only for `BuildMode.Always`.
+- Produces `RootNodes` from the full graph: nodes that no other full-graph node depends on.
+
+## Selection.fs
+
+Narrows the full graph to the selected execution scope.
+
+- Starts from `configuration.SelectedProjects` and the requested targets.
+- Keeps each selected root and all dependencies reachable from it.
+- Drops unrelated projects and targets before operation resolution.
+- Recomputes root nodes for the selected graph.
+
+This selected graph is the source graph used by run and impact. The web graph endpoint uses the same selected scope, then continues through resolve, action, cascade, and batch before rendering.
+
+## Resolve.fs
+
+Resolves operations and final cache inputs for each selected node.
+
+- Invokes extension scripts to get command operations.
+- Resolves command cacheability from extension metadata.
+- Marks a node non-batchable when any command says it is not batchable.
+- Computes the final target hash from project hash, target hash, resolved operations, and dependency target hashes.
+- Applies explicit target cache overrides.
+- Clears outputs when artifacts are not cacheable.
+- Sets `ClusterHash` only when the resolved command set is batchable.
 
 ## Action.fs
 
-Determines the `Action` for each node, using cache status and build options.  
-- Walks the dependency graph starting from `RootNodes`, waiting on dependency signals before computing each node.
-- Forces `Exec` when `BuildMode.Always` is set, or when any dependency is executing and not `BuildMode.Lazy` (upward cascade).
-- For cacheable nodes:
-  - `Retry` + failed summary -> `Exec`.
-  - Failed summary -> `Summary` (report failure without rebuilding).
-  - Successful summary -> `Restore`.
-  - No summary -> `Exec`.
-- For non-cacheable nodes -> `Exec`.
-- Recomputes `RootNodes` after actions are assigned to include only `Exec` nodes that are not `BuildMode.Lazy`.
+Determines each node action without running commands.
+
+- `Exec` when the node is forced by `--force` or `build = ~always`.
+- `Exec` when a dependency is executing and the dependency is not `build = ~lazy`.
+- `Exec` when the node is not cacheable.
+- `Exec` when no cache summary exists.
+- `Exec` for a failed cache summary when `--retry` is enabled.
+- `Summary` for a failed cache summary without `--retry`, so the previous failure is reported without executing or restoring outputs.
+- `Restore` for a successful cache summary.
+
+After actions are assigned, root nodes are recalculated from the selected roots:
+
+- `Exec` roots remain roots unless they are `build = ~lazy`.
+- `Summary` roots remain roots so selected failed cache entries are reported.
+- `Restore` roots are removed because successful cache hits do not need runner work unless required by a dependent.
 
 ## Cascade.fs
 
-Implements the cascading scheme for required nodes:
-- Recomputes `Required` by walking dependents (reverse edges).
-- A node is required if:
-  - It was already required (`BuildMode.Always`), or
-  - It is `Exec` and not `BuildMode.Lazy`, or
-  - Any dependent is required.
-- Nodes with `Action = Ignore` are not required.
-- Nodes with `Action = Restore` and `Artifacts = External` are not required unless a dependent requires them.
+Marks the nodes that the runner must visit.
+
+- A node remains required if it was already required by `BuildMode.Always`.
+- A node becomes required when it is `Exec` and not `BuildMode.Lazy`.
+- A node becomes required when any dependent is required.
+- `Ignore` nodes are not required.
+- `Restore` nodes with `Artifacts = External` are not required unless a dependent requires them.
 
 ## Batch.fs
 
-Groups related executable and required nodes into clusters for batch execution.  
-- Identifies batchable nodes based on configuration and script attributes.
-- Creates cluster nodes, ensuring operations are discovered via extension scripts.
-- Sets up batch contexts and cluster dependencies.
+Adds batch execution nodes after actions and required flags are known.
+
+- Considers only required nodes with a `ClusterHash`.
+- Creates batches only in clusters that contain at least one `Exec` node.
+- Requires more than one member in a batch candidate.
+- Groups `batch = ~single` nodes into one candidate per cluster.
+- Groups `batch = ~partition` nodes by connected components inside the cluster.
+- Excludes `batch = ~never` nodes from batch candidates.
+- Skips a candidate if adding the batch node would create an external dependency cycle.
+- Creates a synthetic batch node with `BatchContext` and records the original member nodes for runner scheduling and logging.
+
+## Debug outputs
+
+When `--debug` is enabled, the run command writes the graph after the important construction stages:
+
+- `terrabuild-debug.options.json`
+- `terrabuild-debug.config.json`
+- `terrabuild-debug.full-node.json`: full graph before selection
+- `terrabuild-debug.node.json`: selected source graph
+- `terrabuild-debug.resolve.json`: resolved operations, hashes, cache mode, and cluster hash
+- `terrabuild-debug.action.json`: assigned actions
+- `terrabuild-debug.cascade.json`: required flags after cascade
+- `terrabuild-debug.batch.json`: final graph before the runner
+- `terrabuild-debug.info.md`
 
 ## Edge cases
 
-- `Summary` or `Restore` nodes only run if they are required by a dependent (or were pre-marked required); otherwise they are skipped in the runner.
-- A node with `BuildMode.Lazy` never becomes required unless a dependent requires it.
-- `Restore` nodes with `Artifacts = External` are treated as not required unless a dependent requires them.
+- Lazy roots do not run just because they are selected; they run only when required by a dependent.
+- Failed cached selected roots remain runner roots as `Summary`, so failures are reported correctly.
+- Successful restore roots are skipped unless a dependent requires them.
+- External restore nodes are skipped unless a dependent requires them.
+- Missing target references are permissive inside dependency expansion: `target.name` and `target.^name` add only targets that exist in the relevant project scope.
+- Circular target dependency chains are invalid and reported during graph construction.

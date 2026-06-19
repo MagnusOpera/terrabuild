@@ -57,9 +57,9 @@ Caches are invalidated (and tasks built) when:
 - `--force` flag is used
 - `build = ~always` is set on a target
 
-## Build vs Restore Decision
+## Build, Restore, or Summary Decision
 
-For each task, Terrabuild decides whether to **Build** (execute commands) or **Restore** (recover from cache):
+For each task, Terrabuild decides whether to **Build** (execute commands), **Restore** (recover from cache), or **Summary** (report a previous failed cached run):
 
 ```mermaid
 flowchart LR
@@ -67,49 +67,55 @@ flowchart LR
 classDef start fill:black
 classDef build stroke-width:4px,stroke:black,fill:white
 classDef restore stroke-width:4px,stroke:black,fill:white
+classDef summary stroke-width:4px,stroke:black,fill:white
 classDef decision stroke:black
 
 start((" "))
 
 force(Force ?)
-cache(In cache ?)
 dependency(Dependency built ?)
+cacheable(Cacheable ?)
+cache(Cache summary ?)
 retry(Retry ?)
-failed(Failed ?)
 
 restore((Restore))
 build((Build))
+summary((Summary))
 
 start --> force
 
 force -- yes --> build
-force -- no --> cache
-
-cache -- yes --> dependency
-cache -- no --> build
+force -- no --> dependency
 
 dependency -- yes --> build
-dependency -- no --> retry
+dependency -- no --> cacheable
 
-retry -- no --> restore
-retry -- yes --> failed
+cacheable -- no --> build
+cacheable -- yes --> cache
 
-failed -- no --> restore
-failed -- yes --> build
+cache -- missing --> build
+cache -- success --> restore
+cache -- failed --> retry
+
+retry -- yes --> build
+retry -- no --> summary
 
 class start start
 class build build
 class restore restore
-class force,cache,dependency,retry,failed decision
+class summary summary
+class force,cacheable,cache,dependency,retry decision
 ```
 
 | Condition | Description |
 |-----------|-------------|
-| `Force` | either `--force` or `build` (target) enabled |
-| `In cache` | target is available in cache |
-| `Dependency built` | a dependency must build |
-| `Retry` | `--retry` enabled |
-| `Failed` | previous build has failed |
+| `Force` | Either `--force` or `build = ~always` is enabled |
+| `Dependency built` | A non-lazy dependency must build |
+| `Cacheable` | The target has cacheable artifacts |
+| `Cache summary` | Existing cache metadata is missing, successful, or failed |
+| `Retry` | `--retry` is enabled for a failed cache summary |
+
+Successful cache summaries restore outputs. Failed cache summaries report the previous failure as `Summary` unless `--retry` is used, in which case the task builds again.
 
 ## Optimizing Cache Usage
 
@@ -122,4 +128,4 @@ To maximize cache hits:
 
 ## How This All Fits Together
 
-The graph structure you learned about earlier enables this caching system. When Terrabuild builds the graph, it can check each node's cache key and decide whether to build or restore. This is why most builds are fast—most projects haven't changed.
+The graph structure you learned about earlier enables this caching system. When Terrabuild builds the graph, it can check each node's cache key and decide whether to build, restore, or report a previous failed summary. This is why most builds are fast - most projects have not changed.

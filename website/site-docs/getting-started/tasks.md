@@ -11,7 +11,7 @@ Now that you understand the [build graph](/docs/getting-started/graph) and [cach
 
 A **task** is a concrete execution unit: "build the `build` target for project X". When you run `terrabuild run build`, Terrabuild creates tasks for each project that defines a `build` target. These tasks become nodes in the build graph.
 
-For each task, Terrabuild must decide: **Build** (execute commands) or **Restore** (recover from cache)?
+For each task, Terrabuild must decide: **Build** (execute commands), **Restore** (recover from cache), or **Summary** (report a previous failed cached run).
 
 ## How Tasks Use Caching
 
@@ -32,56 +32,68 @@ flowchart LR
 classDef start fill:black
 classDef build stroke-width:4px,stroke:black,fill:white
 classDef restore stroke-width:4px,stroke:black,fill:white
+classDef summary stroke-width:4px,stroke:black,fill:white
 classDef decision stroke:black
 
 start((" "))
 
 force(Force ?)
-cache(In cache ?)
 dependency(Dependency built ?)
+cacheable(Cacheable ?)
+cache(Cache summary ?)
 retry(Retry ?)
-failed(Failed ?)
 
 restore((Restore))
 build((Build))
+summary((Summary))
 
 start --> force
 
 force -- yes --> build
-force -- no --> cache
-
-cache -- yes --> dependency
-cache -- no --> build
+force -- no --> dependency
 
 dependency -- yes --> build
-dependency -- no --> retry
+dependency -- no --> cacheable
 
-retry -- no --> restore
-retry -- yes --> failed
+cacheable -- no --> build
+cacheable -- yes --> cache
 
-failed -- no --> restore
-failed -- yes --> build
+cache -- missing --> build
+cache -- success --> restore
+cache -- failed --> retry
+
+retry -- yes --> build
+retry -- no --> summary
 
 class start start
 class build build
 class restore restore
-class force,cache,dependency,retry,failed decision
+class summary summary
+class force,cacheable,cache,dependency,retry decision
 ```
 
 | Condition | Description |
 |-----------|-------------|
-| `Force` | either `--force` or `build` (target) enabled |
-| `In cache` | target is available in cache |
-| `Dependency built` | a dependency must build |
-| `Retry` | `--retry` enabled |
-| `Failed` | previous build has failed |
+| `Force` | Either `--force` or `build = ~always` is enabled |
+| `Dependency built` | A non-lazy dependency must build |
+| `Cacheable` | The target has cacheable artifacts |
+| `Cache summary` | Existing cache metadata is missing, successful, or failed |
+| `Retry` | `--retry` is enabled for a failed cache summary |
+
+The resulting actions are:
+
+| Action | Description |
+|--------|-------------|
+| `Build` | Execute the target commands |
+| `Restore` | Restore a successful cache hit |
+| `Summary` | Report a previous failed cached run without executing commands or restoring outputs |
 
 ## Task Execution Flow
 
-1. **Decision Made** - Based on the decision tree above, Terrabuild chooses Build or Restore
+1. **Decision Made** - Based on the decision tree above, Terrabuild chooses Build, Restore, or Summary
 2. **Execution** - If building, commands run in sequence (or in parallel for independent tasks)
 3. **Cache Update** - Results are stored in local cache, and optionally uploaded to Insights for sharing
 
-**Important**: If a task is built (not restored), all dependent tasks in the graph are automatically marked for build. This ensures the graph stays consistent—if a library changes, apps using it are built.
+**Important**: If a task is built (not restored), dependent tasks in the graph are automatically marked for build unless the built task is `build = ~lazy`. This ensures the graph stays consistent when a dependency changes, while still allowing lazy setup targets to run only when another required target needs them.
 
 This is how the graph, caching, and task execution work together to give you fast, correct builds.

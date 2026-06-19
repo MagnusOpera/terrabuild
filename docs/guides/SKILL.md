@@ -75,11 +75,14 @@ terrabuild run build --debug --log --force
 
 Useful generated files:
 
+- `terrabuild-debug.options.json`
 - `terrabuild-debug.config.json`
+- `terrabuild-debug.full-node.json`
 - `terrabuild-debug.node.json`
+- `terrabuild-debug.resolve.json`
 - `terrabuild-debug.action.json`
-- `terrabuild-debug.batch.json`
 - `terrabuild-debug.cascade.json`
+- `terrabuild-debug.batch.json`
 - `terrabuild-debug.info.md`
 
 ## Workspace Usage Tips

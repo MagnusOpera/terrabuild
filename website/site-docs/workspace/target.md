@@ -13,6 +13,10 @@ The `depends_on` attribute uses target references:
 - `target.^<name>`: require the target on upstream dependency projects
 - `target.<name>`: require the target on the current project
 
+References only add targets that exist in the relevant project scope. For example, `target.^build` adds `build` only for upstream dependency projects that define a `build` target, and `target.dist` adds the same-project `dist` target only when the current project defines it.
+
+Circular target dependency chains are invalid. Terrabuild detects them during graph construction and reports the cycle path before any commands run.
+
 Typical pattern:
 
 ```hcl
@@ -94,11 +98,11 @@ The following arguments are supported:
 * `build` - (Optional) Override default build mode. By default, the target is built if the hash has changed (`~auto`). Possible values:
   * `~auto` - Build when changes are detected (default)
   * `~always` - Always build, ignoring cache
-  * `~lazy` - Build once only when needed by another node
-* `batch` - (Option) Override default batch mode. Extension must support batch mode to enable this feature. Possible values:
-  * `~single` - Build all affected nodes using a single batch (default)
+  * `~lazy` - Do not run as a selected root; build only when required by another node
+* `batch` - (Optional) Override default batch mode. Extension must support batch mode to enable this feature. Batching is applied only to required, compatible nodes in a cluster that contains at least one node that must build. Possible values:
+  * `~single` - Build all required compatible nodes in the cluster using a single batch (default)
   * `~never` - Build affected nodes without batching
-  * `~partition` - Create partitions for affected nodes and build each in its own batch
+  * `~partition` - Split compatible nodes into dependency-connected partitions and build each partition in its own batch
 * `artifacts` - (Optional) Override cacheability of the artifacts. By default, the value is the cacheability of the last command. Possible values:
   * `~none` - Do not cache artifacts
   * `~workspace` - Cache artifacts in workspace cache
