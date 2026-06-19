@@ -101,45 +101,84 @@ type private NoopCache() =
         member _.TryGetSummary _useRemote _id = None
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
 
-type private SummaryCache(summaryIds: string set) =
-    let summary =
-        { Cache.TargetSummary.Project = "."
-          Cache.TargetSummary.Target = "build"
-          Cache.TargetSummary.Operations = []
-          Cache.TargetSummary.Outputs = None
-          Cache.TargetSummary.IsSuccessful = true
-          Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
-          Cache.TargetSummary.EndedAt = DateTime.UtcNow
-          Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
-          Cache.TargetSummary.Cache = ArtifactMode.Workspace }
+let private buildTargetSummary isSuccessful =
+    { Cache.TargetSummary.Project = "."
+      Cache.TargetSummary.Target = "build"
+      Cache.TargetSummary.Operations = []
+      Cache.TargetSummary.Outputs = None
+      Cache.TargetSummary.IsSuccessful = isSuccessful
+      Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+      Cache.TargetSummary.EndedAt = DateTime.UtcNow
+      Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+      Cache.TargetSummary.Cache = ArtifactMode.Workspace }
+
+type private SummaryCache(summaries: Map<string, Cache.TargetSummary>) =
 
     interface Cache.ICache with
         member _.TryGetSummaryOnly _useRemote id =
-            if summaryIds |> Set.contains id then Some (Cache.Origin.Local, summary)
-            else None
+            summaries
+            |> Map.tryFind id
+            |> Option.map (fun summary -> Cache.Origin.Local, summary)
 
         member _.TryGetSummary _useRemote id =
-            if summaryIds |> Set.contains id then Some summary
-            else None
+            summaries |> Map.tryFind id
 
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
 
-let private runPipeline options =
-    let options, config = Configuration.read options
-    let graphNode = GraphPipeline.Node.build options config
-    let graphResolve = GraphPipeline.Resolve.build options config graphNode
-    let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphResolve
-    let graphBatch = GraphPipeline.Batch.build options config graphAction
-    options, config, graphNode, graphResolve, graphAction, graphBatch
+let private successCache summaryIds =
+    summaryIds
+    |> Seq.map (fun id -> id, buildTargetSummary true)
+    |> Map.ofSeq
+    |> fun summaries -> SummaryCache(summaries) :> Cache.ICache
 
-let private assertKnownErrorContains (expected: string) action =
+let private failedCache summaryIds =
+    summaryIds
+    |> Seq.map (fun id -> id, buildTargetSummary false)
+    |> Map.ofSeq
+    |> fun summaries -> SummaryCache(summaries) :> Cache.ICache
+
+type private PipelineStages =
+    { Options: ConfigOptions.Options
+      Config: Configuration.Workspace
+      FullGraph: Graph
+      SourceGraph: Graph
+      ResolvedGraph: Graph
+      ActionGraph: Graph
+      CascadedGraph: Graph
+      FinalGraph: Graph }
+
+let private runPipelineWithCache (cache: Cache.ICache) options =
+    let options, config = Configuration.read options
+    let fullGraph = GraphPipeline.Node.build options config
+    let sourceGraph = GraphPipeline.Selection.build options config fullGraph
+    let resolvedGraph = GraphPipeline.Resolve.build options config sourceGraph
+    let actionGraph = GraphPipeline.Action.build options cache resolvedGraph
+    let cascadedGraph = GraphPipeline.Cascade.build actionGraph
+    let finalGraph = GraphPipeline.Batch.build options config cascadedGraph
+    { Options = options
+      Config = config
+      FullGraph = fullGraph
+      SourceGraph = sourceGraph
+      ResolvedGraph = resolvedGraph
+      ActionGraph = actionGraph
+      CascadedGraph = cascadedGraph
+      FinalGraph = finalGraph }
+
+let private runPipeline options =
+    runPipelineWithCache (NoopCache() :> Cache.ICache) options
+
+let private assertKnownErrorContainsAll (expectedMessages: string list) action =
     try
         action()
         Assert.Fail("Expected TerrabuildException")
     with
     | :? TerrabuildException as ex ->
         let dumped = ex |> dumpKnownException |> String.concat "\n"
-        dumped.Contains(expected) |> should equal true
+        expectedMessages
+        |> List.iter (fun expected -> Assert.That(dumped, Does.Contain(expected)))
+
+let private assertKnownErrorContains (expected: string) action =
+    assertKnownErrorContainsAll [ expected ] action
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =
@@ -165,12 +204,121 @@ target build {
 """
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, graphNode, _, _, graphBatch = runPipeline options
+        let stages = runPipeline options
 
-        graphNode.Nodes.Count |> should equal 2
-        graphNode.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
-        graphBatch.Batches.Count |> should equal 0
-        graphBatch.Nodes.Count |> should equal graphNode.Nodes.Count)
+        stages.FullGraph.Nodes.Count |> should equal 2
+        stages.FullGraph.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
+        stages.FinalGraph.Batches.Count |> should equal 0
+        stages.FinalGraph.Nodes.Count |> should equal stages.FullGraph.Nodes.Count)
+
+[<Test>]
+let ``Configuration pipeline applies project selection before resolving actions`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = "app" }
+}
+"""
+        writeFile workspace "libs/lib/PROJECT" """
+project lib { @shell {} }
+target build {
+  @shell echo { args = "lib" }
+}
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Projects = Some (Set [ "app" ]) }
+
+        let stages = runPipeline options
+        let appNodeId = "workspace/path#apps/app:build"
+        let libNodeId = "workspace/path#libs/lib:build"
+        let selectedNodeIds = Set [ appNodeId ]
+        let ids (graph: Graph) = graph.Nodes |> Map.keys |> Set.ofSeq
+
+        stages.Config.SelectedProjects |> should equal (Set [ "workspace/path#apps/app" ])
+        ids stages.FullGraph |> should equal (Set [ appNodeId; libNodeId ])
+        ids stages.SourceGraph |> should equal selectedNodeIds
+        ids stages.ResolvedGraph |> should equal selectedNodeIds
+        ids stages.ActionGraph |> should equal selectedNodeIds
+        ids stages.CascadedGraph |> should equal selectedNodeIds
+        ids stages.FinalGraph |> should equal selectedNodeIds
+        stages.FinalGraph.Nodes[appNodeId].Operations.Head.Arguments |> should equal "app")
+
+[<Test>]
+let ``Graph node stage expands current and upstream target dependencies`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target gen {}
+
+target build {
+  depends_on = [ target.gen
+                 target.^build ]
+}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app {
+  depends_on = [ project.lib ]
+  @shell {}
+}
+target gen {
+  @shell echo { args = "gen" }
+}
+target build {
+  @shell echo { args = "app" }
+}
+"""
+        writeFile workspace "libs/lib/PROJECT" """
+project lib { @shell {} }
+target build {
+  @shell echo { args = "lib" }
+}
+"""
+
+        let stages = runPipeline (baseOptions workspace (Set [ "build" ]))
+        let appBuild = "workspace/path#apps/app:build"
+        let appGen = "workspace/path#apps/app:gen"
+        let libBuild = "workspace/path#libs/lib:build"
+
+        stages.FullGraph.Nodes[appBuild].Dependencies |> should equal (Set [ appGen; libBuild ])
+        stages.FullGraph.Nodes[appGen].Dependencies |> should equal Set.empty<string>
+        stages.FullGraph.Nodes[libBuild].Dependencies |> should equal Set.empty<string>
+        stages.FullGraph.RootNodes |> should equal (Set [ appBuild ]))
+
+[<Test>]
+let ``Resolve stage honors explicit artifact mode and clears non-cacheable outputs`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  artifacts = ~none
+  outputs = [ "dist/" ]
+}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = "build" }
+}
+"""
+
+        let stages = runPipeline (baseOptions workspace (Set [ "build" ]))
+        let node = stages.ResolvedGraph.Nodes["workspace/path#apps/app:build"]
+
+        node.Operations.Length |> should equal 1
+        node.Operations.Head.MetaCommand |> should equal "@shell echo"
+        node.Artifacts |> should equal ArtifactMode.None
+        node.Outputs |> should equal Set.empty<string>
+        node.ClusterHash |> should equal None)
 
 [<Test>]
 let ``Configuration pipeline includes repository in project hash`` () =
@@ -196,10 +344,10 @@ target build {
             { baseOptions workspace (Set [ "build" ]) with
                 ConfigOptions.Options.Repository = "acme/repo-b" }
 
-        let _, _, firstGraphNode, _, _, _ = runPipeline firstOptions
-        let _, _, secondGraphNode, _, _, _ = runPipeline secondOptions
-        let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
-        let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
+        let firstStages = runPipeline firstOptions
+        let secondStages = runPipeline secondOptions
+        let firstNode = firstStages.FullGraph.Nodes["workspace/path#src/a:build"]
+        let secondNode = secondStages.FullGraph.Nodes["workspace/path#src/a:build"]
 
         firstNode.ProjectHash = secondNode.ProjectHash |> should equal false)
 
@@ -227,10 +375,10 @@ target build {
             { baseOptions workspace (Set [ "build" ]) with
                 ConfigOptions.Options.Repository = "acme/repo" }
 
-        let _, _, firstGraphNode, _, _, _ = runPipeline firstOptions
-        let _, _, secondGraphNode, _, _, _ = runPipeline secondOptions
-        let firstNode = firstGraphNode.Nodes["workspace/path#src/a:build"]
-        let secondNode = secondGraphNode.Nodes["workspace/path#src/a:build"]
+        let firstStages = runPipeline firstOptions
+        let secondStages = runPipeline secondOptions
+        let firstNode = firstStages.FullGraph.Nodes["workspace/path#src/a:build"]
+        let secondNode = secondStages.FullGraph.Nodes["workspace/path#src/a:build"]
 
         firstNode.ProjectHash |> should equal secondNode.ProjectHash)
 
@@ -272,11 +420,11 @@ target build {
         writeDotnetProject workspace "src/c" "c" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, _, _, _, graphBatch = runPipeline options
+        let stages = runPipeline options
 
-        graphBatch.Batches.Count |> should equal 0
-        graphBatch.Nodes.Count |> should equal 3
-        graphBatch.Nodes |> Map.values |> Seq.forall (fun node -> node.Operations.Head.Arguments.Contains(".slnx") |> not) |> should equal true)
+        stages.FinalGraph.Batches.Count |> should equal 0
+        stages.FinalGraph.Nodes.Count |> should equal 3
+        stages.FinalGraph.Nodes |> Map.values |> Seq.forall (fun node -> node.Operations.Head.Arguments.Contains(".slnx") |> not) |> should equal true)
 
 [<Test>]
 let ``Configuration pipeline resolves project map lookups for current project version`` () =
@@ -294,8 +442,8 @@ target build {
 """
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, _, graphResolve, _, _ = runPipeline options
-        let node = graphResolve.Nodes["workspace/path#src/a:build"]
+        let stages = runPipeline options
+        let node = stages.ResolvedGraph.Nodes["workspace/path#src/a:build"]
 
         node.Operations.Head.Arguments |> should equal node.ProjectHash)
 
@@ -334,12 +482,12 @@ target build {
         writeDotnetProject workspace "src/c" "c" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, _, _, _, graphBatch = runPipeline options
+        let stages = runPipeline options
 
-        graphBatch.Batches.Count |> should equal 1
-        let (batchId, members) = graphBatch.Batches |> Seq.head |> (|KeyValue|)
+        stages.FinalGraph.Batches.Count |> should equal 1
+        let (batchId, members) = stages.FinalGraph.Batches |> Seq.head |> (|KeyValue|)
         members |> should equal (Set [ "workspace/path#src/a:build"; "workspace/path#src/b:build"; "workspace/path#src/c:build" ])
-        let batchNode = graphBatch.Nodes[batchId]
+        let batchNode = stages.FinalGraph.Nodes[batchId]
         batchNode.Operations.Head.Arguments.Contains(".slnx") |> should equal true)
 
 [<Test>]
@@ -377,11 +525,11 @@ target build {
         writeDotnetProject workspace "src/b" "b" []
 
         let options = baseOptions workspace (Set [ "build" ])
-        let _, _, graphNode, graphResolve, _, graphBatch = runPipeline options
+        let stages = runPipeline options
 
-        graphNode.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
-        graphResolve.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
-        graphBatch.Batches.Count |> should equal 0)
+        stages.FullGraph.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
+        stages.ResolvedGraph.Nodes |> Map.values |> Seq.forall (fun node -> node.ClusterHash.IsNone) |> should equal true
+        stages.FinalGraph.Batches.Count |> should equal 0)
 
 [<Test>]
 let ``Configuration read fails on invalid batch value`` () =
@@ -404,6 +552,27 @@ target build {
         assertKnownErrorContains "invalid" (fun () -> Configuration.read options |> ignore))
 
 [<Test>]
+let ``Configuration read reports undefined extension with project context`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a {}
+target build {
+  @missing run {}
+}
+"""
+
+        let options = baseOptions workspace (Set [ "build" ])
+        assertKnownErrorContainsAll
+            [ "Error while parsing project 'src/a'"
+              "Extension @missing is not defined" ]
+            (fun () -> Configuration.read options |> ignore))
+
+[<Test>]
 let ``Graph node build fails when target is not defined in workspace`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
@@ -424,6 +593,37 @@ target build {
         let options, config = Configuration.read options
         (fun () -> GraphPipeline.Node.build options config |> ignore)
         |> should (throwWithMessage "Target unknown is not defined in WORKSPACE") typeof<TerrabuildException>)
+
+[<Test>]
+let ``Graph node build reports circular target dependencies`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  depends_on = [ target.test ]
+}
+
+target test {
+  depends_on = [ target.build ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { args = "build" }
+}
+target test {
+  @shell echo { args = "test" }
+}
+"""
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let options, config = Configuration.read options
+
+        assertKnownErrorContains
+            "Circular target dependency detected: workspace/path#src/a:build -> workspace/path#src/a:test -> workspace/path#src/a:build"
+            (fun () -> GraphPipeline.Node.build options config |> ignore))
 
 [<Test>]
 let ``Action pipeline excludes cached selected roots from runnable roots`` () =
@@ -454,17 +654,44 @@ target build {
 """
 
         let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
-        let options, config = Configuration.read options
-        let graphNode = GraphPipeline.Node.build options config
-        let graphResolve = GraphPipeline.Resolve.build options config graphNode
-        let buildNode = graphResolve.Nodes["workspace/path#src/a:build"]
-        let genNode = graphResolve.Nodes["workspace/path#src/a:gen"]
+        let uncachedStages = runPipeline options
+        let buildNode = uncachedStages.ResolvedGraph.Nodes["workspace/path#src/a:build"]
+        let genNode = uncachedStages.ResolvedGraph.Nodes["workspace/path#src/a:gen"]
         let cachedIds = Set [ GraphDef.buildCacheKey buildNode; GraphDef.buildCacheKey genNode ]
-        let graphAction = GraphPipeline.Action.build options (SummaryCache(cachedIds) :> Cache.ICache) graphResolve
+        let stages = runPipelineWithCache (successCache cachedIds) options
 
-        graphAction.RootNodes |> should equal Set.empty<string>
-        graphAction.Nodes[buildNode.Id].Action |> should equal RunAction.Restore
-        graphAction.Nodes[genNode.Id].Action |> should equal RunAction.Restore)
+        stages.ActionGraph.RootNodes |> should equal Set.empty<string>
+        stages.ActionGraph.Nodes[buildNode.Id].Action |> should equal RunAction.Restore
+        stages.ActionGraph.Nodes[genNode.Id].Action |> should equal RunAction.Restore)
+
+[<Test>]
+let ``Action pipeline keeps failed cached selected roots schedulable as summaries`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  outputs = []
+  artifacts = ~workspace
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { args = "build" }
+}
+"""
+
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let uncachedStages = runPipeline options
+        let node = uncachedStages.ResolvedGraph.Nodes["workspace/path#src/a:build"]
+        let cache = failedCache (Set [ GraphDef.buildCacheKey node ])
+        let stages = runPipelineWithCache cache options
+
+        stages.ActionGraph.Nodes[node.Id].Action |> should equal RunAction.Summary
+        stages.ActionGraph.RootNodes |> should equal (Set [ node.Id ])
+        stages.CascadedGraph.RootNodes |> should equal (Set [ node.Id ])
+        stages.FinalGraph.RootNodes |> should equal (Set [ node.Id ]))
 
 [<Test>]
 let ``Action pipeline excludes selected lazy roots when they must execute`` () =
@@ -486,11 +713,8 @@ target gen {
 """
 
         let options = { baseOptions workspace (Set [ "gen" ]) with Force = false }
-        let options, config = Configuration.read options
-        let graphNode = GraphPipeline.Node.build options config
-        let graphResolve = GraphPipeline.Resolve.build options config graphNode
-        let graphAction = GraphPipeline.Action.build options (NoopCache() :> Cache.ICache) graphResolve
-        let genNode = graphAction.Nodes["workspace/path#src/a:gen"]
+        let stages = runPipeline options
+        let genNode = stages.ActionGraph.Nodes["workspace/path#src/a:gen"]
 
         genNode.Action |> should equal RunAction.Exec
-        graphAction.RootNodes |> should equal Set.empty<string>)
+        stages.ActionGraph.RootNodes |> should equal Set.empty<string>)

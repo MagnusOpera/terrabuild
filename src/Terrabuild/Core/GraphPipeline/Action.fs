@@ -92,7 +92,10 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         graph.RootNodes
         |> Set.filter (fun nodeId ->
             let node = nodes[nodeId]
-            node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
+            match node.Action with
+            | RunAction.Exec -> node.Build <> BuildMode.Lazy
+            | RunAction.Summary -> true
+            | _ -> false)
 
     let graph =
         { graph with

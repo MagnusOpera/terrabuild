@@ -9,10 +9,14 @@ open GraphDef
 
 
 // build the high-level graph from configuration
+type private VisitState =
+    | Visiting
+    | Visited
+
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) =
     let startedAt = DateTime.UtcNow
     let allNodes = Dictionary<string, Node>()
-    let processedNodes = Dictionary<string, bool>()
+    let nodeStates = Dictionary<string, VisitState>()
 
     // first check all targets exist in WORKSPACE
     match options.Targets |> Seq.tryFind (fun targetName -> configuration.Targets |> Map.containsKey targetName |> not) with
@@ -59,18 +63,31 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         )
         |> Set.ofSeq
 
-    let rec buildNode project target =
+    let rec buildNode path project target =
         let projectConfig = configuration.Projects[project]
         let targetConfig = projectConfig.Targets[target]
         let nodeId = $"{project}:{target}"
 
+        let raiseCircularDependency () =
+            let chain = path |> List.rev
+            let cycle =
+                match chain |> List.tryFindIndex ((=) nodeId) with
+                | Some index -> (chain |> List.skip index) @ [ nodeId ]
+                | None -> chain @ [ nodeId ]
+            cycle
+            |> String.join " -> "
+            |> sprintf "Circular target dependency detected: %s"
+            |> raiseInvalidArg
+
         let processNode() =
+            nodeStates[nodeId] <- Visiting
+
             let allDeps = buildDependencies projectConfig project target
             let children = allDeps |> Set.map (fun (project, target) -> $"{project}:{target}")
 
             // ensure children exist
             for (project, target) in allDeps do
-                buildNode project target
+                buildNode (nodeId :: path) project target
 
             let targetContent = [
                 yield projectConfig.Hash
@@ -111,14 +128,18 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             Log.Debug("Node '{NodeId}' has key '{Key}'", nodeId, buildCacheKey node)
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
+            nodeStates[nodeId] <- Visited
   
-        if processedNodes.TryAdd(nodeId, true) then processNode()
+        match nodeStates.TryGetValue nodeId with
+        | true, Visited -> ()
+        | true, Visiting -> raiseCircularDependency()
+        | _ -> processNode()
 
     configuration.Projects
     |> Map.iter (fun projectId projectConfig ->
         projectConfig.Targets
         |> Map.keys
-        |> Seq.iter (fun target -> buildNode projectId target))
+        |> Seq.iter (fun target -> buildNode [] projectId target))
 
     let rootNodes =
         let allNodeIds = allNodes.Keys |> Set

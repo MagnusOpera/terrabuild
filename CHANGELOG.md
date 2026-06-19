@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add graph pipeline construction coverage from configuration through batching, and tighten construction error handling for target cycles, failed cached summaries, and web graph project selection.
+
 ## [0.195.5-next]
 
 - Restore execution-specific batch clustering after the source-graph split so `run` avoids synthetic batch dependency cycles.
