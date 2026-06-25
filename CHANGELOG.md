@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Upgrade embedded FScript runtime/language packages to `0.75.0`.
+- Harden tar extraction for cache archives by skipping root pseudo-entries and rejecting paths that escape the extraction directory.
 
 ## [0.195.6-next]
 
