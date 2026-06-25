@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade embedded FScript runtime/language packages to `0.75.0`.
+
 ## [0.195.6-next]
 
 
