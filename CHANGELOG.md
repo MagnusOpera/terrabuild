@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.7-next]
+
+
 - Upgrade embedded FScript runtime/language packages to `0.75.0`.
 - Harden tar extraction for cache archives by skipping root pseudo-entries and rejecting paths that escape the extraction directory.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.6-next...0.195.7-next
 
 ## [0.195.6-next]
 
