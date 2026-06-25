@@ -171,7 +171,6 @@ module private Build =
     type CommitGraphOutput =
         { Repository: string
           Commit: string
-          Environment: string
           GraphHash: string
           Nodes: BuildGraphNodeInput list }
 

@@ -6,6 +6,7 @@ All notable changes to Terrabuild are documented in this file.
 
 - Add graph pipeline construction coverage from configuration through batching, and tighten construction error handling for target cycles, failed cached summaries, and web graph project selection.
 - Align architecture and website documentation with the current graph construction pipeline, target dependency constraints, lazy and summary actions, impact scope, and batch requirements.
+- Remove unused Environment from CommitGraphOutput.
 
 ## [0.195.5-next]
 
