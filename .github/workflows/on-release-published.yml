@@ -100,7 +100,22 @@ jobs:
 
       - name: Sign Binaries
         run: |
-          codesign --force --timestamp --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" .out/darwin/arm64/terrabuild --options=runtime --no-strict --entitlements .out/darwin/entitlements.plist
+          expected_identifier="io.magnusopera.terrabuild.arm64"
+          codesign \
+            --force \
+            --timestamp \
+            --options=runtime \
+            --no-strict \
+            --entitlements .out/darwin/entitlements.plist \
+            --identifier "$expected_identifier" \
+            --sign "Developer ID Application: Magnus Opera (${{ secrets.MAC_DEV_TEAM_ID }})" \
+            .out/darwin/arm64/terrabuild
+          codesign --verify --verbose=4 .out/darwin/arm64/terrabuild
+          actual_identifier="$(codesign -dv --verbose=4 .out/darwin/arm64/terrabuild 2>&1 | sed -n 's/^Identifier=//p')"
+          if [ "$actual_identifier" != "$expected_identifier" ]; then
+            echo "Expected codesign identifier '$expected_identifier' but found '$actual_identifier'" >&2
+            exit 1
+          fi
           (cd .out/darwin/arm64; zip ../terrabuild-${{ github.ref_name }}-darwin-arm64.zip ./*)
 
       - name: Notarize arm64
