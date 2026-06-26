@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.8-next]
+
+
 - Fix macOS release signing to use the explicit arm64 code-signing identifier `io.magnusopera.terrabuild.arm64`.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.7-next...0.195.8-next
 
 ## [0.195.7-next]
 
