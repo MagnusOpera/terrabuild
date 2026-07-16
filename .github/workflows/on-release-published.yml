@@ -119,15 +119,53 @@ jobs:
           (cd .out/darwin/arm64; zip ../terrabuild-${{ github.ref_name }}-darwin-arm64.zip ./*)
 
       - name: Notarize arm64
-        uses: GuillaumeFalourd/notary-tools@v1
         timeout-minutes: 5
-        with:
-          product_path: ".out/darwin/terrabuild-${{github.ref_name}}-darwin-arm64.zip"
-          apple_id: ${{ secrets.MAC_DEV_LOGIN }}
-          password: ${{ secrets.MAC_DEV_PASSWORD }}
-          team_id: ${{ secrets.MAC_DEV_TEAM_ID }}
-          xcode_path: '/Applications/Xcode_16.4.app'
-          staple: false
+        shell: bash
+        env:
+          MAC_DEV_LOGIN: ${{ secrets.MAC_DEV_LOGIN }}
+          MAC_DEV_PASSWORD: ${{ secrets.MAC_DEV_PASSWORD }}
+          MAC_DEV_TEAM_ID: ${{ secrets.MAC_DEV_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${MAC_DEV_LOGIN:-}" || -z "${MAC_DEV_PASSWORD:-}" || -z "${MAC_DEV_TEAM_ID:-}" ]]; then
+            echo "::error::MAC_DEV_LOGIN, MAC_DEV_PASSWORD, and MAC_DEV_TEAM_ID secrets are required for notarization."
+            exit 1
+          fi
+
+          artifact_path=".out/darwin/terrabuild-${{ github.ref_name }}-darwin-arm64.zip"
+          set +e
+          submit_output="$(xcrun notarytool submit "${artifact_path}" \
+            --apple-id "${MAC_DEV_LOGIN}" \
+            --password "${MAC_DEV_PASSWORD}" \
+            --team-id "${MAC_DEV_TEAM_ID}" \
+            --wait \
+            --output-format json 2>&1)"
+          submit_status=$?
+          set -e
+
+          printf '%s\n' "${submit_output}"
+
+          submission_id="$(printf '%s\n' "${submit_output}" | node -e 'const fs = require("node:fs"); const input = fs.readFileSync(0, "utf8"); try { const data = JSON.parse(input); process.stdout.write(data.id || ""); } catch { process.exit(0); }')"
+          notarization_status="$(printf '%s\n' "${submit_output}" | node -e 'const fs = require("node:fs"); const input = fs.readFileSync(0, "utf8"); try { const data = JSON.parse(input); process.stdout.write(data.status || ""); } catch { process.exit(0); }')"
+
+          if [[ -n "${submission_id}" && "${notarization_status}" != "Accepted" ]]; then
+            echo "::group::Apple notarization log"
+            xcrun notarytool log \
+              --apple-id "${MAC_DEV_LOGIN}" \
+              --password "${MAC_DEV_PASSWORD}" \
+              --team-id "${MAC_DEV_TEAM_ID}" \
+              "${submission_id}" \
+              notary-log.json || true
+            if [[ -f notary-log.json ]]; then
+              cat notary-log.json
+            fi
+            echo "::endgroup::"
+          fi
+
+          if [[ "${submit_status}" -ne 0 || "${notarization_status}" != "Accepted" ]]; then
+            echo "::error::Notarization failed with status '${notarization_status:-unknown}'."
+            exit 1
+          fi
 
       - name: Upload signed macOS artifacts
         uses: softprops/action-gh-release@v2.0.6

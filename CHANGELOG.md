@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix macOS release notarization on current GitHub-hosted runners by using the runner's default Xcode toolchain.
+
 ## [0.195.9-next]
 
 
