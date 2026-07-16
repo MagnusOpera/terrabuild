@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.9-next]
+
+
 - Fix static `project.<current-project>.version` lookups so they resolve to the current project hash without creating a circular self-dependency.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.8-next...0.195.9-next
 
 ## [0.195.8-next]
 
