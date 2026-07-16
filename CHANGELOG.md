@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix static `project.<current-project>.version` lookups so they resolve to the current project hash without creating a circular self-dependency.
+
 ## [0.195.8-next]
 
 

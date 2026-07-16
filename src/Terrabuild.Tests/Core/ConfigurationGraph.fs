@@ -448,6 +448,27 @@ target build {
         node.Operations.Head.Arguments |> should equal node.ProjectHash)
 
 [<Test>]
+let ``Configuration pipeline does not create dependency for static current project version`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  @shell echo { args = "${project.a.version}" }
+}
+"""
+
+        let options = baseOptions workspace (Set [ "build" ])
+        let stages = runPipeline options
+        let node = stages.ResolvedGraph.Nodes["workspace/path#src/a:build"]
+
+        node.Operations.Head.Arguments |> should equal node.ProjectHash)
+
+[<Test>]
 let ``Configuration pipeline creates single batch with all projects`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """

@@ -426,7 +426,10 @@ let private loadProjectDef
         |> Set.union usedExtensionProjectReferences
         |> Set.choose (fun dep ->
             match dep with
-            | String.Regex "^project\.(.+)$" [ projectId ] -> Some projectId
+            | String.Regex "^project\.(.+)$" [ dependencyId ] ->
+                match projectConfig.Project.Name with
+                | Some currentProjectId when String.Equals(currentProjectId, dependencyId, StringComparison.OrdinalIgnoreCase) -> None
+                | _ -> Some dependencyId
             | _ -> None)
         |> Set.map (fun depId -> format_project_id SCOPE_NAME depId)
 
