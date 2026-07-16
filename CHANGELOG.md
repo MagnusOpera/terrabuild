@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.10-next]
+
+
 - Fix macOS release notarization on current GitHub-hosted runners by using the runner's default Xcode toolchain.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.9-next...0.195.10-next
 
 ## [0.195.9-next]
 
