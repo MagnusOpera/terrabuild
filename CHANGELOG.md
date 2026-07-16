@@ -4,6 +4,28 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.195.10]
+
+- Fix macOS release notarization on current GitHub-hosted runners by using the runner's default Xcode toolchain.
+- Fix static `project.<current-project>.version` lookups so they resolve to the current project hash without creating a circular self-dependency.
+- Fix macOS release signing to use the explicit arm64 code-signing identifier `io.magnusopera.terrabuild.arm64`.
+- Upgrade embedded FScript runtime/language packages to `0.75.0`.
+- Harden tar extraction for cache archives by skipping root pseudo-entries and rejecting paths that escape the extraction directory.
+- Add graph pipeline construction coverage from configuration through batching, and tighten construction error handling for target cycles, failed cached summaries, and web graph project selection.
+- Align architecture and website documentation with the current graph construction pipeline, target dependency constraints, lazy and summary actions, impact scope, and batch requirements.
+- Remove unused Environment from CommitGraphOutput.
+- Restore execution-specific batch clustering after the source-graph split so `run` avoids synthetic batch dependency cycles.
+- Refine graph modeling so `impact` compares a raw source graph while `run` continues from a later execution-resolution stage.
+- Scope `terrabuild impact` commit-graph lookup by environment so preview and staging graphs for the same commit no longer overwrite each other.
+- Add `terrabuild impact --base <sha> --out <path>` and `terrabuild run --out <path>` for machine-readable build reports.
+- Add `terrabuild run --out <path>` and `terrabuild impact --base <sha> --out <path>` for machine-readable JSON reports.
+- Add `terrabuild run --out <path>` to export a machine-readable run report.
+- Upgrade embedded FScript runtime/language packages to `0.72.0`.
+- Remove macOS Intel (`darwin-x64` / `osx-x64`) build and release artifacts from the Make publish flow, release automation, Homebrew tap metadata, scaffold lockfiles, and install documentation so Terrabuild ships only the supported macOS arm64 binary.
+- Add `terrabuild prune <days>` to remove stale local cache entries from `~/.terrabuild/cache`, refresh cache-entry access timestamps on local reads, and document the new cache-retention workflow.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.5...0.195.10
+
 ## [0.195.10-next]
 
 
