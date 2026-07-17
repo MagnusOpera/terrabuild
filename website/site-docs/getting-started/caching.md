@@ -32,7 +32,7 @@ This means builds can be shared across branches, team members, and CI/CD pipelin
 
 ### Local Cache
 
-Terrabuild maintains a local cache in your workspace or home directory. This cache:
+Terrabuild maintains a local cache under `~/.terrabuild/cache`. This cache:
 - Stores build artifacts for fast local builds
 - Works offline
 - Is specific to your machine
@@ -45,6 +45,17 @@ When connected to [Insights](https://insights.magnusopera.io), Terrabuild can sh
 - **Across branches** - Same code on different branches shares cache
 
 This dramatically speeds up builds, especially in CI/CD where most code hasn't changed.
+
+## Artifact Modes
+
+Targets control where their outputs are managed through the `artifacts` setting:
+
+- `~none`: do not cache outputs
+- `~workspace`: store outputs in the local cache
+- `~managed`: store outputs in the encrypted Insights cache when connected
+- `~external`: the action manages its artifacts externally; Terrabuild keeps the summary
+
+See the [Target Block reference](/docs/project/target) for target-level configuration.
 
 ## Cache Invalidation
 

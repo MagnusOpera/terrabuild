@@ -1,7 +1,7 @@
 ---
 title: Key Concepts
 
-prev: /docs/getting-started/scaffolding
+prev: /docs/getting-started/quick-start
 
 ---
 
@@ -48,6 +48,18 @@ Terrabuild expands selected targets into a DAG:
 - the graph determines order, parallelism, and rebuild propagation
 
 See [Graph](/docs/getting-started/graph) for the detailed walkthrough.
+
+### Three Kinds of Dependency
+
+Terrabuild models related but distinct concerns:
+
+| Dependency | What it means | When to use it |
+|------------|---------------|----------------|
+| **Project dependency** | One project's version and change state depend on another project. It also defines the upstream project set used by `target.^...`. | A project consumes source or artifacts from another project. |
+| **Target dependency** | One concrete task must complete before another task. | A specific target needs another target, such as `dist` after `build`. |
+| **Phase dependency** | Selecting a downstream phased target enlists every target in prerequisite phases and creates a workspace-wide success barrier. | A whole class of work, such as local toolchains, must finish before application work. |
+
+Project dependencies describe the project graph. Target and phase dependencies produce ordering edges in the task graph; phase dependencies are lowered to ordinary immutable graph edges before selection continues.
 
 ### Target Dependency Resolution
 

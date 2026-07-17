@@ -10,8 +10,8 @@ The `extension` block in `PROJECT` overrides or augments workspace-level extensi
 ```hcl
 extension @docker {
   platform = "linux/amd64"
-  defaults = {
-    image = local.image
+  defaults {
+    image = "ghcr.io/example/app"
     tag = terrabuild.head_commit
   }
 }
@@ -29,6 +29,7 @@ extension npm_ci {
 - `cpus` (optional): max CPUs for container execution.
 - `variables` (optional): host env variable names forwarded to container.
 - `defaults` (optional): default action arguments for this extension in this project.
+- `env` (optional): environment values added to every action for this extension in this project.
 - `script` (optional): scripted implementation source.
 
 ## Identifier conventions

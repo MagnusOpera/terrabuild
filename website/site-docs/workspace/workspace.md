@@ -94,7 +94,7 @@ The following arguments are supported:
 
   Paths are evaluated from workspace root and used by extension script sandboxing.
 * `version` - (Optional) Minimal Terrabuild version required by this workspace. Default is `nothing`.
-* `engine` - (Optional) Container engine to use. Allowed values are `~docker`, `~podman`, and `~none`. Default is `~docker`.
+* `engine` - (Optional) Execution engine to use. Allowed values are `~docker`, `~podman`, and `~host`. Default is `~docker`.
 * `configuration` - (Optional) Default configuration value exposed to the workspace. Default is `nothing`.
 * `environment` - (Optional) Default environment value exposed to the workspace. Default is `nothing`.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 If you use a managed shared cache, set `workspace.id` to the workspace identifier and authenticate through the CLI:
 
 ```bash
-terrabuild login --workspace <workspaceId> --token <token>
+terrabuild login --workspace <workspace-id> --token <token> --masterkey <master-key>
 ```
 
 Use `--local-only` when you want to ignore the shared cache for a run.

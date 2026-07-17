@@ -80,7 +80,7 @@ Within target expressions, [`terrabuild.phase`](../expression/predefined-variabl
 
 Batch builds never mix targets from different phases, and phased targets are never batched together with unphased targets. Compatible targets in the same phase can still be batched normally.
 
-Generated Mermaid graphs group phased targets into subgraphs and show phase ordering with dashed phase edges.
+Markdown graphs in debug logs and build summaries remain ungrouped for readability. In the interactive console, enable **Phases** in the advanced options when phase grouping helps explain execution order.
 
 ## Argument Reference
 

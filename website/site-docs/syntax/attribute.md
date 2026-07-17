@@ -16,9 +16,9 @@ depends_on = [ target.build
 # target dependencies are declared as a list
 depends_on = [ target.gen target.clean ]
 
-# this is an attribute initialized with a mapping
-defaults = {
-    arguments: { version: var.configuration }
+# this attribute is initialized with a map
+arguments = {
+    version: var.configuration
     image: "ghcr.io/example/" + terrabuild.project
 }
 ```

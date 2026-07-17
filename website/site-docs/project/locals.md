@@ -58,14 +58,13 @@ locals {
   image_tag = local.base_tag
   full_image = local.image_name + ":" + local.image_tag
   
-  docker_args = {
-    image: local.full_image
-    platform: "linux/amd64"
-  }
 }
 
 extension @docker {
-  defaults = local.docker_args
+  platform = "linux/amd64"
+  defaults {
+    image = local.full_image
+  }
 }
 ```
 

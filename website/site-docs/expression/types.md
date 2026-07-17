@@ -21,7 +21,7 @@ Following characters must be escaped (double the character): `"`:
 Strings support interpolation too ! Use `${ <expr> }` syntax:
 * `"Hello ${ local.name } !"`
 
-Note gollowing characters must be escaped (double the character): `{`, `}`, `"`:
+The following characters must be escaped by doubling them: `{`, `}`, `"`:
 * `"{{ Hello ""!"" }}"` is string `{ Hello "!" }`
 
 ## Boolean
@@ -36,7 +36,7 @@ A number is a 32 bits signed integer:
 
 ## Enum
 
-An enum is a specific identifier used in few places (see `cache` and `build`). For example:
+An enum is a symbolic value used by settings such as `artifacts`, `build`, and `batch`. For example:
 * `~workspace`
 * `~partition`
 

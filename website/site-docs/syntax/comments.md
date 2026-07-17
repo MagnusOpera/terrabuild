@@ -9,7 +9,7 @@ Comments start with a `#`. Content is then ignored until the end of the line.
 # This is a target
 target build {
     @dotnet publish { log = true }
-    @docker build
+    @docker build { }
 }
 
 # Declare and configure terraform extension

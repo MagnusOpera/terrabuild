@@ -1,13 +1,13 @@
 ---
 title: Install
 
-prev: /docs/getting-started/batch
+prev: /docs/getting-started
 
 ---
 
 ## Download and install
 
-Several deployment scenario exists:
+Terrabuild can be installed in several ways:
 * Brew
 * Download from GitHub Release
 * Install using GitHub Actions
@@ -17,14 +17,14 @@ After installation, Terrabuild is available in your **PATH**. You can then invok
 
 ### Brew (macOS/Linux)
 
-Brew is a package manager for macOS (or Linux), see more at https://brew.sh
+Brew is a package manager for macOS and Linux. See [brew.sh](https://brew.sh) for details.
 
-To install Terrabuild, run following command:
+To install Terrabuild, run:
 ```
 brew install magnusopera/tap/terrabuild
 ```
 
-To upgrade Terrabuild, run following command:
+To upgrade Terrabuild, run:
 ```
 brew upgrade magnusopera/tap/terrabuild
 ```
@@ -33,15 +33,11 @@ brew upgrade magnusopera/tap/terrabuild
 
 Download Terrabuild from [GitHub Releases](https://github.com/magnusopera/terrabuild/releases).
 
-Select your target platform, Terrabuild is available for following platforms:
-* MacOS (darwin-arm64)
+Select the archive for your platform:
+* macOS (darwin-arm64)
 * Linux (linux-x64 / linux-arm64)
 * Windows (windows-x64)
-* It's also available as a universal dotnet tool
-
-:::warning
-If you are providing your own extensions, you must install .net sdk 10 or more.
-:::
+* Universal .NET tool
 
 #### GitHub Actions
 
@@ -57,28 +53,28 @@ You can install Terrabuild in your GitHub Actions Workflow using binaries availa
 
 #### Dotnet / NuGet
 
-If you have dotnet-cli install (comes with SDK), you can install Terrabuild as a tool:
+If the .NET CLI is installed, you can install Terrabuild as a global tool:
 ```
 dotnet tool install --global Terrabuild
 ```
 
-To upgrade, run following command (or just run previous command):
+To upgrade:
 ```
 dotnet tool update --global Terrabuild
 ```
 
 ## Configuration
 
-In order to build your monorepos, some work is required and several files have to be added:
-* **WORKSPACE**: file at the root of your workspace, it describes [common configuration](/docs/workspace) for your project.
-* **PROJECT**: add one at the root of each project, it describes [configuration](/docs/project) to build the project.
+Terrabuild uses two configuration files:
+* **WORKSPACE**: one file at the repository root containing [shared configuration](/docs/workspace).
+* **PROJECT**: one file at the root of each buildable unit containing [project configuration](/docs/project).
 
-Probably a bit tedious to do this by hand if you have numerous projects in your monorepo 😓. Terrabuild ships with a [scaffolding](/docs/getting-started/scaffolding) tool. this will get you on the fast track!
+For an existing monorepo, the [scaffold command](/docs/getting-started/scaffolding) can generate a useful starting point.
 
-## Create an Insights account and enable caching
+## Optional: enable shared caching
 
-Terrabuild relies on a backend for sharing artifacts across builds. for this, you need to create an account and a workspace on [Insights](https://insights.magnusopera.io). You will then be able to share artifacts with allowed members in your space.
+Local caching works immediately and does not require an account. To share encrypted artifacts and build metadata across developers and CI, create a workspace on [Insights](https://insights.magnusopera.io) and follow the credentials provided there.
 
-## Want to give it a ride ?
+## Try it
 
-A [playground sample repository](https://github.com/MagnusOpera/terrabuild-playground) is available to quickly check if your configuration is correct. This will also give you the opportunity to read [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project) files before heading into the documentation.
+The [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground) is a ready-to-run workspace. Continue with the [Quick Start](/docs/getting-started/quick-start) to build it.

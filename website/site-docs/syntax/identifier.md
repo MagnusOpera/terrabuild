@@ -3,7 +3,7 @@ title: Identifier
 
 ---
 
-An identifier literal conforms to snake_case. It always starts with a character from `a-z` and is followed by one or more characters from `a-z` and `0-9`. 
+An identifier starts with an ASCII letter and may continue with letters or numbers. A single underscore can separate groups. Lowercase `snake_case` is the recommended convention, but uppercase letters are accepted.
 
 **Underscore rules:**
 * Underscores (`_`) can be used within the identifier
@@ -11,7 +11,7 @@ An identifier literal conforms to snake_case. It always starts with a character 
 * Underscores cannot be at the start or end of the identifier
 * An underscore must always be followed by a character (not at the end)
 
-You will encounter such identifiers when defining targets, environments, extensions, variables, and locals.
+You will encounter identifiers when defining targets, phases, extensions, variables, and locals.
 
 There are some syntax extensions for specific usages:
 * Target reference identifier can start with `^` (for example `^build`) - see [target configuration](/docs/workspace/target).
@@ -26,10 +26,9 @@ There are some syntax extensions for specific usages:
 * `my_var_123` - Underscore followed by numbers
 * `a` - Single letter
 * `version_1_0` - Multiple single underscores
-* `` `version` `` - Backtick-quoted identifier (allows special cases)
+* `Config` - Uppercase letters are accepted, although lowercase is recommended
 
 ### ❌ Invalid identifiers
-* `Config` - Uppercase letters are not allowed
 * `_config` - Cannot start with underscore
 * `config_` - Cannot end with underscore
 * `project__42` - Two consecutive underscores are not allowed

@@ -14,8 +14,8 @@ extension @dotnet {
   platform = "linux/arm64"
   cpus = 2
   variables = [ "NUGET_KEY" ]
-  defaults = {
-    configuration = var.configuration
+  defaults {
+    configuration = "Release"
   }
 }
 
@@ -32,6 +32,7 @@ extension npm_ci {
 - `cpus` (optional): max CPUs for container execution (strictly positive).
 - `variables` (optional): host env variable names forwarded to container.
 - `defaults` (optional): default action arguments for this extension.
+- `env` (optional): environment values added to every action for this extension.
 - `script` (optional): scripted implementation source.
 
 ## Identifier conventions

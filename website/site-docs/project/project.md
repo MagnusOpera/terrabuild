@@ -38,7 +38,7 @@ target build {
 ```hcl
 project api {
     outputs = [ "bin/" "obj/" "**/*.binlog" ]
-    depends_on = [ project.api ]
+    depends_on = [ project.core ]
     includes = [ "**/*" ]
     ignores = [ "**/*.binlog" ]
     environments = [ "staging", "dev*" ]

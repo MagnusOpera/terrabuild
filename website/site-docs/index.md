@@ -3,26 +3,19 @@ linkTitle: "Documentation"
 title: Introduction
 ---
 
-Terrabuild addresses friction faced in existing monorepo build systems:
-* **Intrusive tooling** - Many systems require dedicated teams and significant operational overhead
-* **Weak dependency graph control** - Limited visibility and control over build dependencies and execution order
-* **Sub-optimal caching** - Inefficient cache utilization leading to unnecessary builds
+Terrabuild is a low-ceremony build orchestrator for monorepos. It keeps your existing tools—such as .NET, pnpm, Docker, or Terraform—in charge of the actual work while Terrabuild provides one holistic view of projects, targets, dependencies, and artifacts.
 
-Terrabuild does not replace your build tools. Instead, it orchestrates them to enforce consistent and fast build workflows. Terrabuild operates at the graph level, focusing on files, dependencies, and the build graph structure. It determines what needs to be built based on change detection and cache analysis.
+For every run, Terrabuild creates an immutable task graph and decides for each selected node whether to execute it, restore it from cache, or report a previous failed result. The same graph controls ordering, parallelism, change propagation, phases, and batch optimization.
 
-Terrabuild is voluntarily limited and aims at replicating DSC for infrastructure (Desired State Configuration) to build systems. This is why Terrabuild uses an HCL-inspired syntax (disclaimer, it's not pure HCL) to describe how the build should be done and what to expect - threading cache and reuse capabilities throughout the build graph.
+Configuration uses a compact HCL-inspired language. A root `WORKSPACE` file defines shared policy, while each buildable unit has a `PROJECT` file that describes its dependencies, outputs, and target commands.
 
 :::info
-  Terrabuild is free and available at [ GitHub](https://github.com/magnusopera/terrabuild) and can be used locally or in CI.
-  
-  You will need an account [Insights](https://insights.magnusopera.io) if you want to leverage caching capabilities.
+Terrabuild is free, available on [GitHub](https://github.com/magnusopera/terrabuild), and can run locally or in CI. Local caching works without an account. [Insights](https://insights.magnusopera.io) is optional and adds encrypted cache sharing and build metadata across machines.
 :::
 
 ## Terrabuild as a build tool
 
-Terrabuild is a build system designed for monorepos. It aims at being easier, far less intrusive than alternatives and without lock-in.
-
-Terrabuild only builds what's required thanks to heavy caching. It uses a familiar HCL inspired syntax (but not strict HCL) and puts a strong emphasis on using same tools for local development or CI/CD.
+Terrabuild builds only the selected targets and their graph dependencies. Deterministic hashing and caching allow equivalent work to be reused across branches and machines.
 
 Terrabuild creates a graph (more specifically a DAG - Directed Acyclic Graph) based on the provided configurations and performs a minimal build. Terrabuild also provides graph optimizations to make builds faster so you can focus on features instead of plumbing. See [Graph](/docs/getting-started/graph) and [Caching](/docs/getting-started/caching) for details.
 
@@ -45,17 +38,13 @@ But it's not only a build tool: it's also a release tool. Terrabuild - through c
 
 Deploying is a matter of creating the right deployment [targets](/docs/project/target) for chosen environment.
 
-## Caching and build optimizations
-
-Terrabuild is able to leverage a build cache to avoid building project if nothing has changed. To use this feature, you will need to create an account on [Insights](https://insights.magnusopera.io) and a workspace to hold your artifacts securely.
-
 ## Features
 
-- **familiar HCL inspired syntax** - no YAML, no XML.
-- **Minimal (re)build** - Terrabuild computes what has changed, and triggers a build for only what has changed. If connected to Insights, cache is leveraged and build will be even faster.
-- **Parallel execution** - Terrabuild run tasks in parallel while respecting task dependencies.
+- **Familiar HCL-inspired syntax** - no YAML or XML.
+- **Minimal (re)build** - Terrabuild computes what has changed and builds only what is required. Insights can provide additional cache hits shared across machines.
+- **Parallel execution** - Terrabuild runs tasks in parallel while respecting task dependencies.
 - **Minimal changes required** - Terrabuild uses standard tools to build your apps. Developers can continue to use the tools/IDE they love without replicating changes to the build system. No duplicated source of truth.
-- **Extensible** - Terrabuild supports script-based extensions with FScript, so custom build actions can be implemented with a sandboxed and reviewable protocol. Terrabuild promotes the usage of Docker images to build apps and isolate your build environment. This also enforces reproducibility of your builds and eliminates configuration discrepancies.
+- **Extensible** - Terrabuild supports script-based extensions with FScript, so custom build actions can be implemented with a sandboxed and reviewable protocol. Container images can isolate toolchains and improve reproducibility.
 - **Local reproducible builds** - Local or CI builds are the same when isolation is enforced: adopt a workflow and build anywhere.
 
 ## Questions or Feedback?

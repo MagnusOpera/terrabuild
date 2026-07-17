@@ -1,7 +1,7 @@
 ---
 title: Glossary
 
-prev: /docs/getting-started/key-concepts
+prev: /docs/getting-started/batch
 
 ---
 

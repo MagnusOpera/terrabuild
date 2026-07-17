@@ -11,75 +11,14 @@ This hands-on guide walks you through using Terrabuild with a real example. You'
 
 **Get Started**: Clone the [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground) repository to follow along.
 
-The playground repository defines following projects and dependencies:
+The playground repository defines the following projects and dependencies. Arrows point from a task to the task it requires:
 
 ```mermaid
 flowchart LR
-  classDef default fill:moccasin,stroke:black
-  classDef project fill:gainsboro,stroke:black,rx:10,ry:10
-  classDef build fill:palegreen,stroke:black,rx:20,ry:20
-  classDef publish fill:skyblue,stroke:black,rx:20,ry:20
-  classDef target fill:white,stroke-width:2px,stroke-dasharray: 5 2
-
-  subgraph A[".net WebApi"]
-    subgraph targetBuildA["target build"]
-      direction LR
-      buildA(["@dotnet build"])
-    end
-
-    subgraph targetPublishA["target dist"]
-      direction LR
-      publishA(["@dotnet publish"]) --> dockerA(["@docker build"])
-    end
-
-    class targetBuildA build
-    class targetPublishA publish
-  end
-
-  subgraph B["Vue.js WebApp"]
-    subgraph targetBuildB["target build"]
-      direction LR
-      buildB(["@npm build"])
-    end
-
-    subgraph targetPublishB["target dist"]
-      direction LR
-      dockerB(["@docker build"])
-    end
-
-    class targetBuildB build
-    class targetPublishB publish
-  end
-
-  subgraph C[".net Library"]
-    subgraph targetBuildC["target build"]
-      direction LR
-      buildC(["@dotnet build"])
-    end
-
-    class targetBuildC build
-  end
-
-  subgraph D["Typescript Library"]
-    subgraph targetBuildD["target build"]
-      direction LR
-      buildD(["@npm build"])
-    end
-
-    class targetBuildD build
-  end
-
-  publish([dist])
-  targetBuildB --> targetBuildD
-  targetBuildA --> targetBuildC
-  targetPublishA --> targetBuildA
-  publish -.-> targetPublishA
-  
-  targetPublishB --> targetBuildB
-  publish -.-> targetPublishB
-
-  class A,B,C,D project
-  class publish target
+  webapiDist["webapi:dist"] --> webapiBuild["webapi:build"]
+  webapiBuild --> cslibBuild["cslib:build"]
+  webappDist["webapp:dist"] --> webappBuild["webapp:build"]
+  webappBuild --> tslibBuild["tslib:build"]
 ```
 
 ## Running Your First Build
@@ -91,97 +30,109 @@ terrabuild run dist
 ```
 
 This command:
+
 1. Discovers all projects in the workspace
 2. Builds the dependency graph
-3. Checks cache for each project
-4. Builds only what changed (or everything on first run)
+3. Checks the cache for each selected task
+4. Builds only what is required
 5. Executes tasks in parallel where possible
 
-**Try it**: After the first build, modify a file in one project and run again. Notice how only that project and its dependents build, everything else is restored from cache!
+**Try it**: After the first build, modify a file in one project and run again. Notice how Terrabuild rebuilds the affected tasks and restores reusable work from cache.
 
 ## Understanding the Configuration
 
-Here's how the playground workspace is configured. This shows the key concepts in action:
-``` {filename="WORKSPACE"}
-# require all dependencies to be built before building this target
+Here is the current playground configuration, with the shared policy first and then each application or library project:
+
+```hcl {filename="WORKSPACE"}
+# build project dependencies first
 target build {
     depends_on = [ target.^build ]
 }
 
-# dist requires project to be built before proceeding
-target dist {
+# test the current project after building it
+target test {
     depends_on = [ target.build ]
 }
 
-# default variables for targets
-variable config {
-    description = "configuration to build"
-    default = "Debug"
+# build distributable artifacts after the current project and its dependencies
+target dist {
+    depends_on = [ target.build target.^build ]
 }
 
-# .net sdk version is forced and build is happening in a container
-# no need to install .net sdk on developer machines
-# also the default values define the target configuration
-extension @dotnet {
-    image = "mcr.microsoft.com/dotnet/sdk:8.0"
-    defaults {
-        configuration = var.config
+# deployment targets
+target plan {
+    build = terrabuild.retry ? ~always : ~auto
+    depends_on = [ ]
+}
+
+target apply {
+    depends_on = [ target.plan target.^dist ]
+}
+
+locals {
+    dotnet = {
+        config: terrabuild.environment ? "Release" : "Debug"
+    }
+    runtimes = {
+        dotnet: terrabuild.ci ? "linux-x64" : "linux-arm64"
+        docker: terrabuild.ci ? [ "linux/amd64" ] : [ "linux/arm64" ]
+    }
+    docker_tags = {
+        dotnet_sdk: "9.0"
+        dotnet_runtime: "9.0"
+        nodejs: "22.16.0-alpine3.22"
+        nginx: "1.28.0-alpine"
     }
 }
 
-# nodejs version is forced and build is happening in a container
-# no need to install nodejs on developer machines
-extension @npm {
-    image = "node:22"
+extension @dotnet {
+    image = "mcr.microsoft.com/dotnet/sdk:${local.docker_tags.dotnet_sdk}"
+    defaults {
+        runtime = local.runtimes.dotnet
+        configuration = local.dotnet.config
+    }
 }
 
-# terraform version is forced and build is happening in a container
-# no need to install terraform on developer machines
-extension @terraform {
-    image = "hashicorp/terraform:1.12"
+extension @docker {
+    defaults {
+        platforms = local.runtimes.docker
+        image = "ghcr.io/magnusopera/${terrabuild.project}"
+    }
+}
+
+extension @npm {
+    image = "node:${local.docker_tags.nodejs}"
 }
 ```
 
-``` {filename="src/apps/webapi"}
-# configure docker extension (see Dockerfile for ARG)
-extension @docker {
-    defaults {
-        image = "ghcr.io/magnusopera/sample/webapi"
-        arguments = { configuration: var.config }
-    }
-}
-
-# project is based on .net: dependency on src/libs/cslib is detected automatically
-# also defines labels for scoped builds
-project {
-    labels = [ "app" "dotnet" ]
+```hcl {filename="src/apps/webapi/PROJECT"}
+project webapi {
+    labels = [ "app" ]
     @dotnet { }
 }
 
 target build {
-    @dotnet build { }
+    @dotnet restore { dependencies = true }
+    @dotnet build { dependencies = true }
 }
 
-# to build docker image we need to publish the .net project
-# and then build the image on top of this (check Dockerfile)
-# Docker is targetting linux/x64
 target dist {
-    @dotnet publish { runtime = "linux-x64" }
-    @docker build { platform = "linux/amd64" }
+    @dotnet restore { dependencies = true }
+    @dotnet publish { single = true build = true restore = true }
+    @docker build {
+        build_args = {
+            dotnet_version: local.docker_tags.dotnet_runtime
+            platform: local.runtimes.dotnet
+            configuration: local.dotnet.config
+        }
+    }
 }
 ```
 
-``` {filename="src/apps/webapp"}
-extension @docker {
-    defaults {
-        image = "ghcr.io/magnusopera/sample/webapp"
-        arguments = { configuration: var.config }
-    }
-}
-
-# project is based on nodejs: dependency on src/libs/tslib is detected automatically.
-project {
-    labels = [ "app" "web" ]
+```hcl {filename="src/apps/webapp/PROJECT"}
+project webapp {
+    labels = [ "app" ]
+    ignores = [ "vite.config.js" "tsconfig.node.tsbuildinfo" "tsconfig.tsbuildinfo" ]
     @npm { }
 }
 
@@ -190,36 +141,44 @@ target build {
 }
 
 target dist {
-    @docker build { }
+    @docker build {
+        build_args = { nginx_version: local.docker_tags.nginx }
+    }
+}
+
+target serve {
+    @npm dev { }
 }
 ```
 
-``` {filename="src/libs/cslib"}
+```hcl {filename="src/libs/cslib/PROJECT"}
 project {
-    labels = [ "lib" ]
+    labels = [ "lib" "dotnet" ]
     @dotnet { }
 }
 
 target build {
-    @dotnet build
+    @dotnet restore { dependencies = true }
+    @dotnet build { dependencies = true }
 }
 ```
 
-``` {filename="src/libs/tslib"}
+```hcl {filename="src/libs/tslib/PROJECT"}
 project {
     labels = [ "lib" ]
     @npm { }
 }
 
 target build {
-    @npm build
+    @npm build { }
 }
 ```
 
 ## What's Next?
 
-You've seen Terrabuild in action! Now explore the concepts in depth:
+You've seen Terrabuild in action. Build the mental model next, then explore execution in depth:
 
+- [Key Concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
 - [Graph](/docs/getting-started/graph): Understand the build graph structure
 - [Caching](/docs/getting-started/caching): Learn how caching makes builds fast
 - [Tasks](/docs/getting-started/tasks): See how tasks execute
@@ -235,6 +194,6 @@ For even faster builds, especially in CI/CD, connect to [Insights](https://insig
        id = "your-workspace-id"
    }
    ```
-3. Connect using: `terrabuild login --workspace <id> --token <token>`
+3. Connect using: `terrabuild login --workspace <id> --token <token> --masterkey <master-key>`
 
 See [Caching](/docs/getting-started/caching) for more details.

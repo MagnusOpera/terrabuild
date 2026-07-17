@@ -11,7 +11,7 @@ Blocks are specific to [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project)
 ```
 target build {
     @dotnet publish { log = true }
-    @docker build
+    @docker build { }
 }
 
 extension @terraform {

@@ -113,6 +113,6 @@ Both workspace and project targets can reference a phase, but `phase` blocks the
 
 Selecting a phased target enlists all targets assigned to its transitive prerequisite phases, along with their normal dependencies. It does not enlist unrelated targets in its own phase. Targets without a phase keep normal dependency behavior.
 
-Targets in one phase may run concurrently, but no target in a downstream phase starts until every enlisted prerequisite-phase target succeeds. Batch execution never combines targets from different phases or combines phased and unphased targets. Debug and summary Mermaid graphs show phases as subgraphs with dashed ordering edges.
+Targets in one phase may run concurrently, but no target in a downstream phase starts until every enlisted prerequisite-phase target succeeds. Batch execution never combines targets from different phases or combines phased and unphased targets. Markdown graphs remain ungrouped; phase grouping is an opt-in view in the interactive console.
 
 Inside target expressions, `terrabuild.phase` contains the assigned phase name. It evaluates to `nothing` for an unphased target.

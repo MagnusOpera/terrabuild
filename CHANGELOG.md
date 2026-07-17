@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Rework the website learning path and correct configuration examples, cache guidance, dependency and phase explanations, container-runtime behavior, language reference details, and console graph options.
+
 ## [0.196.1-next]
 
 

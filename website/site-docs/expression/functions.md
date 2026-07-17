@@ -16,7 +16,7 @@ Functions can be applied on values. Functions take a tuple as argument `(param1,
 
 | Function | Description | Usage | Result |
 |----------|-------------|-------|--------|
-| + | concatenate two strings | `"Hello" + "world"` | `"Hello world"` |
+| + | concatenate two strings | `"Hello" + "world"` | `"Helloworld"` |
 | trim | remove leading and trailing spaces | `trim("  Hello world  ")` | `"Hello world"` |
 | upper | convert string to upper case | `upper("Hello world")` | `"HELLO WORLD"` |
 | lower | convert string to lower case | `lower("Hello WORLD")` | `"hello world"` |
@@ -28,7 +28,7 @@ Functions can be applied on values. Functions take a tuple as argument `(param1,
 | Function | Description | Usage | Result |
 |----------|-------------|-------|--------|
 | + | add two numbers | `5 + 2` | `7` |
-| - | substract two numbers | `5 - 2` | `3` |
+| - | subtract two numbers | `5 - 2` | `3` |
 | * | multiply two numbers | `5 * 2` | `10` |
 | / | divide two numbers | `6 / 2` | `3` |
 
@@ -55,7 +55,7 @@ Functions can be applied on values. Functions take a tuple as argument `(param1,
 | Function | Description | Usage | Result |
 |----------|-------------|-------|--------|
 | Not | `true` if falsy (`nothing` or `false`) | `!false` | `true` |
-| Equal | compares two values for equality | `"env" = "prod"` | `false` |
+| Equal | compares two values for equality | `"env" == "prod"` | `false` |
 | Not Equal | compares two values for inequality | `"env" != "prod"` | `true` |
 | Null-Coalesce | return value or alternate value if falsy (`nothing` or `false`) | `nothing ?? 42` | `42` |
 | Ternary Conditional | checks boolean value and returns truthy or falsy value | `nothing ? 42 : 666` | `666` |

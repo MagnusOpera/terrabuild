@@ -1,7 +1,7 @@
 ---
 title: Scaffolding
 
-prev: /docs/getting-started/quick-start
+prev: /docs/getting-started/key-concepts
 
 ---
 
@@ -39,8 +39,9 @@ Here is a sample output:
  ✔ WORKSPACE
 ```
 
-# Building
-Now, it's time to explore [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project) configurations, since this probably won't work out of the box 😅 - but most of the work is done!
+## Build the generated workspace
+
+Scaffolding detects common project types and gives you a starting point. Review the generated [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project) files before building because repository-specific targets, outputs, or extension settings may still need adjustment.
 
 You can try building your workspace using:
 ```
@@ -48,11 +49,7 @@ cd <path-to-repository>
 terrabuild run build
 ```
 
-Since this probably won't work out of the box 😅. You are invited to explore [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project) configurations.
-
-Also, check the [troubleshooting](/docs/troubleshooting) page, this can help you getting started.
-
-If everything is ok, congrats ! Keep exploring configuration as your workspace can benefit from further tuning.
+If the first build fails, use the generated configuration and the [troubleshooting guide](/docs/troubleshooting) to identify the missing project-specific settings.
 
 - [workspace](/docs/workspace)
 - [project](/docs/project)
