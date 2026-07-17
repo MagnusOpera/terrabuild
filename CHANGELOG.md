@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Clarify that phase dependencies are whole-phase success barriers, with an illustrated example of their intentionally coarse enlistment semantics.
+
 ## [0.196.2-next]
 
 

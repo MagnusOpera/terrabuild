@@ -90,6 +90,8 @@ Phases are declared in `WORKSPACE`, where they can depend on earlier phases. Tar
 
 Use an ordinary target dependency when one specific task needs another specific task. Use a phase when the ordering rule applies across a workspace and must enlist all targets in an earlier phase. Both kinds of dependency become edges in the immutable build graph and are checked together for cycles.
 
+Think of a phase dependency as a **success barrier**, not a filter: Terrabuild enlists the entire prerequisite phase rather than trying to infer which of its targets a downstream command happens to consume. This can intentionally perform more work than a direct dependency. See [Phase Block](../workspace/phase#a-phase-is-a-barrier-not-a-filter) for an illustrated example and guidance on splitting coarse phases.
+
 Targets in the same phase can still run concurrently, subject to their ordinary dependencies. Unphased targets keep the usual scheduling behavior. See [Phase Block](../workspace/phase) for declaration, inheritance, and selection details.
 
 ### Change Detection and Cache Keys

@@ -40,6 +40,30 @@ target dist {
 
 When an application `build` target is selected, Terrabuild enlists `pnpm:dist` because `application` depends on `toolchains`. The toolchain target must complete successfully before the application target starts.
 
+## A Phase Is a Barrier, Not a Filter
+
+A phase dependency applies to the whole prerequisite phase. Terrabuild does not inspect commands or extension images to determine which member appears necessary for the selected target. Crossing the phase boundary enlists every target assigned to the prerequisite phase, and the downstream target waits until all of them succeed.
+
+For example, if the `toolchains` phase contains three image targets, selecting only `application:build` still enlists all three:
+
+```mermaid
+flowchart LR
+  subgraph toolchains["toolchains — all targets enlisted"]
+    pnpm["pnpm:dist"]
+    nginx["nginx:dist"]
+    runtime["dotnet-runtime:dist"]
+  end
+
+  pnpm --> barrier{{"success barrier"}}
+  nginx --> barrier
+  runtime --> barrier
+  barrier --> application["application:build — selected"]
+```
+
+The arrows in this illustration show execution progressing through the barrier. `application:build` cannot start when only `pnpm:dist` has succeeded; `nginx:dist` and `dotnet-runtime:dist` must also complete.
+
+This behavior is useful when the earlier phase represents an invariant such as “all toolchains are ready” or “all generated contracts exist.” It may intentionally do more work than a direct dependency would. When only one specific task is required, prefer an ordinary target dependency. When different lifecycle steps need different groups—for example, build toolchains versus distribution images—split them into separate phases so each barrier expresses the intended boundary.
+
 ## Selection and Execution Rules
 
 * Selecting a target assigned to a phase enlists every target assigned to all transitive prerequisite phases.
