@@ -11,6 +11,7 @@ export type GraphNode = {
   projectName?: string | null;
   projectDir: string;
   target: string;
+  phase?: string | null;
   dependencies: string[];
   projectHash: string;
   targetHash: string;
@@ -18,6 +19,7 @@ export type GraphNode = {
 
 export type GraphResponse = {
   nodes: Record<string, GraphNode>;
+  phases?: Record<string, string[]>;
   rootNodes?: string[];
   engine?: string | null;
   configuration?: string | null;
@@ -31,9 +33,11 @@ export type ProjectStatus = {
 
 export type ProjectNode = {
   id: string;
+  flowId: string;
   name?: string | null;
   directory: string;
   hash: string;
+  phase?: string | null;
   targets: GraphNode[];
 };
 

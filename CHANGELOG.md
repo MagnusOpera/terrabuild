@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add optional workspace-declared build phases that enlist prerequisite-phase targets, enforce phase ordering through immutable graph dependencies, isolate batches by phase, group phased execution in Mermaid graphs, expose `terrabuild.phase`, and publish phase metadata with build-graph nodes.
+
 ## [0.195.10]
 
 - Fix macOS release notarization on current GitHub-hosted runners by using the runner's default Xcode toolchain.

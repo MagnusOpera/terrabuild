@@ -452,6 +452,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
                     )
                 let payload =
                     {| nodes = graph.Nodes
+                       phases = graph.Phases
                        rootNodes = graph.RootNodes
                        batches = graph.Batches
                        engine = options.Engine
