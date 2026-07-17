@@ -32,5 +32,6 @@
   "rootNodes": [
     "workspace/path#app:build"
   ],
-  "batches": {}
+  "batches": {},
+  "phases": {}
 }

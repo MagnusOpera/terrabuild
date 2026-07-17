@@ -15,6 +15,7 @@ Typical responsibilities:
 - change detection boundaries (`includes`, `ignores`)
 - build output definition (`outputs`)
 - project-level dependencies (`depends_on`)
+- target assignments to [workspace phases](../workspace/phase)
 - per-project extension configuration (`@dotnet`, `@pnpm`, `@docker`, ...)
 
 In short: if a setting is specific to one project, place it in `PROJECT`.

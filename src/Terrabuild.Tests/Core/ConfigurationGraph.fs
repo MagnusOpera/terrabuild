@@ -149,7 +149,7 @@ type private PipelineStages =
 
 let private runPipelineWithCache (cache: Cache.ICache) options =
     let options, config = Configuration.read options
-    let fullGraph = GraphPipeline.Node.build options config
+    let fullGraph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
     let sourceGraph = GraphPipeline.Selection.build options config fullGraph
     let resolvedGraph = GraphPipeline.Resolve.build options config sourceGraph
     let actionGraph = GraphPipeline.Action.build options cache resolvedGraph
@@ -739,3 +739,162 @@ target gen {
 
         genNode.Action |> should equal RunAction.Exec
         stages.ActionGraph.RootNodes |> should equal Set.empty<string>)
+
+[<Test>]
+let ``Phase graph enlists transitive prerequisite targets without selecting phase peers`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+phase toolchains {}
+phase empty { depends_on = [ phase.toolchains ] }
+phase application { depends_on = [ phase.empty ] }
+
+target prepare {}
+target dist {}
+target build { phase = phase.application }
+"""
+        writeFile workspace "tools/pnpm/PROJECT" """
+project pnpm { @shell {} }
+target prepare { @shell echo { args = "prepare pnpm" } }
+target dist {
+  phase = phase.toolchains
+  depends_on = [ target.prepare ]
+  @shell echo { args = "dist pnpm" }
+}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build { @shell echo { args = "build app" } }
+"""
+        writeFile workspace "apps/peer/PROJECT" """
+project peer { @shell {} }
+target build { @shell echo { args = "build peer" } }
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Projects = Some (Set [ "app" ]) }
+        let stages = runPipeline options
+        let appBuild = "workspace/path#apps/app:build"
+        let peerBuild = "workspace/path#apps/peer:build"
+        let pnpmDist = "workspace/path#tools/pnpm:dist"
+        let pnpmPrepare = "workspace/path#tools/pnpm:prepare"
+
+        stages.SourceGraph.Nodes.Keys |> Set.ofSeq
+        |> should equal (Set [ appBuild; pnpmDist; pnpmPrepare ])
+        stages.SourceGraph.Nodes[appBuild].Dependencies |> should contain pnpmDist
+        stages.SourceGraph.Nodes[pnpmDist].Dependencies |> should contain pnpmPrepare
+        stages.SourceGraph.Nodes.ContainsKey peerBuild |> should equal false)
+
+[<Test>]
+let ``Project phase nothing cancels workspace target phase inheritance`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase application {}
+target build { phase = phase.application }
+"""
+        writeFile workspace "apps/inherit/PROJECT" """
+project inherit { @shell {} }
+target build { @shell echo { args = terrabuild.phase } }
+"""
+        writeFile workspace "apps/optout/PROJECT" """
+project optout { @shell {} }
+target build {
+  phase = nothing
+  @shell echo { args = terrabuild.phase }
+}
+"""
+
+        let stages = runPipeline (baseOptions workspace (Set [ "build" ]))
+        stages.FullGraph.Nodes["workspace/path#apps/inherit:build"].Phase |> should equal (Some "application")
+        stages.FullGraph.Nodes["workspace/path#apps/optout:build"].Phase |> should equal None
+        stages.ResolvedGraph.Nodes["workspace/path#apps/inherit:build"].Operations.Head.Arguments |> should equal "application"
+        stages.ResolvedGraph.Nodes["workspace/path#apps/optout:build"].Operations.Head.Arguments |> should equal "")
+
+[<Test>]
+let ``Phase assignment does not affect target hash`` () =
+    withTempWorkspace (fun workspace ->
+        let project = """
+project app { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+        writeFile workspace "apps/app/PROJECT" project
+        writeFile workspace "tools/pnpm/PROJECT" """
+project pnpm { @shell {} }
+target dist {
+  phase = phase.toolchains
+  @shell echo { args = "dist" }
+}
+"""
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase toolchains {}
+phase application { depends_on = [ phase.toolchains ] }
+target dist {}
+target build { phase = phase.application }
+"""
+        let phased = runPipeline (baseOptions workspace (Set [ "build" ]))
+        let nodeId = "workspace/path#apps/app:build"
+
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase toolchains {}
+phase application { depends_on = [ phase.toolchains ] }
+target dist {}
+target build {}
+"""
+        let unphased = runPipeline (baseOptions workspace (Set [ "build" ]))
+        phased.ResolvedGraph.Nodes[nodeId].TargetHash |> should equal unphased.ResolvedGraph.Nodes[nodeId].TargetHash)
+
+[<Test>]
+let ``Configuration rejects undefined and cyclic phases`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase application { depends_on = [ phase.missing ] }
+target build {}
+"""
+        let options = baseOptions workspace (Set [ "build" ])
+        assertKnownErrorContains "depends on undefined phase 'missing'" (fun () -> Configuration.read options |> ignore)
+
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build { phase = phase.missing }
+"""
+        assertKnownErrorContains "Phase 'missing' is not defined in WORKSPACE" (fun () -> Configuration.read options |> ignore)
+
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase first { depends_on = [ phase.second ] }
+phase second { depends_on = [ phase.first ] }
+target build {}
+"""
+        assertKnownErrorContains "Circular phase dependency detected" (fun () -> Configuration.read options |> ignore))
+
+[<Test>]
+let ``Phase lowering rejects cycles combined with ordinary dependencies`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+phase toolchains {}
+phase application { depends_on = [ phase.toolchains ] }
+target build {}
+target dist { depends_on = [ target.build ] }
+"""
+        writeFile workspace "app/PROJECT" """
+project app { @shell {} }
+target build {
+  phase = phase.application
+  @shell echo { args = "build" }
+}
+target dist {
+  phase = phase.toolchains
+  @shell echo { args = "dist" }
+}
+"""
+
+        let options, config = Configuration.read (baseOptions workspace (Set [ "build" ]))
+        let nodeGraph = GraphPipeline.Node.build options config
+        assertKnownErrorContains "Circular target dependency detected after applying phases" (fun () -> GraphPipeline.Phase.build nodeGraph |> ignore))

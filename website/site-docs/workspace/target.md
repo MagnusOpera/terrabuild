@@ -4,7 +4,7 @@ title: Target Block
 ---
 
 The `target` block defines workspace-wide behavior for a target name.
-Use it to declare defaults such as dependency rules, cacheability, and batch mode that apply across projects unless overridden in `PROJECT`.
+Use it to declare defaults such as dependency rules, cacheability, batch mode, and an optional [phase](./phase) that apply across projects unless overridden in `PROJECT`.
 
 ## Dependency Syntax
 
@@ -80,6 +80,7 @@ flowchart LR
 ## Example Usage
 ```hcl
 target build {
+    phase = phase.application
     depends_on = [ target.^build
                    target.init ]
     build = ~auto
@@ -93,6 +94,7 @@ target build {
 The following arguments are supported:
 
 * `identifier` - (Mandatory) Identifier of the target. This defines the target name that applies globally to all projects.
+* `phase` - (Optional) Assign matching project targets to a [workspace phase](./phase), using `phase.<name>`. A project target inherits this value when it does not declare `phase`; it can override it with another phase or opt out using `phase = nothing`.
 * `depends_on` - (Optional) List of target references that must complete first. Use `target.^<name>` for upstream project dependencies and `target.<name>` for same-project dependencies.
 * `outputs` - (Optional) Override default outputs for this target. By default, the value is the set of `outputs` from the project configuration and extensions used in the target. Specifies which files/directories should be cached as build artifacts.
 * `build` - (Optional) Override default build mode. By default, the target is built if the hash has changed (`~auto`). Possible values:

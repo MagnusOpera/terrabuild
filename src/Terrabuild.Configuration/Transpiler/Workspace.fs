@@ -11,15 +11,17 @@ open Helpers
 type WorkspaceBuilder =
     { Workspace: WorkspaceBlock option
       Targets: Map<string, TargetBlock>
+      Phases: Map<string, PhaseBlock>
       Variables: Map<string, Expr option>
       Locals: Map<string, Expr>
       Extensions: Map<string, ExtensionBlock> }
 
 
-let (|Workspace|Target|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
+let (|Workspace|Target|Phase|Variable|Locals|Extension|UnknownBlock|) (block: Block) =
     match block.Resource, block.Id with
     | "workspace", None -> Workspace
     | "target", Some name -> Target name
+    | "phase", Some name -> Phase name
     | "variable", Some name -> Variable name
     | "locals", None -> Locals
     | "extension", Some name -> Extension name
@@ -69,7 +71,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"]
+    |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"; "phase"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -85,11 +87,31 @@ let toTarget (block: Block) =
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
+    let phase = block |> tryFindAttribute "phase"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Outputs = outputs
       TargetBlock.Build = build
       TargetBlock.Cache = cache
-      TargetBlock.Batch = batch }
+      TargetBlock.Batch = batch
+      TargetBlock.Phase = phase }
+
+let toPhase (block: Block) =
+    block
+    |> checkAllowedAttributes ["depends_on"]
+    |> checkNoNestedBlocks
+    |> ignore
+
+    let dependsOn =
+        block
+        |> tryFindAttribute "depends_on"
+        |> Option.map Dependencies.findArrayOfDependencies
+        |> Option.defaultValue Set.empty
+        |> Set.map (fun dependency ->
+            match dependency with
+            | String.Regex "^phase\.(.*)$" [phaseIdentifier] -> phaseIdentifier
+            | _ -> raiseInvalidArg $"Invalid phase dependency '{dependency}'")
+
+    { PhaseBlock.DependsOn = dependsOn }
 
     
 let toVariable (block: Block) =
@@ -132,6 +154,7 @@ let transpile (blocks: Block list) =
 
             { WorkspaceFile.Workspace = workspace
               WorkspaceFile.Targets = builder.Targets
+              WorkspaceFile.Phases = builder.Phases
               WorkspaceFile.Variables = builder.Variables
               WorkspaceFile.Locals = builder.Locals
               WorkspaceFile.Extensions = builder.Extensions }
@@ -147,6 +170,11 @@ let transpile (blocks: Block list) =
                 if builder.Targets.ContainsKey name then raiseParseError $"duplicated target '{name}'"
                 let target = toTarget block
                 buildWorkspace blocks { builder with Targets = builder.Targets |> Map.add name target }
+
+            | Phase name ->
+                if builder.Phases.ContainsKey name then raiseParseError $"duplicated phase '{name}'"
+                let phase = toPhase block
+                buildWorkspace blocks { builder with Phases = builder.Phases |> Map.add name phase }
 
             | Variable name ->
                 if builder.Variables.ContainsKey name then raiseParseError $"duplicated variable '{name}'"
@@ -170,6 +198,7 @@ let transpile (blocks: Block list) =
     let builder =
         { Workspace = None
           Targets = Map.empty
+          Phases = Map.empty
           Variables = Map.empty
           Locals = Map.empty
           Extensions = Map.empty }

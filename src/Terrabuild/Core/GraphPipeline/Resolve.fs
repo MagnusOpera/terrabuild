@@ -88,7 +88,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 opsCmds @ [
                     yield projectConfig.Hash
                     yield targetConfig.Hash
-                    yield! sourceNode.Dependencies |> Seq.map (fun childId -> allNodes[childId].TargetHash)
+                    yield!
+                        sourceNode.Dependencies - sourceNode.PhaseDependencies
+                        |> Seq.map (fun childId -> allNodes[childId].TargetHash)
                 ]
             let targetHash = targetContent |> Hash.sha256strings
 

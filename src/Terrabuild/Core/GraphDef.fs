@@ -1,5 +1,6 @@
 module GraphDef
 open Collections
+open System.Text.Json.Serialization
 
 [<RequireQualifiedAccess>]
 type ContaineredShellOperation = {
@@ -48,8 +49,11 @@ type Node = {
     ProjectName: string option
     ProjectDir: string
     Target: string
+    Phase: string option
 
     Dependencies: string set
+    [<JsonIgnore>]
+    PhaseDependencies: string set
     Outputs: string set
 
     ProjectHash: string
@@ -70,6 +74,7 @@ type Graph = {
     Nodes: Map<string, Node> // node to Node definition
     RootNodes: string set // nodeId of root nodes
     Batches: Map<string, string set>
+    Phases: Map<string, string set>
 }
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"

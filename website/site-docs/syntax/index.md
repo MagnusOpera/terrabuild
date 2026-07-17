@@ -14,7 +14,7 @@ Both share the same syntax - but not the same functionalities - and are based on
 * Order is not important except for commands within a target
 
 ## WORKSPACE
-WORKSPACE is a mandatory file at the root of your repository. It describes targets dependencies, configurations and default extensions configuration.
+WORKSPACE is a mandatory file at the root of your repository. It describes target dependencies, optional build phases, configurations, and default extension configuration.
 
 ``` {filename="WORKSPACE"}
 # before building, we want all dependencies to be completed
@@ -62,7 +62,7 @@ extension @docker {
 ```
 
 ## PROJECT
-PROJECT is a mandatory file for each project. It defines how the project shall be built. It also describes outputs.
+PROJECT is a mandatory file for each project. It defines how the project shall be built, including optional assignments to phases declared in `WORKSPACE`. It also describes outputs.
 
 In `PROJECT`, `includes` and `outputs` are merged with inferred/default values for that project. `ignores` remains an explicit project-level set.
 

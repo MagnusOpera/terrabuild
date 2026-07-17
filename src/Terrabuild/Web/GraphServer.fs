@@ -188,7 +188,7 @@ let private buildBatchGraph workspace targets projects configuration environment
     let options, config = buildConfig workspace targets projects configuration environment engine
     let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
     let options = { options with MaxConcurrency = System.Environment.ProcessorCount |> max 1 }
-    let graph = GraphPipeline.Node.build options config
+    let graph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
     let graph = GraphPipeline.Selection.build options config graph
     let graph = GraphPipeline.Resolve.build options config graph
     let graph = GraphPipeline.Action.build options cache graph

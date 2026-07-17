@@ -21,6 +21,7 @@ Terrabuild provides several predefined variables that can be used in expressions
 | `terrabuild.arch` | `arm64`, `amd64` or `nothing` if unknown. | Global |
 | `terrabuild.project_slug` | Slug of current [project](/docs/project) (relative path from workspace) | Target |
 | `terrabuild.project` | Id of current [project](/docs/project) if defined | Target |
+| `terrabuild.phase` | Name of current phase or `nothing` if the target is unphased | Target |
 | `terrabuild.target` | Name of current [target](/docs/project/target) | Target |
 | `terrabuild.version` | Version (hash) of current [project](/docs/project) | Target |
 | `project.<id>.version` | Version (hash) of given project `<id>` | Target |

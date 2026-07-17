@@ -184,6 +184,7 @@ endef
 define diff_results
 	$(call diff_file,$(1),terrabuild-debug.config.json)
 	$(call diff_file,$(1),terrabuild-debug.node.json)
+	$(call diff_file,$(1),terrabuild-debug.phase.json)
 	$(call diff_file,$(1),terrabuild-debug.resolve.json)
 	$(call diff_file,$(1),terrabuild-debug.action.json)
 	$(call diff_file,$(1),terrabuild-debug.batch.json)
@@ -215,10 +216,13 @@ smoke-test-simple:
 smoke-indirect-target:
 	$(call run_integration_test, tests/indirect-target, run build test plan apply --force --debug --parallel 1 --log --engine docker --local-only)
 
+smoke-test-phases:
+	$(call run_integration_test, tests/phases, run build --project app --force --debug --parallel 2 --log --engine docker --local-only)
+
 smoke-test-dotnet-cache:
 	dotnet test -c $(config) $(dotnet_props) src/Terrabuild.Tests/Terrabuild.Tests.fsproj --filter "TestCategory=integration"
 
-smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target smoke-test-dotnet-cache
+smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smoke-test-simple smoke-indirect-target smoke-test-phases smoke-test-dotnet-cache
 
 release-prepare:
 	./.github/scripts/release.sh "$(version)" "$(dryrun)"

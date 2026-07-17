@@ -15,6 +15,7 @@ Typical responsibilities:
 - project discovery/exclusion (`ignores`)
 - script filesystem sandbox restrictions (`deny`)
 - global targets (`build`, `test`, `dist`) and dependency policies
+- optional [phase declarations](./phase) that order groups of targets
 - shared extension defaults (for example `@dotnet`, `@pnpm`)
 - optional shared-cache identity (`id`)
 

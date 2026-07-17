@@ -7,6 +7,7 @@ A `WORKSPACE` file is required to describe how to build a workspace. This file m
 
 The WORKSPACE file defines global configuration that applies to all projects in the workspace, including:
 * Target dependencies and relationships
+* Optional build phases and their ordering
 * Default extension configurations
 * Workspace-level variables
 * Cache configuration

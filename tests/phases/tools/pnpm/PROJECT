@@ -1,0 +1,8 @@
+project pnpm {
+  @shell {}
+}
+
+target dist {
+  phase = phase.toolchains
+  @shell docker { args = "build --tag terrabuild-test-pnpm:${terrabuild.version} ." }
+}

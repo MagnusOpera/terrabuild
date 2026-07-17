@@ -1,0 +1,105 @@
+{
+  "selectedProjects": [
+    "@pnpm#phase-app"
+  ],
+  "targets": {
+    "build": [],
+    "dist": []
+  },
+  "phases": {
+    "application": [
+      "toolchains"
+    ],
+    "toolchains": []
+  },
+  "projects": {
+    "@pnpm#phase-app": {
+      "id": "@pnpm#phase-app",
+      "name": "app",
+      "directory": "apps/app",
+      "hash": "EAAA0DB1D778E785CCFF8FBE5462CA7BC22A7A2D8E82C77633B83A5BCBF02B13",
+      "dependencies": [
+        "workspace/path#tools/pnpm"
+      ],
+      "files": [
+        "PROJECT",
+        "package.json"
+      ],
+      "targets": {
+        "build": {
+          "hash": "C3E626895B846F0A8C1051C1D42227F4769968C9B502625B7E530DF5BDEB0CA8",
+          "clusterHash": "A430E307FB3A4BBE804FC548CABA84CDA0D55171AE15EB00A34EE0B6D27D07EB",
+          "batch": "single",
+          "phase": "application",
+          "dependsOn": [],
+          "outputs": [
+            "dist/**"
+          ],
+          "steps": [
+            {
+              "hash": "B9509BA6BCBA3D67E1058D399FF3376CC90A0B7F786973A1AB3BC55C96A686EC",
+              "image": "terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@pnpm",
+              "command": "build",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [],
+      "types": [
+        "@pnpm"
+      ]
+    },
+    "workspace/path#tools/pnpm": {
+      "id": "workspace/path#tools/pnpm",
+      "name": "pnpm",
+      "directory": "tools/pnpm",
+      "hash": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+      "dependencies": [],
+      "files": [
+        "Dockerfile",
+        "PROJECT"
+      ],
+      "targets": {
+        "dist": {
+          "hash": "9795CC08369BD9534FB2FD8EBE316A7622CE398ABCAEB041D8E72365190A5B54",
+          "clusterHash": "A411F0B66E81E371722D0716D33679BE1DC30B45ADD394EB848761791AF64841",
+          "batch": "single",
+          "phase": "toolchains",
+          "dependsOn": [],
+          "outputs": [],
+          "steps": [
+            {
+              "hash": "B6B0AEBA753946E8C5E50FC9D37DC98AC3CB1696ABCE92898F17F947641BDA2C",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@shell",
+              "command": "docker",
+              "script": {},
+              "context": [
+                "map",
+                {
+                  "args": [
+                    "string",
+                    "build --tag terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2 ."
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [],
+      "types": [
+        "@shell"
+      ]
+    }
+  }
+}

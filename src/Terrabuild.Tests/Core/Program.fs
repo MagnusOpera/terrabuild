@@ -28,7 +28,8 @@ let private buildSummary isSuccess nodes =
 let private buildGraph (nodes: GraphDef.Node list) =
     { GraphDef.Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
       GraphDef.Graph.RootNodes = nodes |> List.map (fun node -> node.Id) |> Set.ofList
-      GraphDef.Graph.Batches = Map.empty }
+      GraphDef.Graph.Batches = Map.empty
+      GraphDef.Graph.Phases = Map.empty }
 
 let private buildGraphNode id projectName projectDir target =
     { GraphDef.Node.Id = id
@@ -36,7 +37,9 @@ let private buildGraphNode id projectName projectDir target =
       GraphDef.Node.ProjectName = projectName
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = target
+      GraphDef.Node.Phase = None
       GraphDef.Node.Dependencies = Set.empty
+      GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty
       GraphDef.Node.ProjectHash = $"project-{id}"
       GraphDef.Node.TargetHash = $"target-{id}"
@@ -318,6 +321,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectName = Some "Lib"
                 ProjectDir = "src/Lib"
                 Target = "build"
+                Phase = None
                 ProjectHash = "project-lib"
                 TargetHash = "hash-lib-base"
                 Dependencies = []
@@ -332,6 +336,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectName = Some "App"
                 ProjectDir = "src/App"
                 Target = "build"
+                Phase = None
                 ProjectHash = "project-app"
                 TargetHash = "hash-app"
                 Dependencies = [ "lib-build" ]

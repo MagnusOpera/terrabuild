@@ -1,0 +1,17 @@
+workspace {}
+
+phase toolchains {}
+
+phase application {
+  depends_on = [ phase.toolchains ]
+}
+
+target dist {}
+
+target build {
+  phase = phase.application
+}
+
+extension @pnpm {
+  image = "terrabuild-test-pnpm:${project.pnpm.version}"
+}

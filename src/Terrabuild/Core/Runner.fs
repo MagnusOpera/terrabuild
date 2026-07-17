@@ -332,6 +332,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Contracts.BuildGraphNode.ProjectName = node.ProjectName
                   Contracts.BuildGraphNode.ProjectDir = node.ProjectDir
                   Contracts.BuildGraphNode.Target = node.Target
+                  Contracts.BuildGraphNode.Phase = node.Phase
                   Contracts.BuildGraphNode.ProjectHash = node.ProjectHash
                   Contracts.BuildGraphNode.TargetHash = node.TargetHash
                   Contracts.BuildGraphNode.Dependencies = node.Dependencies |> Seq.sort |> List.ofSeq
@@ -352,6 +353,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     yield node.ProjectName |> Option.defaultValue ""
                     yield node.ProjectDir
                     yield node.Target
+                    yield node.Phase |> Option.defaultValue ""
                     yield! node.Dependencies
                     yield node.Artifacts
                     yield node.Build

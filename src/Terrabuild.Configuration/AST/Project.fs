@@ -28,6 +28,7 @@ type TargetBlock =
       Build: Expr option
       Cache: Expr option
       Batch: Expr option
+      Phase: Expr option
       Steps: Step list }
 
 [<RequireQualifiedAccess>]
@@ -36,4 +37,3 @@ type ProjectFile =
       Extensions: Map<string, ExtensionBlock>
       Targets: Map<string, TargetBlock>
       Locals: Map<string, Expr> }
-

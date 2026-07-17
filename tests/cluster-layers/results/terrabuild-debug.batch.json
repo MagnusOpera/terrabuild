@@ -376,5 +376,6 @@
       "workspace/path#d:build",
       "workspace/path#e:build"
     ]
-  }
+  },
+  "phases": {}
 }

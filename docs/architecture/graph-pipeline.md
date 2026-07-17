@@ -5,12 +5,13 @@ The graph pipeline turns workspace configuration into the executable graph that 
 ```mermaid
 graph TD
     A[Configuration.read] --> B[Node.fs]
-    B --> C[Selection.fs]
-    C --> D[Resolve.fs]
-    D --> E[Action.fs]
-    E --> F[Cascade.fs]
-    F --> G[Batch.fs]
-    G --> H[Runner.run]
+    B --> C[Phase.fs]
+    C --> D[Selection.fs]
+    D --> E[Resolve.fs]
+    E --> F[Action.fs]
+    F --> G[Cascade.fs]
+    G --> H[Batch.fs]
+    H --> I[Runner.run]
 ```
 
 ## Configuration.read
@@ -31,6 +32,20 @@ Builds the full source graph from configuration.
 - Initializes `Build` from `--force` or target configuration.
 - Sets `Required = true` only for `BuildMode.Always`.
 - Produces `RootNodes` from the full graph: nodes that no other full-graph node depends on.
+
+## Phase.fs
+
+Lowers optional workspace phases into ordinary immutable graph dependencies.
+
+- Phases are declared only in `WORKSPACE` and form an acyclic dependency graph.
+- A target may reference one phase; project targets inherit a matching workspace target phase unless they use `phase = nothing`.
+- Each phased node depends on every node assigned to every transitive prerequisite phase.
+- Selecting a downstream node therefore enlists prerequisite-phase targets and their ordinary dependencies, including across an explicit project filter.
+- Other targets in the selected node's own phase are not enlisted.
+- Empty intermediate phases preserve transitive ordering.
+- The combined ordinary and phase dependency graph is checked for cycles.
+- Phase metadata does not participate in artifact target hashes.
+- Target evaluation exposes the assigned name through `terrabuild.phase`, or `nothing` when unphased.
 
 ## Selection.fs
 
@@ -88,6 +103,7 @@ Marks the nodes that the runner must visit.
 Adds batch execution nodes after actions and required flags are known.
 
 - Considers only required nodes with a `ClusterHash`.
+- Partitions cluster candidates by phase; different phases and phased/unphased nodes never share a batch.
 - Creates batches only in clusters that contain at least one `Exec` node.
 - Requires more than one member in a batch candidate.
 - Groups `batch = ~single` nodes into one candidate per cluster.
@@ -118,3 +134,4 @@ When `--debug` is enabled, the run command writes the graph after the important 
 - External restore nodes are skipped unless a dependent requires them.
 - Missing target references are permissive inside dependency expansion: `target.name` and `target.^name` add only targets that exist in the relevant project scope.
 - Circular target dependency chains are invalid and reported during graph construction.
+- Failures in a prerequisite phase leave downstream phase dependencies unsatisfied, so downstream operations do not run.
