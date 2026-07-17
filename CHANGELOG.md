@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Add an opt-in `Phases` view to the interactive graph console that groups phased targets into labeled blocks and shows phase ordering with dashed edges.
+- Keep Mermaid graphs in debug logs and build summaries ungrouped, even when targets belong to phases, to preserve readability for large graphs.
 
 ## [0.196.0-next]
 

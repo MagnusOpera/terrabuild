@@ -25,7 +25,7 @@ let private node id phase =
       Node.Required = true }
 
 [<Test>]
-let ``Mermaid groups phased nodes and renders the participating phase chain`` () =
+let ``Mermaid renders phased nodes without phase decoration`` () =
     let tool = node "tool" (Some "toolchains")
     let app = { node "app" (Some "application") with Dependencies = Set [ tool.Id ] }
     let plain = node "plain" None
@@ -40,19 +40,16 @@ let ``Mermaid groups phased nodes and renders the participating phase chain`` ()
     let rendered = Mermaid.render None None graph
     let text = rendered |> String.concat "\n"
 
-    text |> should contain "Phase: toolchains"
-    text |> should contain "Phase: empty"
-    text |> should contain "Phase: application"
-    text |> should contain "{\"toolchains\"}"
-    text |> should contain "{\"application\"}"
-    rendered |> List.filter (fun line -> line.Contains(" -.-> ")) |> List.length |> should equal 2
-
-    let plainIndex = rendered |> List.findIndex (fun line -> line.StartsWith("plain("))
-    let firstSubgraphIndex = rendered |> List.findIndex (fun line -> line.StartsWith("subgraph "))
-    plainIndex |> should be (lessThan firstSubgraphIndex)
+    text |> should contain "tool("
+    text |> should contain "app("
+    text |> should contain "plain("
+    text |> should contain "app --> tool"
+    text |> should not' (contain "Phase:")
+    text |> should not' (contain "subgraph ")
+    text |> should not' (contain "_gate")
 
 [<Test>]
-let ``Mermaid places batch nodes in their phase subgraph`` () =
+let ``Mermaid renders phased batch nodes without phase decoration`` () =
     let batch = node "batch" (Some "toolchains")
     let graph =
         { Graph.Nodes = Map [ batch.Id, batch ]
@@ -61,9 +58,8 @@ let ``Mermaid places batch nodes in their phase subgraph`` () =
           Graph.Phases = Map [ "toolchains", Set.empty ] }
 
     let rendered = Mermaid.render None None graph
-    let subgraphIndex = rendered |> List.findIndex (fun line -> line.Contains("Phase: toolchains"))
-    let batchIndex = rendered |> List.findIndex (fun line -> line.StartsWith("batch("))
-    let endIndex = rendered |> List.findIndex (fun lineIndex -> lineIndex = "end")
+    let text = rendered |> String.concat "\n"
 
-    batchIndex |> should be (greaterThan subgraphIndex)
-    batchIndex |> should be (lessThan endIndex)
+    text |> should contain "batch("
+    text |> should not' (contain "Phase:")
+    text |> should not' (contain "subgraph ")
