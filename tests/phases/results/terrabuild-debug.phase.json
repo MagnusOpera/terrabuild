@@ -1,0 +1,54 @@
+{
+  "nodes": {
+    "@pnpm#phase-app:build": {
+      "id": "@pnpm#phase-app:build",
+      "projectId": "@pnpm#phase-app",
+      "projectName": "app",
+      "projectDir": "apps/app",
+      "target": "build",
+      "phase": "application",
+      "dependencies": [
+        "workspace/path#tools/pnpm:dist"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "EAAA0DB1D778E785CCFF8FBE5462CA7BC22A7A2D8E82C77633B83A5BCBF02B13",
+      "targetHash": "9F33DB433D26DEE41A140D248291733D73552E5075A916C19D6F9887E8E2B8B6",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#tools/pnpm:dist": {
+      "id": "workspace/path#tools/pnpm:dist",
+      "projectId": "workspace/path#tools/pnpm",
+      "projectName": "pnpm",
+      "projectDir": "tools/pnpm",
+      "target": "dist",
+      "phase": "toolchains",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+      "targetHash": "FE803BA07E43BBC00153C4A9CD3D5FB2230ACB6CBED6EBA9AF5A078ECB0CA24C",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    }
+  },
+  "rootNodes": [
+    "@pnpm#phase-app:build"
+  ],
+  "batches": {},
+  "phases": {
+    "application": [
+      "toolchains"
+    ],
+    "toolchains": []
+  }
+}

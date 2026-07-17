@@ -55,6 +55,7 @@ const sidebars: SidebarsConfig = {
         'workspace/locals',
         'workspace/variable',
         'workspace/extension',
+        'workspace/phase',
         'workspace/target',
       ],
     },

@@ -16,18 +16,21 @@ let parseWorkspace() =
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
+              TargetBlock.Phase = None
               TargetBlock.Outputs = Expr.EmptyList |> Some }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Build = "auto" |> Expr.Enum |> Some
               TargetBlock.Cache = "none" |> Expr.Enum |> Some
               TargetBlock.Batch = "single" |> Expr.Enum |> Some
+              TargetBlock.Phase = None
               TargetBlock.Outputs = None }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
+              TargetBlock.Phase = None
               TargetBlock.Outputs = None }
 
         let extDotnet =
@@ -65,6 +68,7 @@ let parseWorkspace() =
           WorkspaceFile.Targets = Map [ "build", targetBuild
                                         "dist", targetDist
                                         "dummy", targetDummy ]
+          WorkspaceFile.Phases = Map.empty
           WorkspaceFile.Variables = Map [ "infra_env", Expr.String "dev" |> Some ]
           WorkspaceFile.Locals = Map.empty
           WorkspaceFile.Extensions = Map [ "dotnet", extDotnet
@@ -86,18 +90,21 @@ let parseWorkspace2() =
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
+              TargetBlock.Phase = None
               TargetBlock.Outputs = [ Expr.String "toto" ] |> Expr.List |> Some }
         let targetDist =
             { TargetBlock.DependsOn = Set [ "build" ] |> Some
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
+              TargetBlock.Phase = None
               TargetBlock.Outputs = None }
         let targetDummy =
             { TargetBlock.DependsOn = None
               TargetBlock.Build = None
               TargetBlock.Cache = None
               TargetBlock.Batch = None
+              TargetBlock.Phase = None
               TargetBlock.Outputs = None }
 
         let extDotnet =
@@ -130,6 +137,7 @@ let parseWorkspace2() =
           WorkspaceFile.Targets = Map [ "build", targetBuild
                                         "dist", targetDist
                                         "dummy", targetDummy ]
+          WorkspaceFile.Phases = Map.empty
           WorkspaceFile.Variables = Map.empty
           WorkspaceFile.Locals = Map.empty
           WorkspaceFile.Extensions = Map [ "dotnet", extDotnet
@@ -147,6 +155,34 @@ let parseWorkspace2() =
 let unexpectedAttributeIsError() =
     let content = File.ReadAllText("TestFiles/Error_UnexpectedAttribute")
     (fun () -> Terrabuild.Configuration.FrontEnd.Workspace.parse content |> ignore) |> should (throwWithMessage "unexpected attribute 'tagada'") typeof<Errors.TerrabuildException>
+
+[<Test>]
+let ``phases and target phase references are parsed`` () =
+    let workspace =
+        Terrabuild.Configuration.FrontEnd.Workspace.parse """
+phase toolchains {}
+phase application {
+  depends_on = [ phase.toolchains ]
+}
+target build {
+  phase = phase.application
+}
+"""
+
+    workspace.Phases
+    |> should equal (Map [ "toolchains", { PhaseBlock.DependsOn = Set.empty }
+                           "application", { PhaseBlock.DependsOn = Set [ "toolchains" ] } ])
+    workspace.Targets["build"].Phase |> should equal (Some (Expr.Variable "phase.application"))
+
+[<Test>]
+let ``duplicate phase declaration is rejected`` () =
+    (fun () ->
+        Terrabuild.Configuration.FrontEnd.Workspace.parse """
+phase build {}
+phase build {}
+"""
+        |> ignore)
+    |> should (throwWithMessage "duplicated phase 'build'") typeof<Errors.TerrabuildException>
 
 [<Test>]
 let unexpectedBlockIsError() =

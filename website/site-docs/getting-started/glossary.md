@@ -20,6 +20,7 @@ Short definitions for recurring Terrabuild terms.
 | **Insights** | The managed backend used for shared Terrabuild cache storage. | [Usage](/docs/usage) |
 | **Node** | A task represented in the build graph. | [Graph](/docs/getting-started/graph) |
 | **Project** | A buildable unit inside a workspace, defined by a `PROJECT` file. | [Project](/docs/project) |
+| **Phase** | An optional workspace-declared ordering boundary that groups targets and can depend on earlier phases. | [Phase Block](../workspace/phase) |
 | **Target** | A named goal such as `build`, `test`, or `dist`. | [Project Target Block](/docs/project/target), [Workspace Target Block](/docs/workspace/target) |
 | **Task** | One concrete target execution for one project. | [Tasks](/docs/getting-started/tasks) |
 | **Workspace** | The monorepo root, defined by a `WORKSPACE` file. | [Workspace](/docs/workspace) |

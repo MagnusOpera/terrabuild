@@ -13,7 +13,9 @@ let private buildNode id projectDir target action operations =
       GraphDef.Node.ProjectName = None
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = target
+      GraphDef.Node.Phase = None
       GraphDef.Node.Dependencies = Set.empty
+      GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty
       GraphDef.Node.ProjectHash = $"project-{id}"
       GraphDef.Node.TargetHash = $"target-{id}"
@@ -315,7 +317,8 @@ let ``buildBatchSchedule flattens member labels in GitHub mode`` () =
               memberB.Id, memberB
               batchNode.Id, batchNode ] |> Map.ofList
           GraphDef.Graph.RootNodes = Set [ memberA.Id; memberB.Id ]
-          GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberA.Id; memberB.Id ] ] }
+          GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberA.Id; memberB.Id ] ]
+          GraphDef.Graph.Phases = Map.empty }
 
     let schedule = Runner.buildBatchSchedule true graph batchNode (Some (Set [ memberA.Id; memberB.Id ]))
 
@@ -332,7 +335,8 @@ let ``buildBatchSchedule keeps hierarchical labels outside GitHub mode`` () =
               memberB.Id, memberB
               batchNode.Id, batchNode ] |> Map.ofList
           GraphDef.Graph.RootNodes = Set [ memberA.Id; memberB.Id ]
-          GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberA.Id; memberB.Id ] ] }
+          GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberA.Id; memberB.Id ] ]
+          GraphDef.Graph.Phases = Map.empty }
 
     let schedule = Runner.buildBatchSchedule false graph batchNode (Some (Set [ memberA.Id; memberB.Id ]))
 
@@ -364,7 +368,8 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
                   restoreMember.Id, restoreMember
                   batchNode.Id, batchNode ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ execMember.Id; restoreMember.Id ]
-              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ execMember.Id; restoreMember.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ execMember.Id; restoreMember.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let cache = FakeCache(workspace)
         let api = FakeApiClient()
@@ -438,7 +443,8 @@ let ``run includes repository in uploaded graph hash`` () =
                 [ memberNode.Id, memberNode
                   batchNode.Id, batchNode ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ memberNode.Id ]
-              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let runForRepository repository =
             let cache = FakeCache(workspace)
@@ -476,7 +482,8 @@ let ``run normalizes equivalent repository identities in uploaded graph hash`` (
                 [ memberNode.Id, memberNode
                   batchNode.Id, batchNode ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ memberNode.Id ]
-              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let runForRepository repository =
             let cache = FakeCache(workspace)
@@ -527,7 +534,8 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
                 [ genNode.Id, genNode
                   buildNode.Id, buildNode ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ buildNode.Id ]
-              GraphDef.Graph.Batches = Map.empty }
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
 
         let cache = FakeCache(workspace)
         let api = FakeApiClient()
@@ -570,3 +578,47 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
         summary.Nodes[buildNode.Id].Request |> should equal Runner.TaskRequest.Exec
         summary.Nodes[genNode.Id].Status.IsSuccess |> should equal true
         summary.Nodes[buildNode.Id].Status.IsSuccess |> should equal true)
+
+[<Test>]
+let ``runner waits for every prerequisite phase dependency`` () =
+    withTempWorkspace (fun workspace ->
+        let marker = Path.Combine(workspace, "toolchain-ready")
+        let tool =
+            { buildNode "tool" workspace "dist" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/touch" marker None ] with
+                Phase = Some "toolchains" }
+        let app =
+            { buildNode "app" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/stat" marker None ] with
+                Phase = Some "application"
+                Dependencies = Set [ tool.Id ] }
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ tool.Id, tool; app.Id, app ]
+              GraphDef.Graph.RootNodes = Set [ app.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map [ "toolchains", Set.empty; "application", Set [ "toolchains" ] ] }
+
+        let summary = Runner.run (baseOptions workspace) (FakeCache(workspace) :> Cache.ICache) None graph graph
+
+        File.Exists marker |> should equal true
+        summary.IsSuccess |> should equal true)
+
+[<Test>]
+let ``runner does not execute a downstream phase after prerequisite failure`` () =
+    withTempWorkspace (fun workspace ->
+        let downstreamMarker = Path.Combine(workspace, "application-ran")
+        let tool =
+            { buildNode "tool" workspace "dist" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/false" "" None ] with
+                Phase = Some "toolchains" }
+        let app =
+            { buildNode "app" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/touch" downstreamMarker None ] with
+                Phase = Some "application"
+                Dependencies = Set [ tool.Id ] }
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ tool.Id, tool; app.Id, app ]
+              GraphDef.Graph.RootNodes = Set [ app.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map [ "toolchains", Set.empty; "application", Set [ "toolchains" ] ] }
+
+        let summary = Runner.run (baseOptions workspace) (FakeCache(workspace) :> Cache.ICache) None graph graph
+
+        File.Exists downstreamMarker |> should equal false
+        summary.IsSuccess |> should equal false)

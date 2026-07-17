@@ -1,0 +1,119 @@
+{
+  "nodes": {
+    "workspace/path#a:build": {
+      "id": "workspace/path#a:build",
+      "projectId": "workspace/path#a",
+      "projectName": "a",
+      "projectDir": "A",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B",
+      "targetHash": "7016D98BE35F769FC238B2899B610AA2BF7F2D5F6380F96BE0681B7783D1E374",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#a:dist": {
+      "id": "workspace/path#a:dist",
+      "projectId": "workspace/path#a",
+      "projectName": "a",
+      "projectDir": "A",
+      "target": "dist",
+      "dependencies": [
+        "workspace/path#a:build"
+      ],
+      "outputs": [],
+      "projectHash": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B",
+      "targetHash": "02249EB540520B1287667F815CC912FBDAC4EF158673670ED93379FFBFF784C8",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#b:apply": {
+      "id": "workspace/path#b:apply",
+      "projectId": "workspace/path#b",
+      "projectName": "b",
+      "projectDir": "B",
+      "target": "apply",
+      "dependencies": [
+        "workspace/path#b:plan"
+      ],
+      "outputs": [],
+      "projectHash": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0",
+      "targetHash": "DDC3B356ED944BF0583FA783EC6DDFDFC615C8758D46CBDCB9CE6A2A09C34561",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#b:plan": {
+      "id": "workspace/path#b:plan",
+      "projectId": "workspace/path#b",
+      "projectName": "b",
+      "projectDir": "B",
+      "target": "plan",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0",
+      "targetHash": "0B689E371D6D24D9085688BBA76A20A2209D36F3FEE8ECDD6ADBC6FF2E6AD089",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#c:build": {
+      "id": "workspace/path#c:build",
+      "projectId": "workspace/path#c",
+      "projectName": "c",
+      "projectDir": "C",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "491046BB8E901E005027D13A8E8F29957A3069413C28DDEBAAFB3A9D4FA6B2E9",
+      "targetHash": "679FBBFB55B56372D7153245CC836ED4929425639983734751FD309EB36C126D",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#c:dist": {
+      "id": "workspace/path#c:dist",
+      "projectId": "workspace/path#c",
+      "projectName": "c",
+      "projectDir": "C",
+      "target": "dist",
+      "dependencies": [
+        "workspace/path#c:build"
+      ],
+      "outputs": [],
+      "projectHash": "491046BB8E901E005027D13A8E8F29957A3069413C28DDEBAAFB3A9D4FA6B2E9",
+      "targetHash": "360733DE9A449F19CB2830C79C08E27C66D2D0BB9C6EDBDB5644FDCCE8D1A563",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    }
+  },
+  "rootNodes": [
+    "workspace/path#a:dist",
+    "workspace/path#b:apply",
+    "workspace/path#c:dist"
+  ],
+  "batches": {},
+  "phases": {}
+}

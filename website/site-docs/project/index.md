@@ -9,4 +9,4 @@ A project consists of:
 * A `PROJECT` file (mandatory) - defines the build configuration
 * Committed files below the project path, determined using `.gitignore` - these are the source files that will be built
 
-This section describes the syntax and configuration options for the `PROJECT` file. The PROJECT file uses an HCL-inspired syntax to define targets, dependencies, outputs, and extension configurations.
+This section describes the syntax and configuration options for the `PROJECT` file. The PROJECT file uses an HCL-inspired syntax to define targets, dependencies, outputs, phase assignments, and extension configurations. Phases themselves are declared in [`WORKSPACE`](../workspace/phase).

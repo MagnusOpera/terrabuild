@@ -8,6 +8,7 @@ open Serilog
 type Batch =
     { BatchId: string
       ClusterHash: string
+      Phase: string option
       Nodes: Node list }
 
 let private computeBatchId (clusterHash: string) (nodes: Node list) =
@@ -90,21 +91,22 @@ let private hasExternalDependencyCycle (graph: Graph) (candidateNodes: Node list
 
 let computeBatches (graph: Graph) =
     // find clusters with at least one exec node
-    let elligibleClusterHash =
+    let eligibleBuckets =
         graph.Nodes
         |> Seq.choose (fun (KeyValue(_, node)) -> 
             match node with
-            | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some clusterHash
+            | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some (clusterHash, node.Phase)
             | _ -> None)
         |> Set.ofSeq
 
     graph.Nodes
     |> Seq.choose (fun (KeyValue(_, node)) ->
         match node with
-        | { ClusterHash = Some clusterHash; Required = true } when elligibleClusterHash |> Set.contains clusterHash -> Some (clusterHash, node)
+        | { ClusterHash = Some clusterHash; Required = true } when eligibleBuckets |> Set.contains (clusterHash, node.Phase) ->
+            Some ((clusterHash, node.Phase), node)
         | _ -> None)
     |> Seq.groupBy fst
-    |> Seq.collect (fun (clusterHash, items) ->
+    |> Seq.collect (fun ((clusterHash, phase), items) ->
         let bucketNodes =
             items
             |> Seq.map snd
@@ -137,6 +139,7 @@ let computeBatches (graph: Graph) =
                     let batchId = computeBatchId clusterHash comp
                     Some { Batch.BatchId = batchId
                            Batch.ClusterHash = clusterHash
+                           Batch.Phase = phase
                            Batch.Nodes = comp }))
     |> List.ofSeq
 
@@ -182,6 +185,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let memberSet = nodeIds |> Set.ofList
             let dependencySet = batch.Nodes |> Seq.collect (fun n -> n.Dependencies) |> Set.ofSeq
             let batchDependencies = dependencySet - memberSet
+            let phaseDependencySet = batch.Nodes |> Seq.collect (fun n -> n.PhaseDependencies) |> Set.ofSeq
+            let batchPhaseDependencies = phaseDependencySet - memberSet
 
             let batchNode =
                 { GraphDef.Node.Id = batch.BatchId
@@ -189,9 +194,11 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.ProjectName = None
                   GraphDef.Node.ProjectDir = "."
                   GraphDef.Node.Target = headNode.Target
+                  GraphDef.Node.Phase = batch.Phase
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.Artifacts = headNode.Artifacts
                   GraphDef.Node.Dependencies = batchDependencies
+                  GraphDef.Node.PhaseDependencies = batchPhaseDependencies
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = Some batch.ClusterHash
                   GraphDef.Node.ProjectHash = batch.BatchId

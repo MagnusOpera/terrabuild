@@ -57,7 +57,9 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.ProjectName = None
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = "build"
+      GraphDef.Node.Phase = None
       GraphDef.Node.Dependencies = Set.empty
+      GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty
       GraphDef.Node.ProjectHash = projectHash
       GraphDef.Node.TargetHash = targetHash
@@ -145,7 +147,8 @@ let ``Markdown links batch members to single batch anchor`` () =
         let graph =
             { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id ]
-              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let summaries =
             [ nodeA; nodeB ]
@@ -206,7 +209,8 @@ let ``Markdown keeps separate anchors for non batched nodes`` () =
         let graph =
             { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id ]
-              GraphDef.Graph.Batches = Map.empty }
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
 
         let summaries =
             [ nodeA; nodeB ]
@@ -255,7 +259,8 @@ let ``Terminal renders batch label with hash and members`` () =
         let graph =
             { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id ]
-              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let summaries =
             [ nodeA; nodeB ]
@@ -304,7 +309,8 @@ let ``Terminal truncates batch members after five projects`` () =
         let graph =
             { GraphDef.Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
               GraphDef.Graph.RootNodes = nodes |> List.map (fun node -> node.Id) |> Set.ofList
-              GraphDef.Graph.Batches = Map [ batchId, nodes |> List.map (fun node -> node.Id) |> Set.ofList ] }
+              GraphDef.Graph.Batches = Map [ batchId, nodes |> List.map (fun node -> node.Id) |> Set.ofList ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let summaries =
             nodes
@@ -347,7 +353,8 @@ let ``GitHubActions renders batch label with hash in failure annotation`` () =
         let graph =
             { GraphDef.Graph.Nodes = [ nodeA.Id, nodeA; nodeB.Id, nodeB; nodeC.Id, nodeC ] |> Map.ofList
               GraphDef.Graph.RootNodes = Set [ nodeA.Id; nodeB.Id; nodeC.Id ]
-              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id; nodeC.Id ] ] }
+              GraphDef.Graph.Batches = Map [ batchId, Set [ nodeA.Id; nodeB.Id; nodeC.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
 
         let summaries =
             [ nodeA; nodeB; nodeC ]

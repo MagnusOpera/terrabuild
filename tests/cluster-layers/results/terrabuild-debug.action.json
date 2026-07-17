@@ -331,5 +331,6 @@
     "workspace/path#f:build",
     "workspace/path#g:build"
   ],
-  "batches": {}
+  "batches": {},
+  "phases": {}
 }

@@ -32,6 +32,7 @@
       "build"
     ]
   },
+  "phases": {},
   "projects": {
     "@pnpm#npm-app": {
       "id": "@pnpm#npm-app",

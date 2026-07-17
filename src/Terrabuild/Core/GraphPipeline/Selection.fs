@@ -39,4 +39,5 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
     { Graph.Nodes = nodes
       Graph.RootNodes = rootNodes
-      Graph.Batches = Map.empty }
+      Graph.Batches = Map.empty
+      Graph.Phases = graph.Phases }

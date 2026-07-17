@@ -514,5 +514,6 @@
       "workspace/path#libraries/dotnet-lib:build",
       "workspace/path#projects/dotnet-app:build"
     ]
-  }
+  },
+  "phases": {}
 }

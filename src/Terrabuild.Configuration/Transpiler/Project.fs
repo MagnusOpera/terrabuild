@@ -75,7 +75,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"; "phase"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -90,6 +90,7 @@ let toTarget (block: Block) =
     let build = block |> tryFindAttribute "build"
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
+    let phase = block |> tryFindAttribute "phase"
     let steps =
         block.Blocks
         |> List.map (fun step ->
@@ -116,6 +117,7 @@ let toTarget (block: Block) =
       TargetBlock.Build = build
       TargetBlock.Cache = cache
       TargetBlock.Batch = batch
+      TargetBlock.Phase = phase
       TargetBlock.Steps = steps }
 
 

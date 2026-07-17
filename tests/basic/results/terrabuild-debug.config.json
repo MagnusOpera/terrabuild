@@ -20,6 +20,7 @@
       "docker"
     ]
   },
+  "phases": {},
   "projects": {
     "workspace/path#app": {
       "id": "workspace/path#app",

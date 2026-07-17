@@ -1,0 +1,7 @@
+project app {
+  @pnpm {}
+}
+
+target build {
+  @pnpm build {}
+}

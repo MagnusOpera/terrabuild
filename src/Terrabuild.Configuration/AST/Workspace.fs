@@ -20,12 +20,18 @@ type TargetBlock =
       DependsOn: Set<string> option
       Build: Expr option
       Cache: Expr option
-      Batch: Expr option }
+      Batch: Expr option
+      Phase: Expr option }
+
+[<RequireQualifiedAccess>]
+type PhaseBlock =
+    { DependsOn: Set<string> }
 
 [<RequireQualifiedAccess>]
 type WorkspaceFile =
     { Workspace: WorkspaceBlock
       Targets: Map<string, TargetBlock>
+      Phases: Map<string, PhaseBlock>
       Variables: Map<string, Expr option>
       Locals: Map<string, Expr>
       Extensions: Map<string, ExtensionBlock> }

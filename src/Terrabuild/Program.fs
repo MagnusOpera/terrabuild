@@ -360,11 +360,15 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
-        let fullGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
-        if options.Debug then fullGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
+        let nodeGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
+        if options.Debug then nodeGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
+
+        Log.Debug("====[ GraphPipeline Phase ]========================================================")
+        let phaseGraph = runPhase "graph-phase" (fun () -> GraphPipeline.Phase.build nodeGraph)
+        if options.Debug then phaseGraph |> Json.Serialize |> IO.writeTextFile (logFile $"phase.json")
 
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
-        let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config fullGraph)
+        let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config phaseGraph)
         if options.Debug then sourceGraph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
 
         Log.Debug("====[ GraphPipeline Resolve ]========================================================")
@@ -418,7 +422,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
           Options = options
           Cache = cache
           Api = api
-          FullGraph = fullGraph
+          FullGraph = phaseGraph
           SourceGraph = sourceGraph
           Graph = graph }
 

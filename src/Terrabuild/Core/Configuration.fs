@@ -35,6 +35,7 @@ type Target = {
     ClusterHash: string
     Build: BuildMode option
     Batch: BatchMode
+    Phase: string option
     DependsOn: string set
     Outputs: string set
     Cache: ArtifactMode option
@@ -65,6 +66,9 @@ type Workspace = {
 
     // All targets at workspace level
     Targets: Map<string, Set<string>>
+
+    // Declared phase dependency graph
+    Phases: Map<string, Set<string>>
 
     // All discovered projects in workspace
     Projects: Map<string, Project>
@@ -148,9 +152,20 @@ let private buildDeclaredTargetHash (target: AST.Project.TargetBlock) =
         Build = target.Build |> normalizeExpr
         Cache = target.Cache |> normalizeExpr
         Batch = target.Batch |> normalizeExpr
+        Phase = None
         Steps = target.Steps |> List.map normalizeStep }
     |> Json.Serialize
     |> Hash.sha256
+
+let private resolvePhaseReference phaseNames phaseExpr =
+    match phaseExpr |> Expr.StripLocations with
+    | Expr.Nothing -> None
+    | Expr.Variable phaseReference ->
+        match phaseReference with
+        | String.Regex "^phase\.(.+)$" [ phaseName ] when phaseNames |> Set.contains phaseName -> Some phaseName
+        | String.Regex "^phase\.(.+)$" [ phaseName ] -> raiseSymbolError $"Phase '{phaseName}' is not defined in WORKSPACE"
+        | _ -> raiseInvalidArg $"Invalid phase reference '{phaseReference}'"
+    | _ -> raiseInvalidArg "Expected a phase reference or nothing for phase attribute"
 
 let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
@@ -316,6 +331,10 @@ let private loadProjectDef
         | _ ->
             raiseInvalidArg $"No PROJECT found in directory '{projectFile}'"
 
+    let phaseNames = workspaceConfig.Phases |> Map.keys |> Set.ofSeq
+    projectConfig.Targets
+    |> Map.iter (fun _ target -> target.Phase |> Option.iter (resolvePhaseReference phaseNames >> ignore))
+
     let extensions = extensions |> Map.addMap projectConfig.Extensions
 
     let projectScripts =
@@ -446,12 +465,14 @@ let private loadProjectDef
                 let dependsOn = targetBlock.DependsOn |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.DependsOn)
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
+                let phase = targetBlock.Phase |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Phase)
                 let outputs = targetBlock.Outputs |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Outputs)
                 { targetBlock with 
                     Build = build
                     DependsOn = dependsOn
                     Cache = cache
                     Batch = group
+                    Phase = phase
                     Outputs = outputs })
         let environments =
             projectConfig.Project.Environments
@@ -516,7 +537,7 @@ let private loadProjectDef
 
 
 // this is the final stage: create targets and create the project
-let private finalizeProject repository workspaceDir projectDir evaluationContext (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
+let private finalizeProject repository workspaceDir projectDir evaluationContext phaseNames (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
     let startFinalize = DateTime.UtcNow
     let projectId = projectDef.Id
 
@@ -572,10 +593,14 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
 
     let projectSteps =
         projectDef.Targets |> Map.map (fun targetName target ->
+            let targetPhase =
+                target.Phase |> Option.bind (resolvePhaseReference phaseNames)
+
             let evaluationContext =
                 let mutable evaluationContext =
                     let terrabuildTargetVars =
-                        Map [ "terrabuild.target" , Value.String targetName ]
+                        Map [ "terrabuild.target", Value.String targetName
+                              "terrabuild.phase", targetPhase |> Option.map Value.String |> Option.defaultValue Value.Nothing ]
 
                     { evaluationContext with
                         Eval.ProjectDir = Some projectDir
@@ -765,6 +790,7 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                   Target.ClusterHash = clusterHash
                   Target.Build = targetBuild
                   Target.Batch = targetBatch
+                  Target.Phase = targetPhase
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Outputs = targetOutputs
@@ -793,6 +819,29 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
 
 
 
+let private validatePhases (phases: Map<string, AST.Workspace.PhaseBlock>) =
+    phases
+    |> Map.iter (fun phaseName phase ->
+        phase.DependsOn
+        |> Set.iter (fun dependency ->
+            if phases.ContainsKey dependency |> not then
+                raiseSymbolError $"Phase '{phaseName}' depends on undefined phase '{dependency}'"))
+
+    let mutable visited = Set.empty<string>
+    let rec visit path phaseName =
+        if path |> List.contains phaseName then
+            let cycle =
+                phaseName :: path
+                |> List.rev
+                |> String.join " -> "
+            raiseInvalidArg $"Circular phase dependency detected: {cycle}"
+        elif visited |> Set.contains phaseName |> not then
+            let path = phaseName :: path
+            phases[phaseName].DependsOn |> Set.iter (visit path)
+            visited <- visited |> Set.add phaseName
+
+    phases |> Map.keys |> Seq.iter (visit [])
+
 let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
 
@@ -802,6 +851,11 @@ let read (options: ConfigOptions.Options) =
             FrontEnd.Workspace.parseWithSource (FS.combinePath options.Workspace "WORKSPACE") workspaceContent
         with exn ->
             forwardParseError("Failed to read WORKSPACE configuration file", exn)
+
+    validatePhases workspaceConfig.Phases
+    let phaseNames = workspaceConfig.Phases |> Map.keys |> Set.ofSeq
+    workspaceConfig.Targets
+    |> Map.iter (fun _ target -> target.Phase |> Option.iter (resolvePhaseReference phaseNames >> ignore))
 
     let engine =
         match workspaceConfig.Workspace.Engine with
@@ -925,7 +979,8 @@ let read (options: ConfigOptions.Options) =
                                     project.Id, project)
                                 |> Map.ofSeq
 
-                            let project = finalizeProject repository options.Workspace projectDir evaluationContext loadedProject dependsOnProjects
+                            let phaseNames = workspaceConfig.Phases |> Map.keys |> Set.ofSeq
+                            let project = finalizeProject repository options.Workspace projectDir evaluationContext phaseNames loadedProject dependsOnProjects
                             if projects.TryAdd(project.Id, project) |> not then raiseBugError "Unexpected error"
 
                             // signal canonical id
@@ -1003,5 +1058,6 @@ let read (options: ConfigOptions.Options) =
         { Workspace.Id = workspaceId
           Workspace.SelectedProjects = selectedProjects
           Workspace.Projects = projects |> Map.ofDict
-          Workspace.Targets = targets }
+          Workspace.Targets = targets
+          Workspace.Phases = workspaceConfig.Phases |> Map.map (fun _ phase -> phase.DependsOn) }
     options, workspaceConfig

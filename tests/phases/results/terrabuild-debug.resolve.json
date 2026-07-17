@@ -1,0 +1,74 @@
+{
+  "nodes": {
+    "@pnpm#phase-app:build": {
+      "id": "@pnpm#phase-app:build",
+      "projectId": "@pnpm#phase-app",
+      "projectName": "app",
+      "projectDir": "apps/app",
+      "target": "build",
+      "phase": "application",
+      "dependencies": [
+        "workspace/path#tools/pnpm:dist"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "projectHash": "EAAA0DB1D778E785CCFF8FBE5462CA7BC22A7A2D8E82C77633B83A5BCBF02B13",
+      "targetHash": "D8BFDF9FFF3239ECA099F6FE7C0B84988CCFEECFC74B690C11DD469DA64F4226",
+      "clusterHash": "A430E307FB3A4BBE804FC548CABA84CDA0D55171AE15EB00A34EE0B6D27D07EB",
+      "operations": [
+        {
+          "image": "terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "arguments": "run build",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "workspace/path#tools/pnpm:dist": {
+      "id": "workspace/path#tools/pnpm:dist",
+      "projectId": "workspace/path#tools/pnpm",
+      "projectName": "pnpm",
+      "projectDir": "tools/pnpm",
+      "target": "dist",
+      "phase": "toolchains",
+      "dependencies": [],
+      "outputs": [],
+      "projectHash": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+      "targetHash": "EBE3E50E76AE0BE0A4B1590C9D511F93A494510DBFAED0DFB5418E2FE688EAC1",
+      "operations": [
+        {
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@shell docker",
+          "command": "docker",
+          "arguments": "build --tag terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2 .",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "none",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    }
+  },
+  "rootNodes": [
+    "@pnpm#phase-app:build"
+  ],
+  "batches": {},
+  "phases": {
+    "application": [
+      "toolchains"
+    ],
+    "toolchains": []
+  }
+}

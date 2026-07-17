@@ -112,5 +112,6 @@
     "workspace/path#b:apply",
     "workspace/path#c:build"
   ],
-  "batches": {}
+  "batches": {},
+  "phases": {}
 }

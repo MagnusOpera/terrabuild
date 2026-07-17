@@ -223,5 +223,6 @@
     "workspace/path#projects/rust-app:build",
     "workspace/path#tests/playwright:test"
   ],
-  "batches": {}
+  "batches": {},
+  "phases": {}
 }

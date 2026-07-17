@@ -10,7 +10,9 @@ let buildNode id clusterHash action deps group req =
       Node.ProjectName = None
       Node.ProjectDir = $"/src/project{id}"
       Node.Target = "build"
+      Node.Phase = None
       Node.Dependencies = deps
+      Node.PhaseDependencies = Set.empty
       Node.Outputs = Set.empty
       Node.ProjectHash = ""
       Node.TargetHash = ""
@@ -51,7 +53,8 @@ let ``check partition computation``() =
     let graph =
         { Graph.Nodes = nodes
           Graph.RootNodes = Set [ "A1"; "B1"; "D1" ]
-          Graph.Batches = Map.empty }
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
 
     let batches = computeBatches graph
 
@@ -61,9 +64,11 @@ let ``check partition computation``() =
     let expected =
         [ { BatchId = expectedBatchIdA
             ClusterHash = "hash-A"
+            Phase = None
             Nodes = [ nodeA1; nodeA2 ] }
           { BatchId = expectedBatchIdB
             ClusterHash = "hash-B"
+            Phase = None
             Nodes = [ nodeB1; nodeB2 ] }]
 
     // Order is not guaranteed; compare as sets
@@ -101,7 +106,8 @@ let ``check partition/all computation``() =
     let graph =
         { Graph.Nodes = nodes
           Graph.RootNodes = Set [ "A1"; "B1"; "D1" ]
-          Graph.Batches = Map.empty }
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
 
     let batches = computeBatches graph
 
@@ -110,6 +116,7 @@ let ``check partition/all computation``() =
     let expected =
         [ { BatchId = expectedBatchIdB
             ClusterHash = "hash-B"
+            Phase = None
             Nodes = [ nodeB1; nodeB2; nodeC1; nodeC2 ] } ]
 
     // Order is not guaranteed; compare as sets
@@ -137,10 +144,36 @@ let ``batch computation skips candidates that would create an external dependenc
     let graph =
         { Graph.Nodes = nodes
           Graph.RootNodes = Set [ "app" ]
-          Graph.Batches = Map.empty }
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
 
     let batches = computeBatches graph
 
     batches
     |> List.exists (fun batch -> batch.Nodes |> List.exists (fun node -> node.Id = "app"))
     |> should equal false
+
+[<Test>]
+let ``batch computation never mixes phases or phased and unphased nodes`` () =
+    let toolA = { buildNode "toolA" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }
+    let toolB = { buildNode "toolB" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }
+    let appA = { buildNode "appA" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "application" }
+    let appB = { buildNode "appB" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "application" }
+    let plainA = buildNode "plainA" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true
+    let plainB = buildNode "plainB" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true
+    let nodes = [ toolA; toolB; appA; appB; plainA; plainB ]
+    let graph =
+        { Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
+          Graph.RootNodes = nodes |> List.map _.Id |> Set.ofList
+          Graph.Batches = Map.empty
+          Graph.Phases = Map [ "application", Set [ "toolchains" ]; "toolchains", Set.empty ] }
+
+    let batches = computeBatches graph
+
+    batches |> List.length |> should equal 3
+    batches
+    |> List.map (fun batch -> batch.Phase, batch.Nodes |> List.map _.Id |> Set.ofList)
+    |> Set.ofList
+    |> should equal (Set [ (Some "toolchains", Set [ "toolA"; "toolB" ]);
+                          (Some "application", Set [ "appA"; "appB" ]);
+                          (None, Set [ "plainA"; "plainB" ]) ])

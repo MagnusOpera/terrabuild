@@ -8,6 +8,7 @@ The `target` block describes how to build a specific target for a project. A tar
 ## Example Usage
 ```
 target build {
+    phase = phase.application
     depends_on = [ target.^build ]
     outputs = [ "dist/*" ]
     build = ~auto
@@ -23,6 +24,7 @@ target build {
 The following arguments are supported:
 
 * `identifier` - (Mandatory) Identifier of the target. This is the name used to reference the target when running `terrabuild run <target>`.
+* `phase` - (Optional) Assign this target to a [phase declared in `WORKSPACE`](../workspace/phase), using `phase.<name>`. If omitted, the target inherits the phase from the matching workspace target. Use `phase = nothing` to explicitly remain unphased.
 * `depends_on` - (Optional) Additional target references for this project target. Project-level dependencies are combined with workspace target dependencies for the same target. Use `target.^<name>` for upstream dependency projects and `target.<name>` for the same project. References only add targets that exist in the relevant project scope, and circular target dependency chains are reported during graph construction.
 * `outputs` - (Optional) Override default outputs for this target. By default, the value is the set of `outputs` from the project configuration and extensions used in the target. Specifies which files/directories should be cached as build artifacts.
 * `build` - (Optional) Override default build mode. By default, the target is built if the hash has changed (`~auto`). Possible values:

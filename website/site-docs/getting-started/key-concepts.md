@@ -12,7 +12,7 @@ Use it after the quick start when you want the mental model.
 
 ### Workspace and Project
 
-A **workspace** is the monorepo root. It contains one `WORKSPACE` file with shared configuration such as target policies, variables, and extension defaults.
+A **workspace** is the monorepo root. It contains one `WORKSPACE` file with shared configuration such as target policies, phases, variables, and extension defaults.
 
 A **project** is a buildable unit inside that workspace. It contains one `PROJECT` file with project-specific configuration such as outputs, dependencies, labels, and commands.
 
@@ -49,7 +49,7 @@ Terrabuild expands selected targets into a DAG:
 
 See [Graph](/docs/getting-started/graph) for the detailed walkthrough.
 
-### Dependency Resolution
+### Target Dependency Resolution
 
 Terrabuild uses target dependency syntax to describe execution order:
 
@@ -70,6 +70,16 @@ target dist {
 
 Workspace target dependencies and project target dependencies are combined for the same target. See [Workspace Target Block](/docs/workspace/target) and [Project Target Block](/docs/project/target) for the reference form.
 
+### Phases
+
+A **phase** is an optional, workspace-wide ordering boundary. Phases are useful when a whole class of work must finish before another class can begin—for example, building local toolchain images before running application targets that consume them.
+
+Phases are declared in `WORKSPACE`, where they can depend on earlier phases. Targets in `WORKSPACE` or `PROJECT` can then be assigned to one phase. Selecting a phased target also selects every target in its prerequisite phases, and all of those prerequisite targets must succeed before the downstream phase starts.
+
+Use an ordinary target dependency when one specific task needs another specific task. Use a phase when the ordering rule applies across a workspace and must enlist all targets in an earlier phase. Both kinds of dependency become edges in the immutable build graph and are checked together for cycles.
+
+Targets in the same phase can still run concurrently, subject to their ordinary dependencies. Unphased targets keep the usual scheduling behavior. See [Phase Block](../workspace/phase) for declaration, inheritance, and selection details.
+
 ### Change Detection and Cache Keys
 
 Terrabuild hashes project files, dependency state, commands, and evaluated inputs to decide whether a task can be restored or must be built. Because the hash is deterministic, the same work can be reused across machines and branches when inputs match.
@@ -81,6 +91,8 @@ See [Caching](/docs/getting-started/caching) and [Tasks](/docs/getting-started/t
 ### Batch Builds
 
 A **cluster** is a group of compatible tasks built together in one batch. This lets extensions such as .NET or pnpm reuse native tooling more efficiently.
+
+Batching respects phase boundaries: targets in different phases, and phased and unphased targets, are never mixed in one batch.
 
 See [Batch](/docs/getting-started/batch) for details.
 
