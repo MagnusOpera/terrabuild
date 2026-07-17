@@ -321,6 +321,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectName = Some "Lib"
                 ProjectDir = "src/Lib"
                 Target = "build"
+                Phase = None
                 ProjectHash = "project-lib"
                 TargetHash = "hash-lib-base"
                 Dependencies = []
@@ -335,6 +336,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectName = Some "App"
                 ProjectDir = "src/App"
                 Target = "build"
+                Phase = None
                 ProjectHash = "project-app"
                 TargetHash = "hash-app"
                 Dependencies = [ "lib-build" ]

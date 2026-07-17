@@ -151,6 +151,7 @@ module private Build =
           ProjectName: string option
           ProjectDir: string
           Target: string
+          Phase: string option
           ProjectHash: string
           TargetHash: string
           Dependencies: string list
@@ -215,6 +216,7 @@ module private Build =
                     BuildGraphNodeInput.ProjectName = node.ProjectName
                     BuildGraphNodeInput.ProjectDir = node.ProjectDir
                     BuildGraphNodeInput.Target = node.Target
+                    BuildGraphNodeInput.Phase = node.Phase
                     BuildGraphNodeInput.ProjectHash = node.ProjectHash
                     BuildGraphNodeInput.TargetHash = node.TargetHash
                     BuildGraphNodeInput.Dependencies = node.Dependencies
@@ -328,6 +330,7 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                     ProjectName = node.ProjectName
                     ProjectDir = node.ProjectDir
                     Target = node.Target
+                    Phase = node.Phase
                     ProjectHash = node.ProjectHash
                     TargetHash = node.TargetHash
                     Dependencies = node.Dependencies

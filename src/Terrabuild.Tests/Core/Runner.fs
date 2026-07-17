@@ -359,7 +359,9 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
               GraphDef.ContaineredShellOperation.Arguments = ""
               GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
-        let execMember = buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec []
+        let execMember =
+            { buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec [] with
+                Phase = Some "application" }
         let restoreMember = buildNode "member-restore" workspace "build" GraphDef.RunAction.Restore []
         let batchNode = buildNode "batch-build" "." "build" GraphDef.RunAction.Exec [ operation ]
         let graph =
@@ -400,6 +402,7 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
             Contracts.BuildGraphNode.ProjectName = execMember.ProjectName
             Contracts.BuildGraphNode.ProjectDir = execMember.ProjectDir
             Contracts.BuildGraphNode.Target = execMember.Target
+            Contracts.BuildGraphNode.Phase = execMember.Phase
             Contracts.BuildGraphNode.ProjectHash = execMember.ProjectHash
             Contracts.BuildGraphNode.TargetHash = execMember.TargetHash
             Contracts.BuildGraphNode.Dependencies = execMember.Dependencies |> Seq.sort |> List.ofSeq

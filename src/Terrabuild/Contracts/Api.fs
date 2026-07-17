@@ -7,6 +7,7 @@ type BuildGraphNode = {
     ProjectName: string option
     ProjectDir: string
     Target: string
+    Phase: string option
     ProjectHash: string
     TargetHash: string
     Dependencies: string list
