@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.196.2-next]
+
+
 - Rework the website learning path and correct configuration examples, cache guidance, dependency and phase explanations, container-runtime behavior, language reference details, and console graph options.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.1-next...0.196.2-next
 
 ## [0.196.1-next]
 
