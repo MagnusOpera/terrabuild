@@ -52,7 +52,8 @@ Canonical host shape:
 type BatchContext =
     { Hash: string
       TempDir: string
-      ProjectPaths: string list }
+      ProjectPaths: string list
+      BatchCommands: string list }
 
 type ActionContext =
     { Debug: bool
@@ -192,9 +193,9 @@ Default handler example:
 
 Any protocol change **MUST** be introduced in this document before implementation.
 
-## 10. Extension Template
+## 10. Built-In Extension Template
 
-Copy/paste starter template:
+Terrabuild's embedded extensions use the shared protocol and helper modules in `src/Terrabuild.Extensions/Scripts`:
 
 ```fsharp
 import "_protocol.fss" as Protocol
@@ -236,7 +237,7 @@ Template usage rules:
 
 1. `context` **MUST** be the first parameter of every exported function.
 2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
-3. Shared protocol and helper definitions are provided in `Scripts/_protocol.fss` and `Scripts/_helpers.fss`; extension scripts **SHOULD** import them as `Protocol` and `Helpers`.
+3. The `_protocol.fss` and `_helpers.fss` modules are embedded for Terrabuild's built-in extensions. Custom extensions **MUST** define the shapes they use or supply their own imported files; built-in helper modules are not injected into custom script origins.
 4. Imported symbols are available through aliases only, so scripts **MUST** use `Protocol.*` and `Helpers.*` when those aliases are chosen.
 5. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 6. Descriptor keys **MUST** reference exported function names (prefer `nameof`).

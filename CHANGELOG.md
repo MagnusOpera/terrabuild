@@ -5,6 +5,8 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Clarify that phase dependencies are whole-phase success barriers, with an illustrated example of their intentionally coarse enlistment semantics.
+- Link extension authors to the FScript documentation site instead of its source repository.
+- Rework the extensibility guide around FScript's language documentation and align its examples with the current exported-handler, command-result, batching, and descriptor contracts.
 
 ## [0.196.2-next]
 

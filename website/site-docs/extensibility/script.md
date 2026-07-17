@@ -1,15 +1,54 @@
 ---
-title: Script
-
+title: FScript Extensions
 ---
 
-Terrabuild custom extensions are implemented with FScript (`.fss`).
+Terrabuild custom extensions are FScript (`.fss`) programs. FScript provides the language; Terrabuild provides a small host protocol that binds target arguments to exported functions and turns their results into executable operations.
+
+:::info FScript language documentation
+If records, options, pipelines, pattern matching, or `[<export>]` are unfamiliar, begin with the [FScript tutorial](https://magnusopera.github.io/FScript/manual/0.75.0/learn/quickstart). The [versioned FScript manual](https://magnusopera.github.io/FScript/manual/0.75.0/) documents the language embedded by Terrabuild.
+:::
 
 Legacy compiled F# scripts such as `.fsx` are not supported.
 
-## Configure a Scripted Extension
+## Your First Extension
 
-### Local script (workspace-confined)
+Create a script inside the workspace:
+
+```fsharp {filename="tools/extensions/npm-ci.fss"}
+type ShellOperation =
+  { Command: string
+    Arguments: string
+    ErrorLevel: int }
+
+type CommandResult =
+  { Batchable: bool
+    Operations: ShellOperation list }
+
+[<export>] let install (context: {| Directory: string |}) (args: string option) : CommandResult =
+  let arguments = args |> Option.defaultValue ""
+  let command =
+    match arguments with
+    | "" -> "ci"
+    | value -> $"ci {value}"
+
+  { Batchable = false
+    Operations =
+      [ { Command = "npm"
+          Arguments = command
+          ErrorLevel = 0 } ] }
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof install] = [Local] }
+```
+
+Register it in the workspace:
 
 ```hcl {filename="WORKSPACE"}
 extension npm_ci {
@@ -17,155 +56,137 @@ extension npm_ci {
 }
 ```
 
-The script path is resolved from the workspace and must remain inside the workspace.
-
-### Remote script (HTTPS)
-
-```hcl {filename="WORKSPACE"}
-extension npm_ci {
-  script = "https://example.org/terrabuild/npm-ci.fss"
-}
-```
-
-Only HTTPS URLs are accepted.
-
-## Use extension actions
+Then call the exported function as an action:
 
 ```hcl {filename="PROJECT"}
-target build {
-  npm_ci install { args = "--frozen-lockfile" }
+target install {
+  npm_ci install { args = "--ignore-scripts" }
 }
 ```
 
-Action names map to exported function names (or to the handler flagged `Dispatch`).
+The action name `install` resolves to the exported FScript function named `install`. Terrabuild supplies `context`; the target supplies `args`.
 
-## Script Contract
+## Handler Binding
 
-Exported handlers must follow these rules:
-1. Use `export let`.
-2. First parameter must be `context`.
-3. Additional parameter names are matched exactly (case-sensitive) with target arguments.
-4. Omitted non-context arguments must be typed as `option<_>`.
+Every extension entrypoint follows the same rules:
 
-Example:
+1. Declare it with `[<export>] let`.
+2. Name its first parameter `context`.
+3. Name remaining parameters exactly like target arguments; matching is case-sensitive.
+4. Use `option<_>` for arguments that callers may omit.
+5. Return a [`CommandResult`](./types#commandresult) from command handlers.
+
+Context records are structurally typed. Request only the fields the handler uses:
 
 ```fsharp
-export let dispatch (context: { Command: string }) (args: string option) =
-  let command =
-    match args with
-    | Some value -> $"{context.Command} {value}"
-    | None -> context.Command
-
-  [{ Command = "npm"; Arguments = command; ErrorLevel = 0 }]
+[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
+  // ...
 ```
 
-## Descriptor flags
+An omitted optional parameter becomes `None`. An omitted required parameter is a configuration error. Extra target arguments that are not present in the function signature are ignored.
 
-Each script returns a descriptor map (`function -> flags`) at top-level.
-Flags are discriminated union cases (not strings).
+## Exact Actions and Dispatch
+
+Terrabuild first looks for an exported function whose name matches the requested action. If none exists, it uses the single function marked `Dispatch`.
+
+```fsharp
+[<export>] let dispatch (context: {| Command: string |}) (args: string option) : CommandResult =
+  let arguments = args |> Option.defaultValue ""
+  { Batchable = false
+    Operations =
+      [ { Command = "your-tool"
+          Arguments = $"{context.Command} {arguments}"
+          ErrorLevel = 0 } ] }
+
+{ [nameof dispatch] = [Dispatch; Never] }
+```
+
+With this fallback, `my_extension lint { }` invokes `dispatch` with `context.Command = "lint"`. A script may define at most one dispatch handler.
+
+## The Descriptor
+
+The script's final expression must be a map from exported function names to lists of discriminated-union flags. Flags are union cases, not strings.
 
 ```fsharp
 type ExportFlag =
   | Dispatch
   | Default
-  | Batchable
   | Never
   | Local
   | External
   | Remote
 
-{
-  [nameof defaults] = [Default]
+{ [nameof defaults] = [Default]
   [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Batchable; Remote]
-}
+  [nameof build] = [Remote] }
 ```
 
-Supported flags:
-- `Dispatch`
-- `Default`
-- `Batchable`
-- cacheability: `Never`, `Local`, `External`, `Remote`
+`Dispatch` and `Default` select special handlers. Every command handler also needs exactly one cacheability behavior:
 
-## Extension Template
+| Flag | Artifact behavior |
+|------|-------------------|
+| `Never` | Do not cache outputs. |
+| `Local` | Store outputs in the local workspace cache. |
+| `Remote` | Use managed caching, including Insights when connected. |
+| `External` | The command manages artifacts externally; Terrabuild stores its summary. |
 
-Copy/paste starter:
+Batching is not a descriptor flag. Each invocation reports whether it supports batching through `CommandResult.Batchable`.
+
+## Optional Project Defaults
+
+A handler marked `Default` can discover project identity, outputs, and dependencies while Terrabuild constructs the project graph:
 
 ```fsharp
-type BatchContext = {
-  Hash: string
-  TempDir: string
-  ProjectPaths: string list
-}
+type DependencyResolution =
+  | Path
+  | Scope
 
-type ActionContext = {
-  Debug: bool
-  CI: bool
-  Command: string
-  Hash: string
-  Directory: string
-  Batch: BatchContext option
-}
+type ProjectInfo =
+  { Id: string option
+    DependencyResolution: DependencyResolution option
+    Outputs: string list
+    Dependencies: string list }
 
-type ProjectInfo = {
-  Id: string option
-  Outputs: string list
-  Dependencies: string list
-}
+[<export>] let defaults (context: {| Directory: string |}) : ProjectInfo =
+  { Id = None
+    DependencyResolution = Some Path
+    Outputs = ["dist/**"]
+    Dependencies = [] }
 
-type ShellOperation = {
-  Command: string
-  Arguments: string
-  ErrorLevel: int
-}
+{ [nameof defaults] = [Default] }
+```
 
-type ShellOperations = ShellOperation list
+A script may define at most one default handler. See [`ProjectInfo`](./types#projectinfo) for identity and dependency-resolution semantics.
 
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Batchable
-  | Never
-  | Local
-  | External
-  | Remote
+## Batching
 
-let with_args args =
-  args |> Option.defaultValue ""
+Set `Batchable = true` only when the handler can produce one correct operation for the supplied batch. In that case, request `Batch` from the action context and use its project paths, commands, hash, or temporary directory.
 
-export let defaults (context: ActionContext) : ProjectInfo =
-  { Id = None; Outputs = []; Dependencies = [] }
+Returning `Batchable = false` keeps the action as an individual operation. Terrabuild still applies its normal graph and phase rules.
 
-export let dispatch (context: ActionContext) (args: string option) : ShellOperations =
-  let command =
-    match with_args args with
-    | "" -> context.Command
-    | value -> $"{context.Command} {value}"
+## Local and Remote Scripts
 
-  [{ Command = "your-tool"; Arguments = command; ErrorLevel = 0 }]
+A local script path is resolved from the directory containing the `WORKSPACE` or `PROJECT` file that declares it and must remain inside the workspace:
 
-export let build (context: ActionContext) (configuration: string option) (args: string option) : ShellOperations =
-  let config = configuration |> Option.defaultValue "Debug"
-  let cmdArgs =
-    match with_args args with
-    | "" -> $"build --configuration {config}"
-    | value -> $"build --configuration {config} {value}"
-
-  [{ Command = "your-tool"; Arguments = cmdArgs; ErrorLevel = 0 }]
-
-{
-  [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Remote]
+```hcl
+extension my_extension {
+  script = "tools/extensions/my-extension.fss"
 }
 ```
 
-## Notes
+Remote scripts must use HTTPS:
 
-- Context types are structural: handlers can request only required fields.
-- Filesystem external functions are sandboxed to workspace scope and can be further denied with `workspace.deny`.
-- `workspace.deny` accepts glob paths and defaults to `[ ".git" ]` when omitted.
-- Security bypass attempts (for example traversal through denied paths) are blocked by the runtime sandbox.
-- Available host functions are documented in [Functions](./functions).
-- For protocol details, see `src/Terrabuild/Scripts/EXTENSION-PROTOCOL.md` in the Terrabuild repository.
-- FScript repository: https://github.com/MagnusOpera/FScript
+```hcl
+extension my_extension {
+  script = "https://example.org/terrabuild/my-extension.fss"
+}
+```
+
+Imports in local scripts are resolved to workspace files. Imports in remote scripts are resolved relative to the script URL. Terrabuild confines filesystem host functions to the workspace and applies `workspace.deny`, but returned shell operations execute with the build's authority; review remote extension code as carefully as other build tooling.
+
+## Where to Continue
+
+- [Protocol Types](./types) lists every context and result shape.
+- [Host Functions](./functions) lists the functions Terrabuild exposes to scripts.
+- [Container](./container) explains how an extension runs its returned operations in Docker or Podman.
+- The normative protocol is maintained in [`docs/architecture/fscript-extension-protocol.md`](https://github.com/MagnusOpera/terrabuild/blob/main/docs/architecture/fscript-extension-protocol.md).

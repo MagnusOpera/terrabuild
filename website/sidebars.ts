@@ -218,10 +218,15 @@ const sidebars: SidebarsConfig = {
       label: 'Extensibility',
       link: {type: 'doc', id: 'extensibility/index'},
       items: [
-        'extensibility/container',
-        'extensibility/functions',
+        {
+          type: 'link',
+          label: 'FScript documentation ↗',
+          href: 'https://magnusopera.github.io/FScript/',
+        },
         'extensibility/script',
         'extensibility/types',
+        'extensibility/functions',
+        'extensibility/container',
       ],
     },
     {
