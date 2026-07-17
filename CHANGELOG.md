@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.196.0-next]
+
+
 - Add optional workspace-declared build phases that enlist prerequisite-phase targets, enforce phase ordering through immutable graph dependencies, isolate batches by phase, group phased execution in Mermaid graphs, expose `terrabuild.phase`, and publish phase metadata with build-graph nodes.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.10-next...0.196.0-next
 
 ## [0.195.10]
 
