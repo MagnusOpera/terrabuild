@@ -38,6 +38,8 @@ type BuildControlsPanelProps = {
   onLogBuildChange: (checked: boolean) => void;
   debugBuild: boolean;
   onDebugBuildChange: (checked: boolean) => void;
+  showPhases: boolean;
+  onShowPhasesChange: (checked: boolean) => void;
   projects: ProjectInfo[];
   selectedProjects: string[];
   onProjectsChange: (values: string[]) => void;
@@ -68,6 +70,8 @@ const BuildControlsPanel = ({
   onLogBuildChange,
   debugBuild,
   onDebugBuildChange,
+  showPhases,
+  onShowPhasesChange,
   projects,
   selectedProjects,
   onProjectsChange,
@@ -233,6 +237,14 @@ const BuildControlsPanel = ({
                     checked={debugBuild}
                     onChange={(event) =>
                       onDebugBuildChange(event.currentTarget.checked)
+                    }
+                  />
+
+                  <Checkbox
+                    label="Phases"
+                    checked={showPhases}
+                    onChange={(event) =>
+                      onShowPhasesChange(event.currentTarget.checked)
                     }
                   />
                 </Stack>

@@ -105,6 +105,7 @@ const App = () => {
   const [retryBuild, setRetryBuild] = useState(true);
   const [logBuild, setLogBuild] = useState(false);
   const [debugBuild, setDebugBuild] = useState(false);
+  const [showPhases, setShowPhases] = useState(false);
   const [parallelism, setParallelism] = useState("");
   const [engine, setEngine] = useState("default");
   const [configuration, setConfiguration] = useState("");
@@ -519,7 +520,7 @@ const App = () => {
       (phaseDependencies[phase] ?? []).forEach(addPhase);
     };
     Object.values(graph.nodes).forEach((node) => {
-      if (node.phase) {
+      if (showPhases && node.phase) {
         addPhase(node.phase);
       }
     });
@@ -529,7 +530,9 @@ const App = () => {
     const graphNodeToFlowId = new Map<string, string>();
     Object.values(graph.nodes).forEach((node) => {
       nodeMap.set(node.id, node);
-      const flowId = projectFlowId(node.projectId, node.phase);
+      const flowId = showPhases
+        ? projectFlowId(node.projectId, node.phase)
+        : node.projectId;
       graphNodeToFlowId.set(node.id, flowId);
       const existing = projectMap.get(flowId);
       if (existing) {
@@ -541,7 +544,7 @@ const App = () => {
           name: node.projectName,
           directory: node.projectDir,
           hash: node.projectHash,
-          phase: node.phase,
+          phase: showPhases ? node.phase : undefined,
           targets: [node],
         });
       }
@@ -734,7 +737,7 @@ const App = () => {
       nodes: [...positionedPhases, ...positionedUnphased, ...positionedChildren],
       edges: [...projectEdges, ...phaseEdges],
     };
-  }, [graph, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
+  }, [graph, showPhases, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
 
   useEffect(() => {
     const isDark = effectiveColorScheme === "dark";
@@ -1342,6 +1345,11 @@ const App = () => {
               onLogBuildChange={setLogBuild}
               debugBuild={debugBuild}
               onDebugBuildChange={setDebugBuild}
+              showPhases={showPhases}
+              onShowPhasesChange={(checked) => {
+                setManualPositions({});
+                setShowPhases(checked);
+              }}
               projects={projects}
               selectedProjects={selectedProjects}
               onProjectsChange={setSelectedProjects}
