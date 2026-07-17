@@ -6,11 +6,20 @@ import ReactFlow, {
   Edge,
   Node,
   NodeMouseHandler,
+  NodeProps,
   OnEdgesChange,
   OnNodesChange,
   ReactFlowInstance,
 } from "reactflow";
 import { GraphResponse } from "../types";
+
+const PhaseGroupNode = ({ data }: NodeProps<{ label: string }>) => (
+  <Box fw={600} style={{ pointerEvents: "none" }}>
+    {data.label}
+  </Box>
+);
+
+const nodeTypes = { phaseGroup: PhaseGroupNode };
 
 type GraphPanelProps = {
   graph: GraphResponse | null;
@@ -82,6 +91,7 @@ const GraphPanel = ({
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               fitView
               fitViewOptions={{ padding: 0.5, minZoom: 0.1 }}
               minZoom={0.1}

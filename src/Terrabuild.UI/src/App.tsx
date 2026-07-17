@@ -46,6 +46,9 @@ type ProjectStatusMap = Record<string, ProjectStatus["status"]>;
 const nodeWidth = 320;
 const nodeHeight = 120;
 const nodePadding = 32;
+const phasePadding = 48;
+const phaseHeaderHeight = 48;
+const phaseNodeGap = 32;
 const startupToastId = "workspace-startup-loading";
 const graphLoadToastId = "workspace-graph-loading";
 const clearCacheToastId = "workspace-clear-cache-loading";
@@ -56,7 +59,11 @@ const layoutGraph = (nodes: Node[], edges: Edge[]) => {
   graph.setGraph({ rankdir: "RL", nodesep: 100, ranksep: 200, ranker: "longest-path" });
 
   nodes.forEach((node) => {
-    graph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    const data = node.data as { layoutWidth?: number; layoutHeight?: number };
+    graph.setNode(node.id, {
+      width: data.layoutWidth ?? nodeWidth,
+      height: data.layoutHeight ?? nodeHeight,
+    });
   });
   edges.forEach((edge) => graph.setEdge(edge.source, edge.target));
 
@@ -64,11 +71,14 @@ const layoutGraph = (nodes: Node[], edges: Edge[]) => {
 
   const layoutedNodes = nodes.map((node) => {
     const position = graph.node(node.id);
+    const data = node.data as { layoutWidth?: number; layoutHeight?: number };
+    const width = data.layoutWidth ?? nodeWidth;
+    const height = data.layoutHeight ?? nodeHeight;
     return {
       ...node,
       position: {
-        x: position.x - nodeWidth / 2,
-        y: position.y - nodeHeight / 2,
+        x: position.x - width / 2,
+        y: position.y - height / 2,
       },
     };
   });
@@ -270,14 +280,15 @@ const App = () => {
 
   const getNodeStyle = (
     nodeId: string,
-    isNamedProject: boolean
+    isNamedProject: boolean,
+    projectId: string = nodeId
   ): CSSProperties => {
     const isDark = effectiveColorScheme === "dark";
     const defaultBorder = isDark ? theme.colors.dark[3] : theme.colors.gray[6];
     const selectedBorder = theme.colors.blue[6];
     const nodeBackground = isDark ? theme.colors.dark[6] : theme.white;
     const nodeText = isDark ? theme.colors.gray[1] : theme.black;
-    const status = projectStatus[nodeId];
+    const status = projectStatus[projectId];
     const statusColor =
       status === "failed"
         ? rgba(theme.colors.red[6], isDark ? 0.35 : 0.15)
@@ -321,13 +332,16 @@ const App = () => {
 
   useEffect(() => {
     setNodes((current) =>
-      current.map((node) => ({
-        ...node,
-        style: getNodeStyle(
-          node.id,
-          Boolean((node.data as { meta?: ProjectNode })?.meta?.name)
-        ),
-      }))
+      current.map((node) => {
+        const project = (node.data as { meta?: ProjectNode })?.meta;
+        if (!project) {
+          return node;
+        }
+        return {
+          ...node,
+          style: getNodeStyle(node.id, Boolean(project.name), project.id),
+        };
+      })
     );
   }, [selectedNodeId, effectiveColorScheme, theme, projectStatus, setNodes]);
 
@@ -489,19 +503,45 @@ const App = () => {
     if (!graph) {
       return { nodes: [], edges: [] };
     }
+
+    const phaseId = (phase: string) => `phase:${encodeURIComponent(phase)}`;
+    const projectFlowId = (projectId: string, phase?: string | null) =>
+      `project:${encodeURIComponent(projectId)}:phase:${encodeURIComponent(
+        phase ?? ""
+      )}`;
+    const phaseDependencies = graph.phases ?? {};
+    const participatingPhases = new Set<string>();
+    const addPhase = (phase: string) => {
+      if (participatingPhases.has(phase)) {
+        return;
+      }
+      participatingPhases.add(phase);
+      (phaseDependencies[phase] ?? []).forEach(addPhase);
+    };
+    Object.values(graph.nodes).forEach((node) => {
+      if (node.phase) {
+        addPhase(node.phase);
+      }
+    });
+
     const projectMap = new Map<string, ProjectNode>();
     const nodeMap = new Map<string, GraphNode>();
+    const graphNodeToFlowId = new Map<string, string>();
     Object.values(graph.nodes).forEach((node) => {
       nodeMap.set(node.id, node);
-      const existing = projectMap.get(node.projectId);
+      const flowId = projectFlowId(node.projectId, node.phase);
+      graphNodeToFlowId.set(node.id, flowId);
+      const existing = projectMap.get(flowId);
       if (existing) {
         existing.targets.push(node);
       } else {
-        projectMap.set(node.projectId, {
+        projectMap.set(flowId, {
           id: node.projectId,
+          flowId,
           name: node.projectName,
           directory: node.projectDir,
           hash: node.projectHash,
+          phase: node.phase,
           targets: [node],
         });
       }
@@ -509,14 +549,15 @@ const App = () => {
 
     const isDark = effectiveColorScheme === "dark";
     const edgeStroke = isDark ? theme.colors.dark[3] : theme.colors.gray[5];
+    const phaseStroke = isDark ? theme.colors.blue[4] : theme.colors.blue[7];
 
-    const flowNodes: Node[] = Array.from(projectMap.values())
+    const projectNodes: Node[] = Array.from(projectMap.values())
       .filter((project) => project.directory !== ".")
       .map((project) => {
         const projectName = project.name?.trim();
         const hasProjectName = Boolean(projectName);
         return {
-          id: project.id,
+          id: project.flowId,
           data: {
             label: hasProjectName ? projectName : project.directory,
             meta: project,
@@ -524,37 +565,36 @@ const App = () => {
           position: { x: 0, y: 0 },
           sourcePosition: Position.Left,
           targetPosition: Position.Right,
-          style: getNodeStyle(project.id, hasProjectName),
+          style: getNodeStyle(project.flowId, hasProjectName, project.id),
         };
       });
 
-    const visibleProjects = new Set(flowNodes.map((node) => node.id));
+    const visibleProjects = new Set(projectNodes.map((node) => node.id));
     const edgeSet = new Set<string>();
-    const flowEdges: Edge[] = [];
+    const projectEdges: Edge[] = [];
     nodeMap.forEach((node) => {
       node.dependencies.forEach((dependency) => {
         const depNode = nodeMap.get(dependency);
         if (!depNode) {
           return;
         }
-        if (depNode.projectId === node.projectId) {
+        const source = graphNodeToFlowId.get(depNode.id);
+        const target = graphNodeToFlowId.get(node.id);
+        if (!source || !target || source === target) {
           return;
         }
-        if (
-          !visibleProjects.has(depNode.projectId) ||
-          !visibleProjects.has(node.projectId)
-        ) {
+        if (!visibleProjects.has(source) || !visibleProjects.has(target)) {
           return;
         }
-        const edgeId = `${depNode.projectId}->${node.projectId}`;
+        const edgeId = `${source}->${target}`;
         if (edgeSet.has(edgeId)) {
           return;
         }
         edgeSet.add(edgeId);
-        flowEdges.push({
+        projectEdges.push({
           id: edgeId,
-          source: depNode.projectId,
-          target: node.projectId,
+          source,
+          target,
           type: "default",
           style: { stroke: edgeStroke },
           markerStart: {
@@ -566,7 +606,134 @@ const App = () => {
         });
       });
     });
-    return layoutGraph(flowNodes, flowEdges);
+
+    const phaseProjects = new Map<string, Node[]>();
+    const unphasedProjects: Node[] = [];
+    projectNodes.forEach((node) => {
+      const project = (node.data as { meta: ProjectNode }).meta;
+      if (project.phase && participatingPhases.has(project.phase)) {
+        const members = phaseProjects.get(project.phase) ?? [];
+        members.push(node);
+        phaseProjects.set(project.phase, members);
+      } else {
+        unphasedProjects.push(node);
+      }
+    });
+
+    const phaseNodes: Node[] = Array.from(participatingPhases)
+      .sort()
+      .map((phase) => {
+        const memberCount = phaseProjects.get(phase)?.length ?? 0;
+        const width = nodeWidth + phasePadding * 2;
+        const height =
+          phaseHeaderHeight +
+          phasePadding * 2 +
+          Math.max(memberCount, 1) * nodeHeight +
+          Math.max(memberCount - 1, 0) * phaseNodeGap;
+        return {
+          id: phaseId(phase),
+          type: "phaseGroup",
+          data: {
+            kind: "phase",
+            phase,
+            label: phase,
+            layoutWidth: width,
+            layoutHeight: height,
+          },
+          position: { x: 0, y: 0 },
+          sourcePosition: Position.Left,
+          targetPosition: Position.Right,
+          selectable: false,
+          style: {
+            width,
+            height,
+            borderRadius: 16,
+            border: `2px dashed ${phaseStroke}`,
+            background: rgba(theme.colors.blue[6], isDark ? 0.1 : 0.05),
+            color: isDark ? theme.colors.blue[2] : theme.colors.blue[8],
+            padding: 16,
+            fontSize: 18,
+            fontWeight: 600,
+            textAlign: "left",
+          },
+        };
+      });
+
+    const unitForProject = (flowId: string) => {
+      const project = projectMap.get(flowId);
+      return project?.phase && participatingPhases.has(project.phase)
+        ? phaseId(project.phase)
+        : flowId;
+    };
+    const layoutEdgeSet = new Set<string>();
+    const layoutEdges: Edge[] = [];
+    const addLayoutEdge = (source: string, target: string) => {
+      const id = `${source}->${target}`;
+      if (source === target || layoutEdgeSet.has(id)) {
+        return;
+      }
+      layoutEdgeSet.add(id);
+      layoutEdges.push({ id: `layout:${id}`, source, target });
+    };
+    projectEdges.forEach((edge) =>
+      addLayoutEdge(unitForProject(edge.source), unitForProject(edge.target))
+    );
+
+    const phaseEdges: Edge[] = [];
+    Array.from(participatingPhases)
+      .sort()
+      .forEach((phase) => {
+        (phaseDependencies[phase] ?? [])
+          .filter((dependency) => participatingPhases.has(dependency))
+          .sort()
+          .forEach((dependency) => {
+            const source = phaseId(dependency);
+            const target = phaseId(phase);
+            addLayoutEdge(source, target);
+            phaseEdges.push({
+              id: `phase:${dependency}->${phase}`,
+              source,
+              target,
+              type: "default",
+              style: { stroke: phaseStroke, strokeDasharray: "8 6" },
+              markerStart: {
+                type: MarkerType.ArrowClosed,
+                color: phaseStroke,
+                width: 40,
+                height: 40,
+              },
+            });
+          });
+      });
+
+    const layout = layoutGraph([...phaseNodes, ...unphasedProjects], layoutEdges);
+    const positionedUnits = new Map(layout.nodes.map((node) => [node.id, node]));
+    const positionedPhases = phaseNodes.map(
+      (node) => positionedUnits.get(node.id) ?? node
+    );
+    const positionedUnphased = unphasedProjects.map(
+      (node) => positionedUnits.get(node.id) ?? node
+    );
+    const positionedChildren = Array.from(phaseProjects.entries())
+      .sort(([left], [right]) => left.localeCompare(right))
+      .flatMap(([phase, members]) =>
+        [...members]
+          .sort((left, right) => left.id.localeCompare(right.id))
+          .map((node, index) => ({
+            ...node,
+            parentNode: phaseId(phase),
+            extent: "parent" as const,
+            position: {
+              x: phasePadding,
+              y: phaseHeaderHeight + phasePadding + index * (nodeHeight + phaseNodeGap),
+            },
+          }))
+      );
+
+    return {
+      nodes: [...positionedPhases, ...positionedUnphased, ...positionedChildren],
+      edges: [...projectEdges, ...phaseEdges],
+    };
   }, [graph, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
 
   useEffect(() => {
@@ -949,7 +1116,7 @@ const App = () => {
     const previousTargetKey = selectedTargetKeyRef.current;
     activeProjectRef.current = project.id;
     setSelectedProject(project);
-    setSelectedNodeId(project.id);
+    setSelectedNodeId(project.flowId);
     const freshResults: Record<string, TargetSummary> = {};
     await Promise.all(
       project.targets.map(async (node) => {
@@ -1249,12 +1416,18 @@ const App = () => {
             }}
             onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
-            onNodeClick={(_, node) =>
-              loadProjectResults(node.data.meta as ProjectNode)
-            }
+            onNodeClick={(_, node) => {
+              const project = node.data.meta as ProjectNode | undefined;
+              if (project) {
+                loadProjectResults(project);
+              }
+            }}
             onNodeDragStart={(_, node) => {
-              setDraggedNodeId(node.id);
-              loadProjectResults(node.data.meta as ProjectNode);
+              const project = node.data.meta as ProjectNode | undefined;
+              if (project) {
+                setDraggedNodeId(node.id);
+                loadProjectResults(project);
+              }
             }}
             onNodeDragStop={() => setDraggedNodeId(null)}
             onReflow={() => {

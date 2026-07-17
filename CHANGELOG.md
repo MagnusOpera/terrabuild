@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Group phased targets into labeled phase blocks in the interactive graph console and show phase ordering with dashed edges.
+
 ## [0.196.0-next]
 
 
