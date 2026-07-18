@@ -15,6 +15,7 @@ const publishedVersions = existsSync(versionsPath)
 const hasPublishedVersions =
   Array.isArray(publishedVersions) && publishedVersions.length > 0;
 const showVersionDropdown = hasPublishedVersions;
+const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
 
 const config: Config = {
   title: 'Terrabuild',
@@ -48,10 +49,10 @@ const config: Config = {
           path: 'site-docs',
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
-          lastVersion: 'current',
+          lastVersion,
           versions: {
             current: {
-              label: 'Latest',
+              label: 'Next',
             },
           },
           editUrl: 'https://github.com/MagnusOpera/Terrabuild/tree/main/',
