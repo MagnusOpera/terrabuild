@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.196.4-next]
+
+
 - Reorder the getting-started guide around graph planning, task execution, and caching, removing the duplicated cache decision flow from the Tasks page.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.3-next...0.196.4-next
 
 ## [0.196.3-next]
 
