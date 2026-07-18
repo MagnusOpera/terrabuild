@@ -806,6 +806,9 @@
 .tb-value-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  overflow: hidden;
+  border: 1px solid #ccd5e0;
+  border-radius: 0.9rem;
   margin-top: 4rem;
 }
 
@@ -813,26 +816,22 @@
   position: relative;
   min-height: 19rem;
   border-right: 1px solid #ccd5e0;
-  padding: 2.3rem 2.5rem 1rem 0;
+  padding: 2.3rem 2.5rem 2.5rem;
 }
 
-.tb-value-grid article:not(:first-child) { padding-left: 2.5rem; }
 .tb-value-grid article:last-child { border-right: 0; }
 
-.tb-value-number {
-  position: absolute;
-  top: 1.15rem;
-  right: 1.5rem;
-  color: #a7b1bf;
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.65rem;
+.tb-value-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.2rem;
 }
 
 .tb-value-icon {
   display: grid;
   width: 3rem;
   height: 3rem;
-  margin-top: 1.2rem;
   place-items: center;
   border: 1px solid #d3dce7;
   border-radius: 0.6rem;
@@ -962,6 +961,7 @@
   color: var(--tb-green);
 }
 
+.tb-value-label,
 .tb-extension-card-index {
   color: #8793a4;
   font-family: var(--ifm-font-family-monospace);
@@ -1178,11 +1178,11 @@
 
 [data-theme='dark'] .tb-value-grid,
 [data-theme='dark'] .tb-value-grid article { border-color: #2d394c; }
-[data-theme='dark'] .tb-value-number { color: #657287; }
 [data-theme='dark'] .tb-value-icon { border-color: #334157; background: #151e2d; }
 [data-theme='dark'] .tb-home-extensions { background: #0a0f1a; }
 [data-theme='dark'] .tb-extension-card { border-color: #2f3b4e; background: #101827; }
 [data-theme='dark'] .tb-extension-icon { border-color: #344157; background: #172131; }
+[data-theme='dark'] .tb-value-label,
 [data-theme='dark'] .tb-extension-card-index { color: #738096; }
 [data-theme='dark'] .tb-extension-tags span { border-color: #344157; background: #172131; color: #b6c1d1; }
 [data-theme='dark'] .tb-extension-code { border-color: #344157; background: #070c14; }
@@ -1259,9 +1259,6 @@
 
   .tb-value-grid article {
     padding-right: 1.6rem;
-  }
-
-  .tb-value-grid article:not(:first-child) {
     padding-left: 1.6rem;
   }
 }
@@ -1300,11 +1297,10 @@
     min-height: auto;
     border-right: 0;
     border-bottom: 1px solid #ccd5e0;
-    padding: 2rem 0 2.5rem;
+    padding: 2rem 1.5rem 2.5rem;
   }
   [data-theme='dark'] .tb-value-grid article { border-color: #2d394c; }
   .tb-value-grid article:last-child { border-bottom: 0; }
-  .tb-value-number { right: 0; }
   .tb-extensions-grid { grid-template-columns: 1fr; margin-top: 3rem; }
   .tb-extension-card { min-height: 27rem; }
   .tb-extension-card h3 { margin-top: 2.3rem; }

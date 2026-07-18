@@ -129,25 +129,31 @@ import Link from '@docusaurus/Link';
       </div>
       <div className="tb-value-grid">
         <article>
-          <span className="tb-value-number">01</span>
-          <div className="tb-value-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4c3 0 3-6 6-6M7 12h4c3 0 3 6 6 6"/></svg>
+          <div className="tb-value-card-top">
+            <div className="tb-value-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4c3 0 3-6 6-6M7 12h4c3 0 3 6 6 6"/></svg>
+            </div>
+            <span className="tb-value-label">EXECUTION</span>
           </div>
           <h3>Graph-aware execution</h3>
           <p>Dependencies define the order. Independent tasks run concurrently. Every build is planned before it starts.</p>
         </article>
         <article>
-          <span className="tb-value-number">02</span>
-          <div className="tb-value-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg>
+          <div className="tb-value-card-top">
+            <div className="tb-value-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg>
+            </div>
+            <span className="tb-value-label">CACHING</span>
           </div>
           <h3>Content-based caching</h3>
           <p>Deterministic hashes restore unchanged work locally. Shared remote caching across teams, branches, and CI is available with an Insights subscription.</p>
         </article>
         <article>
-          <span className="tb-value-number">03</span>
-          <div className="tb-value-icon">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h6"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="19" r="2"/></svg>
+          <div className="tb-value-card-top">
+            <div className="tb-value-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h6"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="19" r="2"/></svg>
+            </div>
+            <span className="tb-value-label">CHANGE DETECTION</span>
           </div>
           <h3>Change-aware by default</h3>
           <p>From one edited library, Terrabuild finds every impacted task—and leaves everything else alone.</p>
@@ -175,7 +181,7 @@ import Link from '@docusaurus/Link';
             <span className="tb-extension-icon">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 6l-4 12"/></svg>
             </span>
-            <span className="tb-extension-card-index">01 / EXTENSIONS</span>
+            <span className="tb-extension-card-index">EXTENSIONS</span>
           </div>
           <h3>Built in. Open ended.</h3>
           <p>
@@ -199,7 +205,7 @@ import Link from '@docusaurus/Link';
             <span className="tb-extension-icon">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg>
             </span>
-            <span className="tb-extension-card-index">02 / CONTAINERS</span>
+            <span className="tb-extension-card-index">CONTAINERS</span>
           </div>
           <h3>Contained and reproducible.</h3>
           <p>

@@ -156,7 +156,7 @@ const config: Config = {
       style: 'light',
       links: [],
       copyright:
-        '©️2023-present <img src="/images/logo.svg" alt="Magnus Opera" class="tb-footer-mark" /> Magnus Opera SAS',
+        '©️2023-present <img src="/images/logo.svg" alt="Magnus Opera" class="tb-footer-mark" /> <a href="https://magnusopera.io">Magnus Opera SAS</a>',
     },
     prism: {
       theme: prismThemes.github,
