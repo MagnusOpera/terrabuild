@@ -6,7 +6,7 @@ Terrabuild public documentation is being moved from `../terrabuild.io` into this
 
 - Keep Terrabuild as the single source of truth for code and public documentation.
 - Preserve the current `terrabuild.io` structure and visual style as closely as practical.
-- Add stable release documentation versioning using Docusaurus.
+- Publish the latest documentation from `main` independently of application releases.
 - Keep authoring in Markdown for docs, blog, and non-versioned product pages.
 
 ## Site Layout
@@ -22,10 +22,10 @@ Terrabuild public documentation is being moved from `../terrabuild.io` into this
 
 ## Versioning Policy
 
-- Stable release tags `X.Y.Z` create Docusaurus docs snapshots.
-- Preview tags `X.Y.Z-next` do not create version snapshots.
-- The working documentation is exposed as `Next`.
-- Both product documentation and generated extension documentation are versioned together for stable releases.
+- The working documentation from `main` is exposed as `Latest`.
+- Existing Docusaurus snapshots remain available as historical documentation.
+- Application releases do not create new documentation snapshots.
+- Product documentation and generated extension documentation are published together.
 
 ## Content Migration
 
@@ -40,9 +40,9 @@ The sync script is intentionally conservative and is expected to be refined as v
 
 ## Release and Publishing
 
-- `make release-prepare version=X.Y.Z` should refresh generated docs, snapshot docs version `X.Y.Z`, then commit and tag.
-- `make release-prepare version=X.Y.Z-next` should not create a docs snapshot.
-- Website publication happens from GitHub Pages when a GitHub release is published.
+- Application release preparation updates the changelog and creates a tag without preparing or publishing the website.
+- The manual `Publish Website` workflow checks out `main`, regenerates extension documentation in its runner, builds the website, and deploys it to GitHub Pages.
+- Generated documentation from the publishing workflow is never committed back to `main`.
 
 ## Open Work
 

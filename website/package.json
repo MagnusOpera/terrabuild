@@ -9,8 +9,7 @@
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "typecheck": "tsc",
-    "docs:version": "node ./scripts/version-docs.mjs"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.1",

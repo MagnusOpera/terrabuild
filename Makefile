@@ -93,11 +93,7 @@ website: website-prepare
 	cd website && pnpm start
 
 website-build: website-prepare
-	@if [ "$(version)" != "0.0.0" ] && echo "$(version)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		cd website && pnpm docs:version "$(version)" && TERRABUILD_DOCS_LAST_VERSION="$(version)" pnpm build; \
-	else \
-		cd website && pnpm build; \
-	fi
+	cd website && pnpm build
 
 self: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only

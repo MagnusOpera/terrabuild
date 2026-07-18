@@ -4,7 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Decouple website publication from Terrabuild releases with a manual GitHub Pages workflow that always deploys documentation from `main`.
+- Decouple website publication and preparation from Terrabuild releases with an autonomous manual GitHub Pages workflow that generates and deploys the latest documentation from `main` without changing its history.
 
 ## [0.196.4-next]
 

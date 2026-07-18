@@ -120,6 +120,21 @@ Rules:
 - Tag workflow fails if version section is missing/empty, has no bullet, or has no compare link.
 - `on-release-published.yml` consumes release artifacts from the published release, signs macOS binaries, and publishes NuGet/Homebrew.
 - `make release-prepare` supports `X.Y.Z` and `X.Y.Z-next` only.
+- `make release-prepare` updates only release metadata; it does not generate, snapshot, build, or publish the website.
 - Compare link policy:
   - stable release compares against previous stable tag.
   - preview release compares against previous `-next` tag.
+
+## Website Publishing
+
+Terrabuild publishes its website independently from application releases:
+
+1. Keep website and documentation sources on `main`.
+2. Run the manual `Publish Website` workflow from GitHub Actions.
+3. The workflow always checks out `main`, generates extension documentation, builds the website, and deploys it to GitHub Pages.
+
+Rules:
+
+- The public documentation represents the latest state of `main`.
+- Website generation happens only in the workflow runner and must not commit generated changes back to `main`.
+- Release tags and maintenance branches do not build or publish the website.
