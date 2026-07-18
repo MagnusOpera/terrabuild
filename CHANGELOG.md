@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Reorder the getting-started guide around graph planning, task execution, and caching, removing the duplicated cache decision flow from the Tasks page.
+
 ## [0.196.3-next]
 
 

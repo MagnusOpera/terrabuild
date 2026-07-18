@@ -100,7 +100,7 @@ Terrabuild hashes project files, dependency state, commands, and evaluated input
 
 A failed cached run is not restored as successful output. Terrabuild reports it as a summary unless you pass `--retry`, which makes the task build again.
 
-See [Caching](/docs/getting-started/caching) and [Tasks](/docs/getting-started/tasks).
+See [Tasks](/docs/getting-started/tasks) and [Caching](/docs/getting-started/caching).
 
 ### Batch Builds
 

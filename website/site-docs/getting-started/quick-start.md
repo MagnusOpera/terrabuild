@@ -15,10 +15,19 @@ The playground repository defines the following projects and dependencies. Arrow
 
 ```mermaid
 flowchart LR
-  webapiDist["webapi:dist"] --> webapiBuild["webapi:build"]
-  webapiBuild --> cslibBuild["cslib:build"]
-  webappDist["webapp:dist"] --> webappBuild["webapp:build"]
-  webappBuild --> tslibBuild["tslib:build"]
+  subgraph api["API delivery"]
+    direction LR
+    webapiDist["webapi<br/><b>dist</b>"] -->|requires| webapiBuild["webapi<br/><b>build</b>"] -->|requires| cslibBuild["cslib<br/><b>build</b>"]
+  end
+
+  subgraph app["Web delivery"]
+    direction LR
+    webappDist["webapp<br/><b>dist</b>"] -->|requires| webappBuild["webapp<br/><b>build</b>"] -->|requires| tslibBuild["tslib<br/><b>build</b>"]
+  end
+
+  class webapiDist,webappDist tb-primary
+  class webapiBuild,webappBuild tb-secondary
+  class cslibBuild,tslibBuild tb-muted
 ```
 
 ## Running Your First Build
@@ -180,8 +189,8 @@ You've seen Terrabuild in action. Build the mental model next, then explore exec
 
 - [Key Concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
 - [Graph](/docs/getting-started/graph): Understand the build graph structure
-- [Caching](/docs/getting-started/caching): Learn how caching makes builds fast
 - [Tasks](/docs/getting-started/tasks): See how tasks execute
+- [Caching](/docs/getting-started/caching): Learn how caching makes builds fast
 
 ### Enable Remote Caching (Optional)
 

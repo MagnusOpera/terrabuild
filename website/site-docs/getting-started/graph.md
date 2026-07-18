@@ -50,85 +50,47 @@ The following example shows how multiple projects with dependencies become a bui
 This example is from the [Terrabuild Playground](https://github.com/MagnusOpera/Terrabuild-Playground) - a sample workspace you can use to experiment.
 
 ```mermaid
-flowchart LR
-  classDef default fill:moccasin,stroke:black
-  classDef project fill:gainsboro,stroke:black,rx:10,ry:10
-  classDef build fill:palegreen,stroke:black,rx:20,ry:20
-  classDef publish fill:skyblue,stroke:black,rx:20,ry:20
-  classDef target fill:white,stroke-width:2px,stroke-dasharray: 5 2
+flowchart TB
+  deploy(["deploy"])
+  apiDist[".NET WebApi<br/><b>DIST</b><br/>dotnet publish → docker build"]
+  webDist["Vue.js WebApp<br/><b>DIST</b><br/>docker build"]
+  apiBuild[".NET WebApi<br/><b>BUILD</b><br/>dotnet build"]
+  webBuild["Vue.js WebApp<br/><b>BUILD</b><br/>npm build"]
+  csBuild[".NET Library<br/><b>BUILD</b><br/>dotnet build"]
+  tsBuild["TypeScript Library<br/><b>BUILD</b><br/>npm build"]
 
-  subgraph A[".net WebApi"]
-    subgraph targetBuildA["target build"]
-      direction LR
-      buildA(["@dotnet build"])
-    end
+  deploy -. selects .-> apiDist
+  deploy -. selects .-> webDist
+  apiDist --> apiBuild --> csBuild
+  webDist --> webBuild --> tsBuild
 
-    subgraph targetPublishA["target dist"]
-      direction LR
-      publishA(["@dotnet publish"]) --> dockerA(["@docker build"])
-    end
-
-    class targetBuildA build
-    class targetPublishA publish
-  end
-
-  subgraph B["Vue.js WebApp"]
-    subgraph targetBuildB["target build"]
-      direction LR
-      buildB(["@npm build"])
-    end
-
-    subgraph targetPublishB["target dist"]
-      direction LR
-      dockerB(["@docker build"])
-    end
-
-    class targetBuildB build
-    class targetPublishB publish
-  end
-
-  subgraph C[".net Library"]
-    subgraph targetBuildC["target build"]
-      direction LR
-      buildC(["@dotnet build"])
-    end
-
-    class targetBuildC build
-  end
-
-  subgraph D["Typescript Library"]
-    subgraph targetBuildD["target build"]
-      direction LR
-      buildD(["@npm build"])
-    end
-
-    class targetBuildD build
-  end
-
-  publish([deploy])
-  targetBuildB --> targetBuildD
-  targetBuildA --> targetBuildC
-  targetPublishA --> targetBuildA
-  publish -.-> targetPublishA
-  
-  targetPublishB --> targetBuildB
-  publish -.-> targetPublishB
-
-  class A,B,C,D project
-  class publish target
+  class deploy tb-primary
+  class apiDist,webDist tb-success
+  class apiBuild,webBuild tb-secondary
+  class csBuild,tsBuild tb-muted
 ```
 
 Selecting `deploy` produces a task graph like this:
 
 ```mermaid
-flowchart LR
-  deploy["deploy:deploy"] --> apiDist["webapi:dist"]
-  deploy --> webDist["webapp:dist"]
-  deploy --> plan["deploy:plan"]
-  apiDist --> apiBuild["webapi:build"]
-  apiBuild --> csBuild["cslib:build"]
-  webDist --> webBuild["webapp:build"]
-  webBuild --> tsBuild["tslib:build"]
+flowchart TB
+  deploy["deploy<br/><b>deploy</b>"]
+  apiDist["webapi<br/><b>dist</b>"]
+  webDist["webapp<br/><b>dist</b>"]
+  plan["deploy<br/><b>plan</b>"]
+  apiBuild["webapi<br/><b>build</b>"]
+  webBuild["webapp<br/><b>build</b>"]
+  csBuild["cslib<br/><b>build</b>"]
+  tsBuild["tslib<br/><b>build</b>"]
+
+  deploy --> apiDist & webDist & plan
+  apiDist --> apiBuild --> csBuild
+  webDist --> webBuild --> tsBuild
+
+  class deploy tb-primary
+  class apiDist,webDist,plan tb-success
+  class apiBuild,webBuild tb-secondary
+  class csBuild,tsBuild tb-muted
 ```
 
 Arrows point from a dependent task to the prerequisite it requires. The runner executes prerequisites first.

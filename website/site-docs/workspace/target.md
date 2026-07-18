@@ -34,47 +34,19 @@ See [Key Concepts](/docs/getting-started/key-concepts) for the higher-level expl
 Example diagram:
 
 ```mermaid
-flowchart LR
-  classDef default fill:moccasin,stroke:black
-  classDef project fill:gainsboro,stroke:black,rx:10,ry:10
-  classDef build fill:palegreen,stroke:black,rx:20,ry:20
-  classDef publish fill:skyblue,stroke:black,rx:20,ry:20
-  classDef target fill:white,stroke-width:2px,stroke-dasharray: 5 2
+flowchart TB
+  targetPublishA["Project A<br/>target <b>publish</b>"]
+  targetBuildA["Project A<br/>target <b>build</b>"]
+  targetBuildB["Project B · upstream<br/>target <b>build</b>"]
+  targetBuildC["Project C · upstream<br/>target <b>build</b>"]
 
-  subgraph A["Project A"]
-    subgraph targetBuildA["target build"]
-      direction LR
-    end
+  targetPublishA -->|build| targetBuildA
+  targetBuildA -->|^build| targetBuildB
+  targetBuildA -->|^build| targetBuildC
 
-    subgraph targetPublishA["target publish"]
-      direction LR
-    end
-
-    class targetBuildA build
-    class targetPublishA build
-  end
-
-  subgraph B["Project B"]
-    subgraph targetBuildB["target build"]
-      direction LR
-    end
-
-    class targetBuildB build
-  end
-
-  subgraph C["Project C"]
-    subgraph targetBuildC["target build"]
-      direction LR
-    end
-
-    class targetBuildC build
-  end
-
-  targetBuildA -- ^build --> targetBuildB
-  targetBuildA -- ^build --> targetBuildC
-  targetPublishA -- build --> targetBuildA
-  
-  class A,B,C project
+  class targetPublishA tb-primary
+  class targetBuildA tb-secondary
+  class targetBuildB,targetBuildC tb-muted
 ```
 
 ## Example Usage

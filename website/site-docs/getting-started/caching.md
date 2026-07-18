@@ -1,11 +1,11 @@
 ---
 title: Caching
 
-prev: /docs/getting-started/graph
+prev: /docs/getting-started/tasks
 
 ---
 
-Caching is what makes Terrabuild fast. Once you understand the [build graph](/docs/getting-started/graph), caching is the next piece: it's how Terrabuild avoids building unchanged projects.
+Once Terrabuild has selected and scheduled the [tasks](/docs/getting-started/tasks) in a build graph, caching determines which results can be reused instead of executed again.
 
 ## How Caching Works
 
@@ -74,48 +74,24 @@ For each task, Terrabuild decides whether to **Build** (execute commands), **Res
 
 ```mermaid
 flowchart LR
+  start((" ")) --> force{"Forced?"}
+  force -->|Yes| build(["Build"])
+  force -->|No| dependency{"Dependency built?"}
+  dependency -->|Yes| build
+  dependency -->|No| cacheable{"Cacheable?"}
+  cacheable -->|No| build
+  cacheable -->|Yes| cache{"Cache summary?"}
+  cache -->|Missing| build
+  cache -->|Success| restore(["Restore"])
+  cache -->|Failed| retry{"Retry?"}
+  retry -->|Yes| build
+  retry -->|No| summary(["Summary"])
 
-classDef start fill:black
-classDef build stroke-width:4px,stroke:black,fill:white
-classDef restore stroke-width:4px,stroke:black,fill:white
-classDef summary stroke-width:4px,stroke:black,fill:white
-classDef decision stroke:black
-
-start((" "))
-
-force(Force ?)
-dependency(Dependency built ?)
-cacheable(Cacheable ?)
-cache(Cache summary ?)
-retry(Retry ?)
-
-restore((Restore))
-build((Build))
-summary((Summary))
-
-start --> force
-
-force -- yes --> build
-force -- no --> dependency
-
-dependency -- yes --> build
-dependency -- no --> cacheable
-
-cacheable -- no --> build
-cacheable -- yes --> cache
-
-cache -- missing --> build
-cache -- success --> restore
-cache -- failed --> retry
-
-retry -- yes --> build
-retry -- no --> summary
-
-class start start
-class build build
-class restore restore
-class summary summary
-class force,cacheable,cache,dependency,retry decision
+  class start tb-start
+  class force,dependency,cacheable,cache,retry tb-decision
+  class build tb-primary
+  class restore tb-success
+  class summary tb-muted
 ```
 
 | Condition | Description |

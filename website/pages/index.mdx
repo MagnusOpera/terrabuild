@@ -1,30 +1,235 @@
 ---
 title: Terrabuild
-description: Fast and low ceremony build system for monorepos.
+description: Fast, deterministic builds for modern monorepos.
 ---
 
 import Link from '@docusaurus/Link';
 
-<header className="tb-home-hero">
-  <div className="container tb-home-container">
-    <div className="tb-home-copy">
-      <h1 className="tb-home-title">
-        <span className="tb-home-title-main">Terrabuild</span>
-        <span className="tb-home-title-byline">
-          by <a href="https://magnusopera.io" target="_blank">Magnus Opera</a>
-        </span>
-      </h1>
-      <div className="tb-home-subtitle">
-        <p>Fast and low ceremony build system for monorepos.</p>
-        <p>Use your projects with (barely) no changes.</p>
-        <p>Optimized builds across commits.</p>
-        <p>HCL inspired syntax.</p>
+<main className="tb-home">
+  <header className="tb-home-hero">
+    <div className="container tb-home-container">
+      <div className="tb-home-copy">
+        <div className="tb-home-eyebrow">
+          <span className="tb-home-eyebrow-dot" aria-hidden="true"></span>
+          <span className="tb-home-eyebrow-label">Built for complex monorepos</span>
+        </div>
+        <h1 className="tb-home-title">
+          Build the change.<br />
+          <span>Skip the rest.</span>
+        </h1>
+        <p className="tb-home-lede">
+          Terrabuild turns your workspace into a deterministic build graph—then runs
+          only what matters, in the right order, at maximum concurrency.
+        </p>
+        <div className="tb-home-actions">
+          <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start">
+            <span className="tb-home-button-label">Get started</span>
+            <span className="tb-home-button-arrow" aria-hidden="true">→</span>
+          </Link>
+          <a className="tb-home-secondary" href="https://github.com/MagnusOpera/Terrabuild" target="_blank" rel="noreferrer">
+            <span>View on GitHub</span>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.25 3.75h7v7M12 4 4 12" /></svg>
+          </a>
+        </div>
+        <div className="tb-home-proof" aria-label="Terrabuild highlights">
+          <span><i aria-hidden="true">✓</i> Open source</span>
+          <span><i aria-hidden="true">✓</i> Local cache included</span>
+          <span><i aria-hidden="true">✓</i> Cross-platform</span>
+        </div>
       </div>
-      <div className="tb-home-actions">
-        <Link className="button button--primary button--lg tb-home-button" to="/docs">
-          <span>Get Started</span>
-        </Link>
+
+      <div className="tb-graph-wrap">
+        <div className="tb-graph-chrome">
+          <div className="tb-graph-header">
+            <div>
+              <span className="tb-graph-kicker">LIVE BUILD PLAN</span>
+              <strong>workspace / deploy</strong>
+            </div>
+            <span className="tb-graph-status"><i></i> Optimized</span>
+          </div>
+
+          <div className="tb-graph" role="img" aria-label="A build graph where two cached libraries feed parallel API and web builds, which converge into one deploy">
+            <svg className="tb-graph-lines" viewBox="0 0 620 330" preserveAspectRatio="none" aria-hidden="true">
+              <path className="tb-line-muted" d="M128 77 C195 77 187 105 253 105" />
+              <path className="tb-line-muted" d="M128 253 C195 253 187 225 253 225" />
+              <path className="tb-line-active" d="M367 105 C435 105 423 164 488 164" />
+              <path className="tb-line-active" d="M367 225 C435 225 423 164 488 164" />
+            </svg>
+            <svg className="tb-graph-lines tb-graph-lines-mobile" viewBox="0 0 360 384" preserveAspectRatio="none" aria-hidden="true">
+              <path className="tb-line-muted" d="M90 84 C90 106 90 120 90 142" />
+              <path className="tb-line-muted" d="M270 84 C270 106 270 120 270 142" />
+              <path className="tb-line-active" d="M90 201 C90 254 180 248 180 302" />
+              <path className="tb-line-active" d="M270 201 C270 254 180 248 180 302" />
+            </svg>
+
+            <div className="tb-graph-node tb-node-lib tb-node-one">
+              <span className="tb-node-icon tb-node-icon-cache">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5 10 2l6.5 3.5L10 9 3.5 5.5Z"/><path d="m3.5 9 6.5 3.5L16.5 9M3.5 12.5 10 16l6.5-3.5"/></svg>
+              </span>
+              <span><small>LIBRARY</small><strong>core</strong></span>
+              <em>cached</em>
+            </div>
+
+            <div className="tb-graph-node tb-node-build tb-node-two">
+              <span className="tb-node-icon">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 5-5 5 5 5M12.5 5l5 5-5 5"/></svg>
+              </span>
+              <span><small>TASK</small><strong>api:build</strong></span>
+              <em>1.2s</em>
+            </div>
+
+            <div className="tb-graph-node tb-node-lib tb-node-three">
+              <span className="tb-node-icon tb-node-icon-cache">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5 10 2l6.5 3.5L10 9 3.5 5.5Z"/><path d="m3.5 9 6.5 3.5L16.5 9M3.5 12.5 10 16l6.5-3.5"/></svg>
+              </span>
+              <span><small>LIBRARY</small><strong>design</strong></span>
+              <em>cached</em>
+            </div>
+
+            <div className="tb-graph-node tb-node-build tb-node-four">
+              <span className="tb-node-icon">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 5-5 5 5 5M12.5 5l5 5-5 5"/></svg>
+              </span>
+              <span><small>TASK</small><strong>web:build</strong></span>
+              <em>0.9s</em>
+            </div>
+
+            <div className="tb-graph-node tb-node-deploy">
+              <span className="tb-node-icon tb-node-icon-deploy">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 2.25 5.75L18 10l-5.75 2.25L10 18l-2.25-5.75L2 10l5.75-2.25L10 2Z"/></svg>
+              </span>
+              <span><small>TARGET</small><strong>deploy</strong></span>
+              <em>ready</em>
+            </div>
+          </div>
+
+          <div className="tb-graph-footer">
+            <span><i className="tb-legend-cache"></i> 2 restored</span>
+            <span><i className="tb-legend-build"></i> 2 built in parallel</span>
+            <strong>4.8s saved</strong>
+          </div>
+        </div>
+        <div className="tb-graph-caption">
+          <span>One command</span>
+          <i aria-hidden="true"></i>
+          <span>Minimum work</span>
+          <i aria-hidden="true"></i>
+          <span>Reproducible output</span>
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
+
+  <section className="tb-home-value">
+    <div className="container">
+      <div className="tb-section-intro">
+        <span className="tb-section-label">THE BUILD SYSTEM THAT UNDERSTANDS YOUR REPO</span>
+        <h2>Complex graph. Simple workflow.</h2>
+        <p>Keep the tools your teams already use. Terrabuild coordinates them as one intelligent system.</p>
+      </div>
+      <div className="tb-value-grid">
+        <article>
+          <span className="tb-value-number">01</span>
+          <div className="tb-value-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4c3 0 3-6 6-6M7 12h4c3 0 3 6 6 6"/></svg>
+          </div>
+          <h3>Graph-aware execution</h3>
+          <p>Dependencies define the order. Independent tasks run concurrently. Every build is planned before it starts.</p>
+        </article>
+        <article>
+          <span className="tb-value-number">02</span>
+          <div className="tb-value-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg>
+          </div>
+          <h3>Content-based caching</h3>
+          <p>Deterministic hashes restore unchanged work locally. Shared remote caching across teams, branches, and CI is available with an Insights subscription.</p>
+        </article>
+        <article>
+          <span className="tb-value-number">03</span>
+          <div className="tb-value-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h6"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="19" r="2"/></svg>
+          </div>
+          <h3>Change-aware by default</h3>
+          <p>From one edited library, Terrabuild finds every impacted task—and leaves everything else alone.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section className="tb-home-extensions">
+    <div className="container">
+      <div className="tb-extensions-heading">
+        <div>
+          <span className="tb-section-label">EXTENSIBLE BY DESIGN</span>
+          <h2>Your tools. One build language.</h2>
+        </div>
+        <p>
+          Use the extensions Terrabuild ships with, or teach it a new tool in FScript—without
+          recompiling the build system.
+        </p>
+      </div>
+
+      <div className="tb-extensions-grid">
+        <article className="tb-extension-card tb-extension-ecosystem">
+          <div className="tb-extension-card-top">
+            <span className="tb-extension-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 6l-4 12"/></svg>
+            </span>
+            <span className="tb-extension-card-index">01 / EXTENSIONS</span>
+          </div>
+          <h3>Built in. Open ended.</h3>
+          <p>
+            Common toolchains work out of the box. Custom <a href="https://magnusopera.github.io/FScript/" target="_blank" rel="noreferrer">FScript</a> scripts add your own
+            actions, defaults, discovery, and batching rules.
+          </p>
+          <div className="tb-extension-tags" aria-label="Built-in extension examples">
+            <span>dotnet</span>
+            <span>npm</span>
+            <span>docker</span>
+            <span>terraform</span>
+            <span>+ custom</span>
+          </div>
+          <Link className="tb-extension-link" to="/docs/extensions">
+            <span>Explore extensions</span><span aria-hidden="true">→</span>
+          </Link>
+        </article>
+
+        <article className="tb-extension-card tb-extension-container">
+          <div className="tb-extension-card-top">
+            <span className="tb-extension-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg>
+            </span>
+            <span className="tb-extension-card-index">02 / CONTAINERS</span>
+          </div>
+          <h3>Contained and reproducible.</h3>
+          <p>
+            Pin an image and every action runs with the same toolchain in Docker or Podman—locally
+            and in CI.
+          </p>
+          <div className="tb-extension-code" aria-label="Example containerized Terraform extension">
+            <div><span>extension</span> <strong>terraform</strong> {'{'}</div>
+            <div className="tb-code-indent">image <i>=</i> <em>"hashicorp/terraform:1.8.4"</em></div>
+            <div className="tb-code-indent">platform <i>=</i> <em>"linux/arm64"</em></div>
+            <div>{'}'}</div>
+          </div>
+          <Link className="tb-extension-link" to="/docs/extensibility/container">
+            <span>Containerize an extension</span><span aria-hidden="true">→</span>
+          </Link>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section className="tb-home-cta">
+    <div className="container tb-home-cta-inner">
+      <div>
+        <span className="tb-section-label">FROM ZERO TO FIRST BUILD</span>
+        <h2>Your monorepo, only faster.</h2>
+      </div>
+      <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start">
+        <span className="tb-home-button-label">Start building</span>
+        <span className="tb-home-button-arrow" aria-hidden="true">→</span>
+      </Link>
+    </div>
+  </section>
+</main>

@@ -98,6 +98,26 @@ const config: Config = {
 
   themeConfig: {
     image: 'images/build-summary.png',
+    mermaid: {
+      theme: {
+        light: 'base',
+        dark: 'dark',
+      },
+      options: {
+        fontFamily: '"SFMono-Regular", "Consolas", monospace',
+        themeVariables: {
+          fontSize: '14px',
+        },
+        flowchart: {
+          curve: 'basis',
+          htmlLabels: true,
+          nodeSpacing: 42,
+          rankSpacing: 54,
+          padding: 18,
+          useMaxWidth: true,
+        },
+      },
+    },
     colorMode: {
       defaultMode: 'light',
       disableSwitch: false,

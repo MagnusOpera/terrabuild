@@ -1,7 +1,7 @@
 ---
 title: Batch
 
-prev: /docs/getting-started/tasks
+prev: /docs/getting-started/caching
 
 ---
 

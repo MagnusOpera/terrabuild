@@ -47,17 +47,20 @@ A phase dependency applies to the whole prerequisite phase. Terrabuild does not 
 For example, if the `toolchains` phase contains three image targets, selecting only `application:build` still enlists all three:
 
 ```mermaid
-flowchart LR
-  subgraph toolchains["toolchains — all targets enlisted"]
-    pnpm["pnpm:dist"]
-    nginx["nginx:dist"]
-    runtime["dotnet-runtime:dist"]
+flowchart TB
+  subgraph toolchains["TOOLCHAINS · ALL TARGETS ENLISTED"]
+    direction LR
+    pnpm["pnpm<br/><b>dist</b>"]
+    nginx["nginx<br/><b>dist</b>"]
+    runtime["dotnet-runtime<br/><b>dist</b>"]
   end
 
-  pnpm --> barrier{{"success barrier"}}
-  nginx --> barrier
-  runtime --> barrier
-  barrier --> application["application:build — selected"]
+  pnpm & nginx & runtime --> barrier{{"Success barrier"}}
+  barrier --> application["application<br/><b>build · selected</b>"]
+
+  class pnpm,nginx,runtime tb-muted
+  class barrier tb-decision
+  class application tb-primary
 ```
 
 The arrows in this illustration show execution progressing through the barrier. `application:build` cannot start when only `pnpm:dist` has succeeded; `nginx:dist` and `dotnet-runtime:dist` must also complete.
