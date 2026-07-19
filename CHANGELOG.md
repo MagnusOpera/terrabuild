@@ -4,7 +4,19 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.196.4]
+
 - Decouple website publication and preparation from Terrabuild releases with an autonomous manual GitHub Pages workflow that generates and deploys the latest documentation from `main` without changing its history.
+- Reorder the getting-started guide around graph planning, task execution, and caching, removing the duplicated cache decision flow from the Tasks page.
+- Clarify that phase dependencies are whole-phase success barriers, with an illustrated example of their intentionally coarse enlistment semantics.
+- Link extension authors to the FScript documentation site instead of its source repository.
+- Rework the extensibility guide around FScript's language documentation and align its examples with the current exported-handler, command-result, batching, and descriptor contracts.
+- Rework the website learning path and correct configuration examples, cache guidance, dependency and phase explanations, container-runtime behavior, language reference details, and console graph options.
+- Add an opt-in `Phases` view to the interactive graph console that groups phased targets into labeled blocks and shows phase ordering with dashed edges.
+- Keep Mermaid graphs in debug logs and build summaries ungrouped, even when targets belong to phases, to preserve readability for large graphs.
+- Add optional workspace-declared build phases that enlist prerequisite-phase targets, enforce phase ordering through immutable graph dependencies, isolate batches by phase, group phased execution in Mermaid graphs, expose `terrabuild.phase`, and publish phase metadata with build-graph nodes.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.10...0.196.4
 
 ## [0.196.4-next]
 
