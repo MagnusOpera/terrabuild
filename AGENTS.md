@@ -151,11 +151,13 @@ Rules:
 Terrabuild publishes its website independently from application releases:
 
 1. Keep website and documentation sources on `main`.
-2. Run the manual `Publish Website` workflow from GitHub Actions.
-3. The workflow always checks out `main`, generates extension documentation, builds the website, and deploys it to GitHub Pages.
+2. Create and push an annotated `website-X.Y.Z` tag for the commit to publish.
+3. The `Publish Website` workflow checks out that exact tag, generates extension documentation, builds the website, and deploys it to GitHub Pages.
 
 Rules:
 
-- The public documentation represents the latest state of `main`.
+- Production website deployments use `website-*.*.*` tags independently of Terrabuild application versions.
+- The workflow may be run manually to publish `main` without creating a documentation version.
+- Website tags do not trigger application releases.
 - Website generation happens only in the workflow runner and must not commit generated changes back to `main`.
 - Release tags and maintenance branches do not build or publish the website.

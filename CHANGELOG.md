@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Publish website deployments from independently versioned `website-*.*.*` tags without triggering application releases.
+
 ## [0.197.1-next]
 
 

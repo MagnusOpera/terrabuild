@@ -41,7 +41,9 @@ The sync script is intentionally conservative and is expected to be refined as v
 ## Release and Publishing
 
 - Application release preparation updates the changelog and creates a tag without preparing or publishing the website.
-- The manual `Publish Website` workflow checks out `main`, regenerates extension documentation in its runner, builds the website, and deploys it to GitHub Pages.
+- Pushing a `website-*.*.*` tag runs the `Publish Website` workflow from that exact tagged commit, regenerates extension documentation in its runner, builds the website, and deploys it to GitHub Pages; the tag has no relationship to the Terrabuild application version.
+- The workflow can still be run manually to publish `main` when an unversioned deployment is needed.
+- Website tags are excluded from the application release workflow.
 - Generated documentation from the publishing workflow is never committed back to `main`.
 
 ## Open Work

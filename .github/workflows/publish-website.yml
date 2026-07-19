@@ -1,7 +1,10 @@
 name: 🌍 Publish Website
-run-name: Publish website from main
+run-name: Publish website from ${{ github.event_name == 'push' && github.ref_name || 'main' }}
 
 on:
+  push:
+    tags:
+      - 'website-*.*.*'
   workflow_dispatch:
 
 permissions:
@@ -20,10 +23,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout main
+      - name: Checkout website source
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event_name == 'push' && github.ref || 'main' }}
           persist-credentials: false
 
       - name: Setup .NET Core
