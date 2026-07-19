@@ -167,6 +167,7 @@ const sidebars: SidebarsConfig = {
         'usage/logout',
       ],
     },
+    'whats-new',
     'troubleshooting',
     {
       type: 'html',

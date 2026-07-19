@@ -89,7 +89,7 @@ Magnus Opera employees have write access to Magnus Opera repositories and must p
 
 Terrabuild uses a draft-based release flow:
 
-1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
+1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview). This updates `CHANGELOG.md` and generates the current documentation's `What's New` page from the release notes.
 2. Push commit and tag with `git push origin main --follow-tags`.
 3. Wait for CI to create a draft GitHub release and upload artifacts.
 4. Publish that existing draft release.

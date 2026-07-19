@@ -140,6 +140,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 stripped_changelog="${tmp_dir}/changelog-stripped.md"
 new_section_file="${tmp_dir}/new-section.md"
 updated_changelog="${tmp_dir}/CHANGELOG.md"
+updated_whats_new="${tmp_dir}/whats-new.md"
 
 awk '
   BEGIN { skip = 0 }
@@ -160,6 +161,22 @@ awk '
   echo ""
   echo "$compare_link"
 } > "$new_section_file"
+
+{
+  echo "---"
+  echo "id: whats-new"
+  echo "title: What's New"
+  echo "slug: /whats-new"
+  echo "---"
+  echo ""
+  echo "For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub."
+  echo ""
+  echo "## ${version}"
+  echo ""
+  printf "%s\n" "$section_body"
+  echo ""
+  echo "$compare_link"
+} > "$updated_whats_new"
 
 awk -v section_file="$new_section_file" '
   BEGIN { inserted = 0; skip_next_blank = 0 }
@@ -188,7 +205,7 @@ if ! grep -q "^## \[${version}\]$" "$updated_changelog"; then
 fi
 
 if [[ "$dryrun" == "true" ]]; then
-  echo "[DRY RUN] Would update CHANGELOG.md, commit and create annotated tag '${version}'."
+  echo "[DRY RUN] Would update CHANGELOG.md and website/site-docs/whats-new.md, commit and create annotated tag '${version}'."
   if [[ "$is_next" == "true" ]]; then
     echo "[DRY RUN] Mode: preview (Unreleased-only notes)."
   else
@@ -200,8 +217,9 @@ if [[ "$dryrun" == "true" ]]; then
 fi
 
 cp "$updated_changelog" CHANGELOG.md
+cp "$updated_whats_new" website/site-docs/whats-new.md
 
-git add CHANGELOG.md
+git add CHANGELOG.md website/site-docs/whats-new.md
 
 git commit -m "chore(release): ${version}"
 git tag -a "${version}" -m "Release ${version}"
