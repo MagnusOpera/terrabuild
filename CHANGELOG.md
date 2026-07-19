@@ -5,6 +5,8 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Require every commit targeting `main` to include a concise, user-facing `Unreleased` changelog entry.
+- Upgrade the Terrabuild UI dependency set and refresh vulnerable transitive packages to address the current Vite, esbuild, and YAML security advisories.
+
 ## [0.197.0-next]
 
 
