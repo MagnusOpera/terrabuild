@@ -162,22 +162,6 @@ awk '
   echo "$compare_link"
 } > "$new_section_file"
 
-{
-  echo "---"
-  echo "id: whats-new"
-  echo "title: What's New"
-  echo "slug: /whats-new"
-  echo "---"
-  echo ""
-  echo "For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub."
-  echo ""
-  echo "## ${version}"
-  echo ""
-  printf "%s\n" "$section_body"
-  echo ""
-  echo "$compare_link"
-} > "$updated_whats_new"
-
 awk -v section_file="$new_section_file" '
   BEGIN { inserted = 0; skip_next_blank = 0 }
   $0 == "## [Unreleased]" && inserted == 0 {
@@ -204,12 +188,14 @@ if ! grep -q "^## \[${version}\]$" "$updated_changelog"; then
   exit 1
 fi
 
+./.github/scripts/generate-whats-new.sh "$version" "$updated_changelog" "$updated_whats_new" "$version"
+
 if [[ "$dryrun" == "true" ]]; then
   echo "[DRY RUN] Would update CHANGELOG.md and website/site-docs/whats-new.md, commit and create annotated tag '${version}'."
   if [[ "$is_next" == "true" ]]; then
-    echo "[DRY RUN] Mode: preview (Unreleased-only notes)."
+    echo "[DRY RUN] Mode: preview family aggregation."
   else
-    echo "[DRY RUN] Mode: stable aggregation (Unreleased + sections since previous stable)."
+    echo "[DRY RUN] Mode: stable family aggregation."
   fi
   echo "[DRY RUN] Previous tag: ${previous_tag}"
   echo "[DRY RUN] Compare link: ${compare_link}"

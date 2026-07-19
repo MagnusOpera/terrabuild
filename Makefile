@@ -17,7 +17,7 @@ dryrun ?= false
 current_dir = $(shell pwd)
 
 
-.PHONY: docs try-docs website website-build website-prepare
+.PHONY: docs try-docs website website-build website-prepare website-whats-new test-release-notes
 
 
 #
@@ -85,7 +85,13 @@ docs:
 try-docs:
 	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- .out/try-docs
 
-website-prepare:
+website-whats-new:
+	./.github/scripts/generate-whats-new.sh latest-next CHANGELOG.md website/site-docs/whats-new.md
+
+test-release-notes:
+	./.github/scripts/test-generate-whats-new.sh
+
+website-prepare: website-whats-new
 	cd website && pnpm install --frozen-lockfile
 	$(MAKE) docs
 
