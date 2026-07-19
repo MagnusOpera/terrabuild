@@ -15,6 +15,7 @@ type ExtensionType =
     | Docker
     | Terraform
     | Cargo
+    | Go
 
 // [<RequireQualifiedAccess>]
 type Goal =
@@ -66,6 +67,7 @@ let extMarkers = [
     Docker, "Dockerfile"
     Terraform, ".terraform.lock.hcl"
     Cargo, "Cargo.toml"
+    Go, "go.mod"
 ]
 
 
@@ -107,6 +109,12 @@ let extConfigs =
         Cargo, { Image = None // Some "rust:1.79.0"
                  Defaults = Map [ "profile", "local.configuration" ]
                  Actions = Map [ Build, [ "build" ] ] }
+
+        Go, { Image = None // Some "golang:1.26.5-bookworm"
+              Defaults = Map.empty
+              Actions = Map [ Install, [ "install" ]
+                              Build, [ "build" ]
+                              Test, [ "test" ] ] }
     ]
 
 

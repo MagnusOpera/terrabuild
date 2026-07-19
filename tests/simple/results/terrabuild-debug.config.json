@@ -1,5 +1,6 @@
 {
   "selectedProjects": [
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
     "@pnpm#npm-app",
     "@pnpm#npm-lib",
     "workspace/path#deployments/terraform-deploy",
@@ -34,6 +35,81 @@
   },
   "phases": {},
   "projects": {
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app": {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "directory": "projects/go-app",
+      "hash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715",
+      "dependencies": [],
+      "files": [
+        "PROJECT",
+        "go.mod",
+        "main.go",
+        "main_test.go"
+      ],
+      "targets": {
+        "build": {
+          "hash": "E21F3C1CDEE2891EA8DEB6D5D189642EE925D890A41B562D5924ADD0029A89F3",
+          "clusterHash": "1DEFB22F60E4C1DAF8640387780F1F5122587FFBCBEC73AADD857A86C5029EA4",
+          "batch": "single",
+          "dependsOn": [
+            "^build"
+          ],
+          "outputs": [
+            "bin/"
+          ],
+          "steps": [
+            {
+              "hash": "B8B12813457D46FE4D9E8A35B0E02628B8764A43DC6B060759989F31B2CB7493",
+              "image": "golang:1.26.5-bookworm",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@go",
+              "command": "build",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        },
+        "test": {
+          "hash": "FFF5AC8D73731D39A5211D87BFD9FAFE0588AAE7A5C2B08DD069BA6EFDB689BD",
+          "clusterHash": "0FE8029D0BCBA7CB95FDBB4017DDBC19FD48AD03A7EDCFD6051EB61033C53DC9",
+          "batch": "single",
+          "dependsOn": [
+            "build"
+          ],
+          "outputs": [
+            "bin/"
+          ],
+          "steps": [
+            {
+              "hash": "BEFE58AEE2B4121086281277F11C9F6C6436FAAA75521EC6A97B57439277E6F5",
+              "image": "golang:1.26.5-bookworm",
+              "platform": "linux/amd64",
+              "containerVariables": [],
+              "envs": {},
+              "extension": "@go",
+              "command": "test",
+              "script": {},
+              "context": [
+                "map",
+                {}
+              ]
+            }
+          ]
+        }
+      },
+      "labels": [
+        "app",
+        "go"
+      ],
+      "types": [
+        "@go"
+      ]
+    },
     "@pnpm#npm-app": {
       "id": "@pnpm#npm-app",
       "name": "npm_app",

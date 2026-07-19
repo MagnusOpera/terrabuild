@@ -58,6 +58,11 @@ extension @cargo {
   platform = "linux/amd64"
 }
 
+extension @go {
+  image = "golang:1.26.5-bookworm"
+  platform = "linux/amd64"
+}
+
 extension @pnpm {
   image = "guergeiro/pnpm:20-10"
   platform = "linux/amd64"

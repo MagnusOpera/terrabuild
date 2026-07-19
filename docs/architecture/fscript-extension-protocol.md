@@ -179,6 +179,7 @@ Default handler example:
 
 - `shell.fss`: `dispatch (context) (args)`
 - `gradle.fss`: `defaults (context)`, `dispatch (context) (args)`, `build (context) (configuration) (args)`
+- `go.fss`: `defaults (context)`, `dispatch (context) (args)`, `install/build/test (context) ...`
 - `make.fss`: `dispatch (context) (variables) (args)`
 - `dotnet.fss`: `defaults (context)`, `dispatch (context) (args)`, `restore/build/publish/test (context) ...`
 - `docker.fss`: `dispatch (context) (args)`, `build (context) ...`, `push (context) ...`

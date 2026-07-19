@@ -1,5 +1,43 @@
 {
   "nodes": {
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build": {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDir": "projects/go-app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "bin/"
+      ],
+      "projectHash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715",
+      "targetHash": "9572DF94920BD46E3D477B264C4AB2DC810412E5E1C7BE6E2772C2AB0AB3E215",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test": {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDir": "projects/go-app",
+      "target": "test",
+      "dependencies": [
+        "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build"
+      ],
+      "outputs": [
+        "bin/"
+      ],
+      "projectHash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715",
+      "targetHash": "7B8317A527645284DBB9EB136C91CE30F6665CEC7A04A929AAEC065993530B27",
+      "operations": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",
       "projectId": "@pnpm#npm-app",
@@ -280,6 +318,7 @@
     }
   },
   "rootNodes": [
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
     "workspace/path#deployments/terraform-deploy:build",
     "workspace/path#deployments/terraform-deploy:deploy",
     "workspace/path#projects/dotnet-app:docker",

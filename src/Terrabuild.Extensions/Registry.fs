@@ -12,6 +12,7 @@ module ScriptRegistry =
             "@docker", "Scripts/docker.fss"
             "@dotnet", "Scripts/dotnet.fss"
             "@fscript", "Scripts/fscript.fss"
+            "@go", "Scripts/go.fss"
             "@gradle", "Scripts/gradle.fss"
             "@make", "Scripts/make.fss"
             "@npm", "Scripts/npm.fss"

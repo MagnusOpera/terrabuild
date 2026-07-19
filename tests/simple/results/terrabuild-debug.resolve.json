@@ -1,5 +1,67 @@
 {
   "nodes": {
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build": {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDir": "projects/go-app",
+      "target": "build",
+      "dependencies": [],
+      "outputs": [
+        "bin/"
+      ],
+      "projectHash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715",
+      "targetHash": "E4B7A51E3C7E1CA52EED043A4B2A00890F2E6F37EC8BC0282B95E086810FA2D9",
+      "clusterHash": "1DEFB22F60E4C1DAF8640387780F1F5122587FFBCBEC73AADD857A86C5029EA4",
+      "operations": [
+        {
+          "image": "golang:1.26.5-bookworm",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@go build",
+          "command": "go",
+          "arguments": "build -o \u0022bin/\u0022 ./...",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test": {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDir": "projects/go-app",
+      "target": "test",
+      "dependencies": [
+        "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build"
+      ],
+      "outputs": [
+        "bin/"
+      ],
+      "projectHash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715",
+      "targetHash": "DA43F948543A167D2476EFDB75FE7ABC8357CF83F9AB12FD87EBEE6ED898A208",
+      "clusterHash": "0FE8029D0BCBA7CB95FDBB4017DDBC19FD48AD03A7EDCFD6051EB61033C53DC9",
+      "operations": [
+        {
+          "image": "golang:1.26.5-bookworm",
+          "platform": "linux/amd64",
+          "variables": [],
+          "envs": {},
+          "metaCommand": "@go test",
+          "command": "go",
+          "arguments": "test ./...",
+          "errorLevel": 0
+        }
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batch": "single",
+      "action": "ignore",
+      "required": true
+    },
     "@pnpm#npm-app:build": {
       "id": "@pnpm#npm-app:build",
       "projectId": "@pnpm#npm-app",
@@ -416,6 +478,7 @@
     }
   },
   "rootNodes": [
+    "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
     "workspace/path#deployments/terraform-deploy:build",
     "workspace/path#projects/fscript-app:build",
     "workspace/path#projects/make-app:build",

@@ -1,0 +1,175 @@
+import "_protocol.fss" as Protocol
+import "_helpers.fss" as Helpers
+
+/// <summary>Go extension for module install, build, and test workflows.</summary>
+let quote value = $"\"{value}\""
+
+let command_op arguments =
+  { Command = "go"
+    Arguments = arguments
+    ErrorLevel = 0 }
+
+let module_from_line line =
+  match Regex.matchGroups "^\\s*module\\s+([^\\s]+)" line with
+  | Some [name] -> Some name
+  | _ -> None
+
+let local_replace_from_line line =
+  match String.split "=>" line with
+  | [left; right] ->
+      match Regex.matchGroups "^\\s*(\\.\\.?[/\\\\][^\\s]+)" right with
+      | Some [path] ->
+          let tokens =
+            left
+            |> String.split " "
+            |> List.choose (fun token ->
+                match Regex.matchGroups "^(.+)$" token with
+                | Some [value] -> Some value
+                | _ -> None)
+
+          match tokens with
+          | "replace" :: name :: tail -> Some name
+          | name :: tail -> Some name
+          | _ -> None
+      | _ -> None
+  | _ -> None
+
+let load_module directory =
+  let module_file = Fs.combinePath directory "go.mod"
+  let content =
+    match Fs.readText module_file with
+    | Some value -> value
+    | _ -> raise $"@go requires a go.mod file in '{directory}'"
+
+  let lines =
+    content
+    |> String.split "\n"
+
+  let id =
+    lines
+    |> List.choose module_from_line
+    |> List.tryHead
+    |> Option.defaultWith (fun () -> raise $"@go requires a module directive in '{module_file}'")
+
+  let dependencies =
+    lines
+    |> List.choose local_replace_from_line
+    |> List.distinct
+
+  (id, dependencies)
+
+let with_packages packages =
+  packages
+  |> Option.defaultValue ["./..."]
+  |> String.concat " "
+
+let with_output output =
+  match output with
+  | Some "" -> ""
+  | Some value -> $"-o {quote value}"
+  | _ -> "-o \"bin/\""
+
+let can_batch packages args =
+  Option.isNone packages && Option.isNone args
+
+let project_operation project action arguments =
+  ""
+  |> Helpers.append_part $"-C {quote project}"
+  |> Helpers.append_part action
+  |> Helpers.append_part arguments
+  |> command_op
+
+let project_operations (context: Protocol.ActionContext) action arguments =
+  match context.Batch with
+  | Some batch ->
+      batch.ProjectPaths
+      |> List.map (fun project -> project_operation project action arguments)
+  | _ -> []
+
+/// <summary>Reads mandatory Go module metadata and discovers local replacement dependencies.</summary>
+/// <param name="ignores" example="[ ]"></param>
+/// <param name="outputs" example="[ &quot;bin/&quot; ]"></param>
+[<export>] let defaults (context: Protocol.ActionContext) =
+  let (id, dependencies) = load_module context.Directory
+  { Id = Some id
+    DependencyResolution = Some Scope
+    Outputs = ["bin/"]
+    Dependencies = dependencies }
+
+/// <summary>Runs an arbitrary Go subcommand (Terrabuild action name is forwarded to `go`).</summary>
+/// <param name="args" default="" example="&quot;list ./...&quot;">Extra arguments for the subcommand.</param>
+[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+  let command =
+    ""
+    |> Helpers.append_part context.Command
+    |> Helpers.append_part (Helpers.with_args args)
+  { Batchable = false
+    Operations = [command_op command] }
+
+/// <summary>Installs packages with `go install`.</summary>
+/// <param name="packages" default="[ &quot;./...&quot; ]" example="[ &quot;golang.org/x/tools/cmd/stringer@latest&quot; ]">Packages to install.</param>
+/// <param name="args" default="" example="&quot;-race&quot;">Extra `go install` arguments.</param>
+[<export>] let install (context: Protocol.ActionContext) (packages: string list option) (args: string option) =
+  let batchable = can_batch packages args
+  let arguments = Helpers.with_args args
+  let operations =
+    match context.Batch with
+    | Some _ -> project_operations context "install" "./..."
+    | _ ->
+        let command =
+          ""
+          |> Helpers.append_part "install"
+          |> Helpers.append_part arguments
+          |> Helpers.append_part (with_packages packages)
+        [command_op command]
+
+  { Batchable = batchable
+    Operations = operations }
+
+/// <summary>Builds packages with `go build`, writing binaries to `bin/` by default.</summary>
+/// <title>Build project.</title>
+/// <param name="packages" default="[ &quot;./...&quot; ]" example="[ &quot;./cmd/api&quot; ]">Packages to build.</param>
+/// <param name="output" default="bin/" example="&quot;dist/&quot;">Output path passed to `-o`; use an empty string for native Go output behavior.</param>
+/// <param name="args" default="" example="&quot;-trimpath&quot;">Extra `go build` arguments.</param>
+[<export>] let build (context: Protocol.ActionContext) (packages: string list option) (output: string option) (args: string option) =
+  let batchable = can_batch packages args && Option.isNone output
+  let operations =
+    match context.Batch with
+    | Some _ -> project_operations context "build" "-o \"bin/\" ./..."
+    | _ ->
+        let command =
+          ""
+          |> Helpers.append_part "build"
+          |> Helpers.append_part (with_output output)
+          |> Helpers.append_part (Helpers.with_args args)
+          |> Helpers.append_part (with_packages packages)
+        [command_op command]
+
+  { Batchable = batchable
+    Operations = operations }
+
+/// <summary>Runs package tests with `go test`.</summary>
+/// <param name="packages" default="[ &quot;./...&quot; ]" example="[ &quot;./internal/...&quot; ]">Packages to test.</param>
+/// <param name="args" default="" example="&quot;-race -count=1&quot;">Extra `go test` arguments.</param>
+[<export>] let test (context: Protocol.ActionContext) (packages: string list option) (args: string option) =
+  let batchable = can_batch packages args
+  let operations =
+    match context.Batch with
+    | Some _ -> project_operations context "test" "./..."
+    | _ ->
+        let command =
+          ""
+          |> Helpers.append_part "test"
+          |> Helpers.append_part (Helpers.with_args args)
+          |> Helpers.append_part (with_packages packages)
+        [command_op command]
+
+  { Batchable = batchable
+    Operations = operations }
+
+// Exported functions and Terrabuild execution flags.
+{ [nameof defaults] = [Default]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof install] = [Local]
+  [nameof build] = [Remote]
+  [nameof test] = [Remote] }

@@ -1,0 +1,14 @@
+project {
+    labels = [ "app"
+               "go" ]
+
+    @go { }
+}
+
+target build {
+    @go build { }
+}
+
+target test {
+    @go test { }
+}

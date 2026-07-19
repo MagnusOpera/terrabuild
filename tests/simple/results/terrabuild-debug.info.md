@@ -20,6 +20,10 @@ classDef ignore stroke:black,stroke-width:3px
 .")
 5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B("<b>build</b> 
 .")
+#go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build("<b>build</b> 
+projects/go-app")
+#go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test("<b>test</b> 
+projects/go-app")
 #pnpm#npm-app:build("<b>build npm_app</b> 
 projects/npm-app")
 #pnpm#npm-lib:build("<b>build npm_lib</b> 
@@ -44,6 +48,9 @@ workspace/path#tests/playwright:test("<b>test playwright_test</b>
 tests/playwright")
 class 1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8 ignore
 class 5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B ignore
+class #go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build ignore
+#go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test --> #go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build
+class #go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test ignore
 #pnpm#npm-app:build --> #pnpm#npm-lib:build
 class #pnpm#npm-app:build ignore
 class #pnpm#npm-lib:build ignore
