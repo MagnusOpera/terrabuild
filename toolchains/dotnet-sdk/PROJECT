@@ -1,9 +1,3 @@
-extension @docker {
-    defaults {
-        image = "ghcr.io/magnusopera/dotnet-sdk"
-    }
-}
-
 project dotnet_sdk {
     labels = [ "toolchain" ]
     @docker { }
