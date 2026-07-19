@@ -102,6 +102,21 @@ For broad/core changes:
 - If `make smoke-tests` produces diffs, they **MUST** be investigated before accepting changes.
   The diff analysis should explain the root cause clearly (for example: file/content change, configuration change, or variable/input change).
 
+## Release Notes (Unreleased)
+
+- `CHANGELOG.md` must keep a top `## [Unreleased]` section.
+- Each new feature/fix entry must be a short, single-line bullet.
+- Write entries in user-facing terms (what changed), not implementation detail.
+- At release time, `make release-prepare` moves unreleased entries to the versioned section and resets `Unreleased`.
+- Each released version section must end with its `**Full Changelog**` compare link.
+
+## Commit Gate (Hard Requirement)
+
+- Every commit that targets `main` must update `CHANGELOG.md`.
+- Regular commits must add at least one short, single-line bullet under `## [Unreleased]`.
+- Scope is strict: documentation, process, policy, chore, and dependency-only commits are included.
+- Exception: release commits (`chore(release): X.Y.Z` or `chore(release): X.Y.Z-next`) may leave `## [Unreleased]` empty because release preparation consumes that section.
+
 ## Release Process (Tags and GitHub Draft)
 
 Terrabuild uses a draft-based release flow:

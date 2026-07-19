@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Require every commit targeting `main` to include a concise, user-facing `Unreleased` changelog entry.
 ## [0.197.0-next]
 
 
