@@ -117,6 +117,12 @@ For broad/core changes:
 - Scope is strict: documentation, process, policy, chore, and dependency-only commits are included.
 - Exception: release commits (`chore(release): X.Y.Z` or `chore(release): X.Y.Z-next`) may leave `## [Unreleased]` empty because release preparation consumes that section.
 
+## Commit Title Convention
+
+- Features must use `feat: xxxxx`.
+- Fixes must use `fix: xxxxx`.
+- Chores must use `chore: xxxxx`.
+
 ## Release Process (Tags and GitHub Draft)
 
 Terrabuild uses a draft-based release flow:
