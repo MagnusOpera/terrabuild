@@ -1072,6 +1072,8 @@
 }
 
 .markdown a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
   text-decoration-line: underline;
   text-underline-offset: 0.14em;
   text-decoration-thickness: 0.08em;
@@ -1087,7 +1089,6 @@
 .markdown a[href*='insights.magnusopera.io'],
 .markdown a[href*='magnusopera.io'] {
   text-decoration-line: underline;
-  white-space: nowrap;
 }
 
 .markdown a[href*='github.com']::before,
