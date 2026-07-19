@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
   pull-requests: read
 
 jobs:
@@ -28,6 +29,7 @@ jobs:
       - name: Setup Tools
         uses: ./.github/actions/setup-tools
         with:
+          GITHUB_TOKEN: ${{ github.token }}
           install_dotnet: "true"
           install_node: "true"
           install_pnpm: "true"

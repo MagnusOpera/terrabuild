@@ -3,21 +3,21 @@ project terrabuild {
     labels = [ "app"
                "dotnet"]
     depends_on = [ project.terrabuild_ui ]
-    @dotnet { }
+    @dotnetsdk { }
 }
 
 target install {
-    @dotnet restore { }
+    @dotnetsdk restore { }
 }
 
 target build {
-    @dotnet build { }
+    @dotnetsdk build { }
 }
 
 target dist {
     outputs = []
 
-    @dotnet publish { single = true
+    @dotnetsdk publish { single = true
                       build = true
                       restore = true }
 }

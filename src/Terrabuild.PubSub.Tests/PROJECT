@@ -1,16 +1,16 @@
 
 project {
-    @dotnet { }
+    @dotnetsdk { }
 }
 
 target install {
-    @dotnet restore { }
+    @dotnetsdk restore { }
 }
 
 target build {
-    @dotnet build { }
+    @dotnetsdk build { }
 }
 
 target test {
-    @dotnet test { filter = "TestCategory!=integration" }
+    @dotnetsdk test { filter = "TestCategory!=integration" }
 }

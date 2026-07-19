@@ -57,8 +57,9 @@ target dist {
     depends_on = [ target.build ]
 }
 
-extension @dotnet {
-    image = "ghcr.io/magnusopera/dotnet:${project.dotnet.version}"
+extension @dotnetsdk {
+    script = "src/Terrabuild.Extensions/Scripts/dotnet.fss"
+    image = "ghcr.io/magnusopera/dotnet-sdk:${project.dotnet_sdk.version}"
     defaults {
         runtime = local.runtimes.dotnet
         configuration = local.dotnet.config

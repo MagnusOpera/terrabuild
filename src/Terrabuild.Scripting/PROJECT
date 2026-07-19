@@ -1,12 +1,12 @@
 
 project {
-    @dotnet { }
+    @dotnetsdk { }
 }
 
 target install {
-    @dotnet restore { }
+    @dotnetsdk restore { }
 }
 
 target build {
-    @dotnet build { }
+    @dotnetsdk build { }
 }
