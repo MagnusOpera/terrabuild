@@ -34,7 +34,8 @@ for (const entry of readdirSync(extensionsDir)) {
     const filePath = path.join(dirPath, file);
     const content = readFileSync(filePath, 'utf8')
       .replace(/\(\.\/_index\)/g, '(./index)')
-      .replace(/\]\(\/docs\/extensions\/([^/]+)\/_index\)/g, '](/docs/extensions/$1)');
+      .replace(/\]\(\/docs\/extensions\/([^/]+)\/_index\)/g, '](/docs/extensions/$1)')
+      .replace(/\]\(\/docs\/extensions\/[^/]+\/([^/)]+)\)/g, '](./$1)');
     writeFileSync(filePath, content);
   }
 }
