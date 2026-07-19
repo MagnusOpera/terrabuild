@@ -1,0 +1,9 @@
+project dotnet {
+    labels = [ "toolchain" ]
+    @docker { }
+}
+
+target dist {
+    phase = phase.toolchains
+    @docker build { build_args = { dotnet: local.versions.dotnet_sdk } }
+}

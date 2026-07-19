@@ -31,13 +31,12 @@ jobs:
           install_dotnet: "true"
           install_node: "true"
           install_pnpm: "true"
-          install_podman: "true"
           install_fscript: "true"
 
       - name: Self Build
         run: |
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
-          make self-ci engine=podman
+          make self
 
       - name: Create Test Report
         uses: magnusopera/test-reporter@main

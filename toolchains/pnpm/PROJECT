@@ -1,0 +1,12 @@
+project pnpm {
+    labels = [ "toolchain" ]
+    @docker { }
+}
+
+target dist {
+    phase = phase.toolchains
+    @docker build {
+        build_args = {
+            node: local.versions.node
+            pnpm: local.versions.pnpm } }
+}

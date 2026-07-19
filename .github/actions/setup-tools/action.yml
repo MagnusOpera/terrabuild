@@ -8,7 +8,7 @@ inputs:
 
   dotnet_version:
     description: .NET SDK version to install
-    default: "10.0.201"
+    default: "10.0.302"
 
   install_node:
     description: Whether to install Node.js
