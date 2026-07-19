@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add dedicated Console documentation with Terrabuild source examples and live screenshots explaining controls, project-node shapes, cache-status colors, dependency arrows, phases, and graph navigation.
+
 ## [0.196.4]
 
 - Decouple website publication and preparation from Terrabuild releases with an autonomous manual GitHub Pages workflow that generates and deploys the latest documentation from `main` without changing its history.

@@ -72,6 +72,14 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Console',
+      link: {type: 'doc', id: 'console/index'},
+      items: [
+        'console/graph',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Extensions',
       link: {type: 'doc', id: 'extensions/index'},
       items: [
