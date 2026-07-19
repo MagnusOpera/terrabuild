@@ -51,9 +51,24 @@
       "@easyops-cn/docusaurus-search-local>@docusaurus/utils": "3.10.2",
       "@easyops-cn/docusaurus-search-local>@docusaurus/utils-common": "3.10.2",
       "@easyops-cn/docusaurus-search-local>@docusaurus/utils-validation": "3.10.2",
+      "@babel/core": "7.29.6",
+      "dompurify": "3.4.11",
       "fast-uri": "3.1.2",
+      "http-proxy-middleware": "2.0.10",
+      "joi": "17.13.4",
+      "js-yaml": "4.2.0",
+      "launch-editor": "2.14.1",
+      "mermaid": "11.15.0",
+      "qs": "6.15.2",
       "serialize-javascript": "7.0.5",
-      "webpack": "5.105.3"
+      "shell-quote": "1.8.4",
+      "undici": "7.28.0",
+      "uuid": "11.1.1",
+      "webpack": "5.105.3",
+      "webpack-dev-server": "5.2.5",
+      "websocket-driver": "0.7.5",
+      "ws@>=7.0.0 <8.0.0": "7.5.11",
+      "ws@>=8.0.0 <9.0.0": "8.21.0"
     }
   },
   "engines": {
