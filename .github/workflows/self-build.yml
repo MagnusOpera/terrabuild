@@ -20,7 +20,7 @@ on:
         description: force build
 
 env:
-  TERRABUILD_API_URL: https://api.dev.magnusopera.io/terrabuild
+  TERRABUILD_API_URL: https://api.staging.magnusopera.io/terrabuild
 
 jobs:
   build:
@@ -42,9 +42,15 @@ jobs:
           prerelease: ${{ inputs.prerelease }}
 
       - name: Login to Space
+        env:
+          TERRABUILD_TOKEN: ${{ secrets.TERRABUILD_TOKEN }}
+          TERRABUILD_MASTER_KEY: ${{ secrets.TERRABUILD_MASTER_KEY }}
         run: |
           terrabuild version
-          terrabuild login --workspace "edd11090a41b0291301431d0" --token ${{ secrets.TERRABUILD_TOKEN }}
+          terrabuild login \
+            --workspace "edd11090a41b0291301431d0" \
+            --token "$TERRABUILD_TOKEN" \
+            --masterkey "$TERRABUILD_MASTER_KEY"
 
       - name: Build
         run: |
@@ -54,11 +60,15 @@ jobs:
             ${{ inputs.force == 'true' && '--force' || '' }} \
             ${{ inputs.retry == true && '--retry' || '' }}
 
+      - name: Logout from Space
+        if: always()
+        run: terrabuild logout --space "edd11090a41b0291301431d0"
+
       - name: Upload Terrabuild Logs
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: terrabuild-dev-self-build-${{ github.sha }}
+          name: terrabuild-staging-self-build-${{ github.sha }}
           path: |
             terrabuild-debug.*
             ~/.terrabuild/cache/**/status

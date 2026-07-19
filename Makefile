@@ -96,7 +96,7 @@ website-build: website-prepare
 	cd website && pnpm build
 
 self: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log --local-only
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log
 
 self-ci: clean publish
 	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --engine $(engine) --retry --debug --log --local-only

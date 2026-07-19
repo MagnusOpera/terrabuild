@@ -34,11 +34,30 @@ jobs:
           install_node: "true"
           install_pnpm: "true"
           install_fscript: "true"
+          install_terrabuild: "true"
+
+      - name: Login to Insights Staging
+        env:
+          TERRABUILD_API_URL: https://api.staging.magnusopera.io/terrabuild
+          TERRABUILD_TOKEN: ${{ secrets.TERRABUILD_TOKEN }}
+          TERRABUILD_MASTER_KEY: ${{ secrets.TERRABUILD_MASTER_KEY }}
+        run: |
+          terrabuild version
+          terrabuild login \
+            --workspace "edd11090a41b0291301431d0" \
+            --token "$TERRABUILD_TOKEN" \
+            --masterkey "$TERRABUILD_MASTER_KEY"
 
       - name: Self Build
+        env:
+          TERRABUILD_API_URL: https://api.staging.magnusopera.io/terrabuild
         run: |
           echo "# Self Build" >> $GITHUB_STEP_SUMMARY
           make self
+
+      - name: Logout from Insights Staging
+        if: always()
+        run: terrabuild logout --space "edd11090a41b0291301431d0"
 
       - name: Create Test Report
         uses: magnusopera/test-reporter@main

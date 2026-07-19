@@ -20,7 +20,7 @@ let private removeAuthToken (workspaceId: string) =
         if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
         else { Configuration.SpaceAuths = List.empty }
 
-    let config = { config with SpaceAuths = config.SpaceAuths |> List.filter (fun sa -> sa.Id = workspaceId )}
+    let config = { config with SpaceAuths = config.SpaceAuths |> List.filter (fun sa -> sa.Id <> workspaceId )}
 
     config
     |> Json.Serialize
