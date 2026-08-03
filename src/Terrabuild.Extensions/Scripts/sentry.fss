@@ -18,10 +18,12 @@ let with_project project =
     Operations =
       [ { Command = "sentry-cli"
           Arguments = $"sourcemaps inject {path}"
-          ErrorLevel = 0 }
+          ErrorLevel = 0
+          Stdout = None }
         { Command = "sentry-cli"
           Arguments = $"sourcemaps upload {project} {path}"
-          ErrorLevel = errorLevel } ] }
+          ErrorLevel = errorLevel
+          Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof sourcemaps] = [External] }

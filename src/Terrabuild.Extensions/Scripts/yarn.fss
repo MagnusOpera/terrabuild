@@ -61,7 +61,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Installs packages with `yarn install`, optionally updating the lockfile or ignoring engines.</summary>
 /// <param name="update" default="false" example="true">Allows lockfile updates.</param>
@@ -82,7 +83,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
@@ -95,7 +97,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
@@ -108,7 +111,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
 /// <param name="command" example="&quot;build:prod&quot;">Script name.</param>
@@ -123,7 +127,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = operation
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

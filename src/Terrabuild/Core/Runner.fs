@@ -41,7 +41,7 @@ type Summary = {
     Nodes: Map<string, NodeInfo>
 }
 
-type private BuiltCommand = string * string * string * string * string option * int * Map<string, string>
+type private BuiltCommand = string * string * string * string * string option * int * Map<string, string> * string option
 
 type internal HostRuntime = {
     Platform: Environment.HostPlatform
@@ -120,7 +120,7 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
     |> String.join " "
 
 let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
-    operation.MetaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
+    operation.MetaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
 
 let private requiresContainerSocket (command: string) =
     let fileName = command |> Path.GetFileName
@@ -204,7 +204,7 @@ let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node
         |> List.filter (String.IsNullOrWhiteSpace >> not)
         |> String.join " "
 
-    operation.MetaCommand, options.Workspace, policy.EngineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs
+    operation.MetaCommand, options.Workspace, policy.EngineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
 
 let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir
@@ -234,16 +234,35 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
     while cmdLineIndex < allCommands.Length && cmdLastSuccess do
         startedAt <- if cmdLineIndex > 0 then DateTime.UtcNow else cmdFirstStartedAt
-        let metaCommand, workDir, cmd, args, container, errorLevel, envs = allCommands[cmdLineIndex]
+        let metaCommand, workDir, cmd, args, container, errorLevel, envs, stdout = allCommands[cmdLineIndex]
         cmdLineIndex <- cmdLineIndex + 1
 
         Log.Debug("{NodeId}: running '{Command}' with '{Arguments}'", node.Id, cmd, args)
         let logFile = cacheEntry.NextLogFile()
 
         try
-            let exitCode =
-                if options.Targets |> Set.contains "serve" then Exec.execConsole workDir cmd args envs
-                else Exec.execCaptureTimestampedOutput workDir cmd args envs logFile
+            let exitCode, capturedStdout =
+                if options.Targets |> Set.contains "serve" && stdout.IsNone then
+                    Exec.execConsole workDir cmd args envs, None
+                else
+                    Exec.execCaptureTimestampedOutput workDir cmd args envs logFile stdout.IsSome
+
+            if exitCode <= errorLevel then
+                match stdout, capturedStdout with
+                | Some destination, Some output ->
+                    let destination = Path.GetFullPath(Path.Combine(projectDirectory, destination))
+                    let directory =
+                        match Path.GetDirectoryName(destination) with
+                        | NonNull value -> value
+                        | Null -> raiseBugError $"Unable to resolve stdout destination directory for '{destination}'"
+                    let temporary = Path.Combine(directory, $".{Path.GetFileName(destination)}.{Guid.NewGuid():N}.tmp")
+                    try
+                        File.WriteAllText(temporary, output)
+                        File.Move(temporary, destination, true)
+                    finally
+                        if File.Exists(temporary) then
+                            File.Delete(temporary)
+                | _ -> ()
 
             cmdLastEndedAt <- DateTime.UtcNow
             let endedAt = cmdLastEndedAt

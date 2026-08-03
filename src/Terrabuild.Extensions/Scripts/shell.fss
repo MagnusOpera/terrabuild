@@ -8,7 +8,8 @@ import "_helpers.fss" as Helpers
   { Batchable = false
     Operations = [ { Command = context.Command
                      Arguments = args
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof dispatch] = [Dispatch; Never] }

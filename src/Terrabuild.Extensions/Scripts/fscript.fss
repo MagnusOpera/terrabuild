@@ -44,7 +44,8 @@ let append_quoted_part value acc =
   { Batchable = false
     Operations = [ { Command = "fscript"
                      Arguments = operationArgs
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

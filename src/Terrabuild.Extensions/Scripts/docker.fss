@@ -26,7 +26,8 @@ let format_build_args build_args =
   { Batchable = false
     Operations = [ { Command = "docker"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Builds an image tagged with the Terrabuild hash, and pushes it in CI.</summary>
 /// <param name="image" example="&quot;ghcr.io/example/project&quot;">Image repository.</param>
@@ -54,14 +55,17 @@ let format_build_args build_args =
     if context.CI then
       [ { Command = "docker"
           Arguments = command
-          ErrorLevel = 0 }
+          ErrorLevel = 0
+          Stdout = None }
         { Command = "docker"
           Arguments = $"push {image}:{context.Hash}"
-          ErrorLevel = 0 } ]
+          ErrorLevel = 0
+          Stdout = None } ]
     else
       [ { Command = "docker"
           Arguments = command
-          ErrorLevel = 0 } ]
+          ErrorLevel = 0
+          Stdout = None } ]
 
   { Batchable = false
     Operations = operations }
@@ -88,7 +92,8 @@ let format_build_args build_args =
   { Batchable = false
     Operations = [ { Command = "docker"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof dispatch] = [Dispatch; Never]

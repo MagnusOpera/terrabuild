@@ -32,7 +32,8 @@ let format_variables vars =
   { Batchable = false
     Operations = [ { Command = "make"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof dispatch] = [Dispatch; Never] }

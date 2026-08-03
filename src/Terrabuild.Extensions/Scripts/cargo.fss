@@ -21,7 +21,8 @@ let with_profile profile =
   { Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Builds the project with `cargo build`.</summary>
 /// <title>Build project.</title>
@@ -36,7 +37,8 @@ let with_profile profile =
   { Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs tests with `cargo test`.</summary>
 /// <param name="profile" default="dev" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
@@ -50,7 +52,8 @@ let with_profile profile =
   { Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

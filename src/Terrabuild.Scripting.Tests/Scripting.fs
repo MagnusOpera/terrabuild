@@ -110,6 +110,7 @@ let invokeFScriptMethodCommandResult() =
     res.Batchable |> should equal true
     res.Operations.Length |> should equal 1
     res.Operations.Head.Command |> should equal "run"
+    res.Operations.Head.Stdout |> should equal None
 
 [<Test>]
 let invokeFScriptMethodWithStructuredArguments() =

@@ -537,7 +537,13 @@ and private Conversions =
                 | _ -> raiseTypeError $"Expected union return type, got {value}"
         elif FSharpType.IsRecord(targetType, true) then
             let fields = FSharpType.GetRecordFields(targetType)
-            let fieldDecoders = fields |> Array.map (fun fieldInfo -> fieldInfo.Name, Conversions.getFScriptDecoder fieldInfo.PropertyType)
+            let fieldDecoders =
+                fields
+                |> Array.map (fun fieldInfo ->
+                    let isOptional =
+                        fieldInfo.PropertyType.IsGenericType
+                        && fieldInfo.PropertyType.GetGenericTypeDefinition() = typedefof<option<_>>
+                    fieldInfo.Name, Conversions.getFScriptDecoder fieldInfo.PropertyType, isOptional)
             fun value ->
                 let sourceMap =
                     match value with
@@ -553,9 +559,10 @@ and private Conversions =
                     | _ -> raiseTypeError $"Expected record return type, got {value}"
                 let fieldValues =
                     fieldDecoders
-                    |> Array.map (fun (fieldName, fieldDecoder) ->
+                    |> Array.map (fun (fieldName, fieldDecoder, isOptional) ->
                         match sourceMap |> Map.tryFind fieldName with
                         | Some fieldValue -> fieldDecoder fieldValue
+                        | None when isOptional -> fieldDecoder (FScript.Language.VOption None)
                         | None -> raiseTypeError $"Missing field '{fieldName}' in script result")
                 FSharpValue.MakeRecord(targetType, fieldValues)
         elif targetType = typeof<Terrabuild.Expression.Value> then

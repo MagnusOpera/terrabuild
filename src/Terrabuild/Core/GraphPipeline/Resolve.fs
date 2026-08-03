@@ -59,7 +59,8 @@ let internal resolveTargetOperations
                 ContaineredShellOperation.MetaCommand = $"{step.Extension} {step.Command}"
                 ContaineredShellOperation.Command = shellOperation.Command
                 ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
-                ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel })
+                ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel
+                ContaineredShellOperation.Stdout = shellOperation.Stdout })
 
         let batchable = batchable && executionResult.Batchable
 

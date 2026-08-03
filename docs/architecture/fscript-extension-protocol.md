@@ -126,7 +126,8 @@ Expected extension-facing shapes:
 type ShellOperation =
     { Command: string
       Arguments: string
-      ErrorLevel: int }
+      ErrorLevel: int
+      Stdout: string option }
 
 type ShellOperations = ShellOperation list
 
@@ -144,6 +145,11 @@ type ProjectInfo =
       Outputs: string list
       Dependencies: string list }
 ```
+
+`Stdout`, when present, asks the runner to write the operation's standard output
+to that project-relative file after the command succeeds. Standard error remains
+available only in the operation log. Extensions that do not require a generated
+file should return `None`.
 
 `Outputs` and `Dependencies` represent unique path sets semantically.
 Extensions **SHOULD** avoid duplicates.
@@ -166,7 +172,7 @@ Command handler example:
 
 ```fsharp
 { Batchable = false
-  Operations = [ { Command = "make"; Arguments = "build"; ErrorLevel = 0 } ] }
+  Operations = [ { Command = "make"; Arguments = "build"; ErrorLevel = 0; Stdout = None } ] }
 ```
 
 Default handler example:
@@ -214,7 +220,7 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
-      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
+      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0; Stdout = None } ] }
 
 // Specific command entrypoint example
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (args: string option) : Protocol.CommandResult =
@@ -226,7 +232,7 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
-      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
+      Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0; Stdout = None } ] }
 
 // Script descriptor: exported function name -> flag list
 { [nameof defaults] = [Default]

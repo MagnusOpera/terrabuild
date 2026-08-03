@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Let extensions persist successful command stdout to project files, including a dedicated Terraform output action.
 - Aggregate rolling Next and stable What's New notes across their release families while keeping each revision and Unreleased under its own heading.
 - Publish website deployments from independently versioned `website-*.*.*` tags without triggering application releases.
 

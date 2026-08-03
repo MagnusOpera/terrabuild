@@ -7,7 +7,8 @@ let quote value = $"\"{value}\""
 let command_op arguments =
   { Command = "go"
     Arguments = arguments
-    ErrorLevel = 0 }
+    ErrorLevel = 0
+    Stdout = None }
 
 let module_from_line line =
   match Regex.matchGroups "^\\s*module\\s+([^\\s]+)" line with

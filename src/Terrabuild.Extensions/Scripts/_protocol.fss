@@ -25,7 +25,8 @@ type ProjectInfo =
 type ShellOperation =
     { Command: string
       Arguments: string
-      ErrorLevel: int }
+      ErrorLevel: int
+      Stdout: string option }
 
 type CommandResult =
     { Batchable: bool

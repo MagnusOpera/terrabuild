@@ -13,6 +13,7 @@ type ContaineredShellOperation = {
     Command: string
     Arguments: string
     ErrorLevel: int
+    Stdout: string option
 }
 
 [<RequireQualifiedAccess>]

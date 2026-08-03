@@ -20,7 +20,8 @@ let with_configuration configuration =
   { Batchable = false
     Operations = [ { Command = "gradle"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Invokes `gradle assemble` for the chosen configuration.</summary>
 /// <param name="configuration" default="Debug" example="&quot;Release&quot;">Build configuration.</param>
@@ -36,7 +37,8 @@ let with_configuration configuration =
   { Batchable = false
     Operations = [ { Command = "gradle"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

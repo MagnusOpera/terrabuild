@@ -9,7 +9,8 @@ import "_helpers.fss" as Helpers
   { Batchable = false
     Operations = [ { Command = "npx"
                      Arguments = $"--yes -- {package} {args}"
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof run] = [Local] }

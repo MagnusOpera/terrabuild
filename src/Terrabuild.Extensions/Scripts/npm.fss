@@ -61,7 +61,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Installs packages with `npm ci`, honoring the lock file.</summary>
 /// <param name="force" default="false" example="true">Adds `--force`.</param>
@@ -81,7 +82,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs the `build` script via `npm run build`.</summary>
 /// <param name="args" default="" example="&quot;--workspaces&quot;">Extra arguments after `--`.</param>
@@ -95,7 +97,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs the `test` script via `npm run test`.</summary>
 /// <param name="args" default="" example="&quot;--runInBand&quot;">Extra arguments after `--`.</param>
@@ -109,7 +112,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Runs an arbitrary npm script via `npm run &lt;target&gt;`.</summary>
 /// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
@@ -124,7 +128,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 /// <summary>Executes a package binary via `npm exec`.</summary>
 /// <param name="package" example="&quot;openapi-generator-cli&quot;">Package to execute.</param>
@@ -140,7 +145,8 @@ let dependencies_from (package: Package) =
   { Batchable = false
     Operations = [ { Command = "npm"
                      Arguments = command
-                     ErrorLevel = 0 } ] }
+                     ErrorLevel = 0
+                     Stdout = None } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]

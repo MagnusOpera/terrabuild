@@ -8,6 +8,7 @@ open Environment
 open System.Runtime.InteropServices
 open System.Collections.Concurrent
 open System.Threading
+open System.Text
 open Lock
 
 
@@ -163,25 +164,28 @@ let execConsole (workingDir: string) (command: string) (args: string) (envs: Map
     with
         | exn -> forwardExternalError($"Process '{command}' with arguments '{args}' in directory '{workingDir}' failed", exn)
 
-let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) =
+let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) captureStdout =
     try
         use logWriter = new StreamWriter(logFile)
+        let stdout = if captureStdout then Some (StringBuilder()) else None
         let writeLock = Lock()
-        let inline lockWrite (msg: string | null) =
+        let lockWrite (capture: bool) (msg: string | null) =
             match msg with
             | NonNull msg ->
                 lock writeLock (fun () ->
                     logWriter.WriteLine(msg)
+                    if capture then
+                        stdout |> Option.iter (fun output -> output.AppendLine(msg) |> ignore)
                 )
             | _ -> ()
 
         Log.Debug("Running and capturing timestamped output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
         use proc = createProcess workingDir command args envs true
-        proc.OutputDataReceived.Add(fun e -> lockWrite e.Data)
-        proc.ErrorDataReceived.Add(fun e -> lockWrite e.Data)
+        proc.OutputDataReceived.Add(fun e -> lockWrite true e.Data)
+        proc.ErrorDataReceived.Add(fun e -> lockWrite false e.Data)
         proc.BeginOutputReadLine()
         proc.BeginErrorReadLine()
         proc.WaitForExit()
-        proc.ExitCode
+        proc.ExitCode, (stdout |> Option.map string)
     with
         | exn -> forwardExternalError($"Process '{command}' with arguments '{args}' in directory '{workingDir}' failed", exn)

@@ -24,3 +24,23 @@ let ``terraform apply uses planfile by default`` () =
 [<Test>]
 let ``terraform apply cacheability is remote`` () =
     cacheability "@terraform" "apply" |> should equal (Some Cacheability.Remote)
+
+[<Test>]
+let ``terraform output captures stdout when requested`` () =
+    let context = localContext "output" (fixtureDir "")
+    let args =
+        Map [ "args", str "-json"
+              "stdout", str "terraform-outputs.json" ]
+    let result = invokeResult "@terraform" "output" context args
+
+    result.Operations
+    |> normalizeOps
+    |> should equal
+        [ { ShellOperation.Command = "terraform"
+            ShellOperation.Arguments = "output -json"
+            ShellOperation.ErrorLevel = 0
+            ShellOperation.Stdout = Some "terraform-outputs.json" } ]
+
+[<Test>]
+let ``terraform output is never cached`` () =
+    cacheability "@terraform" "output" |> should equal (Some Cacheability.Never)
