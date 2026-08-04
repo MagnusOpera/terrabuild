@@ -4,7 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.4-next]
+
+
 - Select Azure Blob Storage or Cloudflare R2 artifact caching from the API-provided storage location.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.3-next...0.197.4-next
+
 ## [0.197.3-next]
 
 
