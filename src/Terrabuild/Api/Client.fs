@@ -236,13 +236,20 @@ module private Build =
         Http.get<Unit, CommitGraphOutput> headers $"/builds/graph?repository={repository}&commit={commit}&environment={environment}" ()
 
 
-module private Artifact =
+module internal Artifact =
     [<RequireQualifiedAccess>]
-    type AzureArtifactLocationOutput =
-        { Uri: string }
+    type ArtifactLocationOutput =
+        { Uri: string
+          Provider: string option }
 
-    let getArtifact headers path: AzureArtifactLocationOutput =
-        Http.get<Unit, AzureArtifactLocationOutput> headers $"/artifacts?path={path}" ()
+    let normalizeProvider provider =
+        provider
+        |> Option.bind Option.ofObj
+
+    let getArtifact headers (path: string) (operation: string): ArtifactLocationOutput =
+        let path = Uri.EscapeDataString(path)
+        let operation = Uri.EscapeDataString(operation)
+        Http.get<Unit, ArtifactLocationOutput> headers $"/artifacts?path={path}&operation={operation}" ()
 
 
 type Client(workspaceId: string, token: string, options: ConfigOptions.Options) =
@@ -313,9 +320,9 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.UseArtifact projectHash hash =
             Build.useArtifact headers buildId.Value projectHash hash
 
-        member _.GetArtifact path =
-            let resp = Artifact.getArtifact headers path
-            Uri(resp.Uri)
+        member _.GetArtifact path operation =
+            let resp = Artifact.getArtifact headers path operation
+            Uri(resp.Uri), Artifact.normalizeProvider resp.Provider
 
         member _.GetCommitGraph repository commit environment =
             let resp = Build.getCommitGraph headers repository commit environment

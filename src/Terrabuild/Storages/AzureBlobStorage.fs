@@ -3,22 +3,16 @@ open Azure.Storage.Blobs
 open Serilog
 
 
-type AzureArtifactLocationOutput = {
-    Uri: string
-}
+type AzureBlobStorage() =
+    let getBlobClient path location =
+        BlobContainerClient(location).GetBlobClient(path)
 
-type AzureBlobStorage(api: Contracts.IApiClient) =
-    let getBlobClient path =
-        let uri = api.GetArtifact path
-        let container = BlobContainerClient(uri)
-        let blobClient = container.GetBlobClient(path)
-        blobClient
+    member internal _.GetBlobUri path location =
+        (getBlobClient path location).Uri
 
-    interface Contracts.IStorage with
-        override _.Name = "Azure Blob Storage"
-
-        override _.Exists id =
-            let blobClient = getBlobClient id
+    interface IRemoteStorageBackend with
+        override _.Exists id location =
+            let blobClient = getBlobClient id location
             try
                 let res = blobClient.Exists()
                 res.Value
@@ -29,8 +23,8 @@ type AzureBlobStorage(api: Contracts.IApiClient) =
                 reraise()
 
 
-        override _.TryDownload id =
-            let blobClient = getBlobClient id
+        override _.TryDownload id location =
+            let blobClient = getBlobClient id location
             let tmpFile = System.IO.Path.GetTempFileName()
             try
                 blobClient.DownloadTo(tmpFile) |> ignore
@@ -42,13 +36,14 @@ type AzureBlobStorage(api: Contracts.IApiClient) =
                 System.IO.File.Delete(tmpFile)
                 None
             | exn ->
+                System.IO.File.Delete(tmpFile)
                 Log.Fatal(exn, "AzureBlobStorage: failed to download '{Id}'", id)
                 reraise()
 
 
-        override _.Upload id summaryFile =
+        override _.Upload id location summaryFile =
             try
-                let blobClient = getBlobClient id
+                let blobClient = getBlobClient id location
                 blobClient.Upload(summaryFile, true) |> ignore
                 Log.Debug("AzureBlobStorage: upload of '{Id}' successful", id)
             with

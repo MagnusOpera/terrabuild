@@ -44,7 +44,9 @@
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="SourceControls/Factory.fs" />
     <Compile Include="Storages/Local.fs" />
+    <Compile Include="Storages/RemoteStorageBackend.fs" />
     <Compile Include="Storages/AzureBlobStorage.fs" />
+    <Compile Include="Storages/CloudflareR2.fs" />
     <Compile Include="Storages/Factory.fs" />
     <Compile Include="CLI.fs" />
     <Compile Include="Web/EmbeddedUiFileProvider.fs" />

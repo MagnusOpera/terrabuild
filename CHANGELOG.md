@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Select Azure Blob Storage or Cloudflare R2 artifact caching from the API-provided storage location.
 ## [0.197.3-next]
 
 

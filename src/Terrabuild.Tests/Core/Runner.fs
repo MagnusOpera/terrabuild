@@ -191,7 +191,7 @@ type private FakeApiClient() =
               Contracts.CommitGraph.GraphHash = "graph"
               Contracts.CommitGraph.Nodes = [] }
 
-        member _.GetArtifact(_path) = Uri("https://example.invalid/artifact")
+        member _.GetArtifact(_path) (_operation) = Uri("https://example.invalid/artifact"), None
 
         member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
             addCalls.Add(project, projectName, target, projectHash, targetHash, files, success, startedAt, endedAt)

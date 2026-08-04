@@ -72,8 +72,8 @@ and private RecordingApiClient() =
         member _.CompleteBuild _success =
             lifecycle.Enqueue("complete")
 
-        member _.GetArtifact _path =
-            Uri("https://example.invalid/artifact")
+        member _.GetArtifact _path _operation =
+            Uri("https://example.invalid/artifact"), None
 
         member _.GetCommitGraph _repository _commit _environment =
             { Contracts.CommitGraph.Repository = "acme/repo"
