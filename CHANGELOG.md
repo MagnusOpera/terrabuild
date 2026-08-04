@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Show extension dispatch handlers as the user-supplied `<command>` placeholder in generated documentation.
+
 ## [0.197.2-next]
 
 

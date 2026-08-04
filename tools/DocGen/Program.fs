@@ -14,6 +14,7 @@ type Parameter = {
 
 type Command = {
     Name: string
+    IsDispatch: bool
     Weight: int option
     mutable Title: string option
     Cacheability: string option
@@ -450,6 +451,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                     fromFunctionOrder
 
             { Name = commandName
+              IsDispatch = flags |> List.contains "dispatch"
               Weight = None
               Title = commandDoc.Title
               Cacheability = toCacheability flags
@@ -567,6 +569,7 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
     | "defaults" -> ()
     | _ ->
         let commandFile = Path.Combine(extensionDir, $"{command.Name}.md")
+        let displayName = if command.IsDispatch then "<command>" else command.Name
         let existingWeight = tryReadExistingWeight commandFile
         let effectiveWeight = command.Weight |> Option.orElse existingWeight
         let orderedParameters = reorderParameters command commandFile
@@ -581,16 +584,19 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 summary
         let commandContent = [
             "---"
-            $"title: \"{command.Name}\""
+            $"title: \"{displayName}\""
             if effectiveWeight |> Option.isSome then $"weight: {effectiveWeight.Value}"
             "---"
 
             command.Summary
 
             let name =
-                match orderedParameters |> List.tryFind (fun x -> x.Name = command.Name) with
-                | Some nameOverride -> nameOverride.Example
-                | _ -> command.Name
+                if command.IsDispatch then
+                    displayName
+                else
+                    match orderedParameters |> List.tryFind (fun x -> x.Name = command.Name) with
+                    | Some nameOverride -> nameOverride.Example
+                    | _ -> command.Name
 
             "```"
             match orderedParameters with
@@ -686,7 +692,8 @@ let writeExtension extensionDir (extension: Extension) =
                         ()
                     | name when name.StartsWith("__") -> ()
                     | _ ->
-                        $"| [{cmd.Name}](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
+                        let displayName = if cmd.IsDispatch then "`<command>`" else cmd.Name
+                        $"| [{displayName}](/docs/extensions/{extension.Name}/{cmd.Name}) | {cmd.Title |> Option.defaultValue cmd.Summary} |"
 
                 match extension.Commands |> List.tryFind (fun cmd -> cmd.Name = "defaults") with
                 | Some init ->
