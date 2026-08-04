@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.3-next]
+
+
 - Show extension dispatch handlers as the user-supplied `<command>` placeholder in generated documentation.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.2-next...0.197.3-next
 
 ## [0.197.2-next]
 
