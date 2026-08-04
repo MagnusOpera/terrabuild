@@ -135,9 +135,11 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>)
 type private FakeCache(root: string) =
     let completed = ResizeArray<string>()
     let entries = Dictionary<string, FakeEntry>()
+    let opened = ResizeArray<string>()
     let summaries = Dictionary<string, Cache.TargetSummary>()
 
     member _.Completed = completed |> Seq.toList
+    member _.Opened = opened |> Seq.toList
     member _.SetSummary(id, summary) = summaries[id] <- summary
 
     interface Cache.ICache with
@@ -152,6 +154,8 @@ type private FakeCache(root: string) =
             | _ -> None
 
         member _.GetEntry _useRemote id =
+            opened.Add(id)
+
             match entries.TryGetValue(id) with
             | true, entry -> entry :> Cache.IEntry
             | _ ->
@@ -402,6 +406,7 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
 
         cache.Completed |> should equal [ GraphDef.buildCacheKey execMember ]
+        cache.Opened |> should equal [ GraphDef.buildCacheKey execMember; GraphDef.buildCacheKey batchNode ]
         api.AddCalls.Length |> should equal 1
         let (_, _, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
         api.AddCalls[0] |> should equal (

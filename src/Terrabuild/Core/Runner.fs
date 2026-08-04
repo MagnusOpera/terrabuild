@@ -539,15 +539,21 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let batchId = batchNode.Id
         let members = graph.Batches[batchId]
 
-        let beforeFiles =
+        let cacheEntries =
             members
             |> Seq.map (fun nodeId ->
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskBuilding node.Id
 
-                let useRemote = GraphDef.isRemoteCacheable options node
-                let cacheEntryId = GraphDef.buildCacheKey node
-                let cacheEntry = cache.GetEntry useRemote cacheEntryId
+                let cacheEntry =
+                    match node.Action with
+                    | GraphDef.RunAction.Restore ->
+                        None
+                    | _ ->
+                        let useRemote = GraphDef.isRemoteCacheable options node
+                        let cacheEntryId = GraphDef.buildCacheKey node
+                        cache.GetEntry useRemote cacheEntryId |> Some
+
                 node.Id, cacheEntry)
             |> Map.ofSeq
 
@@ -557,7 +563,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let successful, lastStatusCode, stepLogs =
             try execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
             with exn ->
-                beforeFiles
+                cacheEntries
                 |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
                 Log.Error(exn, "{NodeId}: Execution failed with exception", batchNode.Id)
                 reraise()
@@ -570,17 +576,17 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             else TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
         // async upload summaries for each member node
-        beforeFiles
+        cacheEntries
         |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskUploading node.Id
 
-                match node.Action with
-                | GraphDef.RunAction.Restore ->
+                match node.Action, cacheEntry with
+                | GraphDef.RunAction.Restore, _ ->
                     nodeResults[nodeId] <- (TaskRequest.Restore, status)
                     api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                | _ ->
+                | _, Some cacheEntry ->
                     // copy logs only for members that publish a new cache entry
                     let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                     IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
@@ -608,6 +614,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                     let files = cacheEntry.Complete summary
                     api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
+                | _, None ->
+                    raiseBugError $"No cache entry created for executing batch member {node.Id}"
 
                 match status with
                 | TaskStatus.Success completionDate ->
