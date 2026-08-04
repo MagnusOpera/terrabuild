@@ -4,10 +4,15 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.2-next]
+
+
 - Preserve cached summaries for restored members when another member of the same batch must execute.
 - Let extensions persist successful command stdout to project files, including a dedicated Terraform output action.
 - Aggregate rolling Next and stable What's New notes across their release families while keeping each revision and Unreleased under its own heading.
 - Publish website deployments from independently versioned `website-*.*.*` tags without triggering application releases.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.1-next...0.197.2-next
 
 ## [0.197.1-next]
 
