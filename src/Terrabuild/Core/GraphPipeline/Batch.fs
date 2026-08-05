@@ -17,6 +17,76 @@ let private computeBatchId (clusterHash: string) (nodes: Node list) =
         :: (nodes |> List.map (fun n -> n.Id) |> List.sort)
     Hash.sha256strings content
 
+let internal mergeBatchEnvironments
+    target
+    step
+    (sources: (string * Map<string, string>) list) =
+    let merged =
+        sources
+        |> List.sortBy fst
+        |> List.fold (fun mergedByName (source, environments) ->
+            environments
+            |> Map.fold (fun mergedByName name value ->
+                match mergedByName |> Map.tryFind name with
+                | None ->
+                    mergedByName |> Map.add name (value, [ source ])
+                | Some (existingValue, existingSources) when existingValue = value ->
+                    mergedByName |> Map.add name (existingValue, source :: existingSources)
+                | Some (_, existingSources) ->
+                    let conflictingSources =
+                        source :: existingSources
+                        |> List.distinct
+                        |> List.sort
+                        |> List.map (sprintf "'%s'")
+                        |> String.concat ", "
+
+                    raiseInvalidArg
+                        $"Cannot batch target '{target}' step '{step}': environment variable '{name}' has conflicting values for {conflictingSources}. Configure batch = ~never for targets that require project-specific values."
+            ) mergedByName
+        ) Map.empty
+
+    merged
+    |> Map.map (fun _ (value, _) -> value)
+
+let private mergeBatchTargetSteps
+    (configuration: Configuration.Workspace)
+    (batch: Batch)
+    (headTarget: Configuration.Target) =
+    let memberSteps =
+        batch.Nodes
+        |> List.sortBy _.Id
+        |> List.map (fun node ->
+            let project = configuration.Projects[node.ProjectId]
+            let target = project.Targets[node.Target]
+            node.Id, target.Steps)
+
+    memberSteps
+    |> List.iter (fun (nodeId, steps) ->
+        if steps.Length <> headTarget.Steps.Length then
+            raiseBugError
+                $"Cannot batch target '{batch.Nodes.Head.Target}': '{nodeId}' has {steps.Length} steps while the batch head has {headTarget.Steps.Length} steps.")
+
+    headTarget.Steps
+    |> List.mapi (fun index headStep ->
+        let sources =
+            memberSteps
+            |> List.map (fun (nodeId, steps) ->
+                nodeId, (steps |> List.item index).Envs)
+
+        let step = $"{headStep.Extension} {headStep.Command}"
+        let environments = mergeBatchEnvironments batch.Nodes.Head.Target step sources
+
+        { headStep with Envs = environments })
+
+let internal computeBatchTargetHash (batch: Batch) (operations: ContaineredShellOperation list) =
+    [ yield batch.ClusterHash
+      yield!
+          batch.Nodes
+          |> List.sortBy _.Id
+          |> List.collect (fun node -> [ node.Id; node.TargetHash ])
+      yield! operations |> List.map Json.Serialize ]
+    |> Hash.sha256strings
+
 let private partitionByDependencies (bucketNodes: Node list) =
     // Undirected connectivity inside the bucket:
     // edge A—B if A depends on B or B depends on A (restricted to bucket)
@@ -163,6 +233,9 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let projectId = headNode.ProjectId
             let projectConfig = configuration.Projects[projectId]
             let targetConfig = projectConfig.Targets[headNode.Target]
+            let mergedTargetConfig =
+                { targetConfig with
+                    Steps = mergeBatchTargetSteps configuration batch targetConfig }
             let batchCommands =
                 targetConfig.Steps
                 |> List.map (fun step -> step.Command)
@@ -177,7 +250,9 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                 }
 
             let _, _, ops =
-                Resolve.resolveTargetOperations options projectConfig targetConfig batch.ClusterHash batchContext
+                Resolve.resolveTargetOperations options projectConfig mergedTargetConfig batch.ClusterHash batchContext
+
+            let batchTargetHash = computeBatchTargetHash batch ops
 
             // Dependencies of the batch node:
             // union of member deps, minus members themselves.
@@ -202,7 +277,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.Outputs = Set.empty
                   GraphDef.Node.ClusterHash = Some batch.ClusterHash
                   GraphDef.Node.ProjectHash = batch.BatchId
-                  GraphDef.Node.TargetHash = headNode.TargetHash
+                  GraphDef.Node.TargetHash = batchTargetHash
                   GraphDef.Node.Action = RunAction.Exec
                   GraphDef.Node.Build = headNode.Build
                   GraphDef.Node.Batch = headNode.Batch

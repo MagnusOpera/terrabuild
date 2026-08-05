@@ -6,6 +6,8 @@ open System
 open System.IO
 open Errors
 open Contracts
+open Terrabuild.Configuration.AST
+open Terrabuild.Expression
 
 let private baseOptions workspace targets =
     { ConfigOptions.Options.Workspace = workspace
@@ -71,6 +73,141 @@ let private withTempWorkspace action =
         action root
     finally
         if Directory.Exists(root) then Directory.Delete(root, true)
+
+[<Test>]
+let ``project extension overlay inherits omitted fields and replaces declared fields atomically`` () =
+    let inherited =
+        { ExtensionBlock.Image = Some (Expr.String "workspace-image")
+          ExtensionBlock.Platform = Some (Expr.String "linux/amd64")
+          ExtensionBlock.Variables = Some (Expr.List [ Expr.String "WORKSPACE" ])
+          ExtensionBlock.Script = Some (Expr.String "workspace.fss")
+          ExtensionBlock.Cpus = Some (Expr.Number 2)
+          ExtensionBlock.Defaults = Some (Map [ "workspace", Expr.Bool true ])
+          ExtensionBlock.Env = Some (Map [ "WORKSPACE", Expr.String "workspace" ]) }
+
+    let declared =
+        { ExtensionBlock.Image = None
+          ExtensionBlock.Platform = Some (Expr.String "linux/arm64")
+          ExtensionBlock.Variables = Some (Expr.List [ Expr.String "PROJECT" ])
+          ExtensionBlock.Script = None
+          ExtensionBlock.Cpus = None
+          ExtensionBlock.Defaults = Some (Map [ "project", Expr.Bool true ])
+          ExtensionBlock.Env = Some (Map [ "PROJECT", Expr.String "project" ]) }
+
+    Configuration.overlayExtension inherited declared
+    |> should equal
+        { ExtensionBlock.Image = inherited.Image
+          ExtensionBlock.Platform = declared.Platform
+          ExtensionBlock.Variables = declared.Variables
+          ExtensionBlock.Script = inherited.Script
+          ExtensionBlock.Cpus = inherited.Cpus
+          ExtensionBlock.Defaults = declared.Defaults
+          ExtensionBlock.Env = declared.Env }
+
+[<Test>]
+let ``project extension specialization is a shallow field overlay`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {}
+
+target build {}
+
+extension @shell {
+  image = "workspace-image"
+  platform = "linux/amd64"
+  cpus = 2
+  variables = [ "WORKSPACE_ONE", "WORKSPACE_TWO" ]
+  defaults {
+    arguments = "workspace"
+    workspace_only = true
+  }
+  env {
+    SHARED = "workspace"
+    WORKSPACE_ONLY = "workspace"
+  }
+}
+"""
+
+        writeFile root "apps/inherit/PROJECT" """
+project inherit { @shell {} }
+
+extension @shell {
+  platform = "linux/arm64"
+}
+
+target build {
+  @shell echo {}
+}
+"""
+
+        writeFile root "apps/replace/PROJECT" """
+project replace { @shell {} }
+
+extension @shell {
+  variables = [ "PROJECT_ONLY" ]
+  defaults {
+    arguments = "project"
+  }
+  env {
+    PROJECT_ONLY = "project"
+  }
+}
+
+target build {
+  @shell echo {}
+}
+"""
+
+        writeFile root "apps/clear/PROJECT" """
+project clear { @shell {} }
+
+extension @shell {
+  image = nothing
+  platform = nothing
+  cpus = nothing
+  variables = []
+  defaults {}
+  env {}
+}
+
+target build {
+  @shell echo {}
+}
+"""
+
+        let _, config = Configuration.read (baseOptions root (Set [ "build" ]))
+        let step project =
+            config.Projects[$"workspace/path#apps/{project}"].Targets["build"].Steps
+            |> List.exactlyOne
+
+        let inherited = step "inherit"
+        inherited.Image |> should equal (Some "workspace-image")
+        inherited.Platform |> should equal (Some "linux/arm64")
+        inherited.Cpus |> should equal (Some 2)
+        inherited.ContainerVariables |> should equal (Set [ "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
+        inherited.Envs
+        |> should equal (Map [ "SHARED", "workspace"; "WORKSPACE_ONLY", "workspace" ])
+        inherited.Context
+        |> should equal
+            (Value.Map (Map [ "arguments", Value.String "workspace"
+                              "workspace_only", Value.Bool true ]))
+
+        let replaced = step "replace"
+        replaced.Image |> should equal (Some "workspace-image")
+        replaced.Platform |> should equal (Some "linux/amd64")
+        replaced.Cpus |> should equal (Some 2)
+        replaced.ContainerVariables |> should equal (Set [ "PROJECT_ONLY" ])
+        replaced.Envs |> should equal (Map [ "PROJECT_ONLY", "project" ])
+        replaced.Context
+        |> should equal (Value.Map (Map [ "arguments", Value.String "project" ]))
+
+        let cleared = step "clear"
+        cleared.Image |> should equal None
+        cleared.Platform |> should equal None
+        cleared.Cpus |> should equal None
+        cleared.ContainerVariables |> should equal Set.empty<string>
+        cleared.Envs |> should equal Map.empty<string, string>
+        cleared.Context |> should equal Value.EmptyMap)
 
 [<Test>]
 let ``Matcher``() =

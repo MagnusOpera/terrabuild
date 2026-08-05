@@ -3,16 +3,28 @@ title: Extension Block
 
 ---
 
-The `extension` block in `PROJECT` overrides or augments workspace-level extension configuration for the current project.
+The `extension` block in `PROJECT` specializes workspace-level extension configuration for the current project.
+
+## Override semantics
+
+Terrabuild overlays an extension field by field, using the same shallow override model as project targets:
+
+- A field omitted from `PROJECT` inherits its value from `WORKSPACE`.
+- A field declared in `PROJECT` replaces the complete workspace value for that field.
+- Collection fields are atomic. `variables`, `defaults`, and `env` are replaced as whole collections and are never merged by item or key.
+- Use an empty collection to clear an inherited collection: `variables = []`, `defaults {}`, or `env {}`.
+- Use `nothing` to clear an inherited optional value where the field accepts it.
+
+For example, this project inherits the workspace `image`, `variables`, and `defaults`, but replaces the complete `platform` and `env` fields:
 
 ## Example
 
 ```hcl
 extension @docker {
   platform = "linux/amd64"
-  defaults {
-    image = "ghcr.io/example/app"
-    tag = terrabuild.head_commit
+  env {
+    IMAGE = "ghcr.io/example/app"
+    TAG = terrabuild.head_commit
   }
 }
 
@@ -27,9 +39,9 @@ extension npm_ci {
 - `image` (optional): container image used to run extension actions.
 - `platform` (optional): target container platform.
 - `cpus` (optional): max CPUs for container execution.
-- `variables` (optional): host env variable names forwarded to container.
-- `defaults` (optional): default action arguments for this extension in this project.
-- `env` (optional): environment values added to every action for this extension in this project.
+- `variables` (optional): complete replacement for the host env variable names forwarded to the container in this project.
+- `defaults` (optional): complete replacement for the extension's default action arguments in this project.
+- `env` (optional): complete replacement for the environment values added to every action in this project.
 - `script` (optional): scripted implementation source.
 
 ## Identifier conventions
@@ -42,5 +54,7 @@ extension npm_ci {
 `script` supports:
 - local `.fss` path inside the workspace
 - HTTPS URL to a `.fss` script
+
+A custom extension specialization may omit `script` to inherit its workspace implementation.
 
 See [Script Extensibility](/docs/extensibility/script).

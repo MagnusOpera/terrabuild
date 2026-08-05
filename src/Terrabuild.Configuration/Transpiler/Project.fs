@@ -153,7 +153,7 @@ let transpile (blocks: Block list) =
 
             | Extension name ->
                 if builder.Extensions.ContainsKey name then raiseParseError $"duplicated extension '{name}'"
-                let extension = toExtension name block
+                let extension = toExtension false name block
                 buildProject blocks { builder with Extensions = builder.Extensions |> Map.add name extension }
 
             | Target name ->

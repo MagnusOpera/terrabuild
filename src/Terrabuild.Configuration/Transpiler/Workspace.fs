@@ -190,7 +190,7 @@ let transpile (blocks: Block list) =
 
             | Extension name ->
                 if builder.Extensions.ContainsKey name then raiseParseError $"duplicated extension '{name}'"
-                let extension = toExtension name block
+                let extension = toExtension true name block
                 buildWorkspace blocks { builder with Extensions = builder.Extensions |> Map.add name extension }
 
             | UnknownBlock -> raiseParseError $"unexpected block '{block.Resource}'"

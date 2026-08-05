@@ -311,9 +311,29 @@ let private buildScripts
     let scripts = sysScripts |> Map.addMap userScripts
     scripts
 
+let internal overlayExtension
+    (inherited: AST.ExtensionBlock)
+    (declared: AST.ExtensionBlock) =
+    { AST.ExtensionBlock.Image = declared.Image |> Option.orElse inherited.Image
+      AST.ExtensionBlock.Platform = declared.Platform |> Option.orElse inherited.Platform
+      AST.ExtensionBlock.Variables = declared.Variables |> Option.orElse inherited.Variables
+      AST.ExtensionBlock.Script = declared.Script |> Option.orElse inherited.Script
+      AST.ExtensionBlock.Cpus = declared.Cpus |> Option.orElse inherited.Cpus
+      AST.ExtensionBlock.Defaults = declared.Defaults |> Option.orElse inherited.Defaults
+      AST.ExtensionBlock.Env = declared.Env |> Option.orElse inherited.Env }
 
+let private overlayExtensions inherited declared =
+    declared
+    |> Map.fold (fun extensions name declaredExtension ->
+        let extension =
+            inherited
+            |> Map.tryFind name
+            |> Option.map (fun inheritedExtension ->
+                overlayExtension inheritedExtension declaredExtension)
+            |> Option.defaultValue declaredExtension
 
-
+        extensions |> Map.add name extension
+    ) inherited
 
 // this is the first stage: load project and get dependencies references
 let private loadProjectDef
@@ -341,23 +361,39 @@ let private loadProjectDef
     projectConfig.Targets
     |> Map.iter (fun _ target -> target.Phase |> Option.iter (resolvePhaseReference phaseNames >> ignore))
 
-    let extensions = extensions |> Map.addMap projectConfig.Extensions
+    let extensions = overlayExtensions extensions projectConfig.Extensions
 
-    let projectScripts =
+    let projectScriptOverrides =
         projectConfig.Extensions
-        |> Map.map (fun extensionName ext ->
-            let script =
-                ext.Script
-                |> Option.bind (Eval.asStringOption << Eval.eval evaluationContext)
-                |> Option.map (fun script ->
-                    if isHttpScriptUrl script then script
-                    else script |> FS.workspaceRelative options.Workspace projectDir)
-            validateExtensionScriptOverride extensionName script
-            script)
+        |> Map.choose (fun extensionName ext ->
+            match ext.Script with
+            | None -> None
+            | Some scriptExpression ->
+                let script =
+                    scriptExpression
+                    |> Eval.eval evaluationContext
+                    |> Eval.asStringOption
+                    |> Option.map (fun script ->
+                        if isHttpScriptUrl script then script
+                        else script |> FS.workspaceRelative options.Workspace projectDir)
+                validateExtensionScriptOverride extensionName script
+                Some script)
 
     let scripts =
-        scripts
-        |> Map.addMap (projectScripts |> Map.map (Extensions.lazyLoadScript options.Workspace scriptDeniedPathGlobs))
+        projectScriptOverrides
+        |> Map.fold (fun scripts extensionName script ->
+            match script with
+            | Some script ->
+                let loader =
+                    Extensions.lazyLoadScript
+                        options.Workspace
+                        scriptDeniedPathGlobs
+                        extensionName
+                        (Some script)
+                scripts |> Map.add extensionName loader
+            | None ->
+                scripts |> Map.remove extensionName
+        ) scripts
 
     let evalAsStringSet expr =
         expr
@@ -509,7 +545,7 @@ let private loadProjectDef
 
     // NOTE: we add scripts as dependencies so they are part of the hash
     let projectIncludes =
-        projectScripts
+        projectScriptOverrides
         |> Seq.choose (fun (KeyValue(_, script)) -> script)
         |> Set.ofSeq
         |> Set.union (projectConfig.Project.Includes |> evalAsStringSet)

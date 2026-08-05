@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Apply project extension overrides field by field while treating collection fields as atomic replacements.
+- Merge compatible project environments in batched targets and reject conflicting values before execution.
+
 ## [0.197.5-next]
 
 

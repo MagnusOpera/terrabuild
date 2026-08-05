@@ -1,4 +1,5 @@
 module Terrabuild.Tests.Core.GraphPipeline.Batch
+open System
 open FsUnit
 open NUnit.Framework
 open GraphDef
@@ -25,6 +26,76 @@ let buildNode id clusterHash action deps group req =
       Node.Required = req }
 
 let addNode (node: Node) nodes = nodes |> Map.add node.Id node
+
+let buildOperation envs =
+    { ContaineredShellOperation.Image = None
+      ContaineredShellOperation.Platform = None
+      ContaineredShellOperation.Cpus = None
+      ContaineredShellOperation.Variables = Set.empty
+      ContaineredShellOperation.Envs = envs
+      ContaineredShellOperation.MetaCommand = "@test build"
+      ContaineredShellOperation.Command = "test"
+      ContaineredShellOperation.Arguments = ""
+      ContaineredShellOperation.ErrorLevel = 0
+      ContaineredShellOperation.Stdout = None }
+
+[<Test>]
+let ``batch environments merge disjoint and identical values`` () =
+    let environments =
+        mergeBatchEnvironments
+            "build"
+            "@pnpm build"
+            [ "web:build", Map [ "SHARED", "same"; "WEB", "web" ]
+              "admin:build", Map [ "ADMIN", "admin"; "SHARED", "same" ] ]
+
+    environments
+    |> should equal (Map [ "ADMIN", "admin"; "SHARED", "same"; "WEB", "web" ])
+
+[<Test>]
+let ``batch environments reject conflicting values without exposing them`` () =
+    let build () =
+        mergeBatchEnvironments
+            "build"
+            "@pnpm build"
+            [ "web:build", Map [ "APP_VERSION", "secret-web-value" ]
+              "admin:build", Map [ "APP_VERSION", "secret-admin-value" ] ]
+        |> ignore
+
+    let error =
+        Assert.Throws<Errors.TerrabuildException>(Action build)
+        |> Option.ofObj
+        |> Option.defaultWith (fun () -> failwith "Expected TerrabuildException")
+
+    error.Message
+    |> should equal "Cannot batch target 'build' step '@pnpm build': environment variable 'APP_VERSION' has conflicting values for 'admin:build', 'web:build'. Configure batch = ~never for targets that require project-specific values."
+    error.Area |> should equal Errors.ErrorArea.InvalidArg
+    error.Message |> should not' (contain "secret-web-value")
+    error.Message |> should not' (contain "secret-admin-value")
+
+[<Test>]
+let ``batch target hash includes every member target hash and merged operations`` () =
+    let nodeA =
+        { buildNode "A" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with
+            TargetHash = "target-a" }
+    let nodeB =
+        { buildNode "B" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with
+            TargetHash = "target-b" }
+    let batch =
+        { BatchId = "batch"
+          ClusterHash = "cluster"
+          Phase = None
+          Nodes = [ nodeA; nodeB ] }
+
+    let original = computeBatchTargetHash batch [ buildOperation (Map [ "A", "one" ]) ]
+    let changedMember =
+        computeBatchTargetHash
+            { batch with Nodes = [ nodeA; { nodeB with TargetHash = "target-b-changed" } ] }
+            [ buildOperation (Map [ "A", "one" ]) ]
+    let changedEnvironment =
+        computeBatchTargetHash batch [ buildOperation (Map [ "A", "two" ]) ]
+
+    changedMember |> should not' (equal original)
+    changedEnvironment |> should not' (equal original)
 
 [<Test>]
 let ``check partition computation``() =

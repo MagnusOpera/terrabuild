@@ -201,11 +201,12 @@ let duplicatedLocalIsError() =
     (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore) |> should (throwWithMessage "duplicated local 'app_name'") typeof<Errors.TerrabuildException>
 
 [<Test>]
-let customExtensionWithoutScriptIsError() =
+let customExtensionCanInheritWorkspaceScript() =
     let content =
         """
 project {}
 extension dummy {}
 """
-    (fun () -> Terrabuild.Configuration.FrontEnd.Project.parse content |> ignore)
-    |> should (throwWithMessage "extension 'dummy' must declare 'script'") typeof<Errors.TerrabuildException>
+    let project = Terrabuild.Configuration.FrontEnd.Project.parse content
+
+    project.Extensions["dummy"].Script |> should equal None

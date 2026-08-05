@@ -4,7 +4,7 @@ open Terrabuild.Configuration.AST
 open Helpers
 open Errors
 
-let toExtension (name: string) (block: Block) =
+let toExtension requireScript (name: string) (block: Block) =
     block
     |> checkAllowedAttributes ["image"; "platform"; "variables"; "script"; "defaults"; "cpus"]
     |> checkAllowedNestedBlocks ["defaults"; "env"]
@@ -39,7 +39,7 @@ let toExtension (name: string) (block: Block) =
             |> List.map (fun a -> (a.Name, a.Value))
             |> Map.ofList)
 
-    if name.StartsWith("@", System.StringComparison.Ordinal) |> not && script.IsNone then
+    if requireScript && name.StartsWith("@", System.StringComparison.Ordinal) |> not && script.IsNone then
         raiseParseError $"extension '{name}' must declare 'script'"
 
     { ExtensionBlock.Image = image
