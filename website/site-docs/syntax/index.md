@@ -164,12 +164,9 @@ locals {
   full_image = local.registry + "/" + local.app_name + ":" + local.image_tag
 }
 
-# Project-level extension override. The defaults field is replaced as a whole,
-# so inherited entries that remain necessary are repeated here.
+# Project-level extension specialization adds defaults to inherited entries.
 extension @docker {
   defaults {
-    registry = local.registry
-    tag = local.image_tag
     image = local.full_image
     platform = "linux/amd64"
   }
@@ -203,7 +200,7 @@ target dist {
 - **Variables** (`var.*`) are declared in WORKSPACE and can be overridden
 - **Workspace locals** (`local.*` in WORKSPACE) are computed from variables and predefined values
 - **Project locals** (`local.*` in PROJECT) can reference workspace variables and locals
-- **Extensions** use shallow field overrides in PROJECT: omitted fields inherit, while declared fields replace the complete workspace field; collection entries are not merged
+- **Extensions** use shallow scalar overrides in PROJECT; `variables` are additive, while `defaults` and `env` may add new keys but cannot replace or remove inherited entries
 - **Project extensions** can use both workspace and project locals
 - **Expressions** can combine variables, locals, and functions: `local.registry + "/" + local.app_name`
 

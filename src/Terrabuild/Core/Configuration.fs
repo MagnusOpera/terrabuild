@@ -311,16 +311,48 @@ let private buildScripts
     let scripts = sysScripts |> Map.addMap userScripts
     scripts
 
+let private addExtensionEntries extensionName field inherited declared =
+    match inherited, declared with
+    | None, entries
+    | entries, None -> entries
+    | Some inheritedEntries, Some declaredEntries ->
+        let conflicts =
+            declaredEntries
+            |> Map.keys
+            |> Set.ofSeq
+            |> Set.intersect (inheritedEntries |> Map.keys |> Set.ofSeq)
+
+        if conflicts |> Set.isEmpty |> not then
+            let names = conflicts |> String.concat "', '"
+            raiseInvalidArg
+                $"Project extension '{extensionName}' cannot replace inherited {field} entries: '{names}'. Project extension collections may only add entries."
+
+        inheritedEntries |> Map.addMap declaredEntries |> Some
+
+let private addExtensionVariables inherited declared =
+    match inherited, declared with
+    | None, variables
+    | variables, None -> variables
+    | Some inheritedVariables, Some declaredVariables ->
+        Expr.Function (
+            Function.Plus,
+            [ inheritedVariables; declaredVariables ]
+        )
+        |> Some
+
 let internal overlayExtension
+    extensionName
     (inherited: AST.ExtensionBlock)
     (declared: AST.ExtensionBlock) =
     { AST.ExtensionBlock.Image = declared.Image |> Option.orElse inherited.Image
       AST.ExtensionBlock.Platform = declared.Platform |> Option.orElse inherited.Platform
-      AST.ExtensionBlock.Variables = declared.Variables |> Option.orElse inherited.Variables
+      AST.ExtensionBlock.Variables = addExtensionVariables inherited.Variables declared.Variables
       AST.ExtensionBlock.Script = declared.Script |> Option.orElse inherited.Script
       AST.ExtensionBlock.Cpus = declared.Cpus |> Option.orElse inherited.Cpus
-      AST.ExtensionBlock.Defaults = declared.Defaults |> Option.orElse inherited.Defaults
-      AST.ExtensionBlock.Env = declared.Env |> Option.orElse inherited.Env }
+      AST.ExtensionBlock.Defaults =
+        addExtensionEntries extensionName "defaults" inherited.Defaults declared.Defaults
+      AST.ExtensionBlock.Env =
+        addExtensionEntries extensionName "env" inherited.Env declared.Env }
 
 let private overlayExtensions inherited declared =
     declared
@@ -329,7 +361,7 @@ let private overlayExtensions inherited declared =
             inherited
             |> Map.tryFind name
             |> Option.map (fun inheritedExtension ->
-                overlayExtension inheritedExtension declaredExtension)
+                overlayExtension name inheritedExtension declaredExtension)
             |> Option.defaultValue declaredExtension
 
         extensions |> Map.add name extension

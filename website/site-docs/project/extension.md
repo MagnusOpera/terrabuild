@@ -5,17 +5,19 @@ title: Extension Block
 
 The `extension` block in `PROJECT` specializes workspace-level extension configuration for the current project.
 
-## Override semantics
+## Specialization semantics
 
-Terrabuild overlays an extension field by field, using the same shallow override model as project targets:
+Terrabuild specializes an extension field by field:
 
 - A field omitted from `PROJECT` inherits its value from `WORKSPACE`.
-- A field declared in `PROJECT` replaces the complete workspace value for that field.
-- Collection fields are atomic. `variables`, `defaults`, and `env` are replaced as whole collections and are never merged by item or key.
-- Use an empty collection to clear an inherited collection: `variables = []`, `defaults {}`, or `env {}`.
-- Use `nothing` to clear an inherited optional value where the field accepts it.
+- Scalar fields declared in `PROJECT` replace their workspace value. Use `nothing` to clear an inherited optional scalar where the field accepts it.
+- `variables` is additive. Project entries are combined with inherited workspace entries and duplicates are ignored.
+- `defaults` and `env` may only add new keys. Replacing or removing an inherited key is rejected as a configuration error.
+- Empty project collections have no effect on inherited entries.
 
-For example, this project inherits the workspace `image`, `variables`, and `defaults`, but replaces the complete `platform` and `env` fields:
+This monotonic collection model keeps independently configured projects safe to combine in an optimized batch.
+
+For example, this project inherits the workspace `image`, `variables`, `defaults`, and `env`, then adds two environment entries and replaces `platform`:
 
 ## Example
 
@@ -39,9 +41,9 @@ extension npm_ci {
 - `image` (optional): container image used to run extension actions.
 - `platform` (optional): target container platform.
 - `cpus` (optional): max CPUs for container execution.
-- `variables` (optional): complete replacement for the host env variable names forwarded to the container in this project.
-- `defaults` (optional): complete replacement for the extension's default action arguments in this project.
-- `env` (optional): complete replacement for the environment values added to every action in this project.
+- `variables` (optional): additional host env variable names forwarded to the container.
+- `defaults` (optional): additional default action arguments; inherited keys cannot be replaced.
+- `env` (optional): additional environment values; inherited keys cannot be replaced.
 - `script` (optional): scripted implementation source.
 
 ## Identifier conventions

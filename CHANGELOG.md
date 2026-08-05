@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Make project extension collections additive so optimizer-compatible workspace values cannot be replaced or removed per project, including merging compatible action defaults and forwarded variables across batch members.
+
 ## [0.197.6-next]
 
 

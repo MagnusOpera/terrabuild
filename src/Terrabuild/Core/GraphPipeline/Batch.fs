@@ -4,6 +4,7 @@ open Collections
 open GraphDef
 open Errors
 open Serilog
+open Terrabuild.Expression
 
 type Batch =
     { BatchId: string
@@ -48,6 +49,49 @@ let internal mergeBatchEnvironments
     merged
     |> Map.map (fun _ (value, _) -> value)
 
+let internal mergeBatchVariables (sources: Set<string> list) =
+    sources
+    |> List.fold Set.union Set.empty
+
+let internal mergeBatchContexts
+    target
+    step
+    (sources: (string * Value) list) =
+    let merged =
+        sources
+        |> List.sortBy fst
+        |> List.fold (fun mergedByName (source, context) ->
+            let entries =
+                match context with
+                | Value.Map entries -> entries
+                | _ ->
+                    raiseBugError
+                        $"Cannot batch target '{target}' step '{step}': '{source}' has a non-map action context."
+
+            entries
+            |> Map.fold (fun mergedByName name value ->
+                match mergedByName |> Map.tryFind name with
+                | None ->
+                    mergedByName |> Map.add name (value, [ source ])
+                | Some (existingValue, existingSources) when existingValue = value ->
+                    mergedByName |> Map.add name (existingValue, source :: existingSources)
+                | Some (_, existingSources) ->
+                    let conflictingSources =
+                        source :: existingSources
+                        |> List.distinct
+                        |> List.sort
+                        |> List.map (sprintf "'%s'")
+                        |> String.concat ", "
+
+                    raiseInvalidArg
+                        $"Cannot batch target '{target}' step '{step}': action argument '{name}' has conflicting values for {conflictingSources}. Configure batch = ~never for targets that require project-specific values."
+            ) mergedByName
+        ) Map.empty
+
+    merged
+    |> Map.map (fun _ (value, _) -> value)
+    |> Value.Map
+
 let private mergeBatchTargetSteps
     (configuration: Configuration.Workspace)
     (batch: Batch)
@@ -68,15 +112,34 @@ let private mergeBatchTargetSteps
 
     headTarget.Steps
     |> List.mapi (fun index headStep ->
-        let sources =
+        let steps =
             memberSteps
             |> List.map (fun (nodeId, steps) ->
-                nodeId, (steps |> List.item index).Envs)
+                nodeId, steps |> List.item index)
+
+        let environmentSources =
+            steps
+            |> List.map (fun (nodeId, step) -> nodeId, step.Envs)
+
+        let variableSources =
+            steps
+            |> List.map (fun (_, step) -> step.ContainerVariables)
+
+        let contextSources =
+            steps
+            |> List.map (fun (nodeId, step) -> nodeId, step.Context)
 
         let step = $"{headStep.Extension} {headStep.Command}"
-        let environments = mergeBatchEnvironments batch.Nodes.Head.Target step sources
+        let environments =
+            mergeBatchEnvironments batch.Nodes.Head.Target step environmentSources
+        let variables = mergeBatchVariables variableSources
+        let context =
+            mergeBatchContexts batch.Nodes.Head.Target step contextSources
 
-        { headStep with Envs = environments })
+        { headStep with
+            ContainerVariables = variables
+            Envs = environments
+            Context = context })
 
 let internal computeBatchTargetHash (batch: Batch) (operations: ContaineredShellOperation list) =
     [ yield batch.ClusterHash

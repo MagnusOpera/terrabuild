@@ -4,10 +4,11 @@ title: Extension Block
 ---
 
 The `extension` block defines extension configuration at workspace scope.
-These settings apply globally and can be specialized in `PROJECT` files using a
-shallow, field-by-field overlay. Omitted fields inherit their workspace values;
-declared fields replace them completely, including collection fields such as
-`variables`, `defaults`, and `env`.
+These settings apply globally and can be specialized in `PROJECT` files.
+Omitted scalar fields inherit their workspace values, while declared scalar
+fields replace them. Collection specialization is additive: `variables` are
+combined as a set, while `defaults` and `env` may add keys but cannot replace or
+remove inherited entries.
 
 ## Example
 

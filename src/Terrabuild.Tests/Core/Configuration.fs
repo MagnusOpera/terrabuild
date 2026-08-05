@@ -75,7 +75,7 @@ let private withTempWorkspace action =
         if Directory.Exists(root) then Directory.Delete(root, true)
 
 [<Test>]
-let ``project extension overlay inherits omitted fields and replaces declared fields atomically`` () =
+let ``project extension overlay inherits scalars and adds collection entries`` () =
     let inherited =
         { ExtensionBlock.Image = Some (Expr.String "workspace-image")
           ExtensionBlock.Platform = Some (Expr.String "linux/amd64")
@@ -94,18 +94,57 @@ let ``project extension overlay inherits omitted fields and replaces declared fi
           ExtensionBlock.Defaults = Some (Map [ "project", Expr.Bool true ])
           ExtensionBlock.Env = Some (Map [ "PROJECT", Expr.String "project" ]) }
 
-    Configuration.overlayExtension inherited declared
+    Configuration.overlayExtension "@shell" inherited declared
     |> should equal
         { ExtensionBlock.Image = inherited.Image
           ExtensionBlock.Platform = declared.Platform
-          ExtensionBlock.Variables = declared.Variables
+          ExtensionBlock.Variables =
+            Some (
+                Expr.Function (
+                    Function.Plus,
+                    [ inherited.Variables.Value; declared.Variables.Value ]
+                )
+            )
           ExtensionBlock.Script = inherited.Script
           ExtensionBlock.Cpus = inherited.Cpus
-          ExtensionBlock.Defaults = declared.Defaults
-          ExtensionBlock.Env = declared.Env }
+          ExtensionBlock.Defaults =
+            Some (Map [ "project", Expr.Bool true; "workspace", Expr.Bool true ])
+          ExtensionBlock.Env =
+            Some (
+                Map [ "PROJECT", Expr.String "project"
+                      "WORKSPACE", Expr.String "workspace" ]
+            ) }
+
+[<TestCase("defaults")>]
+[<TestCase("env")>]
+let ``project extension collections reject inherited key replacement`` field =
+    let inherited =
+        { ExtensionBlock.Image = None
+          ExtensionBlock.Platform = None
+          ExtensionBlock.Variables = None
+          ExtensionBlock.Script = None
+          ExtensionBlock.Cpus = None
+          ExtensionBlock.Defaults = Some (Map [ "SHARED", Expr.String "workspace" ])
+          ExtensionBlock.Env = Some (Map [ "SHARED", Expr.String "workspace" ]) }
+
+    let entries = Some (Map [ "SHARED", Expr.String "project" ])
+    let declared =
+        { ExtensionBlock.Image = None
+          ExtensionBlock.Platform = None
+          ExtensionBlock.Variables = None
+          ExtensionBlock.Script = None
+          ExtensionBlock.Cpus = None
+          ExtensionBlock.Defaults = if field = "defaults" then entries else None
+          ExtensionBlock.Env = if field = "env" then entries else None }
+
+    Assert.That(
+        Action(fun () -> Configuration.overlayExtension "@shell" inherited declared |> ignore),
+        Throws.TypeOf<TerrabuildException>()
+            .With.Message.Contains($"cannot replace inherited {field} entries: 'SHARED'")
+    )
 
 [<Test>]
-let ``project extension specialization is a shallow field overlay`` () =
+let ``project extension specialization adds collection entries`` () =
     withTempWorkspace (fun root ->
         writeFile root "WORKSPACE" """
 workspace {}
@@ -140,13 +179,13 @@ target build {
 }
 """
 
-        writeFile root "apps/replace/PROJECT" """
-project replace { @shell {} }
+        writeFile root "apps/add/PROJECT" """
+project add { @shell {} }
 
 extension @shell {
   variables = [ "PROJECT_ONLY" ]
   defaults {
-    arguments = "project"
+    project_only = true
   }
   env {
     PROJECT_ONLY = "project"
@@ -158,8 +197,8 @@ target build {
 }
 """
 
-        writeFile root "apps/clear/PROJECT" """
-project clear { @shell {} }
+        writeFile root "apps/empty/PROJECT" """
+project empty { @shell {} }
 
 extension @shell {
   image = nothing
@@ -192,22 +231,34 @@ target build {
             (Value.Map (Map [ "arguments", Value.String "workspace"
                               "workspace_only", Value.Bool true ]))
 
-        let replaced = step "replace"
-        replaced.Image |> should equal (Some "workspace-image")
-        replaced.Platform |> should equal (Some "linux/amd64")
-        replaced.Cpus |> should equal (Some 2)
-        replaced.ContainerVariables |> should equal (Set [ "PROJECT_ONLY" ])
-        replaced.Envs |> should equal (Map [ "PROJECT_ONLY", "project" ])
-        replaced.Context
-        |> should equal (Value.Map (Map [ "arguments", Value.String "project" ]))
+        let added = step "add"
+        added.Image |> should equal (Some "workspace-image")
+        added.Platform |> should equal (Some "linux/amd64")
+        added.Cpus |> should equal (Some 2)
+        added.ContainerVariables
+        |> should equal (Set [ "PROJECT_ONLY"; "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
+        added.Envs
+        |> should equal
+            (Map [ "PROJECT_ONLY", "project"
+                   "SHARED", "workspace"
+                   "WORKSPACE_ONLY", "workspace" ])
+        added.Context
+        |> should equal
+            (Value.Map (Map [ "arguments", Value.String "workspace"
+                              "project_only", Value.Bool true
+                              "workspace_only", Value.Bool true ]))
 
-        let cleared = step "clear"
-        cleared.Image |> should equal None
-        cleared.Platform |> should equal None
-        cleared.Cpus |> should equal None
-        cleared.ContainerVariables |> should equal Set.empty<string>
-        cleared.Envs |> should equal Map.empty<string, string>
-        cleared.Context |> should equal Value.EmptyMap)
+        let empty = step "empty"
+        empty.Image |> should equal None
+        empty.Platform |> should equal None
+        empty.Cpus |> should equal None
+        empty.ContainerVariables |> should equal (Set [ "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
+        empty.Envs
+        |> should equal (Map [ "SHARED", "workspace"; "WORKSPACE_ONLY", "workspace" ])
+        empty.Context
+        |> should equal
+            (Value.Map (Map [ "arguments", Value.String "workspace"
+                              "workspace_only", Value.Bool true ])))
 
 [<Test>]
 let ``Matcher``() =
