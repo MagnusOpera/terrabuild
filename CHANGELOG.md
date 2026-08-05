@@ -4,8 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.6-next]
+
+
 - Apply project extension overrides field by field while treating collection fields as atomic replacements.
 - Merge compatible project environments in batched targets and reject conflicting values before execution.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.5-next...0.197.6-next
 
 ## [0.197.5-next]
 
