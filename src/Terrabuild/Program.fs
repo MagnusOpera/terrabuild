@@ -30,6 +30,7 @@ type RunTargetOptions = {
     Configuration: string option
     Environment: string option
     Note: string option
+    GroupId: string option
     Label: string option
     Types: string set option
     Labels: string set option
@@ -308,6 +309,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.Configuration = runOptions.Configuration
             ConfigOptions.Options.Environment = runOptions.Environment
             ConfigOptions.Options.Note = runOptions.Note
+            ConfigOptions.Options.GroupId = runOptions.GroupId
             ConfigOptions.Options.Label = runOptions.Label
             ConfigOptions.Options.Types = runOptions.Types
             ConfigOptions.Options.Labels = runOptions.Labels
@@ -538,6 +540,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
+        let groupId = runArgs.TryGetResult(RunArgs.Group)
         let runResultFile = runArgs.TryGetResult(RunArgs.Out)
         let types = runArgs.TryGetResult(RunArgs.Type) |> Option.map (fun types -> types |> Seq.map String.toLower |> Set)
         let labels = runArgs.TryGetResult(RunArgs.Label) |> Option.map (fun labels -> labels |> Seq.map String.toLower |> Set)
@@ -564,6 +567,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = note
+                        RunTargetOptions.GroupId = groupId
                         RunTargetOptions.Label = tag
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
@@ -605,6 +609,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
+                        RunTargetOptions.GroupId = None
                         RunTargetOptions.Label = None
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
@@ -642,6 +647,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
+                        RunTargetOptions.GroupId = None
                         RunTargetOptions.Label = None
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels
@@ -699,6 +705,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Configuration = configuration
                         RunTargetOptions.Environment = environment
                         RunTargetOptions.Note = None
+                        RunTargetOptions.GroupId = None
                         RunTargetOptions.Label = None
                         RunTargetOptions.Types = types
                         RunTargetOptions.Labels = labels

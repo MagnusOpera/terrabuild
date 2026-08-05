@@ -10,7 +10,8 @@ USAGE: terrabuild run [--help] [--workspace <path>] [--out <path>]
                       [--variable <variable>=<value>] [--label [<labels>...]]
                       [--type [<types>...]] [--project [<projects>...]]
                       [--force] [--retry] [--parallel <max>] [--local-only]
-                      [--note <note>] [--tag <tag>] [--engine <engine>]
+                      [--note <note>] [--group <group>] [--tag <tag>]
+                      [--engine <engine>]
                       [--what-if] <target>...
 ```
 
@@ -22,6 +23,7 @@ terrabuild run build test --parallel 4
 terrabuild run build --environment dev --force
 terrabuild run build --project api web
 terrabuild run build --out run-result.json
+terrabuild run deploy --group deployment-123
 ```
 
 If `workspace.engine` is set in `WORKSPACE`, that workspace value overrides `--engine`.

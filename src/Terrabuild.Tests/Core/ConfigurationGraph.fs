@@ -26,6 +26,7 @@ let private baseOptions workspace targets =
       ConfigOptions.Options.Environment = None
       ConfigOptions.Options.LogTypes = []
       ConfigOptions.Options.Note = None
+      ConfigOptions.Options.GroupId = None
       ConfigOptions.Options.Label = None
       ConfigOptions.Options.Types = None
       ConfigOptions.Options.Labels = None
@@ -179,6 +180,32 @@ let private assertKnownErrorContainsAll (expectedMessages: string list) action =
 
 let private assertKnownErrorContains (expected: string) action =
     assertKnownErrorContainsAll [ expected ] action
+
+[<Test>]
+let ``Build group is available as a predefined variable`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = terrabuild.group }
+}
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.GroupId = Some "deployment-123" }
+
+        let stages = runPipeline options
+        stages.ResolvedGraph.Nodes
+        |> Map.values
+        |> Seq.exactlyOne
+        |> fun node -> node.Operations.Head.Arguments
+        |> should equal "deployment-123")
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =

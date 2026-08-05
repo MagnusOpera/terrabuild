@@ -164,6 +164,7 @@ let private buildConfig
               ConfigOptions.Options.Configuration = configuration
               ConfigOptions.Options.Environment = environment
               ConfigOptions.Options.Note = None
+              ConfigOptions.Options.GroupId = None
               ConfigOptions.Options.Label = None
               ConfigOptions.Options.Types = None
               ConfigOptions.Options.Labels = None

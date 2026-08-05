@@ -17,6 +17,7 @@ Terrabuild provides several predefined variables that can be used in expressions
 | `terrabuild.debug` | `true` if debug is enabled. | Global |
 | `terrabuild.tag` | Tag provided by user or `nothing`. | Global |
 | `terrabuild.note` | Note provided by user or `nothing`. | Global |
+| `terrabuild.group` | Build group identifier provided by user or `nothing`. | Global |
 | `terrabuild.os` | `darwin`, `windows`, `linux` or `nothing` if unknown. | Global |
 | `terrabuild.arch` | `arm64`, `amd64` or `nothing` if unknown. | Global |
 | `terrabuild.project_slug` | Slug of current [project](/docs/project) (relative path from workspace) | Target |

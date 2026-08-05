@@ -80,7 +80,7 @@ module private Auth =
         |> Http.post headers "/auth/login"
 
 
-module private Build =
+module internal Build =
 
     [<RequireQualifiedAccess>]
     type CommitInput =
@@ -106,6 +106,7 @@ module private Build =
         { Configuration: string option
           Environment: string option
           Note: string option
+          GroupId: string option
           Tag: string option
           Targets: string seq
           Force: bool
@@ -291,6 +292,7 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                 Build.BuildContextInput.Configuration = options.Configuration
                 Build.BuildContextInput.Environment = options.Environment
                 Build.BuildContextInput.Note = options.Note
+                Build.BuildContextInput.GroupId = options.GroupId
                 Build.BuildContextInput.Tag = options.Label
                 Build.BuildContextInput.Targets = options.Targets
                 Build.BuildContextInput.Force = options.Force

@@ -24,6 +24,7 @@ let private baseOptions workspace targets =
       ConfigOptions.Options.Environment = None
       ConfigOptions.Options.LogTypes = []
       ConfigOptions.Options.Note = None
+      ConfigOptions.Options.GroupId = None
       ConfigOptions.Options.Label = None
       ConfigOptions.Options.Types = None
       ConfigOptions.Options.Labels = None

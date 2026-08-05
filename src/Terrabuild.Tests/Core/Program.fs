@@ -105,6 +105,7 @@ let ``getImpactBaseGraph uses resolved environment key`` () =
           Environment = Some "dev-staging"
           LogTypes = []
           Note = None
+          GroupId = None
           Label = None
           Types = None
           Labels = None
@@ -133,6 +134,39 @@ let ``CLI parses out argument for run`` () =
     let runArgs = result.GetResult(TerrabuildArgs.Run)
 
     runArgs.GetResult(RunArgs.Out) |> should equal "out.json"
+
+[<Test>]
+let ``CLI parses optional build group for run`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let grouped = parser.ParseCommandLine([| "run"; "build"; "--group"; "deployment-123" |], raiseOnUsage = true)
+    let ungrouped = parser.ParseCommandLine([| "run"; "build" |], raiseOnUsage = true)
+
+    grouped.GetResult(TerrabuildArgs.Run).TryGetResult(RunArgs.Group)
+    |> should equal (Some "deployment-123")
+
+    ungrouped.GetResult(TerrabuildArgs.Run).TryGetResult(RunArgs.Group)
+    |> should equal None
+
+[<Test>]
+let ``build context serializes optional group identifier`` () =
+    let context groupId : Api.Build.BuildContextInput =
+        { Configuration = None
+          Environment = None
+          Note = None
+          GroupId = groupId
+          Tag = None
+          Targets = [ "build" ]
+          Force = false
+          Retry = false }
+
+    use grouped = Json.Serialize(context (Some "deployment-123")) |> JsonDocument.Parse
+    use ungrouped = Json.Serialize(context None) |> JsonDocument.Parse
+
+    grouped.RootElement.GetProperty("groupId").GetString()
+    |> should equal "deployment-123"
+
+    hasJsonProperty ungrouped.RootElement "groupId"
+    |> should equal false
 
 [<Test>]
 let ``CLI parses impact base and out arguments`` () =

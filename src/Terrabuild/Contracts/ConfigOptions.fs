@@ -27,6 +27,7 @@ type Options = {
     Environment: string option
     LogTypes: Contracts.LogType list
     Note: string option
+    GroupId: string option
     Label: string option
     Types: string set option
     Labels: string set option

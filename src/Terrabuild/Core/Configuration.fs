@@ -178,6 +178,11 @@ let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: Conf
         | Some note -> Value.String note
         | _ -> Value.Nothing
 
+    let groupValue =
+        match options.GroupId with
+        | Some groupId -> Value.String groupId
+        | _ -> Value.Nothing
+
     let terrabuildVars =
         let os =
             if RuntimeInformation.IsOSPlatform(OSPlatform.OSX) then Value.String "darwin"
@@ -211,6 +216,7 @@ let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: Conf
               "terrabuild.debug", Value.Bool options.Debug 
               "terrabuild.tag", tagValue 
               "terrabuild.note", noteValue
+              "terrabuild.group", groupValue
               "terrabuild.os", os 
               "terrabuild.arch", architecture ]
  

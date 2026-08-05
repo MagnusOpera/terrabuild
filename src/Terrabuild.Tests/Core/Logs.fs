@@ -24,6 +24,7 @@ let private buildOptions (markdownFile: string) =
       ConfigOptions.Options.Environment = None
       ConfigOptions.Options.LogTypes = [ Contracts.LogType.Markdown markdownFile ]
       ConfigOptions.Options.Note = None
+      ConfigOptions.Options.GroupId = None
       ConfigOptions.Options.Label = None
       ConfigOptions.Options.Types = None
       ConfigOptions.Options.Labels = None

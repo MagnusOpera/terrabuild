@@ -59,6 +59,7 @@ type RunArgs =
     | [<Unique>] Parallel of max:int
     | [<Unique>] Local_Only
     | [<Unique>] Note of note:string
+    | [<Unique>] Group of group:string
     | [<Unique>] Tag of tag:string
     | [<Unique>] Engine of engine:Engine
     | [<Unique; Inherit>] What_If
@@ -80,6 +81,7 @@ with
             | Parallel _ -> "Max parallel build concurrency (default to number of processors)."
             | Local_Only -> "Use local cache only."
             | Note _ -> "Note for the build."
+            | Group _ -> "Group identifier for related builds."
             | Tag _ -> "Tag for build."
             | Engine _ -> "Container engine to use (docker, podman or host)."
             | What_If -> "Prepare the action but do not apply."
