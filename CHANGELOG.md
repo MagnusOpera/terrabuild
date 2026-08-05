@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.5-next]
+
+
 - Group related Terrabuild invocations in Insights with the optional `run --group` identifier.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.4-next...0.197.5-next
 
 ## [0.197.4-next]
 
