@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.8-next]
+
+
 - Replace scattered debug snapshots with one deterministic diagnostic report explaining rebuild causes, cache fingerprints, and performance bottlenecks.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.7-next...0.197.8-next
 
 ## [0.197.7-next]
 
