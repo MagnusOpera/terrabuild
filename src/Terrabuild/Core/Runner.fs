@@ -404,6 +404,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // ----------------------------
 
     let summaryNode (node: GraphDef.Node) =
+        DiagnosticsTelemetry.recordTask node.Id "summary-started"
         Log.Debug("{NodeId}: downloading Node Summary", node.Id)
         buildProgress.TaskDownloading node.Id
 
@@ -427,8 +428,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true true
         | _ ->
             buildProgress.TaskCompleted node.Id true false
+        DiagnosticsTelemetry.recordTask node.Id "summary-ended"
 
     let restoreNode (node: GraphDef.Node) =
+        DiagnosticsTelemetry.recordTask node.Id "restore-started"
         Log.Debug("{NodeId}: restoring Node", node.Id)
         buildProgress.TaskDownloading node.Id
 
@@ -446,7 +449,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | Some (_, summary) ->
                 match cache.TryGetSummary useRemote cacheEntryId with
                 | Some summary ->
-                    Log.Debug("{NodeId}: restoring from key '{Key}'", node.Id, GraphDef.buildCacheKey node)
                     match summary.Outputs with
                     | Some outputs ->
                         let files = IO.enumerateFiles outputs
@@ -469,8 +471,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true true
         | _ ->
             buildProgress.TaskCompleted node.Id true false
+        DiagnosticsTelemetry.recordTask node.Id "restore-ended"
 
     let execNode (node: GraphDef.Node) =
+        DiagnosticsTelemetry.recordTask node.Id "execution-started"
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing Node", node.Id)
         buildProgress.TaskBuilding node.Id
@@ -484,6 +488,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             try execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
             with exn ->
                 nodeResults[node.Id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
+                DiagnosticsTelemetry.recordTask node.Id "execution-failed"
                 Log.Error(exn, "{NodeId}: Execution failed with exception", node.Id)
                 reraise()
 
@@ -497,8 +502,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | _ -> None
 
         let endedAt = DateTime.UtcNow
+        DiagnosticsTelemetry.recordTask node.Id "execution-ended"
 
         hub.SubscribeBackground $"Upload {node.Id}" [] (fun () ->
+            DiagnosticsTelemetry.recordTask node.Id "upload-started"
             buildProgress.TaskUploading node.Id
 
             let summary =
@@ -512,7 +519,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.Duration = endedAt - startedAt
                   Cache.TargetSummary.Cache = node.Artifacts }
 
-            Log.Debug("{NodeId}: building '{Key}'", node.Id, GraphDef.buildCacheKey node)
             let files = cacheEntry.Complete summary
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
 
@@ -528,9 +534,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 hub.GetSignal<DateTime>(node.Id).Set completionDate
             | _ ->
                 buildProgress.TaskCompleted node.Id false false
+            DiagnosticsTelemetry.recordTask node.Id "upload-ended"
         )
 
     let batchExecNode (batchNode: GraphDef.Node) =
+        DiagnosticsTelemetry.recordTask batchNode.Id "batch-started"
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing batch", batchNode.Id)
         if not flattenBatchProgress then
@@ -565,10 +573,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             with exn ->
                 cacheEntries
                 |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
+                DiagnosticsTelemetry.recordTask batchNode.Id "batch-failed"
                 Log.Error(exn, "{NodeId}: Execution failed with exception", batchNode.Id)
                 reraise()
 
         let endedAt = DateTime.UtcNow
+        DiagnosticsTelemetry.recordTask batchNode.Id "batch-ended"
         let duration = (endedAt - startedAt).Ticks / (members.Count |> int64) |> TimeSpan
 
         let status =
@@ -579,6 +589,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         cacheEntries
         |> Map.iter (fun nodeId cacheEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
+                DiagnosticsTelemetry.recordTask nodeId "upload-started"
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskUploading node.Id
 
@@ -625,6 +636,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _ ->
                     Log.Debug("{NodeId} has failed", nodeId)
                     buildProgress.TaskCompleted nodeId false false
+                DiagnosticsTelemetry.recordTask nodeId "upload-ended"
             )
         )
 
@@ -647,6 +659,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         if scheduledExec.TryAdd(id, true) then
             let targetNode = graph.Nodes[id]
+            DiagnosticsTelemetry.recordTask id "scheduled"
 
             // placeholder MUST be keyed by exec id
             nodeResults[id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
@@ -673,6 +686,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | GraphDef.RunAction.Ignore -> hub.SubscribeBackground
 
             subscribe targetNode.Id schedDependencies (fun () ->
+                DiagnosticsTelemetry.recordTask id "ready"
                 let batchSchedule = buildBatchSchedule flattenBatchProgress graph targetNode membersOpt
                 buildProgress.BatchScheduled batchSchedule
 
@@ -704,7 +718,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let headCommit = options.HeadCommit
     let branchOrTag = options.BranchOrTag
 
-    let nodeStatus =
+    let allNodeStatus =
         let getDependencyStatus _ (node: GraphDef.Node) =
             match nodeResults.TryGetValue node.Id with
             | true, (request, st) ->
@@ -718,6 +732,10 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | _ -> None
 
         graph.Nodes |> Map.choose getDependencyStatus
+
+    let nodeStatus =
+        allNodeStatus
+        |> Map.filter (fun nodeId _ -> graph.Batches |> Map.containsKey nodeId |> not)
 
     if nodeResults.Count = 0 then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date"

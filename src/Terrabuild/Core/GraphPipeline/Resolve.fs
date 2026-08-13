@@ -68,7 +68,6 @@ let internal resolveTargetOperations
     ) (ArtifactMode.Managed, true, [])
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Graph) =
-    let startedAt = DateTime.UtcNow
     let allNodes = Dictionary<string, Node>()
     let processedNodes = Dictionary<string, bool>()
 
@@ -111,7 +110,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     ClusterHash = targetClusterHash
                     TargetHash = targetHash }
 
-            Log.Debug("Resolved node '{NodeId}' with key '{Key}'", nodeId, buildCacheKey node)
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph resolving race"
 
         if processedNodes.TryAdd(nodeId, true) then processNode ()
@@ -119,10 +117,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     graph.Nodes
     |> Map.keys
     |> Seq.iter resolveNode
-
-    let endedAt = DateTime.UtcNow
-    let buildDuration = endedAt - startedAt
-    Log.Debug("Graph Resolve: {duration}", buildDuration)
 
     { graph with
         Graph.Nodes = allNodes |> Map.ofDict }

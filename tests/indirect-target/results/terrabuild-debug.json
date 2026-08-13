@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "status": "success",
+    "completeness": "complete",
+    "targets": [
+      "apply",
+      "build",
+      "plan",
+      "test"
+    ],
+    "engine": "docker",
+    "force": true,
+    "retry": false,
+    "localOnly": true,
+    "maxConcurrency": 1,
+    "variableNames": []
+  },
+  "projects": [
+    {
+      "id": "workspace/path#a",
+      "name": "a",
+      "directory": "A",
+      "files": [
+        {
+          "path": "A/PROJECT",
+          "hash": "A9A4C0BDDFF80711408DF15AFD584E13587050DA00BCBF3B1BC82E6128F4A794"
+        }
+      ],
+      "fileContentHash": "2E4FFE795487F2017781EE9492D4622360B43000CAA15B5DE82E7E3D37B3EA70",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B"
+    },
+    {
+      "id": "workspace/path#b",
+      "name": "b",
+      "directory": "B",
+      "files": [
+        {
+          "path": "B/PROJECT",
+          "hash": "BE5F7708278DBC35F41AFAB561F94CA52F82FA9F78D6359F7742109D9AA9C941"
+        }
+      ],
+      "fileContentHash": "50F230D7092FCA7689D0ABA2D5E380B28759695972CBBD022989EABC05291A3C",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [
+        {
+          "id": "workspace/path#a",
+          "hash": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B"
+        }
+      ],
+      "dependenciesHash": "539BD0DE9C4118FBCE3F88A76AE9F45F036BB4DB85D36EAA42B9BD4550983221",
+      "projectHash": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0"
+    },
+    {
+      "id": "workspace/path#c",
+      "name": "c",
+      "directory": "C",
+      "files": [
+        {
+          "path": "C/PROJECT",
+          "hash": "DF13BDD5E7D74E82BA6B61395EEFB4C7851DFD45284038F081A1DAE45AFAE292"
+        }
+      ],
+      "fileContentHash": "E53488B45418385F0B4A399F5D3C44ECE27C44D6D7796451E792E5ABADF4045D",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "491046BB8E901E005027D13A8E8F29957A3069413C28DDEBAAFB3A9D4FA6B2E9"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "workspace/path#a:build",
+      "projectId": "workspace/path#a",
+      "projectName": "a",
+      "projectDirectory": "A",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "378B932C9666F16504C669C074FEE7C1541295B0B975BBEB93E3D7BD6928C44C",
+        "operationHashes": [
+          "A7E83E4E8388DB799E96F221D6AA84A07FCDCAC88BBCDA8253BCF56D57B1693A"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "F38DC2C5DE82C4924B35DBFE708B8AC24B1F7DFF912D006050E335047A54133C",
+        "cacheKey": "3A475F4CF9F431BED33E0F23431FDA3D41BA8B3538A49CF1188D63219EC7BB4B/build/F38DC2C5DE82C4924B35DBFE708B8AC24B1F7DFF912D006050E335047A54133C"
+      }
+    },
+    {
+      "id": "workspace/path#a:dist",
+      "projectId": "workspace/path#a",
+      "projectName": "a",
+      "projectDirectory": "A",
+      "target": "dist",
+      "selected": false,
+      "dependencies": [
+        "workspace/path#a:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "actionDependencies": [],
+      "requiredBy": []
+    },
+    {
+      "id": "workspace/path#b:apply",
+      "projectId": "workspace/path#b",
+      "projectName": "b",
+      "projectDirectory": "B",
+      "target": "apply",
+      "selected": true,
+      "dependencies": [
+        "workspace/path#b:plan"
+      ],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "84425B392BE7E9757C0339248F6A81AE6C814BB5184D1435F5456813972E26EE",
+        "operationHashes": [
+          "50E4A6CE3A683E8105821EA2B892B1A1F6CEE9E7429D97F113A843713DB63695"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "workspace/path#b:plan",
+            "hash": "8EC9C1D4EF17BF675BD8C77DF4E89CEAC7AFF3667694EFF4ACD61B49B58DED9F"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "A677469A95C10D959B8B04A2A44F7E7A671C778FAA5D8D975B974035043C45E0",
+        "cacheKey": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0/apply/A677469A95C10D959B8B04A2A44F7E7A671C778FAA5D8D975B974035043C45E0"
+      }
+    },
+    {
+      "id": "workspace/path#b:plan",
+      "projectId": "workspace/path#b",
+      "projectName": "b",
+      "projectDirectory": "B",
+      "target": "plan",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "7018E5B1362B71B89D67CEE5435B3FD825745A950DB851B53917EA7305C29751",
+        "operationHashes": [
+          "E0879002EBD5FD5400DB7DAB63F745B4346C8F1BC2A868ED1CCB9A28A65D4573"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "8EC9C1D4EF17BF675BD8C77DF4E89CEAC7AFF3667694EFF4ACD61B49B58DED9F",
+        "cacheKey": "8CDF2C3F2B01E95ED0CCCE12B3AD45A4C619A3DA3E98CA7D41892D617E5C29E0/plan/8EC9C1D4EF17BF675BD8C77DF4E89CEAC7AFF3667694EFF4ACD61B49B58DED9F"
+      }
+    },
+    {
+      "id": "workspace/path#c:build",
+      "projectId": "workspace/path#c",
+      "projectName": "c",
+      "projectDirectory": "C",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "A800CC15745F1C2A0A7787B5D002292BA541A75A7013B1D4A316830A963C0102",
+        "operationHashes": [
+          "D990B0D3C4837158290C154B042E38F269B26CE5F857A7FD751EAF49B53EB95F"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "7A343C5F6E023CE3BDD6A8961667208FBF824EAE2F82E487B2EF9234D74BBCC0",
+        "cacheKey": "491046BB8E901E005027D13A8E8F29957A3069413C28DDEBAAFB3A9D4FA6B2E9/build/7A343C5F6E023CE3BDD6A8961667208FBF824EAE2F82E487B2EF9234D74BBCC0"
+      }
+    },
+    {
+      "id": "workspace/path#c:dist",
+      "projectId": "workspace/path#c",
+      "projectName": "c",
+      "projectDirectory": "C",
+      "target": "dist",
+      "selected": false,
+      "dependencies": [
+        "workspace/path#c:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "actionDependencies": [],
+      "requiredBy": []
+    }
+  ],
+  "batches": [],
+  "results": [
+    {
+      "id": "workspace/path#a:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#b:apply",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#b:plan",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#c:build",
+      "request": "exec",
+      "status": "success"
+    }
+  ],
+  "executions": [
+    {
+      "id": "workspace/path#a:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "CBA35852015FB343CAB9B4E646A1D3E9F5F015C72EA884FB78600A486D7EBD13",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#b:apply",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "3E424E6220B299045A99E58900E522523E3188642A7C0A18E97CF9DB4E0953B8",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#b:plan",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7EF4A8705D97A2CD535E3DD37A992063F33B04E8F1EAFA8BBD8BBAEA43DDC06E",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#c:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "A8D90717E45A4F26BD01D4F5C7CDF20B3A2F158EA3872BB43460FDD01AA3B055",
+          "exitCode": 0
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "phases": [
+      "configuration",
+      "graph-node",
+      "graph-phase",
+      "graph-selection",
+      "graph-resolve",
+      "graph-action",
+      "graph-cascade",
+      "graph-batch",
+      "runner"
+    ],
+    "configurationProjects": [
+      "workspace/path#a",
+      "workspace/path#b",
+      "workspace/path#c"
+    ],
+    "slowestPhases": [
+      "configuration",
+      "graph-action",
+      "graph-batch",
+      "graph-cascade",
+      "graph-node",
+      "graph-phase",
+      "graph-resolve",
+      "graph-selection",
+      "runner"
+    ],
+    "slowestTasks": [
+      {
+        "id": "workspace/path#a:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#b:apply",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#b:plan",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#c:build",
+        "kind": "execution"
+      }
+    ],
+    "criticalChain": true,
+    "fScript": {
+      "scriptLoads": 1,
+      "scriptCacheHits": 0,
+      "invocations": 4,
+      "scriptEvaluations": 4,
+      "toFScriptConversions": 8,
+      "fromFScriptConversions": 4,
+      "functions": [
+        {
+          "id": "shell.fss:dispatch",
+          "count": 4
+        }
+      ]
+    }
+  }
+}

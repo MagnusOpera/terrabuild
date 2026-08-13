@@ -453,7 +453,8 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         | request -> Assert.Fail($"Expected restore request for restored member, got {request}")
 
         summary.Nodes[execMember.Id].Status.IsSuccess |> should equal expectedSuccess
-        summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess)
+        summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess
+        summary.Nodes |> Map.containsKey batchNode.Id |> should equal false)
 
 [<Test>]
 let ``run includes repository in uploaded graph hash`` () =

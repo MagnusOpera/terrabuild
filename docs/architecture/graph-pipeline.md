@@ -114,17 +114,11 @@ Adds batch execution nodes after actions and required flags are known.
 
 ## Debug outputs
 
-When `--debug` is enabled, the run command writes the graph after the important construction stages:
+When `--debug` is enabled, the run command writes `terrabuild-debug.json`, a versioned report checkpointed after configuration and each graph stage and finalized after execution. Nodes appear once and include selection, resolved fingerprints, structured action and requirement reasons, batch membership, logical results, and monotonic timing. `terrabuild-debug.log` retains chronological commands and exceptional details. Both files replace their previous-run versions.
 
-- `terrabuild-debug.options.json`
-- `terrabuild-debug.config.json`
-- `terrabuild-debug.full-node.json`: full graph before selection
-- `terrabuild-debug.node.json`: selected source graph
-- `terrabuild-debug.resolve.json`: resolved operations, hashes, cache mode, and cluster hash
-- `terrabuild-debug.action.json`: assigned actions
-- `terrabuild-debug.cascade.json`: required flags after cascade
-- `terrabuild-debug.batch.json`: final graph before the runner
-- `terrabuild-debug.info.md`
+The report's action reasons are `forced-cli`, `configured-always`, `dependency-executed`, `non-cacheable`, `cache-miss`, `retry-failed-cache`, `cached-failure`, and `cache-hit`. Cache evidence includes the lookup scope, key, result, origin, prior status, and summary time. Project and target fingerprint components allow two reports to be compared without changing the cache-key algorithm.
+
+Synthetic batch scheduler nodes are represented under `batches` and `executions`, not as logical results. Performance data records batches once, ranks slow phases and tasks, and derives a dependency-aware critical chain.
 
 ## Edge cases
 

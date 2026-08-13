@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "status": "success",
+    "completeness": "complete",
+    "targets": [
+      "build"
+    ],
+    "environment": "dev",
+    "engine": "docker",
+    "force": true,
+    "retry": false,
+    "localOnly": true,
+    "maxConcurrency": 2,
+    "variableNames": []
+  },
+  "projects": [
+    {
+      "id": "workspace/path#app",
+      "name": "appprj",
+      "directory": "app",
+      "files": [
+        {
+          "path": "app/PROJECT",
+          "hash": "89B92ECDDA7350A20FB5FA3013A473A2E02BEF50FD6F4BD71212F5FD0137FDBC"
+        }
+      ],
+      "fileContentHash": "E6F4174EFF6792DA132BF5018885564E24B5D164C5C4796F94FE3536C649744C",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [
+        {
+          "id": "workspace/path#lib",
+          "hash": "8A903EC1BBC787E4F824019A1C30CB5FAD8663D2C43879B9181E1131C31EB841"
+        }
+      ],
+      "dependenciesHash": "DF48BBFEF0E338C5385DDD4D41E5F4E292830F0D366B7E2396D1E6FB2AAA54A9",
+      "projectHash": "BAA9EA23FDD888FA6F68D67F00F89DA2E3BFC147DCC84E690D683EC4C8DFA52F"
+    },
+    {
+      "id": "workspace/path#lib",
+      "name": "libprj",
+      "directory": "lib",
+      "files": [
+        {
+          "path": "lib/PROJECT",
+          "hash": "F67A59DF63841075994C30FD7092A09ADD3619765AD18FAC7589213F1CC64A43"
+        }
+      ],
+      "fileContentHash": "336EB3BEB5024B5282D87D33A8EFAB3F7E0038DA6A16683C193F6DB1665384F0",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "8A903EC1BBC787E4F824019A1C30CB5FAD8663D2C43879B9181E1131C31EB841"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "workspace/path#app:build",
+      "projectId": "workspace/path#app",
+      "projectName": "appprj",
+      "projectDirectory": "app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "3B382DC8A44AA7D072B6AB56FA9225FCF6392CF66948343B9B8555E060A69A50",
+        "operationHashes": [
+          "1A6E65977769983F37D82B52AC7EE8EA9DD8504F06AE20A03D92ED46470AC974"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "AC6257CEA67AEF5E981AF8AF14DB7DBB841ECF0BFA2383D742D34FBA3D2BBEFA",
+        "cacheKey": "BAA9EA23FDD888FA6F68D67F00F89DA2E3BFC147DCC84E690D683EC4C8DFA52F/build/AC6257CEA67AEF5E981AF8AF14DB7DBB841ECF0BFA2383D742D34FBA3D2BBEFA"
+      }
+    }
+  ],
+  "batches": [],
+  "results": [
+    {
+      "id": "workspace/path#app:build",
+      "request": "exec",
+      "status": "success"
+    }
+  ],
+  "executions": [
+    {
+      "id": "workspace/path#app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "3FE1418F565115866C3365AB3312DD4906B3313DA6F5EF3D7B718B242CB80EB2",
+          "exitCode": 0
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "phases": [
+      "configuration",
+      "graph-node",
+      "graph-phase",
+      "graph-selection",
+      "graph-resolve",
+      "graph-action",
+      "graph-cascade",
+      "graph-batch",
+      "runner"
+    ],
+    "configurationProjects": [
+      "workspace/path#app",
+      "workspace/path#lib"
+    ],
+    "slowestPhases": [
+      "configuration",
+      "graph-action",
+      "graph-batch",
+      "graph-cascade",
+      "graph-node",
+      "graph-phase",
+      "graph-resolve",
+      "graph-selection",
+      "runner"
+    ],
+    "slowestTasks": [
+      {
+        "id": "workspace/path#app:build",
+        "kind": "execution"
+      }
+    ],
+    "criticalChain": true,
+    "fScript": {
+      "scriptLoads": 1,
+      "scriptCacheHits": 0,
+      "invocations": 1,
+      "scriptEvaluations": 1,
+      "toFScriptConversions": 2,
+      "fromFScriptConversions": 1,
+      "functions": [
+        {
+          "id": "shell.fss:dispatch",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

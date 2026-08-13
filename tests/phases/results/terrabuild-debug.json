@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "status": "success",
+    "completeness": "complete",
+    "targets": [
+      "build"
+    ],
+    "engine": "docker",
+    "force": true,
+    "retry": false,
+    "localOnly": true,
+    "maxConcurrency": 2,
+    "variableNames": []
+  },
+  "projects": [
+    {
+      "id": "@pnpm#phase-app",
+      "name": "app",
+      "directory": "apps/app",
+      "files": [
+        {
+          "path": "apps/app/PROJECT",
+          "hash": "939581E84EEA393824523A7D8BEA8D71B89E52102D744734D60D5230F4F6E2DC"
+        },
+        {
+          "path": "apps/app/package.json",
+          "hash": "94D7829D8B5ED471092E9BCA0B51D9CA2E078EEBF30A0FFB6CBED5B5981ED170"
+        }
+      ],
+      "fileContentHash": "9AA230E58EBA28679342C3034CC0ADE90E8CA4C0C9C9B30AA4204DF4CB4FD9FD",
+      "fileNameHash": "04F13F87CDC89E33938277AFF7E7DD09F158AE8968734AD4780F5E9430C36485",
+      "dependencies": [
+        {
+          "id": "workspace/path#tools/pnpm",
+          "hash": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2"
+        }
+      ],
+      "dependenciesHash": "D2463C57DA385086EC7DC85D3EDE02DD4B9010AA1A5ACFEF5D205C5ED70DCB71",
+      "projectHash": "EAAA0DB1D778E785CCFF8FBE5462CA7BC22A7A2D8E82C77633B83A5BCBF02B13"
+    },
+    {
+      "id": "workspace/path#tools/pnpm",
+      "name": "pnpm",
+      "directory": "tools/pnpm",
+      "files": [
+        {
+          "path": "tools/pnpm/Dockerfile",
+          "hash": "E7BB3274DCF627876A78EF80A1738F00C3DDADC7BADBBC2D93DC30CCEF7BEDDD"
+        },
+        {
+          "path": "tools/pnpm/PROJECT",
+          "hash": "AB45605D20D5D0473539DB7886C50DC6B2CBD6AE22595ECEC285F9955E48F433"
+        }
+      ],
+      "fileContentHash": "DA0CACCD7214C9DBBB0FEFA13A285FB75CAF81AC7831ACF5D435558F6120C988",
+      "fileNameHash": "5EDF95FC92958B705A8B8FEC96903954ED515F2859E005C81FC1E5C3473B5BEF",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "@pnpm#phase-app:build",
+      "projectId": "@pnpm#phase-app",
+      "projectName": "app",
+      "projectDirectory": "apps/app",
+      "target": "build",
+      "phase": "application",
+      "selected": true,
+      "dependencies": [
+        "workspace/path#tools/pnpm:dist"
+      ],
+      "phaseDependencies": [
+        "workspace/path#tools/pnpm:dist"
+      ],
+      "outputs": [
+        "dist/**"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "C3E626895B846F0A8C1051C1D42227F4769968C9B502625B7E530DF5BDEB0CA8",
+        "operationHashes": [
+          "9AB67524F10720372FC32F1EAA038667EEDC2A65C227C52439B37C0F77B3D03E"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [
+          "workspace/path#tools/pnpm:dist"
+        ],
+        "targetHash": "D8BFDF9FFF3239ECA099F6FE7C0B84988CCFEECFC74B690C11DD469DA64F4226",
+        "cacheKey": "EAAA0DB1D778E785CCFF8FBE5462CA7BC22A7A2D8E82C77633B83A5BCBF02B13/build/D8BFDF9FFF3239ECA099F6FE7C0B84988CCFEECFC74B690C11DD469DA64F4226"
+      }
+    },
+    {
+      "id": "workspace/path#tools/pnpm:dist",
+      "projectId": "workspace/path#tools/pnpm",
+      "projectName": "pnpm",
+      "projectDirectory": "tools/pnpm",
+      "target": "dist",
+      "phase": "toolchains",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "9795CC08369BD9534FB2FD8EBE316A7622CE398ABCAEB041D8E72365190A5B54",
+        "operationHashes": [
+          "0DDF25D5190A07FE41EB94D6E23997BDD9570DBFAD1C2F7DB0F950231B27F9C1"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "EBE3E50E76AE0BE0A4B1590C9D511F93A494510DBFAED0DFB5418E2FE688EAC1",
+        "cacheKey": "818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2/dist/EBE3E50E76AE0BE0A4B1590C9D511F93A494510DBFAED0DFB5418E2FE688EAC1"
+      }
+    }
+  ],
+  "batches": [],
+  "results": [
+    {
+      "id": "@pnpm#phase-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#tools/pnpm:dist",
+      "request": "exec",
+      "status": "success"
+    }
+  ],
+  "executions": [
+    {
+      "id": "@pnpm#phase-app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@pnpm build",
+          "command": "docker",
+          "argumentsHash": "68E31B180CAECF95D1499122215B79AE0EE41B9A937D8EB9151F9E44FC68B46E",
+          "container": "terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#tools/pnpm:dist",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell docker",
+          "command": "docker",
+          "argumentsHash": "90C92558E64C022CB755E6BEBB22DE841C95A093B2C82D92B72675C0AFF80E6C",
+          "exitCode": 0
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "phases": [
+      "configuration",
+      "graph-node",
+      "graph-phase",
+      "graph-selection",
+      "graph-resolve",
+      "graph-action",
+      "graph-cascade",
+      "graph-batch",
+      "runner"
+    ],
+    "configurationProjects": [
+      "@pnpm#phase-app",
+      "workspace/path#tools/pnpm"
+    ],
+    "slowestPhases": [
+      "configuration",
+      "graph-action",
+      "graph-batch",
+      "graph-cascade",
+      "graph-node",
+      "graph-phase",
+      "graph-resolve",
+      "graph-selection",
+      "runner"
+    ],
+    "slowestTasks": [
+      {
+        "id": "@pnpm#phase-app:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#tools/pnpm:dist",
+        "kind": "execution"
+      }
+    ],
+    "criticalChain": true,
+    "fScript": {
+      "scriptLoads": 2,
+      "scriptCacheHits": 0,
+      "invocations": 3,
+      "scriptEvaluations": 3,
+      "toFScriptConversions": 4,
+      "fromFScriptConversions": 3,
+      "functions": [
+        {
+          "id": "pnpm.fss:build",
+          "count": 1
+        },
+        {
+          "id": "pnpm.fss:defaults",
+          "count": 1
+        },
+        {
+          "id": "shell.fss:dispatch",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

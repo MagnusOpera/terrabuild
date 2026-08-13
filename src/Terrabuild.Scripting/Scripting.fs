@@ -103,7 +103,6 @@ module private Performance =
                 let struct (count, ticks) = pair.Value
                 name, count, toMs ticks)
             |> Seq.sortByDescending (fun (_, _, ms) -> ms)
-            |> Seq.truncate 20
             |> List.ofSeq
 
         { RuntimeInvokeCount = Interlocked.Read(&runtimeInvokeCount)

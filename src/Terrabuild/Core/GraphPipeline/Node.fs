@@ -14,7 +14,6 @@ type private VisitState =
     | Visited
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) =
-    let startedAt = DateTime.UtcNow
     let allNodes = Dictionary<string, Node>()
     let nodeStates = Dictionary<string, VisitState>()
 
@@ -128,7 +127,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Action = RunAction.Ignore
                   Node.Required = required }
 
-            Log.Debug("Node '{NodeId}' has key '{Key}'", nodeId, buildCacheKey node)
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph building race"
             nodeStates[nodeId] <- Visited
   
@@ -147,10 +145,6 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         let allNodeIds = allNodes.Keys |> Set
         let allDependencyIds = allNodes.Values |> Seq.collect (fun node -> node.Dependencies) |> Set.ofSeq
         allNodeIds - allDependencyIds
-
-    let endedAt = DateTime.UtcNow
-    let buildDuration = endedAt - startedAt
-    Log.Debug("Graph Build: {duration}", buildDuration)
 
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {allNodes.Count} nodes" |> Terminal.writeLine
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine

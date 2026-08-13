@@ -21,19 +21,39 @@ let build (graph: Graph) =
         | true, requirement -> requirement
         | _ ->
             let node = nodes[nodeId]
+            let requiredDependents =
+                lazy (
+                    node2dependents
+                    |> Map.tryFind nodeId
+                    |> Option.defaultValue Set.empty
+                    |> Seq.filter getNodeRequirements
+                    |> Seq.sort
+                    |> List.ofSeq)
             let isRequired =
                 match node with
                 | { Required = true } -> true
                 | { Action = RunAction.Ignore } -> false
                 | { Action = RunAction.Restore; Artifacts = ArtifactMode.External } -> false
                 | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> true
-                | _ ->
-                    node2dependents
-                    |> Map.tryFind nodeId
-                    |> Option.defaultValue Set.empty
-                    |> Seq.exists getNodeRequirements
+                | _ -> requiredDependents.Value <> []
 
-            Log.Debug("Node '{NodeId}' has requirement '{Requirement}'", node.Id, isRequired)
+            let dependents =
+                if requiredDependents.IsValueCreated then requiredDependents.Value
+                else []
+            let reason =
+                match node with
+                | { Required = true } -> "already-required"
+                | { Action = RunAction.Ignore } -> "ignored"
+                | { Action = RunAction.Restore; Artifacts = ArtifactMode.External } -> "external-restore"
+                | { Action = RunAction.Exec } when node.Build <> BuildMode.Lazy -> "executing"
+                | _ when dependents <> [] -> "required-by-dependent"
+                | _ -> "not-required"
+            DiagnosticsTelemetry.recordRequirement {
+                DiagnosticsTelemetry.RequirementDecision.NodeId = node.Id
+                Required = isRequired
+                Reason = reason
+                Dependents = dependents
+            }
             nodeRequirements[nodeId] <- isRequired
             if node.Required <> isRequired then
                 let node = { node with Required = isRequired }

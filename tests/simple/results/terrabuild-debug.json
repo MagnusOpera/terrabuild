@@ -1,0 +1,1473 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "status": "success",
+    "completeness": "complete",
+    "targets": [
+      "build",
+      "test"
+    ],
+    "engine": "docker",
+    "force": true,
+    "retry": false,
+    "localOnly": true,
+    "maxConcurrency": 2,
+    "variableNames": []
+  },
+  "projects": [
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "directory": "projects/go-app",
+      "files": [
+        {
+          "path": "projects/go-app/PROJECT",
+          "hash": "BE3D7DDB1394A3E736139A400C5799F989E94753B19AC84A47180E102249F542"
+        },
+        {
+          "path": "projects/go-app/go.mod",
+          "hash": "56A2822313AD4040D8D73E36DB63A163727DD22F9A8098652087B13B1DA1A874"
+        },
+        {
+          "path": "projects/go-app/main.go",
+          "hash": "D887955403AD692598A9F4CEFA45B51772B90D27BEA46FBC229E25F2C305B6AC"
+        },
+        {
+          "path": "projects/go-app/main_test.go",
+          "hash": "BDCBD4C3716FCED10F39C7B3F93118397D07C3326A8776166CCB451D2D94E53B"
+        }
+      ],
+      "fileContentHash": "56B0F4E17466ACAE2C278A29B537F002631A289B8DF5EAB065AA89D7797C6AC1",
+      "fileNameHash": "88A7DAA7EBFBB92457998D4949D12020FB9AB2795F407FDC0C983AF5C5D5B416",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715"
+    },
+    {
+      "id": "@pnpm#npm-app",
+      "name": "npm_app",
+      "directory": "projects/npm-app",
+      "files": [
+        {
+          "path": "projects/npm-app/.gitignore",
+          "hash": "FE718E7BABB14F3CBAD2D97F08889B9CE5215ED3FE0E43B2B8CFBFB3B9B844E8"
+        },
+        {
+          "path": "projects/npm-app/PROJECT",
+          "hash": "0D84C4B00A9DB6A414F913A4FCEA0C04BDD28AC8CCABEE1022B55274BE30D9BD"
+        },
+        {
+          "path": "projects/npm-app/index.html",
+          "hash": "ECA5FDC95A4F8AEEDDF3E1DCFBE3F53423FB8DB7E6995745E6F443BC2B49C556"
+        },
+        {
+          "path": "projects/npm-app/package.json",
+          "hash": "F71BA8978AAA0F5BE48BAB0F011EEC8C4E1279A1E28EBCA024727B925D6EAAA1"
+        },
+        {
+          "path": "projects/npm-app/pnpm-lock.yaml",
+          "hash": "C17E07304C1F29156B6ABBE31D53A1A8E3C51A40D858069D64F07C815CBBD0DD"
+        },
+        {
+          "path": "projects/npm-app/public/vite.svg",
+          "hash": "4A748AFD443918BB16591C834C401DAE33E87861AB5DBAD0811C3A3B4A9214FB"
+        },
+        {
+          "path": "projects/npm-app/src/App.tsx",
+          "hash": "ED40FA6E49717265A516F146FD5B2F78409815B49B0844AF8761DE3907827D75"
+        },
+        {
+          "path": "projects/npm-app/src/counter.ts",
+          "hash": "E9C5681A942D18FCFAAE3D3304BA856C931CDC4A1F1E9EC6F19CA396772984BF"
+        },
+        {
+          "path": "projects/npm-app/src/main.tsx",
+          "hash": "26DE0074080F16686795199B0BAA9D9A30736A61D3A1976CD20CC615BC605D90"
+        },
+        {
+          "path": "projects/npm-app/src/style.css",
+          "hash": "A03D61E0D37C5ED99021C30A0AA001E65F18A158F42783B3223AACC39096B1AE"
+        },
+        {
+          "path": "projects/npm-app/src/typescript.svg",
+          "hash": "F6EAD1AF17ACC3F55AD857F3BC936DF8754281E2932C1B472DBB9B36AB873F1C"
+        },
+        {
+          "path": "projects/npm-app/src/vite-env.d.ts",
+          "hash": "65996936FBB042915F7B74A200FCDDE7E410F32A669B1AB9597CFAA4B0FADDB5"
+        },
+        {
+          "path": "projects/npm-app/tsconfig.json",
+          "hash": "25E07CB728B034CA9DD82E9F2A4515BE134C3DAE6E9F5ED8D448C7831F3BFC3F"
+        },
+        {
+          "path": "projects/npm-app/vite.config.ts",
+          "hash": "43B6FDC0DCF6F6A20E87B1E1303C902FAE9B8108031C23A32177818EB2BAC392"
+        }
+      ],
+      "fileContentHash": "4D6406E233062876524BABEEB1AA9AC1E8DFEAFAE6515F0957804BC76DC68B74",
+      "fileNameHash": "3111EF9717C4BDB7226DAB24C720B44797257EFC6903F8952C6899A94C6CDC7B",
+      "dependencies": [
+        {
+          "id": "@pnpm#npm-lib",
+          "hash": "7CC0D50969F50D3400C7BAFEDA87E0A21DFC21D46908058BB49F0816D4238006"
+        }
+      ],
+      "dependenciesHash": "837A0B89107BA1C935AFA53939595B3AC2F32FDB09493C91D9DE336404D24D57",
+      "projectHash": "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2"
+    },
+    {
+      "id": "@pnpm#npm-lib",
+      "name": "npm_lib",
+      "directory": "libraries/npm-lib",
+      "files": [
+        {
+          "path": "libraries/npm-lib/PROJECT",
+          "hash": "9F3C959013C4F7AC86584B6519B10CED6B7E30382C5B6CA6719AB816EB33E9B7"
+        },
+        {
+          "path": "libraries/npm-lib/package.json",
+          "hash": "BC25791FB7CC7EA4826362826B163926609524A8A166A31B4E7DB60CF5A6A9C2"
+        },
+        {
+          "path": "libraries/npm-lib/pnpm-lock.yaml",
+          "hash": "F82F7BF4B969180811E58508D017E6077EDDB205942926591669FA06EAB2AEC1"
+        },
+        {
+          "path": "libraries/npm-lib/src/Button.tsx",
+          "hash": "4A893B323AEA5C77BC12EBCF64671E57FADAA9D0DF801A4A872670EB572EDB47"
+        },
+        {
+          "path": "libraries/npm-lib/src/index.tsx",
+          "hash": "5B361C09E423A58583EF1B4C4BA07A354A5F851EA3DB30E58D5E68DA957E82C9"
+        },
+        {
+          "path": "libraries/npm-lib/src/logger.ts",
+          "hash": "E257957022D8CBC569506D0C32F76EA814BE44CC1518470FF8801A40978BD4D8"
+        },
+        {
+          "path": "libraries/npm-lib/src/say-hello.ts",
+          "hash": "25FE626A6C386D861B1B2AD305B03BF04EE3EEF5642ADD2ED3F95CB2DFE18D42"
+        },
+        {
+          "path": "libraries/npm-lib/tsconfig.json",
+          "hash": "0A02E0BF612EA090B4F0F317CE159DA6B026E08FA7B89A6B6B20A9A29D14765D"
+        }
+      ],
+      "fileContentHash": "65484873BDC4121BE30C9C26084E8D03ABBF411CC90D168F31605AEAAB71D85D",
+      "fileNameHash": "72E29C48E6738E258A52671431B20B39EB583EE21BBB2BF8A97B6C625845DA18",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "7CC0D50969F50D3400C7BAFEDA87E0A21DFC21D46908058BB49F0816D4238006"
+    },
+    {
+      "id": "workspace/path#deployments/terraform-deploy",
+      "directory": "deployments/terraform-deploy",
+      "files": [
+        {
+          "path": "deployments/terraform-deploy/.gitignore",
+          "hash": "F0D728C5BF3D091C3A8BF4D5305BB447C7384D4BE1A67F610E6CBDB2DE059F2F"
+        },
+        {
+          "path": "deployments/terraform-deploy/.terraform.lock.hcl",
+          "hash": "32963332EA9BF8E35E53A758741A5C4FC054BAAAAD6E7F22F41486D7F78FAFF5"
+        },
+        {
+          "path": "deployments/terraform-deploy/PROJECT",
+          "hash": "FB8C626DAD84B2BF99840755011FA89E8244677CFA3DA41EDDA28D998FFD7B21"
+        },
+        {
+          "path": "deployments/terraform-deploy/backend.tf",
+          "hash": "AAFF19DE3BF068F37FF5C4F19D33A74ABEC205B146E13598AF26BB31D094F2CF"
+        },
+        {
+          "path": "deployments/terraform-deploy/test_res.tf",
+          "hash": "B3DC00A529F9540E315E00F49CA1B36BA513E82E6683F8D743C50B5E78BD2DC6"
+        },
+        {
+          "path": "deployments/terraform-deploy/variables.tf",
+          "hash": "EBCA00950CFFA268DD2232DBA13191785F60AA2935EBCF2BD92EF8C8F55412B5"
+        }
+      ],
+      "fileContentHash": "33A218F01BA56CF866CF93B32739532A4CFD4D6DED2FBCCCD6D82DC41144773E",
+      "fileNameHash": "F8C99929C09947FE1BD76B49B2CAE374E334C35A93E478F5FF8616E0308DA0FD",
+      "dependencies": [
+        {
+          "id": "@pnpm#npm-app",
+          "hash": "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2"
+        },
+        {
+          "id": "workspace/path#projects/dotnet-app",
+          "hash": "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A"
+        }
+      ],
+      "dependenciesHash": "383B067A3521FB009E3DE5435ACCBC79B9177FBEA72C9A10DF720E722DFD826A",
+      "projectHash": "0CDE8449DA4BE3834EA0A2E0492CBAE0081109CAF6DCBF6B12388C6633F6B357"
+    },
+    {
+      "id": "workspace/path#libraries/dotnet-lib",
+      "directory": "libraries/dotnet-lib",
+      "files": [
+        {
+          "path": "libraries/dotnet-lib/Class1.cs",
+          "hash": "CEDEB8BFAE93FCB1CDCF94A92DCC37B84C39BB45E346CE4F68872E1E55AAFE7F"
+        },
+        {
+          "path": "libraries/dotnet-lib/PROJECT",
+          "hash": "5375DFCC639FAD4B26E98E460F192046397BD16DD837C5927B84EEAD0B527D4F"
+        },
+        {
+          "path": "libraries/dotnet-lib/dotnet-lib.csproj",
+          "hash": "CBF674BAE8E0B087414641D3E9FD04D4F7343D6720413E410CFDF359087F9710"
+        }
+      ],
+      "fileContentHash": "991505C9D90C40D0CD74B67A88A867075FAFCAEF0DDF156E9FCA329E4AF51BF8",
+      "fileNameHash": "EA7184C691074529549DA41C92C0AED93AC614F74CB72BA28BE88DE4F19706DF",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "D7695503391CECE4DECC4E77E79BD243EDEAE789831F67CC477ED629CD97D17C"
+    },
+    {
+      "id": "workspace/path#libraries/shell-lib",
+      "name": "shell_lib",
+      "directory": "libraries/shell-lib",
+      "files": [
+        {
+          "path": "libraries/shell-lib/PROJECT",
+          "hash": "A1586349686B324E6556EA54DA46CDF457390413061A85FC9CB9CD5EB02201E2"
+        }
+      ],
+      "fileContentHash": "1D14B6FE7CB4CED01BE258D1522B422F88F894782CD0551316EA289220F2FDD6",
+      "fileNameHash": "D1FB402F1269BA7396DCA9CBD03B44AC055874669BCE1D0F239FA2F54EA3584B",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "290E8E7AC7693543F774F195B86A1AC3BBE4B298F91453D5C5089FE19BE87342"
+    },
+    {
+      "id": "workspace/path#projects/dotnet-app",
+      "name": "dotnet_app",
+      "directory": "projects/dotnet-app",
+      "files": [
+        {
+          "path": "projects/dotnet-app/../shared-folder/Terminal.cs",
+          "hash": "D42E3A9820EA3BD34E1647D18491345358B7A1E0B27C209D19D741C7E1797795"
+        },
+        {
+          "path": "projects/dotnet-app/Dockerfile",
+          "hash": "6F8869D347F8C9BD358F8411945942F29BD5EFCAF83158668A93DC7408DE7CFF"
+        },
+        {
+          "path": "projects/dotnet-app/PROJECT",
+          "hash": "9DA3C20819C36DE0570F49775C291A1EDD7B15FD67A51E802F16C813DAA5E099"
+        },
+        {
+          "path": "projects/dotnet-app/Program.cs",
+          "hash": "8530443C3195C2676687A0B482DDA18D890A65825713AC80B8A3750C398FEE83"
+        },
+        {
+          "path": "projects/dotnet-app/dotnet-app.csproj",
+          "hash": "406D9DC3C1E5006FAA8228F00B6D08CB632544EC9E0A666EBD47FDDC1226799A"
+        }
+      ],
+      "fileContentHash": "6C84A127A362DDA58CD2E63E7C4220E658399D2A4987AF97E1D66A6B2B7E6593",
+      "fileNameHash": "2326A11D5365E58E7D469D2B8AB779E178B86CBDED1B0D1389832955B08BA611",
+      "dependencies": [
+        {
+          "id": "workspace/path#libraries/dotnet-lib",
+          "hash": "D7695503391CECE4DECC4E77E79BD243EDEAE789831F67CC477ED629CD97D17C"
+        }
+      ],
+      "dependenciesHash": "06EF719F0F5E793AF347BCBD6AF44F3E589A431C630D42B748ABA82C6F0D3B4A",
+      "projectHash": "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A"
+    },
+    {
+      "id": "workspace/path#projects/fscript-app",
+      "name": "fscript_app",
+      "directory": "projects/fscript-app",
+      "files": [
+        {
+          "path": "projects/fscript-app/PROJECT",
+          "hash": "F9F23282DABDDF6CA0225354759BC928F8161D5B98731E5E2A00BE864C297FC0"
+        },
+        {
+          "path": "projects/fscript-app/scripts/write-version.fss",
+          "hash": "2F78AD42ADCADD120507CDD1D647A63B96AACBFAA68C9CD660DE39B47084311B"
+        }
+      ],
+      "fileContentHash": "0B25A5C0DC32E314F211C6E69D57C5BFEFB7E80BE7DCFD08BF316AE934024CA7",
+      "fileNameHash": "AD7DCE6329EE25E176EECECBE8635DF25B127021CAD33A2CBCE0865BC52F534E",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D"
+    },
+    {
+      "id": "workspace/path#projects/make-app",
+      "directory": "projects/make-app",
+      "files": [
+        {
+          "path": "projects/make-app/Makefile",
+          "hash": "BA4B39DAED61E95DB57110A9051A8214184E27BC7F3D7DCA6CA6AC7B87A56EE9"
+        },
+        {
+          "path": "projects/make-app/PROJECT",
+          "hash": "FB6FC756AACB96103E7776B20D3D0E712DC2D4AC680E8F950B69FDF1EF8BB9EE"
+        }
+      ],
+      "fileContentHash": "85E0B0410B87F1E8C7B6A81AF24942C19B57E61B8235A711FB2AA7DC4BBE8CFD",
+      "fileNameHash": "295BEB2321D50AA01AB3A91EE87FFA07CB001DEBECBC1D8F84EA7644F0AA1260",
+      "dependencies": [
+        {
+          "id": "workspace/path#libraries/shell-lib",
+          "hash": "290E8E7AC7693543F774F195B86A1AC3BBE4B298F91453D5C5089FE19BE87342"
+        }
+      ],
+      "dependenciesHash": "FF31397234B5D4F571FDF1EA378375D25D9D543DA7D85DE116E06B56604056EA",
+      "projectHash": "D11150BC5F0464B756259344DF172B9B2CC44856C3E7DEEC8CFA1F2EB02246E6"
+    },
+    {
+      "id": "workspace/path#projects/open-api",
+      "directory": "projects/open-api",
+      "files": [
+        {
+          "path": "projects/open-api/.gitignore",
+          "hash": "EF8AED55FBA64258003F3479FF60A060DDB8301D170110A0D2DFA0CE4EA04EB3"
+        },
+        {
+          "path": "projects/open-api/PROJECT",
+          "hash": "E583F9172675CD28827ABFBDCE978056F131593645B1AC1AAB2C1025CC8653FC"
+        },
+        {
+          "path": "projects/open-api/api.json",
+          "hash": "CAC84D11BC34BB4B3C0D25EDDEA17B24BB479BA47BE9CFBD67330077919BB342"
+        }
+      ],
+      "fileContentHash": "1E0B854B2608716D91AA61D501D917DC9366170264E6FE2F66FA982870D42393",
+      "fileNameHash": "BACD214B0EF28CC124DBC2683D650FD4EEA2DDB4F844CFB5F39FE2046320F0C5",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "8D3EC02FB3C760C4389EFFDF8E7B125905D975E090B1079F939082B6D428B6ED"
+    },
+    {
+      "id": "workspace/path#projects/rust-app",
+      "directory": "projects/rust-app",
+      "files": [
+        {
+          "path": "projects/rust-app/Cargo.lock",
+          "hash": "CDD2184E1BDC0221DCCBF55A192799147742B43D5C2712E56E6C2AFA9EB8A07A"
+        },
+        {
+          "path": "projects/rust-app/Cargo.toml",
+          "hash": "A46D60A39347736DF4257D8E9AF8A1140E02BC83515164709454EC9FBE0F0711"
+        },
+        {
+          "path": "projects/rust-app/PROJECT",
+          "hash": "3D32E0D88D1B72C1A0D94B779E718EF65224E3B5391054E8A7C3E275A96554FA"
+        },
+        {
+          "path": "projects/rust-app/src/main.rs",
+          "hash": "C8E0583694BB1E0188DBE28FE0D65AC1130723C55F968B6262B906C147F72549"
+        }
+      ],
+      "fileContentHash": "8B84A2258C9AE88C6190E9B8E9940637F7FFC8EB6B4EDF3DB78E3B812A0B18A6",
+      "fileNameHash": "EFB275F150B64EAD62AFD85641600FE52E1841A481D37BCA3E31032EB96415AF",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "70492DEE80C7B1494972FF7F6DFF5C192EE994345B7185182E3ED051F115E5E5"
+    },
+    {
+      "id": "workspace/path#tests/playwright",
+      "name": "playwright_test",
+      "directory": "tests/playwright",
+      "files": [
+        {
+          "path": "tests/playwright/.gitignore",
+          "hash": "23F8F59E022A74F16A62E4E06AC0F3F851D1C489AEC88BC3130A25CEBCE2D646"
+        },
+        {
+          "path": "tests/playwright/PROJECT",
+          "hash": "84D1F9A82AC16FCDABEC1253585B9E71E0E8CF6C5C374C22D72B8F3BDE1B3E05"
+        },
+        {
+          "path": "tests/playwright/package-lock.json",
+          "hash": "0863EBFCAD9A808DD5E84BFDC5085862BB7CE3358464BD3A8FCE7155DF9EA0AD"
+        },
+        {
+          "path": "tests/playwright/package.json",
+          "hash": "A81C49BFEB379409010A17A2A7EB19D130916D851320B28481D4145B9E941642"
+        },
+        {
+          "path": "tests/playwright/playwright.config.ts",
+          "hash": "127585E1790684D8F41957DFEB064ED424729273BECB60AA8B3E493DB4122CAA"
+        },
+        {
+          "path": "tests/playwright/tests/example.test.ts",
+          "hash": "1225694C2D59099487E795E0C04AB95745B41D465BFD2B85FCBDB86C777EACCC"
+        }
+      ],
+      "fileContentHash": "7E145FA360B0661C2038D772E8545B4A798CC68DD8D3ECC4B9CD51416F520C4A",
+      "fileNameHash": "73890AFB4EE184C3F8E4D0FB430187B31160B8386E3CF54C1D0A855B4181237D",
+      "dependencies": [],
+      "dependenciesHash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "projectHash": "EDE2B8AF5350411BF59F38EACF526CD066C29E582E1B3293F84A9514F1692740"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDirectory": "projects/go-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "bin/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "E21F3C1CDEE2891EA8DEB6D5D189642EE925D890A41B562D5924ADD0029A89F3",
+        "operationHashes": [
+          "AA2DAAAC3E8A3E184F7C7CA097646BEAAB3DB562F0868305597BD056FECA0FC6"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "E4B7A51E3C7E1CA52EED043A4B2A00890F2E6F37EC8BC0282B95E086810FA2D9",
+        "cacheKey": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715/build/E4B7A51E3C7E1CA52EED043A4B2A00890F2E6F37EC8BC0282B95E086810FA2D9"
+      }
+    },
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+      "projectId": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "projectDirectory": "projects/go-app",
+      "target": "test",
+      "selected": true,
+      "dependencies": [
+        "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "bin/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "FFF5AC8D73731D39A5211D87BFD9FAFE0588AAE7A5C2B08DD069BA6EFDB689BD",
+        "operationHashes": [
+          "9EE9B709F4880C330A2578F36F2BCFB8E91864D1D5C575C3CA3B2B57EEC16CFD"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+            "hash": "E4B7A51E3C7E1CA52EED043A4B2A00890F2E6F37EC8BC0282B95E086810FA2D9"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "DA43F948543A167D2476EFDB75FE7ABC8357CF83F9AB12FD87EBEE6ED898A208",
+        "cacheKey": "593DEBE186DA77A7B6407D21687067912BCD766BF91B71C3B59C9AAB89796715/test/DA43F948543A167D2476EFDB75FE7ABC8357CF83F9AB12FD87EBEE6ED898A208"
+      }
+    },
+    {
+      "id": "@pnpm#npm-app:build",
+      "projectId": "@pnpm#npm-app",
+      "projectName": "npm_app",
+      "projectDirectory": "projects/npm-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [
+        "@pnpm#npm-lib:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "batchId": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
+        "operationHashes": [
+          "AF494EEA58EEFFE1F4411B68F0BD889F40A4C8EC14F0C2EB7FA98782B90716C2",
+          "4D152024E48BF243D2ED070FE704CA30BC63B2A02C7C72164B1EAF70A07CD925"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "@pnpm#npm-lib:build",
+            "hash": "9FF47875174892663FC3795446058C98414CE415148FC8EF3EF64AD4E50178C6"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "88001ED0E2577C631B5AA4FA6127B4F97D613A9ACC99AB9B0CB7E39C05499A58",
+        "cacheKey": "72339700811A249FAD7EF6141192FC119E9009FA6D4DA740AD403CD7D1BBB0B2/build/88001ED0E2577C631B5AA4FA6127B4F97D613A9ACC99AB9B0CB7E39C05499A58"
+      }
+    },
+    {
+      "id": "@pnpm#npm-lib:build",
+      "projectId": "@pnpm#npm-lib",
+      "projectName": "npm_lib",
+      "projectDirectory": "libraries/npm-lib",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "batchId": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
+        "operationHashes": [
+          "AF494EEA58EEFFE1F4411B68F0BD889F40A4C8EC14F0C2EB7FA98782B90716C2",
+          "4D152024E48BF243D2ED070FE704CA30BC63B2A02C7C72164B1EAF70A07CD925"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "9FF47875174892663FC3795446058C98414CE415148FC8EF3EF64AD4E50178C6",
+        "cacheKey": "7CC0D50969F50D3400C7BAFEDA87E0A21DFC21D46908058BB49F0816D4238006/build/9FF47875174892663FC3795446058C98414CE415148FC8EF3EF64AD4E50178C6"
+      }
+    },
+    {
+      "id": "workspace/path#deployments/terraform-deploy:build",
+      "projectId": "workspace/path#deployments/terraform-deploy",
+      "projectDirectory": "deployments/terraform-deploy",
+      "target": "build",
+      "selected": true,
+      "dependencies": [
+        "@pnpm#npm-app:build",
+        "workspace/path#projects/dotnet-app:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "*.planfile"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "4B6B52D8E491FA25605F77B18D0D7A529B07AE08A5329FD30281EF1514A69F2D",
+        "operationHashes": [
+          "A674DBA5B8CFFE6EB45784841654CFA3B5650B17A184786073A3355C68DF89C7",
+          "89DD734AADE1C2F634C6352B93116D4796B690ECC5B59129B8E6ED7B663FF20C"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "@pnpm#npm-app:build",
+            "hash": "88001ED0E2577C631B5AA4FA6127B4F97D613A9ACC99AB9B0CB7E39C05499A58"
+          },
+          {
+            "id": "workspace/path#projects/dotnet-app:build",
+            "hash": "AB7EECD436CFDAF1D56CD6910E908EC78747F432165DDA9574B4CE08675860E8"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "7FAB412938992479E06E94514F37C1FBDEE05A8F13819442CDDF00F7F4573126",
+        "cacheKey": "0CDE8449DA4BE3834EA0A2E0492CBAE0081109CAF6DCBF6B12388C6633F6B357/build/7FAB412938992479E06E94514F37C1FBDEE05A8F13819442CDDF00F7F4573126"
+      }
+    },
+    {
+      "id": "workspace/path#deployments/terraform-deploy:deploy",
+      "projectId": "workspace/path#deployments/terraform-deploy",
+      "projectDirectory": "deployments/terraform-deploy",
+      "target": "deploy",
+      "selected": false,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "*.planfile"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "actionDependencies": [],
+      "requiredBy": []
+    },
+    {
+      "id": "workspace/path#libraries/dotnet-lib:build",
+      "projectId": "workspace/path#libraries/dotnet-lib",
+      "projectDirectory": "libraries/dotnet-lib",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "batchId": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "D4CAEF6EABF90EA80595D85F2D1A1837E1B2A4C2FFC648B3E885C1209EB2840D",
+        "operationHashes": [
+          "57542C1DA1D87914B79097A5D29EE1B49A0B71094814968FAB988DF2DCB78444",
+          "9267D2A15A6E869D91675B917ACB4BE03FC100DF59EDCB95E1B6FA4CB8894B55"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "ED60B0509E94D394929CDB203E1E1334E2B21A93EC5BBBB1993D3AB81CB5B5BD",
+        "cacheKey": "D7695503391CECE4DECC4E77E79BD243EDEAE789831F67CC477ED629CD97D17C/build/ED60B0509E94D394929CDB203E1E1334E2B21A93EC5BBBB1993D3AB81CB5B5BD"
+      }
+    },
+    {
+      "id": "workspace/path#libraries/shell-lib:build",
+      "projectId": "workspace/path#libraries/shell-lib",
+      "projectName": "shell_lib",
+      "projectDirectory": "libraries/shell-lib",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "F7A64F81012F52F802DAB1AC3B21D4D0C459629776730240EF13B6B4571F92B9",
+        "operationHashes": [
+          "D5AB5F762EB91043FF3BED0634AA8A56BD535B091A820361B32BD1BC724A962C"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "F3EDBD4203A3D9E8340A26CB5B06D6ECD186CF396D432B6873826DABD2630A4D",
+        "cacheKey": "290E8E7AC7693543F774F195B86A1AC3BBE4B298F91453D5C5089FE19BE87342/build/F3EDBD4203A3D9E8340A26CB5B06D6ECD186CF396D432B6873826DABD2630A4D"
+      }
+    },
+    {
+      "id": "workspace/path#projects/dotnet-app:build",
+      "projectId": "workspace/path#projects/dotnet-app",
+      "projectName": "dotnet_app",
+      "projectDirectory": "projects/dotnet-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [
+        "workspace/path#libraries/dotnet-lib:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "batchId": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "E97FC4A993034019AA0BB11CE05A09244CC6D0538BAACA198A29ABF5C645F6E3",
+        "operationHashes": [
+          "57542C1DA1D87914B79097A5D29EE1B49A0B71094814968FAB988DF2DCB78444",
+          "9267D2A15A6E869D91675B917ACB4BE03FC100DF59EDCB95E1B6FA4CB8894B55"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "workspace/path#libraries/dotnet-lib:build",
+            "hash": "ED60B0509E94D394929CDB203E1E1334E2B21A93EC5BBBB1993D3AB81CB5B5BD"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "AB7EECD436CFDAF1D56CD6910E908EC78747F432165DDA9574B4CE08675860E8",
+        "cacheKey": "1E0DA22A861AED6D54CF3FBF1A5CC705776E25B92058FFE370009CCC896B1D6A/build/AB7EECD436CFDAF1D56CD6910E908EC78747F432165DDA9574B4CE08675860E8"
+      }
+    },
+    {
+      "id": "workspace/path#projects/dotnet-app:dist",
+      "projectId": "workspace/path#projects/dotnet-app",
+      "projectName": "dotnet_app",
+      "projectDirectory": "projects/dotnet-app",
+      "target": "dist",
+      "selected": false,
+      "dependencies": [
+        "workspace/path#projects/dotnet-app:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "actionDependencies": [],
+      "requiredBy": []
+    },
+    {
+      "id": "workspace/path#projects/dotnet-app:docker",
+      "projectId": "workspace/path#projects/dotnet-app",
+      "projectName": "dotnet_app",
+      "projectDirectory": "projects/dotnet-app",
+      "target": "docker",
+      "selected": false,
+      "dependencies": [
+        "workspace/path#projects/dotnet-app:dist"
+      ],
+      "phaseDependencies": [],
+      "outputs": [
+        "**/*.binlog",
+        "bin/",
+        "obj/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "actionDependencies": [],
+      "requiredBy": []
+    },
+    {
+      "id": "workspace/path#projects/fscript-app:build",
+      "projectId": "workspace/path#projects/fscript-app",
+      "projectName": "fscript_app",
+      "projectDirectory": "projects/fscript-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "A1CB523F059E821AC943A51CFA1E32C0490B29FC1DD5F69D665689DE33AB0625",
+        "operationHashes": [
+          "1129461C6406D03DCE4C93C4B17A95006C9961F30241E6D95972889371A4F9DC",
+          "245B5A47D32B219C645F2E145B8448B0A0A933AA784451AFE47BE3311CCB6872"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "A4A678794BE539EE4A74FEF9689926AA94509943203758B76D4666C49C412CF6",
+        "cacheKey": "E6B6E9429E583076E16A25D019E73B93CCAF1986A351F1BFC1D4ADDD558E614D/build/A4A678794BE539EE4A74FEF9689926AA94509943203758B76D4666C49C412CF6"
+      }
+    },
+    {
+      "id": "workspace/path#projects/make-app:build",
+      "projectId": "workspace/path#projects/make-app",
+      "projectDirectory": "projects/make-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [
+        "workspace/path#libraries/shell-lib:build"
+      ],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "none",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "40CD3B22AC5F0A9E28B39FD297E2FFACD3A80379893032887CFD341823B29A28",
+        "operationHashes": [
+          "6D8B020AE9E2BD8A1C4D09A5997259E2043C017183C2B61663B1D941865F4323",
+          "7E641537253ACCEDF1B7F35232E7F7C67B3AEB9964001B19FC0C9EFFBB7857AC"
+        ],
+        "dependencyTargetHashes": [
+          {
+            "id": "workspace/path#libraries/shell-lib:build",
+            "hash": "F3EDBD4203A3D9E8340A26CB5B06D6ECD186CF396D432B6873826DABD2630A4D"
+          }
+        ],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "2DA2913775681143805095C5F9019CE494460E2C74FA308298BBD48FECFD531C",
+        "cacheKey": "D11150BC5F0464B756259344DF172B9B2CC44856C3E7DEEC8CFA1F2EB02246E6/build/2DA2913775681143805095C5F9019CE494460E2C74FA308298BBD48FECFD531C"
+      }
+    },
+    {
+      "id": "workspace/path#projects/open-api:build",
+      "projectId": "workspace/path#projects/open-api",
+      "projectDirectory": "projects/open-api",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "D01503395625DC5E32A127548D82D6EAEED44788E30DAB6D5DC574E47F8FDDA1",
+        "operationHashes": [
+          "46EBAA8F6D777127BC467ECB31CF94E7BE11F2EE8E15F67317998082D14A714D"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "531BE5FBC48CC033A297DC4EE075710F4F87E42B4BF27ECEE46189294863FFBE",
+        "cacheKey": "8D3EC02FB3C760C4389EFFDF8E7B125905D975E090B1079F939082B6D428B6ED/build/531BE5FBC48CC033A297DC4EE075710F4F87E42B4BF27ECEE46189294863FFBE"
+      }
+    },
+    {
+      "id": "workspace/path#projects/rust-app:build",
+      "projectId": "workspace/path#projects/rust-app",
+      "projectDirectory": "projects/rust-app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "target/debug/",
+        "target/release/"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "EA3577578C1E220B122DC610B236E1F1454D419144A195F754C3F527C62CF34D",
+        "operationHashes": [
+          "E181E8448943AA112064CEC657E34337D423B9B85B4DED82F6D463A964DD35EB"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "46D81B07DCBA298EE13D806C9DAC2D1D88D222271E1C8348ECCBE00EBE467D34",
+        "cacheKey": "70492DEE80C7B1494972FF7F6DFF5C192EE994345B7185182E3ED051F115E5E5/build/46D81B07DCBA298EE13D806C9DAC2D1D88D222271E1C8348ECCBE00EBE467D34"
+      }
+    },
+    {
+      "id": "workspace/path#tests/playwright:test",
+      "projectId": "workspace/path#tests/playwright",
+      "projectName": "playwright_test",
+      "projectDirectory": "tests/playwright",
+      "target": "test",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "outputs": [
+        "dist/**"
+      ],
+      "artifacts": "managed",
+      "build": "always",
+      "batchMode": "single",
+      "action": "exec",
+      "actionReason": "forced-cli",
+      "actionDependencies": [],
+      "required": true,
+      "requirementReason": "already-required",
+      "requiredBy": [],
+      "fingerprint": {
+        "declaredTargetHash": "3A622BD7DE31FF36DEB4D111EED40DA9989347E1C4357104BB4B212343E939A3",
+        "operationHashes": [
+          "E50DAE702042AB16A0158B83810FCA42EFA48C6858881F25370AB17FF78F24B6",
+          "E3FA2FC20DB759C86E67DA2B7B6A609D71A25DEAD670E8E884E7D23436C98FBF"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "233BD2D361C4B7B03249250ECF4C1C5F30A83CE869D81C164B1741F62F300C17",
+        "cacheKey": "EDE2B8AF5350411BF59F38EACF526CD066C29E582E1B3293F84A9514F1692740/test/233BD2D361C4B7B03249250ECF4C1C5F30A83CE869D81C164B1741F62F300C17"
+      }
+    }
+  ],
+  "batches": [
+    {
+      "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "members": [
+        "@pnpm#npm-app:build",
+        "@pnpm#npm-lib:build"
+      ],
+      "dependencies": [],
+      "targetHash": "44385A58B2EB177FF201561EB931B42813A8597CA3BB20A22E1195EA350397F3",
+      "operationHashes": [
+        "D532B28CB3189404F0F3D8D659C6F83637C10604CB3906C27085A3FFB9B46E0F",
+        "F725AF76CD3177EF8C2743C3AB8D8032010FA678AF80D22509798298642814ED"
+      ]
+    },
+    {
+      "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "members": [
+        "workspace/path#libraries/dotnet-lib:build",
+        "workspace/path#projects/dotnet-app:build"
+      ],
+      "dependencies": [],
+      "targetHash": "57EFEC3265CF225FDE93D239AB3EF16FF3F183015542A698896678AAF3D3D07A",
+      "operationHashes": [
+        "D6D95470B01DAB008AA22BF8FCFDE36C49A977BF15B7937FC0D717482F19381B",
+        "E4CCA1A70A243F3CB1843ADA1B861D088407242E6F87D94E19150FB1D61B3341"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "@pnpm#npm-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "@pnpm#npm-lib:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#deployments/terraform-deploy:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#libraries/dotnet-lib:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#libraries/shell-lib:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#projects/dotnet-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#projects/fscript-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#projects/make-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#projects/open-api:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#projects/rust-app:build",
+      "request": "exec",
+      "status": "success"
+    },
+    {
+      "id": "workspace/path#tests/playwright:test",
+      "request": "exec",
+      "status": "success"
+    }
+  ],
+  "executions": [
+    {
+      "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "kind": "batch",
+      "events": [
+        "scheduled",
+        "ready",
+        "batch-started",
+        "batch-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@pnpm install",
+          "command": "docker",
+          "argumentsHash": "EA15165EB76F089F6B875780D38F126D43C47F4F8AA6EDF97EB11884B76C3990",
+          "container": "guergeiro/pnpm:20-10",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@pnpm build",
+          "command": "docker",
+          "argumentsHash": "50590874A49F837ED54924C22DBEC3859549F7CAE44DDC369E277568BC324029",
+          "container": "guergeiro/pnpm:20-10",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "kind": "batch",
+      "events": [
+        "scheduled",
+        "ready",
+        "batch-started",
+        "batch-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "docker",
+          "argumentsHash": "2EB93F6228D4504FDA0E0AC5CB3719BF7C8E27A1735312403105678C1C9B9CE3",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "docker",
+          "argumentsHash": "A1904FC9AFC63D7912A5C552B209D4B3838110C7BF22748FE0D8E7742E9370C8",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@go build",
+          "command": "docker",
+          "argumentsHash": "7B74709246079B2309E794653891DE911FF6DDCEB5625477A53207A228A9A876",
+          "container": "golang:1.26.5-bookworm",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@go test",
+          "command": "docker",
+          "argumentsHash": "1FDEC984E79A408EAD724C2D5996DCD169C344A8B0CC046DC0E5A3933EF5D63F",
+          "container": "golang:1.26.5-bookworm",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#deployments/terraform-deploy:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@terraform init",
+          "command": "docker",
+          "argumentsHash": "224A5FD509D8220B568F946D0A5D5DD7933FEF1A5F7A0398F979B9F36CD9685A",
+          "container": "hashicorp/terraform:1.10",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@terraform plan",
+          "command": "docker",
+          "argumentsHash": "D64AB89D58EF72AF6DE9E9FC8600E8B132D2EC5FB2367798D7173FE7A9E0C718",
+          "container": "hashicorp/terraform:1.10",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#libraries/shell-lib:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "FD312CF8EC7D88611DC1CFB2E4DB840CC4915BA3832793A30681704B762CB338",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#projects/fscript-app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@fscript execute",
+          "command": "fscript",
+          "argumentsHash": "591713C654B05BA64E2A1519D859C57CD4494E6125EF9A3D4C3ACD6B5CCD4EA4",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@shell cat",
+          "command": "cat",
+          "argumentsHash": "F68A4F2F161CAF00994CC78F572310C7B0C296931A320258EC6835E6987B9250",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#projects/make-app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "2AADD416061B0A52E2196F99E8019B41791C33DB3C9809F415BA837683F5EEE4",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@make build",
+          "command": "make",
+          "argumentsHash": "866A7D4D2259937AA43855335707641B40E53A50CAA5B7E4F4107F7C6521C6F5",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#projects/open-api:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@openapi generate",
+          "command": "docker",
+          "argumentsHash": "80780003FC2315ED53686729B25ED3135863E0AF987A7F8A5061B68565DA584D",
+          "container": "openapitools/openapi-generator-cli:v7.10.0",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#projects/rust-app:build",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@cargo build",
+          "command": "docker",
+          "argumentsHash": "C4965EB7778D60DF598A86180F5A4EA8065033E0C8E3BEE25E0D16A81B0AA8E0",
+          "container": "rust:1.81.0-slim",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "workspace/path#tests/playwright:test",
+      "kind": "execution",
+      "events": [
+        "scheduled",
+        "ready",
+        "execution-started",
+        "execution-ended",
+        "upload-started",
+        "upload-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "argumentsHash": "C242C73EFDF7150950DD72455887B12FB9EA14674DCD2EBBE224AC961C0191D4",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@playwright test",
+          "command": "docker",
+          "argumentsHash": "0C033CF1EAAFC4AF6B8EC8A868BDA573377717A14E19F8842924A05C12B7FB8D",
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+          "exitCode": 0
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "phases": [
+      "configuration",
+      "graph-node",
+      "graph-phase",
+      "graph-selection",
+      "graph-resolve",
+      "graph-action",
+      "graph-cascade",
+      "graph-batch",
+      "runner"
+    ],
+    "configurationProjects": [
+      "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app",
+      "@pnpm#npm-app",
+      "@pnpm#npm-lib",
+      "workspace/path#deployments/terraform-deploy",
+      "workspace/path#libraries/dotnet-lib",
+      "workspace/path#libraries/shell-lib",
+      "workspace/path#projects/dotnet-app",
+      "workspace/path#projects/fscript-app",
+      "workspace/path#projects/make-app",
+      "workspace/path#projects/open-api",
+      "workspace/path#projects/rust-app",
+      "workspace/path#tests/playwright"
+    ],
+    "slowestPhases": [
+      "configuration",
+      "graph-action",
+      "graph-batch",
+      "graph-cascade",
+      "graph-node",
+      "graph-phase",
+      "graph-resolve",
+      "graph-selection",
+      "runner"
+    ],
+    "slowestTasks": [
+      {
+        "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+        "kind": "batch"
+      },
+      {
+        "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+        "kind": "batch"
+      },
+      {
+        "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build",
+        "kind": "execution"
+      },
+      {
+        "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#deployments/terraform-deploy:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#libraries/shell-lib:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#projects/fscript-app:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#projects/make-app:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#projects/open-api:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#projects/rust-app:build",
+        "kind": "execution"
+      },
+      {
+        "id": "workspace/path#tests/playwright:test",
+        "kind": "execution"
+      }
+    ],
+    "criticalChain": true,
+    "fScript": {
+      "scriptLoads": 12,
+      "scriptCacheHits": 0,
+      "invocations": 33,
+      "scriptEvaluations": 33,
+      "toFScriptConversions": 52,
+      "fromFScriptConversions": 33,
+      "functions": [
+        {
+          "id": "cargo.fss:build",
+          "count": 1
+        },
+        {
+          "id": "cargo.fss:defaults",
+          "count": 1
+        },
+        {
+          "id": "dotnet.fss:build",
+          "count": 3
+        },
+        {
+          "id": "dotnet.fss:defaults",
+          "count": 2
+        },
+        {
+          "id": "dotnet.fss:restore",
+          "count": 3
+        },
+        {
+          "id": "fscript.fss:execute",
+          "count": 1
+        },
+        {
+          "id": "go.fss:build",
+          "count": 1
+        },
+        {
+          "id": "go.fss:defaults",
+          "count": 1
+        },
+        {
+          "id": "go.fss:test",
+          "count": 1
+        },
+        {
+          "id": "make.fss:dispatch",
+          "count": 1
+        },
+        {
+          "id": "npm.fss:defaults",
+          "count": 1
+        },
+        {
+          "id": "npm.fss:install",
+          "count": 1
+        },
+        {
+          "id": "openapi.fss:generate",
+          "count": 1
+        },
+        {
+          "id": "playwright.fss:test",
+          "count": 1
+        },
+        {
+          "id": "pnpm.fss:build",
+          "count": 3
+        },
+        {
+          "id": "pnpm.fss:defaults",
+          "count": 2
+        },
+        {
+          "id": "pnpm.fss:install",
+          "count": 3
+        },
+        {
+          "id": "shell.fss:dispatch",
+          "count": 3
+        },
+        {
+          "id": "terraform.fss:defaults",
+          "count": 1
+        },
+        {
+          "id": "terraform.fss:init",
+          "count": 1
+        },
+        {
+          "id": "terraform.fss:plan",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

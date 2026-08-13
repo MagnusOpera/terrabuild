@@ -14,45 +14,67 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     let scheduledNodeStatus = ConcurrentDictionary<string, bool>()
     use hub = Hub.Create(options.MaxConcurrency)
 
-    let getNodeAction (node: Node) hasChildBuilding =
+    let getNodeAction (node: Node) (buildingDependencies: string list) =
+        let cacheScope =
+            if isRemoteCacheable options node then "local-and-remote"
+            else "local"
+
+        let record action reason dependencies cache =
+            DiagnosticsTelemetry.recordAction {
+                DiagnosticsTelemetry.ActionDecision.NodeId = node.Id
+                Action = (string action).ToLowerInvariant()
+                Reason = reason
+                Dependencies = dependencies
+                Cache = cache
+            }
+            action
+
+        let cacheEvidence lookup origin previousStatus endedAt : DiagnosticsTelemetry.CacheEvidence option =
+            Some {
+                Scope = cacheScope
+                Key = buildCacheKey node
+                Lookup = lookup
+                Origin = origin
+                PreviousStatus = previousStatus
+                SummaryEndedAt = endedAt
+            }
+
         // task is forced to build
         if node.Build = BuildMode.Always then
-            Log.Debug("Node '{NodeId}' is marked for build", node.Id)
-            (RunAction.Exec, DateTime.MaxValue)
+            let reason = if options.Force then "forced-cli" else "configured-always"
+            (record RunAction.Exec reason [] None, DateTime.MaxValue)
 
         // child task is building (upward cascading)
-        elif hasChildBuilding then
-            Log.Debug("Node '{NodeId}' must build because child is building", node.Id)
-            (RunAction.Exec, DateTime.MaxValue)
+        elif buildingDependencies <> [] then
+            (record RunAction.Exec "dependency-executed" buildingDependencies None, DateTime.MaxValue)
 
         // cache related rules
         elif node.Artifacts <> ArtifactMode.None then
             let useRemote = isRemoteCacheable options node
             let cacheEntryId = buildCacheKey node
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
-            | Some (_, summary) ->
-                Log.Debug("Node '{NodeId}' has existing build summary", node.Id)
+            | Some (origin, summary) ->
+                let origin = Some ((string origin).ToLowerInvariant())
 
                 // retry requested and task is failed
                 if options.Retry && (not summary.IsSuccessful) then
-                    Log.Debug("Node '{NodeId}' must build because retry requested and node is failed", node.Id)
-                    (RunAction.Exec, DateTime.MaxValue)
+                    let cache = cacheEvidence "hit" origin (Some "failure") (Some summary.EndedAt)
+                    (record RunAction.Exec "retry-failed-cache" [] cache, DateTime.MaxValue)
                 // task is failed but restorable - ensure it's reported as failed
                 elif not summary.IsSuccessful then
-                    Log.Debug("Node '{NodeId}' must restore as failed", node.Id)
-                    (RunAction.Summary, summary.EndedAt)
+                    let cache = cacheEvidence "hit" origin (Some "failure") (Some summary.EndedAt)
+                    (record RunAction.Summary "cached-failure" [] cache, summary.EndedAt)
                 // task is cached
                 else
-                    Log.Debug("Node '{NodeId}' is restorable {Date}", node.Id, summary.EndedAt)
-                    (RunAction.Restore, summary.EndedAt)
+                    let cache = cacheEvidence "hit" origin (Some "success") (Some summary.EndedAt)
+                    (record RunAction.Restore "cache-hit" [] cache, summary.EndedAt)
             | _ ->
-                Log.Debug("Node '{NodeId}' has no summary and must build", node.Id)
-                (RunAction.Exec, DateTime.MaxValue)
+                let cache = cacheEvidence "miss" None None None
+                (record RunAction.Exec "cache-miss" [] cache, DateTime.MaxValue)
 
         // not cacheable
         else
-            Log.Debug("Node '{NodeId}' is not cacheable", node.Id)
-            (RunAction.Exec, DateTime.MaxValue)
+            (record RunAction.Exec "non-cacheable" [] None, DateTime.MaxValue)
 
 
     let rec scheduleNodeAction nodeId =
@@ -67,10 +89,14 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     hub.GetSignal<DateTime> projectId)
                 |> List.ofSeq
             hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
-                let hasChildBuilding = targetNode.Dependencies |> Seq.exists (fun projectId -> 
-                    let node = nodes[projectId]
-                    node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
-                let nodeAction, buildDate = getNodeAction targetNode hasChildBuilding
+                let buildingDependencies =
+                    targetNode.Dependencies
+                    |> Seq.filter (fun projectId ->
+                        let node = nodes[projectId]
+                        node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)
+                    |> Seq.sort
+                    |> List.ofSeq
+                let nodeAction, buildDate = getNodeAction targetNode buildingDependencies
                 let targetNode = { targetNode with Action = nodeAction }
                 nodes.TryAdd(targetNode.Id, targetNode) |> ignore
                 hub.GetSignal<DateTime>(targetNode.Id).Set(buildDate))

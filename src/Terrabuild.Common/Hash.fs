@@ -30,6 +30,11 @@ let sha256 (s: string) =
     let hash = ms |> sha256.ComputeHash |> Convert.ToHexString
     hash
 
+let sha256file file =
+    use sha256 = SHA256.Create()
+    use stream = File.OpenRead(file)
+    stream |> sha256.ComputeHash |> Convert.ToHexString
+
 let sha256strings (lines: string seq) =
     lines |> String.join "\n" |> sha256
 

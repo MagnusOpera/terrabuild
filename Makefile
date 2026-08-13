@@ -184,14 +184,12 @@ define diff_file
 endef
 
 define diff_results
-	$(call diff_file,$(1),terrabuild-debug.config.json)
-	$(call diff_file,$(1),terrabuild-debug.node.json)
-	$(call diff_file,$(1),terrabuild-debug.phase.json)
-	$(call diff_file,$(1),terrabuild-debug.resolve.json)
-	$(call diff_file,$(1),terrabuild-debug.action.json)
-	$(call diff_file,$(1),terrabuild-debug.batch.json)
-	$(call diff_file,$(1),terrabuild-debug.cascade.json)
-	$(call diff_file,$(1),terrabuild-debug.info.md)
+	jq 'del(.run.terrabuildVersion, .run.workspace, .run.startedAt, .run.endedAt, .run.durationMs) | .executions |= map(.events |= map(.event) | .operations |= map(del(.durationMs, .log)) | del(.durationMs)) | .performance.phases |= map(.name) | .performance.configurationProjects |= map(.projectId) | .performance.slowestPhases |= (map(.name) | sort) | .performance.slowestTasks |= (map({id, kind}) | sort_by(.id, .kind)) | .performance.criticalChain |= (length > 0) | .performance.fScript |= {scriptLoads, scriptCacheHits, invocations, scriptEvaluations, toFScriptConversions, fromFScriptConversions, functions: [.functions[] | {id: (.id | split("/") | last), count}]}' $(1)/terrabuild-debug.json > $(1)/terrabuild-debug.normalized.json
+	@if [ "$(refresh)" = "true" ]; then \
+		cp $(1)/terrabuild-debug.normalized.json $(1)/results/terrabuild-debug.json; \
+	fi
+	diff $(1)/results/terrabuild-debug.json $(1)/terrabuild-debug.normalized.json
+	jq -e '.schemaVersion == 1 and .run.completeness == "complete" and (.nodes | type == "array") and (.performance.criticalChain | type == "array") and ([.performance.criticalChain[]] - [.executions[].id] | length == 0) and ([.performance.phases[].durationMs, .performance.configurationProjects[].durationMs, .executions[].durationMs // 0, .executions[].events[].offsetMs, .performance.fScript.scriptLoadMs, .performance.fScript.invocationMs] | all(. >= 0)) and ([.results[].message // ""] | all(contains("Task execution not yet completed") | not))' $(1)/terrabuild-debug.json >/dev/null
 endef
 
 

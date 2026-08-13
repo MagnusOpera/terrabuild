@@ -59,10 +59,12 @@ type ImpactResult = {
 type private PreparedRunTarget = {
     RunOptions: RunTargetOptions
     Options: ConfigOptions.Options
+    Configuration: Configuration.Workspace
     Cache: Cache.ICache
     Api: Contracts.IApiClient option
     FullGraph: GraphDef.Graph
     SourceGraph: GraphDef.Graph
+    ResolvedGraph: GraphDef.Graph
     Graph: GraphDef.Graph
 }
 
@@ -271,6 +273,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     let logFile name = FS.combinePath launchDir $"terrabuild-debug.{name}"
 
     if log || debug then
+        Directory.EnumerateFiles(launchDir, "terrabuild-debug.*")
+        |> Seq.iter File.Delete
         let loggerBuilder = LoggerConfiguration().WriteTo.File(logFile "log")
         let loggerBuilder =
             if debug then loggerBuilder.MinimumLevel.Debug()
@@ -279,6 +283,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("====[ Start ]========================================================")
         Log.Debug("Terrabuild: {Version}", Version.informalVersion())
         Log.Debug("Environment: {OSDescription}, {OSArchitecture}, {Version}", RuntimeInformation.OSDescription, RuntimeInformation.OSArchitecture, Environment.Version)
+
+    DiagnosticsTelemetry.reset debug
 
     let prepareRunTarget (runOptions: RunTargetOptions) =
         System.Environment.CurrentDirectory <- runOptions.Workspace
@@ -328,9 +334,11 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         }
 
         let runPhase phaseName run =
+            let startedOffset = DiagnosticsTelemetry.offsetMs()
             let startedAt = DateTime.UtcNow
             let result = run ()
             let duration = DateTime.UtcNow - startedAt
+            DiagnosticsTelemetry.recordPhase phaseName startedOffset duration.TotalMilliseconds
             if options.Debug then
                 Log.Debug("Phase '{PhaseName}' duration: {DurationMs}ms", phaseName, Math.Round(duration.TotalMilliseconds, 2))
             result
@@ -338,9 +346,23 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("====[ Configuration ]========================================================")
         let options, config = runPhase "configuration" (fun () -> Configuration.read options)
 
-        if options.Debug then
-            let jsonOptions = Json.Serialize options
-            jsonOptions |> IO.writeTextFile (logFile "options.json")
+        let writeDiagnostic fullGraph selectedGraph resolvedGraph finalGraph summary status completeness error =
+            if options.Debug then
+                Diagnostics.write (logFile "json") {
+                    Diagnostics.Context.Options = options
+                    Configuration = Some config
+                    FullGraph = fullGraph
+                    SelectedGraph = selectedGraph
+                    ResolvedGraph = resolvedGraph
+                    FinalGraph = finalGraph
+                    Cache = None
+                    Summary = summary
+                    Status = status
+                    Completeness = completeness
+                    Error = error
+                }
+
+        writeDiagnostic None None None None None "preparing" "partial" None
 
         let auth =
             if options.LocalOnly then None
@@ -354,78 +376,46 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             Log.Debug("Connected to API")
             $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Connected to Insights" |> Terminal.writeLine
 
-        if options.Debug then
-            let jsonConfig = Json.Serialize config
-            jsonConfig |> IO.writeTextFile (logFile "config.json")
-
         let storage = Storages.Factory.create api
         let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
         let nodeGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
-        if options.Debug then nodeGraph |> Json.Serialize |> IO.writeTextFile (logFile $"full-node.json")
+        writeDiagnostic (Some nodeGraph) None None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Phase ]========================================================")
         let phaseGraph = runPhase "graph-phase" (fun () -> GraphPipeline.Phase.build nodeGraph)
-        if options.Debug then phaseGraph |> Json.Serialize |> IO.writeTextFile (logFile $"phase.json")
+        writeDiagnostic (Some phaseGraph) None None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
         let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config phaseGraph)
-        if options.Debug then sourceGraph |> Json.Serialize |> IO.writeTextFile (logFile $"node.json")
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Resolve ]========================================================")
         let graph = runPhase "graph-resolve" (fun () -> GraphPipeline.Resolve.build options config sourceGraph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"resolve.json")
+        let resolvedGraph = graph
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
         let graph = runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"action.json")
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Cascade ]========================================================")
         let graph = runPhase "graph-cascade" (fun () -> GraphPipeline.Cascade.build graph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"cascade.json")
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Batch ]========================================================")
         let graph = runPhase "graph-batch" (fun () -> GraphPipeline.Batch.build options config graph)
-        if options.Debug then graph |> Json.Serialize |> IO.writeTextFile (logFile $"batch.json")
-
-        if options.Debug then
-            let markdown =
-                [
-                    "# Configuration"
-                    ""
-                    "| Option | Value |"
-                    "|--------|-------|"
-                    $"""| Targets | {options.Targets |> String.join " "} |"""
-                    match options.Configuration with | Some value ->  $"| Configuration | {value} |" | _ -> ()
-                    match options.Environment with | Some value ->  $"| Environment | {value} |" | _ -> ()
-                    match options.Label with | Some value ->  $"| Labels | {value} |" | _ -> ()
-                    match options.Projects with | Some value -> $"""| Projects | {value |> String.join " "} |""" | _ -> ()
-                    match options.Types with | Some value ->  $"| Types | {value} |" | _ -> ()
-                    if options.Force then $"| Force | {options.Force} |"
-                    if options.Retry then $"| Retry | {options.Retry} |"
-                    if options.LocalOnly then $"| LocalOnly | {options.LocalOnly} |"
-                    $"| MaxConcurrency | {options.MaxConcurrency} |"
-                    match options.Note with | Some value ->  $"| Note | {value} |" | _ -> ()
-                    $"| Engine | {options.Engine |> string |> String.toLower} |"
-                    if options.WhatIf then $"| WhatIf | {options.WhatIf} |"
-                    if options.Debug then $"| Debug | {options.Debug} |"
-                    ""
-
-                    "# Build Graph"
-                    ""
-                    "```mermaid"
-                    yield! Mermaid.render None None graph
-                    "```"
-                    "" ]
-            markdown |> IO.writeLines (logFile "info.md")
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None (if options.WhatIf then "success" else "ready") (if options.WhatIf then "complete" else "partial") None
 
         { PreparedRunTarget.RunOptions = runOptions
           Options = options
+          Configuration = config
           Cache = cache
           Api = api
           FullGraph = phaseGraph
           SourceGraph = sourceGraph
+          ResolvedGraph = resolvedGraph
           Graph = graph }
 
     let runTarget (options: RunTargetOptions) =
@@ -435,63 +425,58 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = prepared.Cache
         let api = prepared.Api
         let fullGraph = prepared.FullGraph
+        let config = prepared.Configuration
+        let sourceGraph = prepared.SourceGraph
+        let resolvedGraph = prepared.ResolvedGraph
         let graph = prepared.Graph
+
+        let writeFinal summary status completeness error =
+            if options.Debug then
+                Diagnostics.write (logFile "json") {
+                    Diagnostics.Context.Options = options
+                    Configuration = Some config
+                    FullGraph = Some fullGraph
+                    SelectedGraph = Some sourceGraph
+                    ResolvedGraph = Some resolvedGraph
+                    FinalGraph = Some graph
+                    Cache = Some cache
+                    Summary = summary
+                    Status = status
+                    Completeness = completeness
+                    Error = error
+                }
 
         let errCode =
             if options.WhatIf then 0
             else
                 Log.Debug("====[ Runner ]========================================================")
+                let runnerStartedOffset = DiagnosticsTelemetry.offsetMs()
                 let startedAt = DateTime.UtcNow
-                let summary = Runner.run options cache api fullGraph graph
+                let summary =
+                    try Runner.run options cache api fullGraph graph
+                    with exn ->
+                        writeFinal None "failure" "partial" (Some exn.Message)
+                        reraise()
                 let duration = DateTime.UtcNow - startedAt
+                DiagnosticsTelemetry.recordPhase "runner" runnerStartedOffset duration.TotalMilliseconds
                 if options.Debug then
                     Log.Debug("Phase 'runner' duration: {DurationMs}ms", Math.Round(duration.TotalMilliseconds, 2))
 
                 Log.Debug("====[ Report ]========================================================")
-                if options.Debug then
-                    let jsonBuild = Json.Serialize summary
-                    jsonBuild |> IO.writeTextFile (logFile "build-result.json")
                 tryWriteRunResultFile runOptions.RunResultFile graph summary
 
                 if log || not summary.IsSuccess then
                     Logs.dumpLogs runId options cache graph summary
 
-                if summary.IsSuccess then 0
-                else 5
+                writeFinal (Some summary) (if summary.IsSuccess then "success" else "failure") "complete" None
+
+                if summary.IsSuccess then 0 else 5
 
         let emoji =
             match errCode with
             | 0 ->  Ansi.Emojis.happy
             | _ -> Ansi.Emojis.sad
         let duration = DateTime.UtcNow - options.StartedAt
-        if options.Debug then
-            let snapshot = Terrabuild.Scripting.getPerformanceSnapshot()
-            Log.Debug(
-                "FScript performance: script loads={LoadCount} ({LoadMs}ms), script cache hits={CacheHits}, invocations={InvokeCount} ({InvokeMs}ms), script evals={ScriptInvokeCount} ({ScriptInvokeMs}ms), to-fscript conversions={ToCount} ({ToMs}ms), from-fscript conversions={FromCount} ({FromMs}ms), method resolutions={ResolutionCount} ({ResolutionMs}ms)",
-                snapshot.ScriptLoadCount,
-                Math.Round(snapshot.ScriptLoadDurationMs, 2),
-                snapshot.ScriptCacheHitCount,
-                snapshot.RuntimeInvokeCount,
-                Math.Round(snapshot.RuntimeInvokeDurationMs, 2),
-                snapshot.ScriptInvokeCount,
-                Math.Round(snapshot.ScriptInvokeDurationMs, 2),
-                snapshot.ToFScriptConversionCount,
-                Math.Round(snapshot.ToFScriptConversionDurationMs, 2),
-                snapshot.FromFScriptConversionCount,
-                Math.Round(snapshot.FromFScriptConversionDurationMs, 2),
-                snapshot.MethodResolutionCount,
-                Math.Round(snapshot.MethodResolutionDurationMs, 2))
-            snapshot.ScriptFunctionBreakdown
-            |> List.iter (fun (functionId, count, totalMs) ->
-                let avgMs =
-                    if count = 0L then 0.0
-                    else totalMs / float count
-                Log.Debug(
-                    "FScript invoke detail: {FunctionId} count={Count} total={TotalMs}ms avg={AvgMs}ms",
-                    functionId,
-                    count,
-                    Math.Round(totalMs, 2),
-                    Math.Round(avgMs, 2)))
         $"{emoji} Completed in {duration.HumanizeAbbreviated()}" |> Terminal.writeLine
         errCode
 

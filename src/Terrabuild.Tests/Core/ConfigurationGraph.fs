@@ -149,6 +149,7 @@ type private PipelineStages =
       FinalGraph: Graph }
 
 let private runPipelineWithCache (cache: Cache.ICache) options =
+    DiagnosticsTelemetry.reset true
     let options, config = Configuration.read options
     let fullGraph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
     let sourceGraph = GraphPipeline.Selection.build options config fullGraph
@@ -164,6 +165,10 @@ let private runPipelineWithCache (cache: Cache.ICache) options =
       ActionGraph = actionGraph
       CascadedGraph = cascadedGraph
       FinalGraph = finalGraph }
+
+let private actionDecision nodeId =
+    DiagnosticsTelemetry.snapshot().Actions
+    |> List.find (fun decision -> decision.NodeId = nodeId)
 
 let private runPipeline options =
     runPipelineWithCache (NoopCache() :> Cache.ICache) options
@@ -711,6 +716,90 @@ target build {
         stages.ActionGraph.RootNodes |> should equal Set.empty<string>
         stages.ActionGraph.Nodes[buildNode.Id].Action |> should equal RunAction.Restore
         stages.ActionGraph.Nodes[genNode.Id].Action |> should equal RunAction.Restore)
+
+[<Test>]
+let ``Action diagnostics distinguish forced and configured always builds`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build {
+  outputs = []
+  artifacts = ~workspace
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+        let forced = runPipeline { baseOptions workspace (Set [ "build" ]) with Force = true }
+        let forcedNode = forced.ActionGraph.Nodes["workspace/path#src/a:build"]
+        (actionDecision forcedNode.Id).Reason |> should equal "forced-cli"
+
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build {
+  build = ~always
+  @shell echo { args = "build" }
+}
+"""
+        let configured = runPipeline { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let configuredNode = configured.ActionGraph.Nodes["workspace/path#src/a:build"]
+        (actionDecision configuredNode.Id).Reason |> should equal "configured-always")
+
+[<Test>]
+let ``Action diagnostics report cache miss and cache hit evidence`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build {
+  outputs = []
+  artifacts = ~workspace
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let uncached = runPipeline options
+        let node = uncached.ResolvedGraph.Nodes["workspace/path#src/a:build"]
+        let miss = actionDecision node.Id
+        miss.Reason |> should equal "cache-miss"
+        miss.Cache.Value.Lookup |> should equal "miss"
+
+        runPipelineWithCache (successCache [ GraphDef.buildCacheKey node ]) options |> ignore
+        let hit = actionDecision node.Id
+        hit.Reason |> should equal "cache-hit"
+        hit.Cache.Value.Lookup |> should equal "hit"
+        hit.Cache.Value.Origin |> should equal (Some "local"))
+
+[<Test>]
+let ``Action diagnostics identify dependencies that propagate execution`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target gen {
+  outputs = []
+  artifacts = ~none
+}
+target build {
+  outputs = []
+  artifacts = ~workspace
+  depends_on = [target.gen]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target gen { @shell echo { args = "gen" } }
+target build { @shell echo { args = "build" } }
+"""
+        let stages = runPipeline { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let buildId = "workspace/path#src/a:build"
+        let genId = "workspace/path#src/a:gen"
+        let decision = actionDecision buildId
+        decision.Reason |> should equal "dependency-executed"
+        decision.Dependencies |> should equal [ genId ]
+        stages.ActionGraph.Nodes[buildId].Action |> should equal RunAction.Exec)
 
 [<Test>]
 let ``Action pipeline keeps failed cached selected roots schedulable as summaries`` () =

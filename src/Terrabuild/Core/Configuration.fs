@@ -879,7 +879,7 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
 
     let endFinalize = DateTime.UtcNow
     let projectId = format_project_id projectDef.Type projectDef.Id
-    Log.Debug("Project '{ProjectId}' finalization duration: {Duration}", projectId, endFinalize - startFinalize)
+    DiagnosticsTelemetry.recordProject projectId ((endFinalize - startFinalize).TotalMilliseconds)
 
     { Project.Id = projectId
       Project.Name = projectDef.Name

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Replace scattered debug snapshots with one deterministic diagnostic report explaining rebuild causes, cache fingerprints, and performance bottlenecks.
+
 ## [0.197.7-next]
 
 

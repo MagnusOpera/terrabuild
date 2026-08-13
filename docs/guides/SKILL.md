@@ -74,17 +74,61 @@ When execution is unclear, run with debug output:
 terrabuild run build --debug --log --force
 ```
 
-Useful generated files:
+Debug mode replaces the previous diagnostic artifacts on every run and produces:
 
-- `terrabuild-debug.options.json`
-- `terrabuild-debug.config.json`
-- `terrabuild-debug.full-node.json`
-- `terrabuild-debug.node.json`
-- `terrabuild-debug.resolve.json`
-- `terrabuild-debug.action.json`
-- `terrabuild-debug.cascade.json`
-- `terrabuild-debug.batch.json`
-- `terrabuild-debug.info.md`
+- `terrabuild-debug.json`: the canonical, versioned diagnostic report.
+- `terrabuild-debug.log`: chronological commands, warnings, failures, and stack traces.
+
+Read `terrabuild-debug.json` first. It is deterministic in ordering, records variable names without their values, and may be `partial` if preparation or execution stopped early. Follow `executions[].operations[].log` only when command output is needed.
+
+## Investigating Common Issues
+
+### Why did a target rebuild?
+
+Locate the target in `.nodes[]` and inspect `action`, `actionReason`, `actionDependencies`, and `cache`:
+
+```bash
+jq '.nodes[] | select(.projectName == "app" and .target == "build") |
+    {action, actionReason, actionDependencies, cache, fingerprint}' terrabuild-debug.json
+```
+
+Reason codes are:
+
+- `forced-cli`: `--force` requested execution.
+- `configured-always`: the target uses `build = ~always`.
+- `dependency-executed`: one or more IDs in `actionDependencies` executed and propagated the rebuild.
+- `non-cacheable`: the target does not retain a reusable summary.
+- `cache-miss`: no summary exists for the reported cache key and scope.
+- `retry-failed-cache`: `--retry` replaced a failed cached result with execution.
+- `cached-failure`: Terrabuild reported a previous failed result without rerunning it.
+- `cache-hit`: Terrabuild reused a successful local or remote summary.
+
+To determine which input changed, compare the node's `fingerprint` and its project's entry in `.projects` between two reports. Start with the aggregate hashes, then compare `files`, dependency hashes, declared target hash, and operation hashes. Phase dependencies are listed separately because they do not participate in the target hash.
+
+### Where did the run spend time?
+
+Start with the ranked summaries and critical chain:
+
+```bash
+jq '.performance | {slowestPhases, slowestTasks, criticalChain, fScript}' terrabuild-debug.json
+```
+
+Then inspect the critical-chain entries in `.executions[]`. Their ordered events separate scheduling/queue time, execution or restore time, and upload time. A batch appears once in `.batches` and `.executions`; use its `members` rather than assigning its duration to each member.
+
+### Why did a command fail?
+
+Find failed logical results, join them to executions by ID (or through a node's `batchId`), and open the referenced operation log:
+
+```bash
+jq '.results[] | select(.status == "failure")' terrabuild-debug.json
+jq '.executions[] | select(any(.operations[]; .exitCode != 0))' terrabuild-debug.json
+```
+
+Use `terrabuild-debug.log` for Terrabuild exceptions, infrastructure errors, or failures that occurred before an operation log was created.
+
+### Did diagnostics finish cleanly?
+
+Check `.run.status`, `.run.completeness`, and `.run.error` before drawing conclusions. With `completeness = "partial"`, use the populated sections as checkpoints and consult `terrabuild-debug.log` for the stopping error.
 
 ## Workspace Usage Tips
 
