@@ -182,21 +182,24 @@ type Context = {
 let private roundMs (value: float) = Math.Round(value, 2)
 
 let internal normalizeOperationArguments (options: ConfigOptions.Options) (arguments: string) =
-    [
+    let normalizedPaths =
+        [
         options.Workspace, "$WORKSPACE"
         options.HomeDir, "$TERRABUILD_HOME"
         options.TmpDir, "$TERRABUILD_TMP"
         options.SharedDir, "$TERRABUILD_SHARED"
-    ]
-    |> Seq.filter (fun (path, _) -> String.IsNullOrWhiteSpace(path) |> not)
-    |> Seq.map (fun (path, alias) -> Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), alias)
-    |> Seq.distinctBy fst
-    |> Seq.sortByDescending (fst >> String.length)
-    |> Seq.fold (fun (normalized: string) (path, alias) ->
-        normalized
-            .Replace(path, alias, StringComparison.Ordinal)
-            .Replace(path.Replace('\\', '/'), alias, StringComparison.Ordinal)
-            .Replace(path.Replace('/', '\\'), alias, StringComparison.Ordinal)) arguments
+        ]
+        |> Seq.filter (fun (path, _) -> String.IsNullOrWhiteSpace(path) |> not)
+        |> Seq.map (fun (path, alias) -> Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), alias)
+        |> Seq.distinctBy fst
+        |> Seq.sortByDescending (fst >> String.length)
+        |> Seq.fold (fun (normalized: string) (path, alias) ->
+            normalized
+                .Replace(path, alias, StringComparison.Ordinal)
+                .Replace(path.Replace('\\', '/'), alias, StringComparison.Ordinal)
+                .Replace(path.Replace('/', '\\'), alias, StringComparison.Ordinal)) arguments
+
+    Text.RegularExpressions.Regex.Replace(normalizedPaths, @"--user \d+:\d+\s*", "")
 
 let private projectFingerprintCache = ConcurrentDictionary<string, ProjectFingerprint>()
 

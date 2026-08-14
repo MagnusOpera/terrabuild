@@ -77,7 +77,7 @@ let ``operation argument fingerprints are stable across machine roots`` () =
     let unixArguments =
         "run -v /Users/alice/src/terrabuild:/terrabuild -v /Users/alice/.terrabuild/home:/terrabuild-home -v /Users/alice/.terrabuild/tmp:/terrabuild-tmp"
     let ciArguments =
-        "run -v /home/runner/work/terrabuild/terrabuild:/terrabuild -v /home/runner/.terrabuild/home:/terrabuild-home -v /home/runner/.terrabuild/tmp:/terrabuild-tmp"
+        "run --user 1001:1001 -v /home/runner/work/terrabuild/terrabuild:/terrabuild -v /home/runner/.terrabuild/home:/terrabuild-home -v /home/runner/.terrabuild/tmp:/terrabuild-tmp"
 
     Diagnostics.normalizeOperationArguments unixOptions unixArguments
     |> should equal (Diagnostics.normalizeOperationArguments ciOptions ciArguments)
