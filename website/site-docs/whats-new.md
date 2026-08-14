@@ -6,7 +6,12 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.197.8-next
+## 0.197.9-next
+
+### 0.197.9-next
+
+- Exclude engine-injected Unix user IDs from diagnostic operation fingerprints.
+- Make diagnostic operation fingerprints stable across machines with different workspace and cache paths.
 
 ### 0.197.8-next
 
@@ -53,4 +58,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Build repository-scoped, versioned .NET SDK (`@dotnetsdk`) and pnpm toolchain images in a dedicated prerequisite phase, authenticate CI image publication to GHCR, use those images consistently for local and CI self-builds, and upgrade the .NET SDK to `10.0.302`.
 - Add dedicated Console documentation with Terrabuild source examples and live screenshots explaining controls, project-node shapes, cache-status colors, dependency arrows, phases, and graph navigation.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.4-next...0.197.8-next
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.4-next...0.197.9-next

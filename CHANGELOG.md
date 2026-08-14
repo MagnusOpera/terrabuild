@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.197.9-next]
+
+
 - Exclude engine-injected Unix user IDs from diagnostic operation fingerprints.
 
 - Make diagnostic operation fingerprints stable across machines with different workspace and cache paths.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.8-next...0.197.9-next
 
 ## [0.197.8-next]
 
