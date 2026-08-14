@@ -181,6 +181,23 @@ type Context = {
 
 let private roundMs (value: float) = Math.Round(value, 2)
 
+let internal normalizeOperationArguments (options: ConfigOptions.Options) (arguments: string) =
+    [
+        options.Workspace, "$WORKSPACE"
+        options.HomeDir, "$TERRABUILD_HOME"
+        options.TmpDir, "$TERRABUILD_TMP"
+        options.SharedDir, "$TERRABUILD_SHARED"
+    ]
+    |> Seq.filter (fun (path, _) -> String.IsNullOrWhiteSpace(path) |> not)
+    |> Seq.map (fun (path, alias) -> Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), alias)
+    |> Seq.distinctBy fst
+    |> Seq.sortByDescending (fst >> String.length)
+    |> Seq.fold (fun (normalized: string) (path, alias) ->
+        normalized
+            .Replace(path, alias, StringComparison.Ordinal)
+            .Replace(path.Replace('\\', '/'), alias, StringComparison.Ordinal)
+            .Replace(path.Replace('/', '\\'), alias, StringComparison.Ordinal)) arguments
+
 let private projectFingerprintCache = ConcurrentDictionary<string, ProjectFingerprint>()
 
 let private projectFingerprints (options: ConfigOptions.Options) (configuration: Configuration.Workspace option) =
@@ -400,7 +417,7 @@ let private executionReports
                         |> List.map (fun (operation: Cache.OperationSummary) -> {
                             OperationReport.MetaCommand = operation.MetaCommand
                             Command = operation.Command
-                            ArgumentsHash = Hash.sha256 operation.Arguments
+                            ArgumentsHash = operation.Arguments |> normalizeOperationArguments options |> Hash.sha256
                             Container = operation.Container
                             DurationMs = roundMs operation.Duration.TotalMilliseconds
                             ExitCode = operation.ExitCode

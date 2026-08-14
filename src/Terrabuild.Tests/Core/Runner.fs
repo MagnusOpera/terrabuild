@@ -62,6 +62,26 @@ let private baseOptions workspace =
       ConfigOptions.Options.CommitLog = []
       ConfigOptions.Options.Run = None }
 
+[<Test>]
+let ``operation argument fingerprints are stable across machine roots`` () =
+    let unixOptions =
+        { baseOptions "/Users/alice/src/terrabuild" with
+            HomeDir = "/Users/alice/.terrabuild/home"
+            TmpDir = "/Users/alice/.terrabuild/tmp"
+            SharedDir = "/Users/alice/.terrabuild/shared" }
+    let ciOptions =
+        { baseOptions "/home/runner/work/terrabuild/terrabuild" with
+            HomeDir = "/home/runner/.terrabuild/home"
+            TmpDir = "/home/runner/.terrabuild/tmp"
+            SharedDir = "/home/runner/.terrabuild/shared" }
+    let unixArguments =
+        "run -v /Users/alice/src/terrabuild:/terrabuild -v /Users/alice/.terrabuild/home:/terrabuild-home -v /Users/alice/.terrabuild/tmp:/terrabuild-tmp"
+    let ciArguments =
+        "run -v /home/runner/work/terrabuild/terrabuild:/terrabuild -v /home/runner/.terrabuild/home:/terrabuild-home -v /home/runner/.terrabuild/tmp:/terrabuild-tmp"
+
+    Diagnostics.normalizeOperationArguments unixOptions unixArguments
+    |> should equal (Diagnostics.normalizeOperationArguments ciOptions ciArguments)
+
 let private withTempWorkspace action =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-runner-tests-{Guid.NewGuid():N}")
     Directory.CreateDirectory(root) |> ignore

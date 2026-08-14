@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Make diagnostic operation fingerprints stable across machines with different workspace and cache paths.
+
 ## [0.197.8-next]
 
 

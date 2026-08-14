@@ -559,14 +559,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "920B205B6068197A63DA1FAEF34C1CDB47CE08BF4FCA2E32DE6ACB0EC5BA25A4",
+          "argumentsHash": "8D5C399BAA58318F91C2E2D19B65415FCE17198EFFD06E460743E15292957465",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "36B378F4A473B666358FFEA84730BFAF775527073B28C8D31047909E448CE798",
+          "argumentsHash": "49401E3D9D93A1E6D1446C5172B5BAD54C119C450D5D0AA13CF0491BA8D052AC",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -593,14 +593,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "49FCD07FADBD8F0DE13737954193C8942B756D639967C25610D384FCB3253F73",
+          "argumentsHash": "AD39E61CF70C9E5075DB661972E6ADDF2CC09640D8E2B0ECF831287000FEF0A4",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "2C4B8B3511E1C2CC4E5DC0AE7AE7923BE47BC02F735B4DCCCE6F30235F365F83",
+          "argumentsHash": "7661EB3A3F069638E78361DF02BCE8C5AB0C9432F73D2E4BD154B299E19CC718",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -627,14 +627,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "3E769BFE4163EA855AAA971938F9A49E06965DE67B96D3476CC1435A3BF12CE2",
+          "argumentsHash": "945E0B2533B354BDB453D1B13B5D248D1D9806759CEF17214D83F0439A40D036",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "00EE23BA58F2E2D6B99DD67CAC975D7FCFBF6DEFA7E4C5B74A9AF13B4E7BCD04",
+          "argumentsHash": "5F46BAA86354AC2EABB8FCCD38E0E010FF50433CCD072A66F6C83C156535C6CC",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -661,14 +661,14 @@
         {
           "metaCommand": "@npm install",
           "command": "docker",
-          "argumentsHash": "6C8167342EB4E7E43C6EB06A3EB8792EA3A11923397627AB620AC11EF2C2C678",
+          "argumentsHash": "5539D77BB45ADB9BCC1CEBF35A7759C2F659C5B0B6B6FEE2B5547B7C4980D198",
           "container": "node:20",
           "exitCode": 0
         },
         {
           "metaCommand": "@npm build",
           "command": "docker",
-          "argumentsHash": "87E3CE53B070A6DC870E4249ED154EA8F656DDBB36F62035A1E167F864A30FD3",
+          "argumentsHash": "154719F08D381D4411EAC27154D76E2A7FDFD0B6AF5A9415E08C98512A07E35B",
           "container": "node:20",
           "exitCode": 0
         }
@@ -689,14 +689,14 @@
         {
           "metaCommand": "@npm install",
           "command": "docker",
-          "argumentsHash": "6708597016219ABDBA0A46BD5BFBA6494C5761AE15945E824227116A1BC6E77F",
+          "argumentsHash": "5158DF02A235C275D3F7B4C5F9644861A87DBC8596D60B372099A27CC82F1FB0",
           "container": "node:20",
           "exitCode": 0
         },
         {
           "metaCommand": "@npm build",
           "command": "docker",
-          "argumentsHash": "C9CC90C291AA07DEC2CE5879CDDD6884BB2943E1BE4612D9A53AC22C29E0442C",
+          "argumentsHash": "E715D4164744C1FFAE68125C25471DD4EB395CEB268C0F68A2AB8E8A6DE9FF40",
           "container": "node:20",
           "exitCode": 0
         }
@@ -717,14 +717,14 @@
         {
           "metaCommand": "@npm install",
           "command": "docker",
-          "argumentsHash": "82F953085F44D0FA890248A2C1F7748476C8643CE3FD12DE68822CED6687BD13",
+          "argumentsHash": "D7E749E11308B710D194D9F319E16A1BEC03B3BCF12AC6841EE812A4B127D8FE",
           "container": "node:20",
           "exitCode": 0
         },
         {
           "metaCommand": "@npm build",
           "command": "docker",
-          "argumentsHash": "79CEC6AD5C3B1DFFB7CE94A9A7DD5893F924A3FBF5D6A025775CE7C2974D77AA",
+          "argumentsHash": "44B8046963BB0B2AE81C08DDD0773BE77D91D676B54D0384FB79A84ABB6FD0A3",
           "container": "node:20",
           "exitCode": 0
         }
