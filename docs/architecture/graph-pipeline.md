@@ -94,7 +94,8 @@ Marks the nodes that the runner must visit.
 
 - A node remains required if it was already required by `BuildMode.Always`.
 - A node becomes required when it is `Exec` and not `BuildMode.Lazy`.
-- A node becomes required when any dependent is required.
+- A node becomes required when a dependent is both required and executing.
+- `Restore` and `Summary` nodes are realization barriers: their cached result does not require their own build-time dependencies.
 - `Ignore` nodes are not required.
 - `Restore` nodes with `Artifacts = External` are not required unless a dependent requires them.
 
@@ -123,6 +124,7 @@ Synthetic batch scheduler nodes are represented under `batches` and `executions`
 ## Edge cases
 
 - Lazy roots do not run just because they are selected; they run only when required by a dependent.
+- Lazy dependencies behind a restored or summarized node are not realized unless another executing node requires them directly.
 - Failed cached selected roots remain runner roots as `Summary`, so failures are reported correctly.
 - Successful restore roots are skipped unless a dependent requires them.
 - External restore nodes are skipped unless a dependent requires them.

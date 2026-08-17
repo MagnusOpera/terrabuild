@@ -26,7 +26,9 @@ let build (graph: Graph) =
                     node2dependents
                     |> Map.tryFind nodeId
                     |> Option.defaultValue Set.empty
-                    |> Seq.filter getNodeRequirements
+                    |> Seq.filter (fun dependentId ->
+                        let dependent = nodes[dependentId]
+                        dependent.Action = RunAction.Exec && getNodeRequirements dependentId)
                     |> Seq.sort
                     |> List.ofSeq)
             let isRequired =

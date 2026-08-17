@@ -718,6 +718,86 @@ target build {
         stages.ActionGraph.Nodes[genNode.Id].Action |> should equal RunAction.Restore)
 
 [<Test>]
+let ``Cascade does not realize lazy dependencies behind restored nodes`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target install {
+  outputs = []
+  artifacts = ~workspace
+  build = ~lazy
+}
+
+target build {
+  outputs = [ "dist/**" ]
+  artifacts = ~managed
+  depends_on = [ target.install ]
+}
+
+target plan {
+  outputs = []
+  artifacts = ~managed
+  depends_on = [ target.build ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target install { @shell echo { args = "install" } }
+target build { @shell echo { args = "build" } }
+target plan { @shell echo { args = "plan" } }
+"""
+
+        let options = { baseOptions workspace (Set [ "plan" ]) with Force = false }
+        let uncachedStages = runPipeline options
+        let installId = "workspace/path#src/a:install"
+        let buildId = "workspace/path#src/a:build"
+        let planId = "workspace/path#src/a:plan"
+        let cache = successCache [ GraphDef.buildCacheKey uncachedStages.ResolvedGraph.Nodes[buildId] ]
+        let stages = runPipelineWithCache cache options
+
+        stages.ActionGraph.Nodes[installId].Action |> should equal RunAction.Exec
+        stages.ActionGraph.Nodes[buildId].Action |> should equal RunAction.Restore
+        stages.ActionGraph.Nodes[planId].Action |> should equal RunAction.Exec
+        stages.CascadedGraph.Nodes[installId].Required |> should equal false
+        stages.CascadedGraph.Nodes[buildId].Required |> should equal true
+        stages.CascadedGraph.Nodes[planId].Required |> should equal true)
+
+[<Test>]
+let ``Cascade realizes direct lazy dependencies of executing nodes`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target install {
+  outputs = []
+  artifacts = ~workspace
+  build = ~lazy
+}
+
+target plan {
+  outputs = []
+  artifacts = ~managed
+  depends_on = [ target.install ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target install { @shell echo { args = "install" } }
+target plan { @shell echo { args = "plan" } }
+"""
+
+        let options = { baseOptions workspace (Set [ "plan" ]) with Force = false }
+        let stages = runPipeline options
+        let installId = "workspace/path#src/a:install"
+        let planId = "workspace/path#src/a:plan"
+
+        stages.ActionGraph.Nodes[installId].Action |> should equal RunAction.Exec
+        stages.ActionGraph.Nodes[planId].Action |> should equal RunAction.Exec
+        stages.CascadedGraph.Nodes[installId].Required |> should equal true
+        stages.CascadedGraph.Nodes[planId].Required |> should equal true)
+
+[<Test>]
 let ``Action diagnostics distinguish forced and configured always builds`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
