@@ -22,9 +22,10 @@ Terrabuild public documentation is being moved from `../terrabuild.io` into this
 
 ## Versioning Policy
 
-- The working documentation from `main` is exposed as `Latest`.
+- The working documentation from `main` is exposed as `Next`.
+- Each website build snapshots the latest stable application tag (excluding `-next` tags) and exposes that exact snapshot as the default released documentation version.
 - Existing Docusaurus snapshots remain available as historical documentation.
-- Application releases do not create new documentation snapshots.
+- Application releases do not publish the website; the next website build discovers the new stable tag.
 - Product documentation and generated extension documentation are published together.
 
 ## Content Migration
@@ -42,7 +43,7 @@ The sync script is intentionally conservative and is expected to be refined as v
 
 - Application release preparation updates the changelog and creates a tag without preparing or publishing the website.
 - Release preparation generates `What's New` by aggregating all same-family stable siblings for a stable target or all same-family preview siblings for a `-next` target, retaining each revision as a subtitle.
-- Pushing a `website-*.*.*` tag runs the `Publish Website` workflow from that exact tagged commit, regenerates extension documentation and a rolling `Next` page from the latest preview family plus `Unreleased`, builds the website, and deploys it to GitHub Pages; the tag has no relationship to the Terrabuild application version.
+- Pushing a `website-*.*.*` tag runs the `Publish Website` workflow from that exact tagged commit, snapshots documentation from the latest non-`-next` application tag, regenerates extension documentation and a rolling `Next` page from the latest preview family plus `Unreleased`, builds the website, and deploys it to GitHub Pages; the website tag remains independent of the Terrabuild application version.
 - The workflow can still be run manually to publish `main` when an unversioned deployment is needed.
 - Website tags are excluded from the application release workflow.
 - Generated documentation from the publishing workflow is never committed back to `main`.

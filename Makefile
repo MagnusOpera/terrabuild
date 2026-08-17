@@ -93,6 +93,7 @@ test-release-notes:
 
 website-prepare: website-whats-new
 	cd website && pnpm install --frozen-lockfile
+	./.github/scripts/prepare-versioned-docs.sh
 	$(MAKE) docs
 
 website: website-prepare

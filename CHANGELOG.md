@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep the rolling documentation labelled `Next` while selecting the latest stable Terrabuild tag as the default released documentation version.
 - Add a Getting Started guide for connecting Terrabuild to Insights, sharing encrypted artifacts, and reporting builds from developer machines and CI.
 
 ## [0.197.9]
