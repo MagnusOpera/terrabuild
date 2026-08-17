@@ -194,15 +194,4 @@ You've seen Terrabuild in action. Build the mental model next, then explore exec
 
 ### Enable Remote Caching (Optional)
 
-For even faster builds, especially in CI/CD, connect to [Insights](https://insights.magnusopera.io) for remote cache sharing:
-
-1. Create an account and workspace on Insights
-2. Add to your `WORKSPACE` file:
-   ```
-   workspace {
-       id = "your-workspace-id"
-   }
-   ```
-3. Connect using: `terrabuild login --workspace <id> --token <token> --masterkey <master-key>`
-
-See [Caching](/docs/getting-started/caching) for more details.
+For even faster builds, especially in CI/CD, [connect the workspace to Insights](./insights) for encrypted remote cache sharing and build history. See [Caching](/docs/getting-started/caching) for details of cache keys and artifact modes.

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add a Getting Started guide for connecting Terrabuild to Insights, sharing encrypted artifacts, and reporting builds from developer machines and CI.
+
 ## [0.197.9]
 
 - Exclude engine-injected Unix user IDs from diagnostic operation fingerprints.

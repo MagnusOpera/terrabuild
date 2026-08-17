@@ -69,6 +69,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/graph',
         'getting-started/tasks',
         'getting-started/caching',
+        'getting-started/insights',
         'getting-started/batch',
         'getting-started/glossary',
       ],

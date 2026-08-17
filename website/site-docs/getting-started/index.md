@@ -13,7 +13,7 @@ Follow the pages in this order:
 2. **Learn the core model**: workspace, project, target, task, dependency, and phase.
 3. **Scaffold your repository** and adapt the generated configuration.
 4. **Understand execution** through the graph, cache, and task-action model.
-5. **Optimize later** with batch builds.
+5. **Connect and optimize later** with optional Insights and batch builds.
 
 Understanding these concepts will help you configure Terrabuild effectively and troubleshoot issues when they arise.
 

@@ -73,7 +73,7 @@ For an existing monorepo, the [scaffold command](/docs/getting-started/scaffoldi
 
 ## Optional: enable shared caching
 
-Local caching works immediately and does not require an account. To share encrypted artifacts and build metadata across developers and CI, create a workspace on [Insights](https://insights.magnusopera.io) and follow the credentials provided there.
+Local caching works immediately and does not require an account. To share encrypted artifacts and build metadata across developers and CI, continue with [Insights](./insights).
 
 ## Try it
 
