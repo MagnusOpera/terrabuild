@@ -1397,6 +1397,7 @@ const App = () => {
               selectedProject={selectedProject}
               selectedTargetKey={selectedTargetKey}
               nodeResults={nodeResults}
+              explanations={graph?.explanations ?? {}}
               onSelectTarget={showTargetLog}
             />
           </Stack>

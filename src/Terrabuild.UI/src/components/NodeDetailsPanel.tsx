@@ -1,10 +1,16 @@
-import { Badge, Button, Paper, Stack, Text } from "@mantine/core";
-import { GraphNode, ProjectNode, TargetSummary } from "../types";
+import { Badge, Button, Code, Divider, Group, Paper, Stack, Text } from "@mantine/core";
+import {
+  GraphNode,
+  NodeExplanation,
+  ProjectNode,
+  TargetSummary,
+} from "../types";
 
 type NodeDetailsPanelProps = {
   selectedProject: ProjectNode | null;
   selectedTargetKey: string | null;
   nodeResults: Record<string, TargetSummary>;
+  explanations: Record<string, NodeExplanation>;
   onSelectTarget: (key: string, target: GraphNode) => void;
 };
 
@@ -12,6 +18,7 @@ const NodeDetailsPanel = ({
   selectedProject,
   selectedTargetKey,
   nodeResults,
+  explanations,
   onSelectTarget,
 }: NodeDetailsPanelProps) => {
   const sortedTargets = selectedProject
@@ -32,6 +39,14 @@ const NodeDetailsPanel = ({
         return left.target.localeCompare(right.target);
       })
     : [];
+  const selectedTarget = sortedTargets.find((target) => {
+    const key = `${target.projectHash}/${target.target}/${target.targetHash}`;
+    return key === selectedTargetKey;
+  });
+  const explanation = selectedTarget
+    ? explanations[selectedTarget.id]
+    : undefined;
+
   return (
     <Paper withBorder p="md" radius="md" shadow="md">
       <Stack gap="xs">
@@ -65,6 +80,91 @@ const NodeDetailsPanel = ({
                 );
               })}
             </Stack>
+            {selectedTargetKey ? (
+              <>
+                <Divider my="xs" />
+                <Text fw={600}>Why Terrabuild chose this</Text>
+                {explanation ? (
+                  <Stack gap="xs">
+                    <Group gap="xs">
+                      <Badge color={explanation.action === "exec" ? "blue" : "green"}>
+                        {explanation.action ?? "Unresolved"}
+                      </Badge>
+                      {explanation.actionReason ? (
+                        <Text size="sm">{explanation.actionReason}</Text>
+                      ) : null}
+                    </Group>
+                    <Text size="sm">
+                      Required: {explanation.required === undefined || explanation.required === null
+                        ? "unresolved"
+                        : explanation.required
+                          ? "yes"
+                          : "no"}
+                      {explanation.requirementReason
+                        ? ` (${explanation.requirementReason})`
+                        : ""}
+                    </Text>
+                    <Text size="sm">
+                      Cache: {explanation.cache
+                        ? `${explanation.cache.lookup} in ${explanation.cache.scope}${explanation.cache.origin ? `, origin ${explanation.cache.origin}` : ""}`
+                        : "not consulted"}
+                    </Text>
+                    {explanation.fingerprint ? (
+                      <Stack gap={2}>
+                        <Text size="xs" c="dimmed">Cache key</Text>
+                        <Code block>{explanation.fingerprint.cacheKey}</Code>
+                      </Stack>
+                    ) : null}
+                    {explanation.actionDependencies.length > 0 ? (
+                      <Stack gap={2}>
+                        <Text size="xs" c="dimmed">Decision dependencies</Text>
+                        <Code block>{explanation.actionDependencies.join("\n")}</Code>
+                      </Stack>
+                    ) : null}
+                    {explanation.evaluationInputs.length > 0 ? (
+                      <Stack gap={2}>
+                        <Text size="xs" c="dimmed">Evaluated inputs</Text>
+                        <Code block>
+                          {explanation.evaluationInputs
+                            .map((input) => `${input.name}: ${input.valueHash}`)
+                            .join("\n")}
+                        </Code>
+                      </Stack>
+                    ) : null}
+                    {explanation.resolvedOperations.length > 0 ? (
+                      <Stack gap="xs">
+                        <Text size="xs" c="dimmed">Resolved operations</Text>
+                        {explanation.resolvedOperations.map((operation, index) => (
+                          <Stack key={`${operation.metaCommand}-${index}`} gap={2}>
+                            <Text size="sm" fw={600}>{operation.metaCommand}</Text>
+                            <Code block>
+                              {[
+                                `command: ${operation.command}`,
+                                `arguments hash: ${operation.argumentsHash}`,
+                                operation.container
+                                  ? `container: ${operation.container}`
+                                  : null,
+                                operation.platform
+                                  ? `platform: ${operation.platform}`
+                                  : null,
+                                `forwarded variables: ${operation.forwardedVariableNames.join(", ") || "none"}`,
+                                `injected environment: ${operation.injectedEnvironment.map((item) => item.name).join(", ") || "none"}`,
+                              ]
+                                .filter((line): line is string => line !== null)
+                                .join("\n")}
+                            </Code>
+                          </Stack>
+                        ))}
+                      </Stack>
+                    ) : null}
+                  </Stack>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    No explanation is available for this graph node.
+                  </Text>
+                )}
+              </>
+            ) : null}
           </>
         ) : (
           <Text size="sm" c="dimmed">

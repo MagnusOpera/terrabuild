@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Show diagnostic action, cache, input, and operation explanations in the local console.
 - Add a readable `explain` command backed by the canonical diagnostic report.
 - Restore secret-safe resolved operation and evaluated input details in diagnostic JSON reports.
 ## [0.198.0-next]

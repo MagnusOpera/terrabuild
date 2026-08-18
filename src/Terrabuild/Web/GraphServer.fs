@@ -186,15 +186,31 @@ let private buildConfig
         System.Environment.CurrentDirectory <- previousDir
 
 let private buildBatchGraph workspace targets projects configuration environment engine =
+    DiagnosticsTelemetry.reset true
     let options, config = buildConfig workspace targets projects configuration environment engine
     let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
     let options = { options with MaxConcurrency = System.Environment.ProcessorCount |> max 1 }
-    let graph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
-    let graph = GraphPipeline.Selection.build options config graph
-    let graph = GraphPipeline.Resolve.build options config graph
-    let graph = GraphPipeline.Action.build options cache graph
+    let fullGraph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
+    let selectedGraph = GraphPipeline.Selection.build options config fullGraph
+    let resolvedGraph = GraphPipeline.Resolve.build options config selectedGraph
+    let graph = GraphPipeline.Action.build options cache resolvedGraph
     let graph = GraphPipeline.Cascade.build graph
-    GraphPipeline.Batch.build options config graph, options
+    let finalGraph = GraphPipeline.Batch.build options config graph
+    let report =
+        Diagnostics.build {
+            Diagnostics.Context.Options = options
+            Configuration = Some config
+            FullGraph = Some fullGraph
+            SelectedGraph = Some selectedGraph
+            ResolvedGraph = Some resolvedGraph
+            FinalGraph = Some finalGraph
+            Cache = Some cache
+            Summary = None
+            Status = "success"
+            Completeness = "complete"
+            Error = None
+        }
+    finalGraph, options, report
 
 let private resolveWorkspace (workspace: string option) =
     match workspace with
@@ -447,12 +463,18 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
-                let graph, options =
+                let graph, options, report =
                     lock workspaceLock (fun () ->
                         buildBatchGraph workspace targets projects configuration environment engine
                     )
+                let explanations =
+                    report.Nodes
+                    |> Seq.filter _.Selected
+                    |> Seq.map (fun node -> node.Id, node)
+                    |> Map.ofSeq
                 let payload =
                     {| nodes = graph.Nodes
+                       explanations = explanations
                        phases = graph.Phases
                        rootNodes = graph.RootNodes
                        batches = graph.Batches
@@ -474,7 +496,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             if targets.IsEmpty then
                 return Results.BadRequest("At least one target is required.")
             else
-                let graph, _ =
+                let graph, _, _ =
                     lock workspaceLock (fun () ->
                         buildBatchGraph workspace targets projects configuration environment engine
                     )

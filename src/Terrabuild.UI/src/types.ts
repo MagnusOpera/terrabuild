@@ -17,8 +17,51 @@ export type GraphNode = {
   targetHash: string;
 };
 
+export type EvaluationInput = {
+  name: string;
+  valueHash: string;
+};
+
+export type CacheEvidence = {
+  scope: string;
+  key: string;
+  lookup: string;
+  origin?: string | null;
+};
+
+export type ResolvedOperation = {
+  metaCommand: string;
+  command: string;
+  argumentsHash: string;
+  container?: string | null;
+  platform?: string | null;
+  cpus?: number | null;
+  forwardedVariableNames: string[];
+  injectedEnvironment: Array<{
+    name: string;
+    valueHash: string;
+  }>;
+};
+
+export type NodeExplanation = {
+  id: string;
+  action?: string | null;
+  actionReason?: string | null;
+  actionDependencies: string[];
+  required?: boolean | null;
+  requirementReason?: string | null;
+  dependencies: string[];
+  cache?: CacheEvidence | null;
+  evaluationInputs: EvaluationInput[];
+  resolvedOperations: ResolvedOperation[];
+  fingerprint?: {
+    cacheKey: string;
+  } | null;
+};
+
 export type GraphResponse = {
   nodes: Record<string, GraphNode>;
+  explanations: Record<string, NodeExplanation>;
   phases?: Record<string, string[]>;
   rootNodes?: string[];
   engine?: string | null;
