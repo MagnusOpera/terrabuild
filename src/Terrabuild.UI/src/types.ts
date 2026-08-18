@@ -15,6 +15,7 @@ export type GraphNode = {
   dependencies: string[];
   projectHash: string;
   targetHash: string;
+  action: "ignore" | "summary" | "restore" | "exec";
 };
 
 export type EvaluationInput = {

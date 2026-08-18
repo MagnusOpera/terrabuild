@@ -38,6 +38,8 @@ type BuildControlsPanelProps = {
   onLogBuildChange: (checked: boolean) => void;
   debugBuild: boolean;
   onDebugBuildChange: (checked: boolean) => void;
+  showIgnored: boolean;
+  onShowIgnoredChange: (checked: boolean) => void;
   showPhases: boolean;
   onShowPhasesChange: (checked: boolean) => void;
   projects: ProjectInfo[];
@@ -70,6 +72,8 @@ const BuildControlsPanel = ({
   onLogBuildChange,
   debugBuild,
   onDebugBuildChange,
+  showIgnored,
+  onShowIgnoredChange,
   showPhases,
   onShowPhasesChange,
   projects,
@@ -230,6 +234,14 @@ const BuildControlsPanel = ({
                         onParallelismChange(String(value));
                       }
                     }}
+                  />
+
+                  <Checkbox
+                    label="Show Ignored"
+                    checked={showIgnored}
+                    onChange={(event) =>
+                      onShowIgnoredChange(event.currentTarget.checked)
+                    }
                   />
 
                   <Checkbox

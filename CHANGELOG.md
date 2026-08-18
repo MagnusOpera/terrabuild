@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Hide ignored nodes from the local console execution graph by default and allow showing them from Advanced controls.
+
 ## [0.198.1-next]
 
 

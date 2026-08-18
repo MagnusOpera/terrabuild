@@ -105,6 +105,7 @@ const App = () => {
   const [retryBuild, setRetryBuild] = useState(true);
   const [logBuild, setLogBuild] = useState(false);
   const [debugBuild, setDebugBuild] = useState(false);
+  const [showIgnored, setShowIgnored] = useState(false);
   const [showPhases, setShowPhases] = useState(false);
   const [parallelism, setParallelism] = useState("");
   const [engine, setEngine] = useState("default");
@@ -511,6 +512,9 @@ const App = () => {
         phase ?? ""
       )}`;
     const phaseDependencies = graph.phases ?? {};
+    const visibleGraphNodes = Object.values(graph.nodes).filter(
+      (node) => showIgnored || node.action !== "ignore"
+    );
     const participatingPhases = new Set<string>();
     const addPhase = (phase: string) => {
       if (participatingPhases.has(phase)) {
@@ -519,7 +523,7 @@ const App = () => {
       participatingPhases.add(phase);
       (phaseDependencies[phase] ?? []).forEach(addPhase);
     };
-    Object.values(graph.nodes).forEach((node) => {
+    visibleGraphNodes.forEach((node) => {
       if (showPhases && node.phase) {
         addPhase(node.phase);
       }
@@ -528,7 +532,7 @@ const App = () => {
     const projectMap = new Map<string, ProjectNode>();
     const nodeMap = new Map<string, GraphNode>();
     const graphNodeToFlowId = new Map<string, string>();
-    Object.values(graph.nodes).forEach((node) => {
+    visibleGraphNodes.forEach((node) => {
       nodeMap.set(node.id, node);
       const flowId = showPhases
         ? projectFlowId(node.projectId, node.phase)
@@ -737,7 +741,7 @@ const App = () => {
       nodes: [...positionedPhases, ...positionedUnphased, ...positionedChildren],
       edges: [...projectEdges, ...phaseEdges],
     };
-  }, [graph, showPhases, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
+  }, [graph, showIgnored, showPhases, selectedNodeId, layoutVersion, effectiveColorScheme, theme]);
 
   useEffect(() => {
     const isDark = effectiveColorScheme === "dark";
@@ -1345,6 +1349,11 @@ const App = () => {
               onLogBuildChange={setLogBuild}
               debugBuild={debugBuild}
               onDebugBuildChange={setDebugBuild}
+              showIgnored={showIgnored}
+              onShowIgnoredChange={(checked) => {
+                setManualPositions({});
+                setShowIgnored(checked);
+              }}
               showPhases={showPhases}
               onShowPhasesChange={(checked) => {
                 setManualPositions({});
