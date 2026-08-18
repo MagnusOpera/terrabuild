@@ -194,11 +194,45 @@ let private appendValues (builder: StringBuilder) label emptyValue values =
         | _ -> values |> String.concat ", "
     builder.AppendLine($"  {label}: {rendered}") |> ignore
 
-let renderExplanation (report: Report) =
+let internal renderEnvironmentSensitivitySummary violations =
     let builder = StringBuilder()
 
-    report.Nodes
-    |> List.filter _.Selected
+    match violations with
+    | [] ->
+        builder.AppendLine("Environment sensitivity: no selected targets need attention.") |> ignore
+    | violations ->
+        let count = violations |> List.length
+        let targetLabel = if count = 1 then "target" else "targets"
+        let consumeLabel = if count = 1 then "consumes" else "consume"
+        builder.AppendLine($"Environment sensitivity: {count} selected {targetLabel} {consumeLabel} environment-sensitive inputs without opting in.") |> ignore
+
+        violations
+        |> List.iter (fun (nodeId, inputs) ->
+            let inputNames = inputs |> String.concat ", "
+            builder.AppendLine($"  - {nodeId}: {inputNames}") |> ignore)
+
+        builder.AppendLine("  Remove the environment-sensitive inputs or set environment_sensitive = true for intentionally environment-specific artifacts.") |> ignore
+
+    builder.ToString().TrimEnd()
+
+let renderExplanation (report: Report) =
+    let builder = StringBuilder()
+    let selectedNodes = report.Nodes |> List.filter _.Selected
+    let sensitivityViolations =
+        selectedNodes
+        |> List.filter (fun node ->
+            node.EnvironmentSensitivityStatus = "missing-opt-in"
+            || node.EnvironmentSensitivityStatus = "declared-neutral")
+        |> List.map (fun node ->
+            node.Id,
+            node.EnvironmentSensitiveInputs |> List.map _.Name)
+
+    builder.AppendLine(renderEnvironmentSensitivitySummary sensitivityViolations) |> ignore
+
+    if selectedNodes <> [] then
+        builder.AppendLine() |> ignore
+
+    selectedNodes
     |> List.iteri (fun index node ->
         if index > 0 then
             builder.AppendLine() |> ignore

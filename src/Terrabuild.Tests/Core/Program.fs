@@ -104,6 +104,26 @@ let ``preparation failures finalize the latest diagnostic snapshot`` () =
     |> should equal (Some ("failure", "partial", Some "analysis failed"))
 
 [<Test>]
+let ``explanation sensitivity summary reports no selected violations`` () =
+    Diagnostics.renderEnvironmentSensitivitySummary []
+    |> should equal "Environment sensitivity: no selected targets need attention."
+
+[<Test>]
+let ``explanation sensitivity summary reports one selected violation`` () =
+    Diagnostics.renderEnvironmentSensitivitySummary
+        [ "workspace/path#toolchains/pnpm:dist", [ "terrabuild.ci" ] ]
+    |> should equal
+        "Environment sensitivity: 1 selected target consumes environment-sensitive inputs without opting in.\n  - workspace/path#toolchains/pnpm:dist: terrabuild.ci\n  Remove the environment-sensitive inputs or set environment_sensitive = true for intentionally environment-specific artifacts."
+
+[<Test>]
+let ``explanation sensitivity summary reports multiple selected violations`` () =
+    Diagnostics.renderEnvironmentSensitivitySummary
+        [ "workspace/path#toolchains/cloudflare:dist", [ "terrabuild.ci" ]
+          "workspace/path#toolchains/pnpm:dist", [ "terrabuild.ci"; "terrabuild.environment" ] ]
+    |> should equal
+        "Environment sensitivity: 2 selected targets consume environment-sensitive inputs without opting in.\n  - workspace/path#toolchains/cloudflare:dist: terrabuild.ci\n  - workspace/path#toolchains/pnpm:dist: terrabuild.ci, terrabuild.environment\n  Remove the environment-sensitive inputs or set environment_sensitive = true for intentionally environment-specific artifacts."
+
+[<Test>]
 let ``getImpactBaseGraph uses resolved environment key`` () =
     let api = RecordingImpactApiClient()
     let options: ConfigOptions.Options =
