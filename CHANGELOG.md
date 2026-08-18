@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Improve the Terrabuild skill for build diagnosis and performance investigation, and document its installation in Codex and Claude Code.
+
 ## [0.198.3-next]
 
 

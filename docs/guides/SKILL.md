@@ -1,3 +1,8 @@
+---
+name: terrabuild
+description: Use Terrabuild workspaces to run targets, inspect graph and cache decisions, troubleshoot failed or unexpectedly rebuilt targets, investigate build performance, and configure build phases. Use for operating Terrabuild in a workspace rather than developing Terrabuild itself.
+---
+
 # Terrabuild Usage Skill
 
 This guide focuses on using Terrabuild as a workspace user.
@@ -60,14 +65,19 @@ Tune parallelism:
 terrabuild run build --parallel 4
 ```
 
-Explain the selected graph and cache decision without executing it:
+Explain target selection and execution decisions without executing commands:
 
 ```bash
 terrabuild explain build --project app
 ```
 
-The readable explanation is generated from the same diagnostic model as
-`terrabuild-debug.json` and keeps input values and operation arguments hashed.
+Use the same targets, filters, configuration, environment, variables, engine,
+and cache flags as the run being investigated. The readable explanation shows
+selected targets, dependencies, action and cache decisions, evaluated inputs,
+resolved operations, and environment-sensitivity problems. It is generated from
+the same diagnostic model as `terrabuild-debug.json` and keeps input values and
+operation arguments hashed. Because `explain` does not execute commands, it
+cannot diagnose command failures or provide execution timings.
 
 Replay logs for targets:
 
@@ -77,11 +87,17 @@ terrabuild logs build test --log
 
 ## Useful Debug Mode
 
-When execution is unclear, run with debug output:
+When execution is unclear, reproduce it with the original options plus debug
+output and retained operation logs:
 
 ```bash
-terrabuild run build --debug --log --force
+terrabuild run build --debug --log
 ```
+
+Do not add `--force` by default: it changes cache and execution decisions and can
+hide the behavior under investigation. Add it only when deliberately reproducing
+an uncached execution, and keep that distinction explicit in performance
+comparisons.
 
 Debug mode replaces the previous diagnostic artifacts on every run and produces:
 
@@ -94,6 +110,12 @@ evaluated inputs that affected it and its resolved operations. Sensitive values,
 injected environment values, and operation arguments are represented by hashes;
 forwarded variable names are recorded without their values. Follow
 `executions[].operations[].log` only when command output is needed.
+
+Use `explain` before execution when the question concerns selection, dependency,
+cache, input, resolved-operation, or environment-sensitivity decisions. Use a
+debug run when the question concerns actual duration or command execution. Debug
+mode replaces the previous diagnostic artifacts, so preserve a report before
+running a different reproduction when the comparison matters.
 
 ## Investigating Common Issues
 
@@ -121,6 +143,11 @@ To determine which input changed, compare the node's `fingerprint` and its proje
 
 ### Where did the run spend time?
 
+Collect diagnostics from an actual representative run; `explain` contains no
+execution timings. Keep targets, filters, configuration, environment,
+parallelism, cache state, and `--force` usage consistent when comparing runs.
+Treat warm-cache and deliberately uncached measurements as different workloads.
+
 Start with the ranked summaries and critical chain:
 
 ```bash
@@ -139,6 +166,14 @@ jq '.executions[] | select(any(.operations[]; .exitCode != 0))' terrabuild-debug
 ```
 
 Use `terrabuild-debug.log` for Terrabuild exceptions, infrastructure errors, or failures that occurred before an operation log was created.
+
+For an environment-sensitivity preparation failure, rerun `terrabuild explain`
+with the same options; explanation mode reports the selected violations without
+enforcing them. For other preparation failures, inspect the partial debug report:
+the populated sections are checkpoints, while `.run.error` and
+`terrabuild-debug.log` retain the stopping error. `explain` may itself stop before
+producing readable output when the underlying preparation error is unrelated to
+environment sensitivity.
 
 ### Did diagnostics finish cleanly?
 
