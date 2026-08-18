@@ -60,6 +60,15 @@ Tune parallelism:
 terrabuild run build --parallel 4
 ```
 
+Explain the selected graph and cache decision without executing it:
+
+```bash
+terrabuild explain build --project app
+```
+
+The readable explanation is generated from the same diagnostic model as
+`terrabuild-debug.json` and keeps input values and operation arguments hashed.
+
 Replay logs for targets:
 
 ```bash

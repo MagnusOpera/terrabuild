@@ -3,6 +3,7 @@ module Diagnostics
 open System
 open System.IO
 open System.Collections.Concurrent
+open System.Text
 open Collections
 
 type FileFingerprint = {
@@ -182,6 +183,69 @@ type Report = {
     Executions: ExecutionReport list
     Performance: PerformanceReport
 }
+
+let private appendValues (builder: StringBuilder) label emptyValue values =
+    let rendered =
+        match values with
+        | [] -> emptyValue
+        | _ -> values |> String.concat ", "
+    builder.AppendLine($"  {label}: {rendered}") |> ignore
+
+let renderExplanation (report: Report) =
+    let builder = StringBuilder()
+
+    report.Nodes
+    |> List.filter _.Selected
+    |> List.iteri (fun index node ->
+        if index > 0 then
+            builder.AppendLine() |> ignore
+
+        let project = node.ProjectName |> Option.defaultValue node.ProjectId
+        builder.AppendLine($"{project}:{node.Target}") |> ignore
+        builder.AppendLine($"  id: {node.Id}") |> ignore
+
+        let action = node.Action |> Option.defaultValue "unresolved"
+        let actionReason = node.ActionReason |> Option.map (fun reason -> $" ({reason})") |> Option.defaultValue ""
+        builder.AppendLine($"  decision: {action}{actionReason}") |> ignore
+
+        let required = node.Required |> Option.map (fun value -> if value then "yes" else "no") |> Option.defaultValue "unresolved"
+        let requirementReason = node.RequirementReason |> Option.map (fun reason -> $" ({reason})") |> Option.defaultValue ""
+        builder.AppendLine($"  required: {required}{requirementReason}") |> ignore
+
+        appendValues builder "dependencies" "none" node.Dependencies
+        appendValues builder "decision dependencies" "none" node.ActionDependencies
+
+        match node.Cache with
+        | Some cache ->
+            let origin = cache.Origin |> Option.map (fun value -> $", origin {value}") |> Option.defaultValue ""
+            builder.AppendLine($"  cache: {cache.Lookup} in {cache.Scope}{origin}") |> ignore
+        | None -> builder.AppendLine("  cache: not consulted") |> ignore
+
+        match node.Fingerprint with
+        | Some fingerprint -> builder.AppendLine($"  cache key: {fingerprint.CacheKey}") |> ignore
+        | None -> ()
+
+        if node.EvaluationInputs <> [] then
+            builder.AppendLine("  evaluated inputs:") |> ignore
+            node.EvaluationInputs
+            |> List.iter (fun input -> builder.AppendLine($"    - {input.Name}: {input.ValueHash}") |> ignore)
+
+        if node.ResolvedOperations <> [] then
+            builder.AppendLine("  resolved operations:") |> ignore
+            node.ResolvedOperations
+            |> List.iter (fun operation ->
+                builder.AppendLine($"    - {operation.MetaCommand}") |> ignore
+                builder.AppendLine($"      command: {operation.Command}") |> ignore
+                builder.AppendLine($"      arguments hash: {operation.ArgumentsHash}") |> ignore
+                operation.Container |> Option.iter (fun value -> builder.AppendLine($"      container: {value}") |> ignore)
+                operation.Platform |> Option.iter (fun value -> builder.AppendLine($"      platform: {value}") |> ignore)
+                operation.Cpus |> Option.iter (fun value -> builder.AppendLine($"      cpus: {value}") |> ignore)
+                appendValues builder "    forwarded variables" "none" operation.ForwardedVariableNames
+                operation.InjectedEnvironment
+                |> List.map _.Name
+                |> appendValues builder "    injected environment" "none"))
+
+    builder.ToString().TrimEnd()
 
 type Context = {
     Options: ConfigOptions.Options

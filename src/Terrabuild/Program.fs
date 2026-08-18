@@ -561,6 +561,73 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                         RunTargetOptions.Engine = engine }
         runTarget options
 
+    let explain (explainArgs: ParseResults<ExplainArgs>) =
+        let wsDir =
+            match explainArgs.TryGetResult(ExplainArgs.Workspace) with
+            | Some ws -> ws
+            | _ ->
+                match currentDir() |> findWorkspace with
+                | Some ws -> ws
+                | _ -> raiseInvalidArg "Can't find workspace root directory. Check you are in a workspace."
+        let targets = explainArgs.GetResult(ExplainArgs.Target) |> Seq.map String.toLower
+        let configuration = explainArgs.TryGetResult(ExplainArgs.Configuration)
+        let environment = explainArgs.TryGetResult(ExplainArgs.Environment)
+        let types = explainArgs.TryGetResult(ExplainArgs.Type) |> Option.map (fun values -> values |> Seq.map String.toLower |> Set)
+        let labels = explainArgs.TryGetResult(ExplainArgs.Label) |> Option.map (fun values -> values |> Seq.map String.toLower |> Set)
+        let projects = explainArgs.TryGetResult(ExplainArgs.Project) |> Option.map (fun values -> values |> Seq.map String.toLower |> Set)
+        let variables = explainArgs.GetResults(ExplainArgs.Variable) |> Seq.map (fun (key, value) -> key |> String.toLower, value) |> Map
+        let engine = explainArgs.TryGetResult(ExplainArgs.Engine)
+
+        let options = {
+            RunTargetOptions.Workspace = wsDir |> FS.fullPath
+            RunTargetOptions.RunResultFile = None
+            RunTargetOptions.BaseCommit = None
+            RunTargetOptions.WhatIf = true
+            RunTargetOptions.Debug = debug
+            RunTargetOptions.Force = explainArgs.Contains(ExplainArgs.Force)
+            RunTargetOptions.MaxConcurrency = max 1 (Environment.ProcessorCount / 2)
+            RunTargetOptions.Retry = explainArgs.Contains(ExplainArgs.Retry)
+            RunTargetOptions.StartedAt = DateTime.UtcNow
+            RunTargetOptions.IsLog = false
+            RunTargetOptions.Targets = Set targets
+            RunTargetOptions.LocalOnly = explainArgs.Contains(ExplainArgs.Local_Only)
+            RunTargetOptions.Configuration = configuration
+            RunTargetOptions.Environment = environment
+            RunTargetOptions.Note = None
+            RunTargetOptions.GroupId = None
+            RunTargetOptions.Label = None
+            RunTargetOptions.Types = types
+            RunTargetOptions.Labels = labels
+            RunTargetOptions.Projects = projects
+            RunTargetOptions.Variables = variables
+            RunTargetOptions.Engine = engine
+        }
+
+        DiagnosticsTelemetry.reset true
+        Terminal.mute()
+        let prepared =
+            try
+                prepareRunTarget options
+            finally
+                Terminal.unmute()
+
+        Diagnostics.build {
+            Diagnostics.Context.Options = prepared.Options
+            Configuration = Some prepared.Configuration
+            FullGraph = Some prepared.FullGraph
+            SelectedGraph = Some prepared.SourceGraph
+            ResolvedGraph = Some prepared.ResolvedGraph
+            FinalGraph = Some prepared.Graph
+            Cache = Some prepared.Cache
+            Summary = None
+            Status = "success"
+            Completeness = "complete"
+            Error = None
+        }
+        |> Diagnostics.renderExplanation
+        |> Terminal.writeLine
+        0
+
     let impact (impactArgs: ParseResults<ImpactArgs>) =
         let wsDir =
             match impactArgs.TryGetResult(ImpactArgs.Workspace) with
@@ -737,6 +804,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | p when p.Contains(TerrabuildArgs.Scaffold) -> p.GetResult(TerrabuildArgs.Scaffold) |> scaffold
     | p when p.Contains(TerrabuildArgs.Logs) -> p.GetResult(TerrabuildArgs.Logs) |> logs
     | p when p.Contains(TerrabuildArgs.Run) -> p.GetResult(TerrabuildArgs.Run) |> run
+    | p when p.Contains(TerrabuildArgs.Explain) -> p.GetResult(TerrabuildArgs.Explain) |> explain
     | p when p.Contains(TerrabuildArgs.Impact) -> p.GetResult(TerrabuildArgs.Impact) |> impact
     | p when p.Contains(TerrabuildArgs.Serve) -> p.GetResult(TerrabuildArgs.Serve) |> serve
     | p when p.Contains(TerrabuildArgs.Console) -> p.GetResult(TerrabuildArgs.Console) |> console

@@ -272,7 +272,15 @@ target build {
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
         operation.Container |> should equal None
-        report |> Json.Serialize |> should not' (contain "sensitive-value"))
+        report |> Json.Serialize |> should not' (contain "sensitive-value")
+
+        let explanation = Diagnostics.renderExplanation report
+        explanation |> should contain "app:build"
+        explanation |> should contain "decision: exec (non-cacheable)"
+        explanation |> should contain "terrabuild.environment"
+        explanation |> should contain "forwarded variables: CI"
+        explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
+        explanation |> should not' (contain "sensitive-value"))
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =

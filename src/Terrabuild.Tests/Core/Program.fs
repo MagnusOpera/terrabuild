@@ -149,6 +149,20 @@ let ``CLI parses optional build group for run`` () =
     |> should equal None
 
 [<Test>]
+let ``CLI parses explain target selection`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let result =
+        parser.ParseCommandLine(
+            [| "explain"; "build"; "--environment"; "staging"; "--project"; "app"; "--force" |],
+            raiseOnUsage = true)
+    let explainArgs = result.GetResult(TerrabuildArgs.Explain)
+
+    explainArgs.GetResult(ExplainArgs.Target) |> should equal [ "build" ]
+    explainArgs.GetResult(ExplainArgs.Environment) |> should equal "staging"
+    explainArgs.GetResult(ExplainArgs.Project) |> should equal [ "app" ]
+    explainArgs.Contains(ExplainArgs.Force) |> should equal true
+
+[<Test>]
 let ``build context serializes optional group identifier`` () =
     let context groupId : Api.Build.BuildContextInput =
         { Configuration = None

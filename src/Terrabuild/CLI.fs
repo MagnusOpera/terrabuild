@@ -87,6 +87,37 @@ with
             | What_If -> "Prepare the action but do not apply."
 
 [<RequireQualifiedAccess>]
+type ExplainArgs =
+    | [<ExactlyOnce; MainCommand; First>] Target of target:string list
+    | [<Unique; AltCommandLine("-w")>] Workspace of path:string
+    | [<Unique; AltCommandLine("-c")>] Configuration of name:string
+    | [<Unique; AltCommandLine("-e")>] Environment of name:string
+    | [<EqualsAssignment; AltCommandLine("-v")>] Variable of variable:string * value:string
+    | [<Unique; AltCommandLine("-l")>] Label of labels:string list
+    | [<Unique; AltCommandLine("-t")>] Type of types:string list
+    | [<Unique; AltCommandLine("-p")>] Project of projects:string list
+    | [<Unique; AltCommandLine("-f")>] Force
+    | [<Unique; AltCommandLine("-r")>] Retry
+    | [<Unique>] Local_Only
+    | [<Unique>] Engine of engine:Engine
+with
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Target _ -> "Specify target to explain."
+            | Workspace _ -> "Root of workspace. If not specified, current directory is used."
+            | Configuration _ -> "Configuration to use."
+            | Environment _ -> "Environment to use."
+            | Variable _ -> "Set variable."
+            | Label _ -> "Select projects based on labels."
+            | Type _ -> "Select projects based on extension types."
+            | Project _ -> "Select projects based on id."
+            | Force -> "Explain the forced execution decision."
+            | Retry -> "Explain retry behavior for failed cached tasks."
+            | Local_Only -> "Use local cache only."
+            | Engine _ -> "Container engine to use (docker, podman or host)."
+
+[<RequireQualifiedAccess>]
 type ImpactArgs =
     | [<ExactlyOnce; MainCommand; First>] Target of target:string list
     | [<ExactlyOnce; Unique>] Base of sha:string
@@ -199,6 +230,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Scaffold of ParseResults<ScaffoldArgs>
     | [<CliPrefix(CliPrefix.None)>] Logs of ParseResults<LogsArgs>
     | [<CliPrefix(CliPrefix.None)>] Run of ParseResults<RunArgs>
+    | [<CliPrefix(CliPrefix.None)>] Explain of ParseResults<ExplainArgs>
     | [<CliPrefix(CliPrefix.None)>] Impact of ParseResults<ImpactArgs>
     | [<CliPrefix(CliPrefix.None)>] Serve of ParseResults<ServeArgs>
     | [<CliPrefix(CliPrefix.None)>] Console of ParseResults<ConsoleArgs>
@@ -216,6 +248,7 @@ with
             | Scaffold _ -> "Scaffold workspace."
             | Logs _ -> "dump logs."
             | Run _ -> "Run specified targets."
+            | Explain _ -> "Explain target selection and execution decisions."
             | Impact _ -> "Report impacted targets compared to a base commit."
             | Serve _ -> "Serve specified targets."
             | Console _ -> "Launch web console."

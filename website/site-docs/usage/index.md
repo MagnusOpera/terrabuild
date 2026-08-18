@@ -14,6 +14,7 @@ SUBCOMMANDS:
     scaffold <options>    Scaffold workspace.
     logs <options>        dump logs.
     run <options>         Run specified targets.
+    explain <options>     Explain target selection and execution decisions.
     impact <options>      Report impacted targets compared to a base commit.
     serve <options>       Serve specified targets.
     console <options>     Launch web console.
@@ -41,6 +42,7 @@ SUBCOMMANDS:
 ## Common Patterns
 
 - Use `terrabuild run <target>` for normal local and CI builds.
+- Use `terrabuild explain <target>` to understand what Terrabuild would do and why.
 - Use `terrabuild run <target> --out <file>` when automation needs a machine-readable build report.
 - Use `terrabuild impact <target> --base <sha> --out <file>` to compute impacted targets from a stored base graph.
 - Use `terrabuild logs <target>` when you only need the stored logs for a target.
