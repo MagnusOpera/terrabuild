@@ -87,6 +87,23 @@ type Graph = {
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
 
+let environmentSensitiveInputNames =
+    Set [
+        "terrabuild.environment"
+        "terrabuild.branch_or_tag"
+        "terrabuild.head_commit"
+        "terrabuild.ci"
+        "terrabuild.tag"
+        "terrabuild.note"
+        "terrabuild.group"
+    ]
+
+let environmentSensitiveInputs (inputs: EvaluationInput seq) =
+    inputs
+    |> Seq.filter (fun input -> environmentSensitiveInputNames |> Set.contains input.Name)
+    |> Seq.sortBy _.Name
+    |> List.ofSeq
+
 let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
     match node.Artifacts with
     | ArtifactMode.Managed

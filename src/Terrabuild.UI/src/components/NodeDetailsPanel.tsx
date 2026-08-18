@@ -115,6 +115,16 @@ const NodeDetailsPanel = ({
                         <Code block>{explanation.fingerprint.cacheKey}</Code>
                       </Stack>
                     ) : null}
+                    {explanation.environmentSensitiveInputs.length > 0 ? (
+                      <Stack gap={2}>
+                        <Text size="xs" c="orange">Environment-sensitive inputs</Text>
+                        <Code block color="orange">
+                          {explanation.environmentSensitiveInputs
+                            .map((input) => input.name)
+                            .join("\n")}
+                        </Code>
+                      </Stack>
+                    ) : null}
                     {explanation.actionDependencies.length > 0 ? (
                       <Stack gap={2}>
                         <Text size="xs" c="dimmed">Decision dependencies</Text>

@@ -268,6 +268,8 @@ target build {
 
         node.EvaluationInputs |> List.map _.Name
         |> should equal [ "terrabuild.environment"; "var.deployment_token" ]
+        node.EnvironmentSensitiveInputs |> List.map _.Name
+        |> should equal [ "terrabuild.environment" ]
         operation.ForwardedVariableNames |> should equal [ "CI" ]
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
@@ -278,9 +280,38 @@ target build {
         explanation |> should contain "app:build"
         explanation |> should contain "decision: exec (non-cacheable)"
         explanation |> should contain "terrabuild.environment"
+        explanation |> should contain "environment-sensitive inputs:"
         explanation |> should contain "forwarded variables: CI"
         explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
         explanation |> should not' (contain "sensitive-value"))
+
+[<Test>]
+let ``Environment-sensitive inputs exclude deterministic build dimensions`` () =
+    [ "terrabuild.arch"
+      "terrabuild.branch_or_tag"
+      "terrabuild.ci"
+      "terrabuild.configuration"
+      "terrabuild.environment"
+      "terrabuild.group"
+      "terrabuild.head_commit"
+      "terrabuild.note"
+      "terrabuild.os"
+      "terrabuild.tag"
+      "var.toolchain_version" ]
+    |> List.map (fun name -> {
+        GraphDef.EvaluationInput.Name = name
+        GraphDef.EvaluationInput.ValueHash = "hash"
+    })
+    |> GraphDef.environmentSensitiveInputs
+    |> List.map _.Name
+    |> should equal
+        [ "terrabuild.branch_or_tag"
+          "terrabuild.ci"
+          "terrabuild.environment"
+          "terrabuild.group"
+          "terrabuild.head_commit"
+          "terrabuild.note"
+          "terrabuild.tag" ]
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =

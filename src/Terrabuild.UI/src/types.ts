@@ -53,6 +53,7 @@ export type NodeExplanation = {
   dependencies: string[];
   cache?: CacheEvidence | null;
   evaluationInputs: EvaluationInput[];
+  environmentSensitiveInputs: EvaluationInput[];
   resolvedOperations: ResolvedOperation[];
   fingerprint?: {
     cacheKey: string;

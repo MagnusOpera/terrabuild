@@ -26,3 +26,21 @@ Terrabuild provides several predefined variables that can be used in expressions
 | `terrabuild.target` | Name of current [target](/docs/project/target) | Target |
 | `terrabuild.version` | Version (hash) of current [project](/docs/project) | Target |
 | `project.<id>.version` | Version (hash) of given project `<id>` | Target |
+
+## Environment-Sensitive Inputs
+
+Terrabuild classifies the following predefined values as environment-sensitive:
+
+- `terrabuild.environment`
+- `terrabuild.branch_or_tag`
+- `terrabuild.head_commit`
+- `terrabuild.ci`
+- `terrabuild.tag`
+- `terrabuild.note`
+- `terrabuild.group`
+
+When a selected target consumes one of these values directly or through a
+local or extension configuration, Terrabuild emits a warning because the
+target's artifact may not be reusable in another environment. The same input
+names appear in diagnostic JSON, `terrabuild explain`, and the local console;
+their values remain hashed.
