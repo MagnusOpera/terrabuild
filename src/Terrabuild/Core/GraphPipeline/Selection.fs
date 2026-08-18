@@ -1,5 +1,6 @@
 module GraphPipeline.Selection
 open Collections
+open System.Collections.Generic
 open GraphDef
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Graph) =
@@ -15,22 +16,20 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     else None)))
         |> Set.ofSeq
 
-    let rec visit pending visited =
-        match pending with
-        | [] -> visited
-        | nodeId::rest when visited |> Set.contains nodeId -> visit rest visited
-        | nodeId::rest ->
+    let activeNodes = HashSet<string>()
+    let pending = Stack<string>(selectedRoots)
+    while pending.Count > 0 do
+        let nodeId = pending.Pop()
+        if activeNodes.Add nodeId then
             match graph.Nodes |> Map.tryFind nodeId with
             | Some node ->
-                let next = node.Dependencies |> Set.toList
-                visit (rest @ next) (visited |> Set.add nodeId)
-            | None ->
-                visit rest visited
+                for dependencyId in node.Dependencies do
+                    pending.Push dependencyId
+            | None -> ()
 
-    let activeNodes = visit (selectedRoots |> Set.toList) Set.empty
     let nodes =
         graph.Nodes
-        |> Map.filter (fun nodeId _ -> activeNodes |> Set.contains nodeId)
+        |> Map.filter (fun nodeId _ -> activeNodes.Contains nodeId)
 
     let rootNodes =
         let allNodeIds = nodes |> Map.keys |> Set.ofSeq

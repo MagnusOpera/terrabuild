@@ -20,6 +20,7 @@
     <Compile Include="Core/Logs.fs" />
     <Compile Include="Core/Program.fs" />
     <Compile Include="Core/Runner.fs" />
+    <Compile Include="Core/GraphPipeline/Optimization.fs" />
     <Compile Include="Core/GraphPipeline/Batch.fs" />
   </ItemGroup>
 

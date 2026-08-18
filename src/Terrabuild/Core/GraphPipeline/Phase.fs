@@ -19,15 +19,18 @@ let private transitiveDependencies (phases: Map<string, Set<string>>) =
     phases |> Map.map (fun phaseName _ -> collect phaseName)
 
 let private validateCombinedGraph (nodes: Map<string, Node>) =
-    let mutable visited = Set.empty<string>
+    let visited = HashSet<string>()
+    let active = HashSet<string>()
     let rec visit path nodeId =
-        if path |> List.contains nodeId then
+        if active.Contains nodeId then
             let cycle = nodeId :: path |> List.rev |> String.join " -> "
             raiseInvalidArg $"Circular target dependency detected after applying phases: {cycle}"
-        elif visited |> Set.contains nodeId |> not then
+        elif visited.Contains nodeId |> not then
+            active.Add nodeId |> ignore
             let path = nodeId :: path
             nodes[nodeId].Dependencies |> Set.iter (visit path)
-            visited <- visited |> Set.add nodeId
+            active.Remove nodeId |> ignore
+            visited.Add nodeId |> ignore
 
     nodes |> Map.keys |> Seq.iter (visit [])
 
@@ -41,16 +44,23 @@ let build (graph: Graph) =
         |> Seq.map (fun (phase, nodes) -> phase, nodes |> Seq.map snd |> Set.ofSeq)
         |> Map.ofSeq
 
+    // All nodes in the same phase have the same phase-level dependency set.
+    // Expand it once per phase rather than once per node.
+    let expandedPhaseNodes =
+        phaseDependencies
+        |> Map.map (fun _ dependencies ->
+            dependencies
+            |> Seq.collect (fun phase -> phaseNodes |> Map.tryFind phase |> Option.defaultValue Set.empty)
+            |> Set.ofSeq)
+
     let nodes =
         graph.Nodes
         |> Map.map (fun _ node ->
             let phaseDependencies =
                 node.Phase
-                |> Option.bind (fun phase -> phaseDependencies |> Map.tryFind phase)
+                |> Option.bind (fun phase -> expandedPhaseNodes |> Map.tryFind phase)
                 |> Option.defaultValue Set.empty
-                |> Seq.collect (fun phase -> phaseNodes |> Map.tryFind phase |> Option.defaultValue Set.empty)
-                |> Set.ofSeq
-                |> Set.filter (fun dependency -> node.Dependencies |> Set.contains dependency |> not)
+                |> fun dependencies -> dependencies - node.Dependencies
             { node with
                 Dependencies = node.Dependencies + phaseDependencies
                 PhaseDependencies = phaseDependencies })

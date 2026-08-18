@@ -203,24 +203,27 @@ let private partitionByDependencies (bucketNodes: Node list) =
     components |> List.ofSeq
 
 let private hasExternalDependencyCycle (graph: Graph) (candidateNodes: Node list) =
-    let memberIds = candidateNodes |> List.map (fun node -> node.Id) |> Set.ofList
+    let memberIds = HashSet<string>(candidateNodes |> Seq.map _.Id)
     let externalDependencies =
         candidateNodes
         |> Seq.collect (fun node -> node.Dependencies)
         |> Set.ofSeq
-        |> Set.filter (fun depId -> memberIds |> Set.contains depId |> not)
+        |> Set.filter (memberIds.Contains >> not)
 
-    let rec reachesMember visited nodeId =
-        if memberIds |> Set.contains nodeId then true
-        elif visited |> Set.contains nodeId then false
-        else
+    let visited = HashSet<string>()
+    let pending = Stack<string>(externalDependencies)
+    let mutable reachesMember = false
+    while not reachesMember && pending.Count > 0 do
+        let nodeId = pending.Pop()
+        if memberIds.Contains nodeId then
+            reachesMember <- true
+        elif visited.Add nodeId then
             match graph.Nodes |> Map.tryFind nodeId with
-            | None -> false
             | Some node ->
-                let visited = visited |> Set.add nodeId
-                node.Dependencies |> Seq.exists (reachesMember visited)
-
-    externalDependencies |> Seq.exists (reachesMember Set.empty)
+                for dependencyId in node.Dependencies do
+                    pending.Push dependencyId
+            | None -> ()
+    reachesMember
 
 let computeBatches (graph: Graph) =
     // find clusters with at least one exec node
@@ -287,8 +290,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
 
             // collect project dirs for BatchContext
             let projectDirs =
-                nodeIds
-                |> List.choose (fun nid -> graph.Nodes |> Map.tryFind nid |> Option.map (fun n -> n.ProjectDir))
+                batch.Nodes
+                |> List.map _.ProjectDir
                 |> Set.ofList
 
             // reuse the same project/target operations definition as head node

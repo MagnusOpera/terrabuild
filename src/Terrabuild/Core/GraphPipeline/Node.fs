@@ -44,7 +44,8 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         |> Seq.collect (fun dependsOn ->
             match dependsOn with
             // Cross-project dependency: ^<target>
-            | String.Regex "^\^(.+)$" [ depTarget ] ->
+            | depTargetReference when depTargetReference.Length > 1 && depTargetReference[0] = '^' ->
+                let depTarget = depTargetReference.Substring(1)
                 projectConfig.Dependencies
                 |> Seq.choose (fun depProject ->
                     let depConfig = configuration.Projects[depProject]
@@ -149,9 +150,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         |> Seq.iter (fun target -> buildNode [] projectId target))
 
     let rootNodes =
-        let allNodeIds = allNodes.Keys |> Set
-        let allDependencyIds = allNodes.Values |> Seq.collect (fun node -> node.Dependencies) |> Set.ofSeq
-        allNodeIds - allDependencyIds
+        let roots = HashSet<string>(allNodes.Keys)
+        for node in allNodes.Values do
+            for dependencyId in node.Dependencies do
+                roots.Remove dependencyId |> ignore
+        roots |> Set.ofSeq
 
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {allNodes.Count} nodes" |> Terminal.writeLine
     $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} {rootNodes.Count} root nodes" |> Terminal.writeLine

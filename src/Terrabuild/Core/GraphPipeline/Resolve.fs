@@ -23,8 +23,11 @@ let internal resolveTargetOperations
     (targetConfig: Configuration.Target)
     (contextHash: string)
     (batchContext: Terrabuild.ScriptingContracts.BatchContext option) =
-    targetConfig.Steps
-    |> List.fold (fun (_, batchable, ops) step ->
+    let operations = ResizeArray<ContaineredShellOperation>()
+    let mutable cacheability = ArtifactMode.Managed
+    let mutable batchable = true
+
+    for step in targetConfig.Steps do
         let optContext =
             { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
               Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
@@ -41,7 +44,7 @@ let internal resolveTargetOperations
                 |> Terrabuild.Expression.Value.Map
             | _ -> raiseBugError "Failed to get context (internal error)"
 
-        let cacheability = resolveCacheability step.Extension step.Command step.Script
+        cacheability <- resolveCacheability step.Extension step.Command step.Script
 
         let executionResult =
             match Extensions.invokeScriptMethod<Terrabuild.ScriptingContracts.CommandResult> optContext.Command parameters (Some step.Script) with
@@ -49,8 +52,8 @@ let internal resolveTargetOperations
             | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{contextHash}: Failed to get shell operation (extension error)", ex)
             | _ -> raiseInvalidArg $"{contextHash}: Failed to get shell operation (extension error)"
 
-        let newops =
-            executionResult.Operations |> List.map (fun shellOperation -> {
+        for shellOperation in executionResult.Operations do
+            operations.Add {
                 ContaineredShellOperation.Image = step.Image
                 ContaineredShellOperation.Platform = step.Platform
                 ContaineredShellOperation.Cpus = step.Cpus
@@ -60,12 +63,11 @@ let internal resolveTargetOperations
                 ContaineredShellOperation.Command = shellOperation.Command
                 ContaineredShellOperation.Arguments = shellOperation.Arguments |> String.normalizeShellArgs
                 ContaineredShellOperation.ErrorLevel = shellOperation.ErrorLevel
-                ContaineredShellOperation.Stdout = shellOperation.Stdout })
+                ContaineredShellOperation.Stdout = shellOperation.Stdout }
 
-        let batchable = batchable && executionResult.Batchable
+        batchable <- batchable && executionResult.Batchable
 
-        cacheability, batchable, ops @ newops
-    ) (ArtifactMode.Managed, true, [])
+    cacheability, batchable, operations |> List.ofSeq
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Graph) =
     let allNodes = Dictionary<string, Node>()
