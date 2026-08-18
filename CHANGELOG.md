@@ -4,11 +4,16 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.198.4-next]
+
+
 - Upgrade the embedded FScript language and runtime packages to `0.78.1`.
 - Load different FScript extensions concurrently while continuing to prepare each script only once.
 - Build configurations faster by scanning projects and evaluating their dependency graph concurrently.
 - Speed up graph refinement while preserving graph contents, target hashes, and execution decisions.
 - Improve the Terrabuild skill for build diagnosis and performance investigation, and document its installation in Codex and Claude Code.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.3-next...0.198.4-next
 
 ## [0.198.3-next]
 

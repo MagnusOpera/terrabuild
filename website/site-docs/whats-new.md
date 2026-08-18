@@ -6,7 +6,15 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.198.3-next
+## 0.198.4-next
+
+### 0.198.4-next
+
+- Upgrade the embedded FScript language and runtime packages to `0.78.1`.
+- Load different FScript extensions concurrently while continuing to prepare each script only once.
+- Build configurations faster by scanning projects and evaluating their dependency graph concurrently.
+- Speed up graph refinement while preserving graph contents, target hashes, and execution decisions.
+- Improve the Terrabuild skill for build diagnosis and performance investigation, and document its installation in Codex and Claude Code.
 
 ### 0.198.3-next
 
@@ -34,4 +42,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Keep the rolling documentation labelled `Next` while selecting the latest stable Terrabuild tag as the default released documentation version.
 - Add a Getting Started guide for connecting Terrabuild to Insights, sharing encrypted artifacts, and reporting builds from developer machines and CI.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.9-next...0.198.3-next
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.9-next...0.198.4-next
