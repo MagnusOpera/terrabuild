@@ -20,7 +20,7 @@ on:
         description: force build
 
 env:
-  TERRABUILD_API_URL: https://api.staging.magnusopera.io/terrabuild
+  TERRABUILD_API_URL: https://api-staging.magnusopera.io/terrabuild
 
 jobs:
   build:
@@ -48,7 +48,7 @@ jobs:
         run: |
           terrabuild version
           terrabuild login \
-            --workspace "edd11090a41b0291301431d0" \
+            --workspace "6a842b8575d8c63f4ae71c4e" \
             --token "$TERRABUILD_TOKEN" \
             --masterkey "$TERRABUILD_MASTER_KEY"
 
@@ -62,7 +62,7 @@ jobs:
 
       - name: Logout from Space
         if: always()
-        run: terrabuild logout --space "edd11090a41b0291301431d0"
+        run: terrabuild logout --space "6a842b8575d8c63f4ae71c4e"
 
       - name: Upload Terrabuild Logs
         uses: actions/upload-artifact@v4

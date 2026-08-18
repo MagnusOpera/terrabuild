@@ -1,6 +1,6 @@
 
 workspace {
-    id = "edd11090a41b0291301431d0"
+    id = "6a842b8575d8c63f4ae71c4e"
     engine = ~docker
     configuration = "local"
     environment = "dev"
