@@ -88,6 +88,22 @@ type private RecordingImpactApiClient() =
               CommitGraph.Nodes = [] }
 
 [<Test>]
+let ``preparation failures finalize the latest diagnostic snapshot`` () =
+    let mutable diagnostic = None
+
+    Assert.That(
+        Action(fun () ->
+            global.Program.runWithFailureDiagnostic
+                (fun status completeness error ->
+                    diagnostic <- Some (status, completeness, error))
+                (fun () -> raise (InvalidOperationException("analysis failed")))
+            |> ignore),
+        Throws.TypeOf<InvalidOperationException>())
+
+    diagnostic
+    |> should equal (Some ("failure", "partial", Some "analysis failed"))
+
+[<Test>]
 let ``getImpactBaseGraph uses resolved environment key`` () =
     let api = RecordingImpactApiClient()
     let options: ConfigOptions.Options =

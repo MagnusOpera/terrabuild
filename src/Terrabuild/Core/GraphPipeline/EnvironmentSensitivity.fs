@@ -37,4 +37,4 @@ let validate (graph: Graph) =
             |> String.join "\n"
 
         raiseInvalidArg
-            $"Environment-neutral targets consume environment-sensitive inputs:\n{details}\nSet environment_sensitive = true only on targets that intentionally produce environment-specific artifacts."
+            $"Environment-neutral targets consume environment-sensitive inputs:\n{details}\nSet environment_sensitive = true only on targets that intentionally produce environment-specific artifacts.\nRun 'terrabuild explain <target>' with the same options to inspect decisions and evaluated inputs."

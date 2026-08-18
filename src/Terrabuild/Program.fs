@@ -272,6 +272,13 @@ let rec findWorkspace dir =
     else
         dir |> FS.parentDirectory |> Option.bind findWorkspace
 
+let internal runWithFailureDiagnostic writeDiagnostic action =
+    try
+        action ()
+    with ex ->
+        writeDiagnostic "failure" "partial" (Some ex.Message)
+        reraise()
+
 let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
     let debug = result.Contains(TerrabuildArgs.Debug)
     let log = result.Contains(TerrabuildArgs.Log)
@@ -369,53 +376,80 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                     Error = error
                 }
 
-        writeDiagnostic None None None None None "preparing" "partial" None
+        let mutable diagnosticFullGraph = None
+        let mutable diagnosticSelectedGraph = None
+        let mutable diagnosticResolvedGraph = None
+        let mutable diagnosticFinalGraph = None
+
+        let checkpoint fullGraph selectedGraph resolvedGraph finalGraph summary status completeness error =
+            diagnosticFullGraph <- fullGraph
+            diagnosticSelectedGraph <- selectedGraph
+            diagnosticResolvedGraph <- resolvedGraph
+            diagnosticFinalGraph <- finalGraph
+            writeDiagnostic fullGraph selectedGraph resolvedGraph finalGraph summary status completeness error
+
+        let runPreparation action =
+            runWithFailureDiagnostic
+                (fun status completeness error ->
+                    writeDiagnostic
+                        diagnosticFullGraph
+                        diagnosticSelectedGraph
+                        diagnosticResolvedGraph
+                        diagnosticFinalGraph
+                        None
+                        status
+                        completeness
+                        error)
+                action
+
+        checkpoint None None None None None "preparing" "partial" None
 
         let auth =
-            if options.LocalOnly then None
-            else config.Id |> Option.bind Auth.readAuth
+            runPreparation (fun () ->
+                if options.LocalOnly then None
+                else config.Id |> Option.bind Auth.readAuth)
         let token = auth |> Option.map (fun auth -> auth.Token)
         let masterKey = auth |> Option.map (fun auth -> Encryption.masterKeyFromString auth.Id auth.MasterKey)
         if masterKey |> Option.isSome then Log.Debug("Artifacts encryption on")
 
-        let api = Api.Factory.create config.Id token options
+        let api = runPreparation (fun () -> Api.Factory.create config.Id token options)
         if api |> Option.isSome then
             Log.Debug("Connected to API")
             $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Connected to Insights" |> Terminal.writeLine
 
-        let storage = Storages.Factory.create api
-        let cache = Cache.Cache(storage, masterKey) :> Cache.ICache
+        let storage = runPreparation (fun () -> Storages.Factory.create api)
+        let cache = runPreparation (fun () -> Cache.Cache(storage, masterKey) :> Cache.ICache)
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
-        let nodeGraph = runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config)
-        writeDiagnostic (Some nodeGraph) None None None None "preparing" "partial" None
+        let nodeGraph = runPreparation (fun () -> runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config))
+        checkpoint (Some nodeGraph) None None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Phase ]========================================================")
-        let phaseGraph = runPhase "graph-phase" (fun () -> GraphPipeline.Phase.build nodeGraph)
-        writeDiagnostic (Some phaseGraph) None None None None "preparing" "partial" None
+        let phaseGraph = runPreparation (fun () -> runPhase "graph-phase" (fun () -> GraphPipeline.Phase.build nodeGraph))
+        checkpoint (Some phaseGraph) None None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
-        let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config phaseGraph)
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) None None None "preparing" "partial" None
+        let sourceGraph = runPreparation (fun () -> runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config phaseGraph))
+        checkpoint (Some phaseGraph) (Some sourceGraph) None None None "preparing" "partial" None
         if enforceEnvironmentSensitivity then
-            GraphPipeline.EnvironmentSensitivity.validate sourceGraph |> ignore
+            runPreparation (fun () -> GraphPipeline.EnvironmentSensitivity.validate sourceGraph |> ignore)
 
         Log.Debug("====[ GraphPipeline Resolve ]========================================================")
-        let graph = runPhase "graph-resolve" (fun () -> GraphPipeline.Resolve.build options config sourceGraph)
+        let graph = runPreparation (fun () -> runPhase "graph-resolve" (fun () -> GraphPipeline.Resolve.build options config sourceGraph))
         let resolvedGraph = graph
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) None None "preparing" "partial" None
+        checkpoint (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
-        let graph = runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph)
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
+        let graph = runPreparation (fun () -> runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph))
+        checkpoint (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Cascade ]========================================================")
-        let graph = runPhase "graph-cascade" (fun () -> GraphPipeline.Cascade.build graph)
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
+        let graph = runPreparation (fun () -> runPhase "graph-cascade" (fun () -> GraphPipeline.Cascade.build graph))
+        checkpoint (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Batch ]========================================================")
-        let graph = runPhase "graph-batch" (fun () -> GraphPipeline.Batch.build options config graph)
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None (if options.DryRun then "success" else "ready") (if options.DryRun then "complete" else "partial") None
+        let graph = runPreparation (fun () -> runPhase "graph-batch" (fun () -> GraphPipeline.Batch.build options config graph))
+        checkpoint (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None (if options.DryRun then "success" else "ready") (if options.DryRun then "complete" else "partial") None
 
         { PreparedRunTarget.RunOptions = runOptions
           Options = options

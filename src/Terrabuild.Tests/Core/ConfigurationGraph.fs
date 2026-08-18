@@ -366,7 +366,8 @@ target build { @shell echo { args = "build" } }
         |> assertKnownErrorContainsAll
             [ "Environment-neutral targets consume environment-sensitive inputs"
               "workspace/path#.:build: terrabuild.environment"
-              "Set environment_sensitive = true" ])
+              "Set environment_sensitive = true"
+              "Run 'terrabuild explain <target>' with the same options" ])
 
 [<Test>]
 let ``Environment-sensitive opt-in adds evaluated values to target hashes`` () =
