@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade the embedded FScript language and runtime packages to `0.78.1`.
 - Load different FScript extensions concurrently while continuing to prepare each script only once.
 - Build configurations faster by scanning projects and evaluating their dependency graph concurrently.
 - Speed up graph refinement while preserving graph contents, target hashes, and execution decisions.

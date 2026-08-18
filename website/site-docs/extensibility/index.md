@@ -8,11 +8,11 @@ Terrabuild extensions are FScript programs that translate target actions into sh
 :::tip Learn FScript first
 FScript is a lightweight language with F#/ML-style functions, records, unions, options, collections, and pattern matching.
 
-- [Start the FScript tutorial](https://magnusopera.github.io/FScript/manual/0.75.0/learn/quickstart)
-- [Read the language manual](https://magnusopera.github.io/FScript/manual/0.75.0/)
+- [Start the FScript tutorial](https://magnusopera.github.io/FScript/manual/0.78.1/learn/quickstart)
+- [Read the language manual](https://magnusopera.github.io/FScript/manual/0.78.1/)
 - [Try FScript in the browser](https://magnusopera.github.io/FScript/sandbox)
 
-Terrabuild currently embeds FScript `0.75.0`; the links above open the matching version of the manual.
+Terrabuild currently embeds FScript `0.78.1`; the links above open the matching version of the manual.
 :::
 
 Use extensions to:
@@ -44,7 +44,7 @@ Start with [FScript Extensions](./script), then use [Protocol Types](./types) an
 
 ## Authoring Path
 
-1. Learn enough [FScript](https://magnusopera.github.io/FScript/manual/0.75.0/learn/quickstart) to read functions, records, options, and pattern matching.
+1. Learn enough [FScript](https://magnusopera.github.io/FScript/manual/0.78.1/learn/quickstart) to read functions, records, options, and pattern matching.
 2. Write a local `.fss` script with one exported command handler.
 3. Add the descriptor that declares dispatch behavior and cacheability.
 4. Register the script in an `extension` block in `WORKSPACE` or `PROJECT`.

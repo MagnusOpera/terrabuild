@@ -2,7 +2,7 @@
 title: Protocol Types
 ---
 
-These are the FScript shapes exchanged with Terrabuild. They are ordinary FScript records and discriminated unions; see the [FScript type-system documentation](https://magnusopera.github.io/FScript/manual/0.75.0/language/type-system) for the language rules.
+These are the FScript shapes exchanged with Terrabuild. They are ordinary FScript records and discriminated unions; see the [FScript type-system documentation](https://magnusopera.github.io/FScript/manual/0.78.1/language/type-system) for the language rules.
 
 ## ExtensionContext
 
