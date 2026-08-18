@@ -35,6 +35,10 @@ extension npm_ci {
 }
 ```
 
+A target that uses this `@docker` extension must declare
+`environment_sensitive = true` because the extension consumes
+`terrabuild.head_commit`.
+
 ## Arguments
 
 - `identifier` (required): extension identifier.

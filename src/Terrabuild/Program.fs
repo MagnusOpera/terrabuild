@@ -293,7 +293,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
     DiagnosticsTelemetry.reset debug
 
-    let prepareRunTarget (runOptions: RunTargetOptions) =
+    let prepareRunTarget enforceEnvironmentSensitivity (runOptions: RunTargetOptions) =
         System.Environment.CurrentDirectory <- runOptions.Workspace
         Log.Debug("Changing current directory to {directory}", runOptions.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
@@ -397,6 +397,8 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Log.Debug("====[ GraphPipeline Selection ]========================================================")
         let sourceGraph = runPhase "graph-selection" (fun () -> GraphPipeline.Selection.build options config phaseGraph)
         writeDiagnostic (Some phaseGraph) (Some sourceGraph) None None None "preparing" "partial" None
+        if enforceEnvironmentSensitivity then
+            GraphPipeline.EnvironmentSensitivity.validate sourceGraph |> ignore
 
         Log.Debug("====[ GraphPipeline Resolve ]========================================================")
         let graph = runPhase "graph-resolve" (fun () -> GraphPipeline.Resolve.build options config sourceGraph)
@@ -426,7 +428,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
           Graph = graph }
 
     let runTarget (options: RunTargetOptions) =
-        let prepared = prepareRunTarget options
+        let prepared = prepareRunTarget true options
         let runOptions = prepared.RunOptions
         let options = prepared.Options
         let cache = prepared.Cache
@@ -491,7 +493,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Terminal.mute()
         let prepared =
             try
-                prepareRunTarget options
+                prepareRunTarget true options
             finally
                 Terminal.unmute()
         let runOptions = prepared.RunOptions
@@ -614,7 +616,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         Terminal.mute()
         let prepared =
             try
-                prepareRunTarget options
+                prepareRunTarget false options
             finally
                 Terminal.unmute()
 

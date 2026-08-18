@@ -190,7 +190,7 @@ define diff_results
 		cp $(1)/terrabuild-debug.normalized.json $(1)/results/terrabuild-debug.json; \
 	fi
 	diff $(1)/results/terrabuild-debug.json $(1)/terrabuild-debug.normalized.json
-	jq -e '.schemaVersion == 1 and .run.completeness == "complete" and (.nodes | type == "array") and (.performance.criticalChain | type == "array") and ([.performance.criticalChain[]] - [.executions[].id] | length == 0) and ([.performance.phases[].durationMs, .performance.configurationProjects[].durationMs, .executions[].durationMs // 0, .executions[].events[].offsetMs, .performance.fScript.scriptLoadMs, .performance.fScript.invocationMs] | all(. >= 0)) and ([.results[].message // ""] | all(contains("Task execution not yet completed") | not))' $(1)/terrabuild-debug.json >/dev/null
+	jq -e '.schemaVersion == 4 and .run.completeness == "complete" and (.nodes | type == "array") and (.performance.criticalChain | type == "array") and ([.performance.criticalChain[]] - [.executions[].id] | length == 0) and ([.performance.phases[].durationMs, .performance.configurationProjects[].durationMs, .executions[].durationMs // 0, .executions[].events[].offsetMs, .performance.fScript.scriptLoadMs, .performance.fScript.invocationMs] | all(. >= 0)) and ([.results[].message // ""] | all(contains("Task execution not yet completed") | not))' $(1)/terrabuild-debug.json >/dev/null
 endef
 
 

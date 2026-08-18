@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -431,6 +431,20 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@go build",
+          "command": "go",
+          "argumentsHash": "25A44A5C863F1269BA3BEF9695F2329E3CD442A8F0AFB2114834FF06B70B356A",
+          "container": "golang:1.26.5-bookworm",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "E21F3C1CDEE2891EA8DEB6D5D189642EE925D890A41B562D5924ADD0029A89F3",
         "operationHashes": [
@@ -464,6 +478,20 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@go test",
+          "command": "go",
+          "argumentsHash": "0AC8328AF9880305AFBD457C6B76B248B7BC97CE87ABFE1051189E90AAC18096",
+          "container": "golang:1.26.5-bookworm",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "FFF5AC8D73731D39A5211D87BFD9FAFE0588AAE7A5C2B08DD069BA6EFDB689BD",
         "operationHashes": [
@@ -504,6 +532,39 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "argumentsHash": "E87E6BFBC28E479D66296AB690315483B30823FB0F127840D4CB4295C3B879AE",
+          "container": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": [
+            {
+              "name": "CI",
+              "valueHash": "B5BEA41B6C623F7C09F1BF24DCAE58EBAB3C0CDD90AD966BC43A45B44867E12B"
+            }
+          ]
+        },
+        {
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "argumentsHash": "7DAB62A80E8A94EB54EFB8397A76E8D8FE0B44E8D9D7F4581D3E7A9D32F21D5A",
+          "container": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": [
+            {
+              "name": "CI",
+              "valueHash": "B5BEA41B6C623F7C09F1BF24DCAE58EBAB3C0CDD90AD966BC43A45B44867E12B"
+            }
+          ]
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
         "operationHashes": [
@@ -543,6 +604,39 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@pnpm install",
+          "command": "pnpm",
+          "argumentsHash": "E87E6BFBC28E479D66296AB690315483B30823FB0F127840D4CB4295C3B879AE",
+          "container": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": [
+            {
+              "name": "CI",
+              "valueHash": "B5BEA41B6C623F7C09F1BF24DCAE58EBAB3C0CDD90AD966BC43A45B44867E12B"
+            }
+          ]
+        },
+        {
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "argumentsHash": "7DAB62A80E8A94EB54EFB8397A76E8D8FE0B44E8D9D7F4581D3E7A9D32F21D5A",
+          "container": "guergeiro/pnpm:20-10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": [
+            {
+              "name": "CI",
+              "valueHash": "B5BEA41B6C623F7C09F1BF24DCAE58EBAB3C0CDD90AD966BC43A45B44867E12B"
+            }
+          ]
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "F640F5662628884709111117A5E1C5DE91D40993CBD78487204537120AC26EDB",
         "operationHashes": [
@@ -578,6 +672,29 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@terraform init",
+          "command": "terraform",
+          "argumentsHash": "27F705795A7504F9992E491616BFFF55137E900E69426205B9668CFAD9AA465E",
+          "container": "hashicorp/terraform:1.10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@terraform plan",
+          "command": "terraform",
+          "argumentsHash": "FBD151CFD418B6A41DF0B41BD0D16948AD3DD38C073D3CF4B17EF65865463CA6",
+          "container": "hashicorp/terraform:1.10",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "4B6B52D8E491FA25605F77B18D0D7A529B07AE08A5329FD30281EF1514A69F2D",
         "operationHashes": [
@@ -614,7 +731,11 @@
       "build": "always",
       "batchMode": "single",
       "actionDependencies": [],
-      "requiredBy": []
+      "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": []
     },
     {
       "id": "workspace/path#libraries/dotnet-lib:build",
@@ -639,6 +760,36 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.configuration",
+          "valueHash": "47DBEBEC5D6543D84309F99260D6E15B38765BD7FA1FFF92BB6379D41426E271"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "D4CAEF6EABF90EA80595D85F2D1A1837E1B2A4C2FFC648B3E885C1209EB2840D",
         "operationHashes": [
@@ -670,6 +821,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "FD312CF8EC7D88611DC1CFB2E4DB840CC4915BA3832793A30681704B762CB338",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "F7A64F81012F52F802DAB1AC3B21D4D0C459629776730240EF13B6B4571F92B9",
         "operationHashes": [
@@ -707,6 +870,36 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.configuration",
+          "valueHash": "47DBEBEC5D6543D84309F99260D6E15B38765BD7FA1FFF92BB6379D41426E271"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "cpus": 2,
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "E97FC4A993034019AA0BB11CE05A09244CC6D0538BAACA198A29ABF5C645F6E3",
         "operationHashes": [
@@ -744,7 +937,16 @@
       "build": "always",
       "batchMode": "single",
       "actionDependencies": [],
-      "requiredBy": []
+      "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.configuration",
+          "valueHash": "47DBEBEC5D6543D84309F99260D6E15B38765BD7FA1FFF92BB6379D41426E271"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": []
     },
     {
       "id": "workspace/path#projects/dotnet-app:docker",
@@ -766,7 +968,16 @@
       "build": "always",
       "batchMode": "single",
       "actionDependencies": [],
-      "requiredBy": []
+      "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.configuration",
+          "valueHash": "47DBEBEC5D6543D84309F99260D6E15B38765BD7FA1FFF92BB6379D41426E271"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": []
     },
     {
       "id": "workspace/path#projects/fscript-app:build",
@@ -787,6 +998,30 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.version",
+          "valueHash": "AD20D0EA379F753018C5EBB8BA8E0B2E3CCC42B8B206EC40FA16A5A6877A4ACC"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@fscript execute",
+          "command": "fscript",
+          "argumentsHash": "591713C654B05BA64E2A1519D859C57CD4494E6125EF9A3D4C3ACD6B5CCD4EA4",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@shell cat",
+          "command": "cat",
+          "argumentsHash": "F68A4F2F161CAF00994CC78F572310C7B0C296931A320258EC6835E6987B9250",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "A1CB523F059E821AC943A51CFA1E32C0490B29FC1DD5F69D665689DE33AB0625",
         "operationHashes": [
@@ -819,6 +1054,25 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "2AADD416061B0A52E2196F99E8019B41791C33DB3C9809F415BA837683F5EEE4",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@make build",
+          "command": "make",
+          "argumentsHash": "866A7D4D2259937AA43855335707641B40E53A50CAA5B7E4F4107F7C6521C6F5",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "40CD3B22AC5F0A9E28B39FD297E2FFACD3A80379893032887CFD341823B29A28",
         "operationHashes": [
@@ -854,6 +1108,20 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@openapi generate",
+          "command": "docker-entrypoint.sh",
+          "argumentsHash": "89126F238EEFB5310A7737D60B595059482DA4EC05E94DA0086F4556FF855549",
+          "container": "openapitools/openapi-generator-cli:v7.10.0",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "D01503395625DC5E32A127548D82D6EAEED44788E30DAB6D5DC574E47F8FDDA1",
         "operationHashes": [
@@ -886,6 +1154,20 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@cargo build",
+          "command": "cargo",
+          "argumentsHash": "EC0BDD7177918394F6CAA9E884B416473BBB74858DF6C8BC87351D123C0543A5",
+          "container": "rust:1.81.0-slim",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "EA3577578C1E220B122DC610B236E1F1454D419144A195F754C3F527C62CF34D",
         "operationHashes": [
@@ -918,6 +1200,26 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "argumentsHash": "C242C73EFDF7150950DD72455887B12FB9EA14674DCD2EBBE224AC961C0191D4",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@playwright test",
+          "command": "npx",
+          "argumentsHash": "BA603B3D6DD289C6E5386E7756A68C1040B8D66B7F0B7905D430FC5BE76904E7",
+          "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "3A622BD7DE31FF36DEB4D111EED40DA9989347E1C4357104BB4B212343E939A3",
         "operationHashes": [

@@ -83,4 +83,4 @@ The following arguments are supported:
   * `~workspace` - Cache artifacts in workspace cache
   * `~managed` - Cache artifacts in managed cache (Insights)
   * `~external` - Cache artifacts externally
-* `environment_sensitive` - (Optional) Default opt-in for matching project targets. Set it to `true` only for targets whose operations intentionally depend on environment-sensitive predefined variables. A project target may override this boolean.
+* `environment_sensitive` - (Optional) Default opt-in for matching project targets. Omitted targets are environment-neutral. Set it to `true` only for targets whose operations intentionally depend on environment-sensitive predefined variables. A project target may override this boolean.

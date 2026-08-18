@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -87,6 +87,19 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@pnpm build",
+          "command": "pnpm",
+          "argumentsHash": "7DAB62A80E8A94EB54EFB8397A76E8D8FE0B44E8D9D7F4581D3E7A9D32F21D5A",
+          "container": "terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "C3E626895B846F0A8C1051C1D42227F4769968C9B502625B7E530DF5BDEB0CA8",
         "operationHashes": [
@@ -120,6 +133,23 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.version",
+          "valueHash": "9B07FA1BF2DEA482D359ECE6E16FB42628D7C69F1D561DA0BF2A23D00CF1D249"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell docker",
+          "command": "docker",
+          "argumentsHash": "90C92558E64C022CB755E6BEBB22DE841C95A093B2C82D92B72675C0AFF80E6C",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "9795CC08369BD9534FB2FD8EBE316A7622CE398ABCAEB041D8E72365190A5B54",
         "operationHashes": [

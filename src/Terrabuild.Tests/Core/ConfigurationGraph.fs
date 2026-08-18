@@ -153,6 +153,7 @@ let private runPipelineWithCache (cache: Cache.ICache) options =
     let options, config = Configuration.read options
     let fullGraph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
     let sourceGraph = GraphPipeline.Selection.build options config fullGraph
+    GraphPipeline.EnvironmentSensitivity.validate sourceGraph |> ignore
     let resolvedGraph = GraphPipeline.Resolve.build options config sourceGraph
     let actionGraph = GraphPipeline.Action.build options cache resolvedGraph
     let cascadedGraph = GraphPipeline.Cascade.build actionGraph
@@ -192,7 +193,9 @@ let ``Build group is available as a predefined variable`` () =
         writeFile workspace "WORKSPACE" """
 workspace {}
 
-target build {}
+target build {
+  environment_sensitive = true
+}
 """
         writeFile workspace "PROJECT" """
 project app { @shell {} }
@@ -234,7 +237,9 @@ extension @shell {
   }
 }
 
-target build {}
+target build {
+  environment_sensitive = true
+}
 """
         writeFile workspace "PROJECT" """
 project app { @shell {} }
@@ -270,8 +275,8 @@ target build {
         |> should equal [ "terrabuild.environment"; "var.deployment_token" ]
         node.EnvironmentSensitiveInputs |> List.map _.Name
         |> should equal [ "terrabuild.environment" ]
-        node.EnvironmentSensitive |> should equal None
-        node.EnvironmentSensitivityStatus |> should equal "missing-opt-in"
+        node.EnvironmentSensitive |> should equal (Some true)
+        node.EnvironmentSensitivityStatus |> should equal "opted-in"
         operation.ForwardedVariableNames |> should equal [ "CI" ]
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
@@ -283,7 +288,7 @@ target build {
         explanation |> should contain "decision: exec (non-cacheable)"
         explanation |> should contain "terrabuild.environment"
         explanation |> should contain "environment-sensitive inputs:"
-        explanation |> should contain "environment sensitivity: missing-opt-in"
+        explanation |> should contain "environment sensitivity: opted-in"
         explanation |> should contain "forwarded variables: CI"
         explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
         explanation |> should not' (contain "sensitive-value"))
@@ -328,6 +333,98 @@ let ``Environment sensitivity status supports opt-in migration diagnostics`` () 
     GraphDef.environmentSensitivityStatus None [ sensitiveInput ] |> should equal "missing-opt-in"
     GraphDef.environmentSensitivityStatus (Some false) [ sensitiveInput ] |> should equal "declared-neutral"
     GraphDef.environmentSensitivityStatus (Some true) [ sensitiveInput ] |> should equal "opted-in"
+
+[<Test>]
+let ``Environment-neutral targets reject sensitive inputs before resolution`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+locals {
+  deployment_environment = terrabuild.environment ?? "dev"
+}
+
+extension @shell {
+  env {
+    DEPLOYMENT_ENVIRONMENT = local.deployment_environment
+  }
+}
+
+target build {}
+"""
+        writeFile workspace "PROJECT" """
+project app { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+
+        let options = {
+            baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Environment = Some "staging"
+        }
+
+        (fun () -> runPipeline options |> ignore)
+        |> assertKnownErrorContainsAll
+            [ "Environment-neutral targets consume environment-sensitive inputs"
+              "workspace/path#.:build: terrabuild.environment"
+              "Set environment_sensitive = true" ])
+
+[<Test>]
+let ``Environment-sensitive opt-in adds evaluated values to target hashes`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+extension @shell {
+  env {
+    DEPLOYMENT_ENVIRONMENT = terrabuild.environment
+  }
+}
+
+target build {
+  environment_sensitive = true
+}
+"""
+        writeFile workspace "PROJECT" """
+project app { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+
+        let targetHash environment =
+            let options = {
+                baseOptions workspace (Set [ "build" ]) with
+                    ConfigOptions.Options.Environment = Some environment
+            }
+            (runPipeline options).SourceGraph.Nodes
+            |> Map.values
+            |> Seq.exactlyOne
+            |> _.TargetHash
+
+        targetHash "staging" |> should not' (equal (targetHash "live")))
+
+[<Test>]
+let ``Environment-neutral target hashes stay stable across environments`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+extension @shell {}
+target build {}
+"""
+        writeFile workspace "PROJECT" """
+project app { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+
+        let targetHash environment =
+            let options = {
+                baseOptions workspace (Set [ "build" ]) with
+                    ConfigOptions.Options.Environment = Some environment
+            }
+            (runPipeline options).SourceGraph.Nodes
+            |> Map.values
+            |> Seq.exactlyOne
+            |> _.TargetHash
+
+        targetHash "staging" |> should equal (targetHash "live"))
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =

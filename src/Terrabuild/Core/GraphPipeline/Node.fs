@@ -92,6 +92,11 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 yield projectConfig.Hash
                 yield targetConfig.Hash
                 yield! children |> Seq.map (fun nodeId -> allNodes[nodeId].TargetHash)
+                if targetConfig.EnvironmentSensitive = Some true then
+                    yield!
+                        targetConfig.EvaluationInputs
+                        |> environmentSensitiveInputs
+                        |> Seq.collect (fun input -> [ input.Name; input.ValueHash ])
             ]
             let targetHash = targetContent |> Hash.sha256strings
 

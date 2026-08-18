@@ -34,6 +34,7 @@
     <Compile Include="Core/GraphPipeline/Node.fs" />
     <Compile Include="Core/GraphPipeline/Phase.fs" />
     <Compile Include="Core/GraphPipeline/Selection.fs" />
+    <Compile Include="Core/GraphPipeline/EnvironmentSensitivity.fs" />
     <Compile Include="Core/GraphPipeline/Resolve.fs" />
     <Compile Include="Core/GraphPipeline/Action.fs" />
     <Compile Include="Core/GraphPipeline/Batch.fs" />

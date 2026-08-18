@@ -41,7 +41,8 @@ Terrabuild classifies the following predefined values as environment-sensitive:
 
 When a selected target consumes one of these values directly or through a
 local or extension configuration, declare `environment_sensitive = true` on
-the project target or its workspace target default. During migration,
-Terrabuild warns for consumers without that opt-in and reports their status in
-diagnostic JSON, `terrabuild explain`, and the local console. Values remain
-hashed in every diagnostic surface.
+the project target or its workspace target default. A neutral consumer fails
+before operation resolution and reports every target and input that requires an
+opt-in. Opted-in sensitive value hashes participate in the target cache key.
+Diagnostic JSON, `terrabuild explain`, and the local console expose the status
+while keeping values hashed.

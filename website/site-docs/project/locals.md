@@ -68,6 +68,9 @@ extension @docker {
 }
 ```
 
+Because `local.base_tag` consumes `terrabuild.branch_or_tag`, every target that
+uses this `@docker` configuration must declare `environment_sensitive = true`.
+
 ## Rules
 
 - Project locals cannot redefine a workspace local with the same name.

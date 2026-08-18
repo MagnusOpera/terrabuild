@@ -1,7 +1,6 @@
 module GraphPipeline.Selection
 open Collections
 open GraphDef
-open Serilog
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Graph) =
     let selectedRoots =
@@ -38,21 +37,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
         let allDependencyIds = nodes |> Map.values |> Seq.collect (fun node -> node.Dependencies) |> Set.ofSeq
         allNodeIds - allDependencyIds
 
-    let selectedGraph =
-        { Graph.Nodes = nodes
-          Graph.RootNodes = rootNodes
-          Graph.Batches = Map.empty
-          Graph.Phases = graph.Phases }
-
-    selectedGraph.Nodes
-    |> Map.values
-    |> Seq.iter (fun node ->
-        let inputs = environmentSensitiveInputs node.EvaluationInputs
-        let status = environmentSensitivityStatus node.EnvironmentSensitive node.EvaluationInputs
-        if status = "missing-opt-in" || status = "declared-neutral" then
-            let inputNames = inputs |> List.map _.Name |> String.join ", "
-            let message = $"Target '{node.Id}' consumes environment-sensitive inputs without environment_sensitive = true: {inputNames}. Its artifacts may not be reusable across environments."
-            Log.Warning("{Warning}", message)
-            $"{Ansi.Emojis.warning} {message}" |> Terminal.writeLine)
-
-    selectedGraph
+    { Graph.Nodes = nodes
+      Graph.RootNodes = rootNodes
+      Graph.Batches = Map.empty
+      Graph.Phases = graph.Phases }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -100,6 +100,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7F47EF7D7E5B935DD80A78915CE9DD047A49B14CF808501A7D6B221769C86FC2",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "31DD750B140FABCECB977F35445C86086ACCD6DA5D8E5DF67A2A22912C21E60A",
         "operationHashes": [
@@ -141,6 +153,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "E8AE814A8AF6F5BFC6D73D79138FE37B073D7C21CFA4840D51781484C0A87C7B",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "6AD64B8E957A10998A75986999B7FB8CB32809D2C09E07D6CFF26793D3027950",
         "operationHashes": [
@@ -176,6 +200,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "8312AEA430E997402C9E46F2306493132DE4251B62B70292412C5E05F2158888",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "84C2B4889702AB71A470464169051F27E15C988F426ED558D09B62A8B5E1F048",
         "operationHashes": [

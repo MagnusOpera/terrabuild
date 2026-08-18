@@ -15,13 +15,12 @@ phase application {
 
 locals {
     is_local_build = terrabuild.configuration == "local"
-    target_env = terrabuild.environment ?? "dev"
 
-    dotnet = { config: local.is_local_build && local.target_env == "dev" ? "Debug" : "Release"
-               evaluate: local.is_local_build && local.target_env == "dev" }
+    dotnet = { config: local.is_local_build ? "Debug" : "Release"
+               evaluate: local.is_local_build }
 
     runtimes = {
-        dotnet: terrabuild.ci ? "linux-x64" : "linux-arm64"
+        dotnet: terrabuild.arch == "amd64" ? "linux-x64" : "linux-arm64"
     }
 
     versions = {

@@ -7,11 +7,12 @@ graph TD
     A[Configuration.read] --> B[Node.fs]
     B --> C[Phase.fs]
     C --> D[Selection.fs]
-    D --> E[Resolve.fs]
-    E --> F[Action.fs]
-    F --> G[Cascade.fs]
-    G --> H[Batch.fs]
-    H --> I[Runner.run]
+    D --> E[EnvironmentSensitivity.fs]
+    E --> F[Resolve.fs]
+    F --> G[Action.fs]
+    G --> H[Cascade.fs]
+    H --> I[Batch.fs]
+    I --> J[Runner.run]
 ```
 
 ## Configuration.read
@@ -57,6 +58,16 @@ Narrows the full graph to the selected execution scope.
 - Recomputes root nodes for the selected graph.
 
 This selected graph is the source graph used by run and impact. The web graph endpoint uses the same selected scope, then continues through resolve, action, cascade, and batch before rendering.
+
+## EnvironmentSensitivity.fs
+
+Validates environment neutrality before extension operations are resolved.
+
+- Targets are neutral by default.
+- A neutral target that directly or transitively consumes an environment-sensitive built-in fails with every violating node and input name listed.
+- `environment_sensitive = true` is an explicit opt-in. For opted-in targets, the sensitive input value hashes become cache-key inputs.
+- The opt-in does not add a separate policy hash dimension; opted-in sensitive value hashes provide the environment-specific dimension.
+- `explain` and the local console retain the selected graph for diagnosis without executing targets; normal runs, dry runs, serves, logs, and impact checks enforce the policy.
 
 ## Resolve.fs
 
@@ -130,4 +141,5 @@ Synthetic batch scheduler nodes are represented under `batches` and `executions`
 - External restore nodes are skipped unless a dependent requires them.
 - Missing target references are permissive inside dependency expansion: `target.name` and `target.^name` add only targets that exist in the relevant project scope.
 - Circular target dependency chains are invalid and reported during graph construction.
+- Environment-sensitive predefined inputs are invalid unless the consuming target explicitly sets `environment_sensitive = true`.
 - Failures in a prerequisite phase leave downstream phase dependencies unsatisfied, so downstream operations do not run.

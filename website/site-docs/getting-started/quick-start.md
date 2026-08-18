@@ -80,11 +80,11 @@ target apply {
 
 locals {
     dotnet = {
-        config: terrabuild.environment ? "Release" : "Debug"
+        config: terrabuild.configuration == "local" ? "Debug" : "Release"
     }
     runtimes = {
-        dotnet: terrabuild.ci ? "linux-x64" : "linux-arm64"
-        docker: terrabuild.ci ? [ "linux/amd64" ] : [ "linux/arm64" ]
+        dotnet: terrabuild.arch == "amd64" ? "linux-x64" : "linux-arm64"
+        docker: terrabuild.arch == "amd64" ? [ "linux/amd64" ] : [ "linux/arm64" ]
     }
     docker_tags = {
         dotnet_sdk: "9.0"

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -224,6 +224,36 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7B679AD2A2E99294E6E7EBA1092D0FE5B6A6D14E1DFD6557D1D6CFEF457E101F",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "417FEFE779CBE09D781FAE388DD3EC7073C1793ACC6395D298C44731C84F2007",
         "operationHashes": [
@@ -260,6 +290,36 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7B679AD2A2E99294E6E7EBA1092D0FE5B6A6D14E1DFD6557D1D6CFEF457E101F",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "417FEFE779CBE09D781FAE388DD3EC7073C1793ACC6395D298C44731C84F2007",
         "operationHashes": [
@@ -297,6 +357,36 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7B679AD2A2E99294E6E7EBA1092D0FE5B6A6D14E1DFD6557D1D6CFEF457E101F",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "argumentsHash": "C242C73EFDF7150950DD72455887B12FB9EA14674DCD2EBBE224AC961C0191D4",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@npm build",
+          "command": "npm",
+          "argumentsHash": "6CD36094B398528ED653B2B6F9F74D329E495FD36530568CF9090057D1D2D6D2",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "5AE721B291C3FCA4B5596A271A10FB2BBBB877C233BD2195FF739A0BEBAA15B2",
         "operationHashes": [
@@ -345,6 +435,29 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "E97FC4A993034019AA0BB11CE05A09244CC6D0538BAACA198A29ABF5C645F6E3",
         "operationHashes": [
@@ -388,6 +501,29 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@dotnet restore",
+          "command": "dotnet",
+          "argumentsHash": "D23C9E0C45C332C7ABB328AA7E6AFE2E4A481C5D5D205C894D253D397E98DD54",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@dotnet build",
+          "command": "dotnet",
+          "argumentsHash": "04ED08A53B2BDEB9324C0803C953025CCB56EFFD1CA1BE20AF28B41CDBA22F3B",
+          "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "E97FC4A993034019AA0BB11CE05A09244CC6D0538BAACA198A29ABF5C645F6E3",
         "operationHashes": [
@@ -429,6 +565,29 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "argumentsHash": "C242C73EFDF7150950DD72455887B12FB9EA14674DCD2EBBE224AC961C0191D4",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@npm build",
+          "command": "npm",
+          "argumentsHash": "6CD36094B398528ED653B2B6F9F74D329E495FD36530568CF9090057D1D2D6D2",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "D2BAD5459C8E12E5C976C3ACA7A207429AB6ECD77D79049D0E99A12AA38BB6DB",
         "operationHashes": [
@@ -473,6 +632,29 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@npm install",
+          "command": "npm",
+          "argumentsHash": "C242C73EFDF7150950DD72455887B12FB9EA14674DCD2EBBE224AC961C0191D4",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        },
+        {
+          "metaCommand": "@npm build",
+          "command": "npm",
+          "argumentsHash": "6CD36094B398528ED653B2B6F9F74D329E495FD36530568CF9090057D1D2D6D2",
+          "container": "node:20",
+          "platform": "linux/amd64",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "D2BAD5459C8E12E5C976C3ACA7A207429AB6ECD77D79049D0E99A12AA38BB6DB",
         "operationHashes": [

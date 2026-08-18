@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Enforce environment-neutral targets by default and hash sensitive values only after explicit opt-in.
 - Add inherited `environment_sensitive` target opt-in and migration diagnostics.
 - Warn and report when selected targets consume environment-sensitive built-in inputs.
 - Replace the `run --what-if` option with the breaking `run --dry-run` spelling.

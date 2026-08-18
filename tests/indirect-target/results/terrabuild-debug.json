@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -91,6 +91,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "CBA35852015FB343CAB9B4E646A1D3E9F5F015C72EA884FB78600A486D7EBD13",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "378B932C9666F16504C669C074FEE7C1541295B0B975BBEB93E3D7BD6928C44C",
         "operationHashes": [
@@ -118,7 +130,11 @@
       "build": "always",
       "batchMode": "single",
       "actionDependencies": [],
-      "requiredBy": []
+      "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": []
     },
     {
       "id": "workspace/path#b:apply",
@@ -141,6 +157,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "3E424E6220B299045A99E58900E522523E3188642A7C0A18E97CF9DB4E0953B8",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "84425B392BE7E9757C0339248F6A81AE6C814BB5184D1435F5456813972E26EE",
         "operationHashes": [
@@ -176,6 +204,23 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [
+        {
+          "name": "terrabuild.retry",
+          "valueHash": "FA109699DB1671677DCF75AE2CDAFF0DEAC1EE7C857CB1BE7B23BBF39B76D18F"
+        }
+      ],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "7EF4A8705D97A2CD535E3DD37A992063F33B04E8F1EAFA8BBD8BBAEA43DDC06E",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "7018E5B1362B71B89D67CEE5435B3FD825745A950DB851B53917EA7305C29751",
         "operationHashes": [
@@ -206,6 +251,18 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "A8D90717E45A4F26BD01D4F5C7CDF20B3A2F158EA3872BB43460FDD01AA3B055",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": []
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "A800CC15745F1C2A0A7787B5D002292BA541A75A7013B1D4A316830A963C0102",
         "operationHashes": [
@@ -233,7 +290,11 @@
       "build": "always",
       "batchMode": "single",
       "actionDependencies": [],
-      "requiredBy": []
+      "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": []
     }
   ],
   "batches": [],

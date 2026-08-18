@@ -401,6 +401,7 @@ let private runPhase (storage: FolderStorage) workspace homeRoot variables =
             let options, config = Configuration.read options
             let graphNode = GraphPipeline.Node.build options config
             let graphSelection = GraphPipeline.Selection.build options config graphNode
+            GraphPipeline.EnvironmentSensitivity.validate graphSelection |> ignore
             let graphResolved = GraphPipeline.Resolve.build options config graphSelection
             let graphAction = GraphPipeline.Action.build options (cache :> Cache.ICache) graphResolved
             let graphCascade = GraphPipeline.Cascade.build graphAction

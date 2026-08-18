@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -73,6 +73,23 @@
       "required": true,
       "requirementReason": "already-required",
       "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [
+        {
+          "metaCommand": "@shell echo",
+          "command": "echo",
+          "argumentsHash": "3FE1418F565115866C3365AB3312DD4906B3313DA6F5EF3D7B718B242CB80EB2",
+          "forwardedVariableNames": [],
+          "injectedEnvironment": [
+            {
+              "name": "TAGADA",
+              "valueHash": "303FF67E95D28C81203D8A3B00BD4BAC23E728B06D0C02665B2D1E033BD4FE57"
+            }
+          ]
+        }
+      ],
       "fingerprint": {
         "declaredTargetHash": "3B382DC8A44AA7D072B6AB56FA9225FCF6392CF66948343B9B8555E060A69A50",
         "operationHashes": [

@@ -23,8 +23,9 @@ This creates a [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree) structur
 Cache keys are:
 
 - **Deterministic** - Same inputs always produce the same key
-- **Branch-agnostic** - Same content across branches produces the same key (unless using commit-specific [variables](/docs/expression/predefined-variables/) like `terrabuild.head_commit`)
+- **Branch-agnostic** - Same content across branches produces the same key unless a target opts into commit-specific [predefined variables](/docs/expression/predefined-variables/)
 - **Comprehensive** - Any change affecting output changes the key
+- **Environment-neutral by default** - Environment, commit, branch, CI, and run metadata do not fragment cache keys unless a target explicitly opts in with `environment_sensitive = true`
 
 This means builds can be shared across branches, team members, and CI/CD pipelines when nothing has changed.
 
