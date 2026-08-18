@@ -334,6 +334,12 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Phase = batch.Phase
                   GraphDef.Node.Operations = ops
+                  GraphDef.Node.EvaluationInputs =
+                    batch.Nodes
+                    |> Seq.collect _.EvaluationInputs
+                    |> Seq.distinctBy (fun input -> input.Name, input.ValueHash)
+                    |> Seq.sortBy _.Name
+                    |> List.ofSeq
                   GraphDef.Node.Artifacts = headNode.Artifacts
                   GraphDef.Node.Dependencies = batchDependencies
                   GraphDef.Node.PhaseDependencies = batchPhaseDependencies

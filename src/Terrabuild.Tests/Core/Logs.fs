@@ -66,6 +66,7 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.TargetHash = targetHash
       GraphDef.Node.ClusterHash = Some "cluster"
       GraphDef.Node.Operations = []
+      GraphDef.Node.EvaluationInputs = []
       GraphDef.Node.Artifacts = GraphDef.ArtifactMode.Workspace
       GraphDef.Node.Build = GraphDef.BuildMode.Auto
       GraphDef.Node.Batch = GraphDef.BatchMode.Single

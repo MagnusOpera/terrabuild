@@ -36,6 +36,22 @@ type TargetFingerprint = {
     CacheKey: string
 }
 
+type EnvironmentEntryReport = {
+    Name: string
+    ValueHash: string
+}
+
+type ResolvedOperationReport = {
+    MetaCommand: string
+    Command: string
+    ArgumentsHash: string
+    Container: string option
+    Platform: string option
+    Cpus: int option
+    ForwardedVariableNames: string list
+    InjectedEnvironment: EnvironmentEntryReport list
+}
+
 type NodeReport = {
     Id: string
     ProjectId: string
@@ -58,6 +74,8 @@ type NodeReport = {
     Required: bool option
     RequirementReason: string option
     RequiredBy: string list
+    EvaluationInputs: GraphDef.EvaluationInput list
+    ResolvedOperations: ResolvedOperationReport list
     Fingerprint: TargetFingerprint option
 }
 
@@ -245,6 +263,7 @@ let private projectFingerprints (options: ConfigOptions.Options) (configuration:
         |> List.ofSeq
 
 let private nodeReports
+    (options: ConfigOptions.Options)
     (configuration: Configuration.Workspace option)
     (fullGraph: GraphDef.Graph option)
     (selectedGraph: GraphDef.Graph option)
@@ -296,6 +315,25 @@ let private nodeReports
                         TargetHash = node.TargetHash
                         CacheKey = GraphDef.buildCacheKey node
                     })
+            let resolvedOperations =
+                effectiveNode.Operations
+                |> List.map (fun operation -> {
+                    ResolvedOperationReport.MetaCommand = operation.MetaCommand
+                    Command = operation.Command
+                    ArgumentsHash = operation.Arguments |> normalizeOperationArguments options |> Hash.sha256
+                    Container = operation.Image
+                    Platform = operation.Platform
+                    Cpus = operation.Cpus
+                    ForwardedVariableNames = operation.Variables |> Seq.sort |> List.ofSeq
+                    InjectedEnvironment =
+                        operation.Envs
+                        |> Seq.map (fun (KeyValue(name, value)) -> {
+                            EnvironmentEntryReport.Name = name
+                            ValueHash = value |> Hash.sha256
+                        })
+                        |> Seq.sortBy _.Name
+                        |> List.ofSeq
+                })
             {
                 NodeReport.Id = nodeId
                 ProjectId = sourceNode.ProjectId
@@ -318,6 +356,8 @@ let private nodeReports
                 Required = requirement |> Option.map (fun item -> item.Required)
                 RequirementReason = requirement |> Option.map (fun item -> item.Reason)
                 RequiredBy = requirement |> Option.map (fun item -> item.Dependents) |> Option.defaultValue []
+                EvaluationInputs = effectiveNode.EvaluationInputs
+                ResolvedOperations = resolvedOperations
                 Fingerprint = targetFingerprint
             })
         |> Seq.sortBy (fun node -> node.Id)
@@ -538,7 +578,7 @@ let build (context: Context) =
     let projects = telemetry.Projects |> List.map (fun project -> { project with DurationMs = roundMs project.DurationMs })
     let endedAt = DateTime.UtcNow
     {
-        Report.SchemaVersion = 1
+        Report.SchemaVersion = 2
         Run = {
             RunReport.Status = context.Status
             Completeness = context.Completeness
@@ -559,7 +599,7 @@ let build (context: Context) =
             DurationMs = roundMs (endedAt - context.Options.StartedAt).TotalMilliseconds
         }
         Projects = projectFingerprints context.Options context.Configuration
-        Nodes = nodeReports context.Configuration context.FullGraph context.SelectedGraph context.ResolvedGraph context.FinalGraph telemetry
+        Nodes = nodeReports context.Options context.Configuration context.FullGraph context.SelectedGraph context.ResolvedGraph context.FinalGraph telemetry
         Batches = batchReports context.FinalGraph
         Results = results context.Summary
         Executions = executions

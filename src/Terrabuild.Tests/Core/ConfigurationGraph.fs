@@ -213,6 +213,68 @@ target build {
         |> should equal "deployment-123")
 
 [<Test>]
+let ``Diagnostic report keeps safe resolved operation inputs`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+variable deployment_token {
+  default = "sensitive-value"
+}
+
+locals {
+  deployment_environment = terrabuild.environment ?? "dev"
+}
+
+extension @shell {
+  variables = [ "CI" ]
+  env {
+    DEPLOYMENT_ENVIRONMENT = local.deployment_environment
+    DEPLOYMENT_TOKEN = var.deployment_token
+  }
+}
+
+target build {}
+"""
+        writeFile workspace "PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = "build" }
+}
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Environment = Some "staging"
+                ConfigOptions.Options.Force = false }
+
+        let stages = runPipeline options
+        let report =
+            Diagnostics.build {
+                Diagnostics.Context.Options = stages.Options
+                Configuration = Some stages.Config
+                FullGraph = Some stages.FullGraph
+                SelectedGraph = Some stages.SourceGraph
+                ResolvedGraph = Some stages.ResolvedGraph
+                FinalGraph = Some stages.FinalGraph
+                Cache = None
+                Summary = None
+                Status = "success"
+                Completeness = "complete"
+                Error = None
+            }
+        let node = report.Nodes |> List.exactlyOne
+        let operation = node.ResolvedOperations |> List.exactlyOne
+
+        node.EvaluationInputs |> List.map _.Name
+        |> should equal [ "terrabuild.environment"; "var.deployment_token" ]
+        operation.ForwardedVariableNames |> should equal [ "CI" ]
+        operation.InjectedEnvironment |> List.map _.Name
+        |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
+        operation.Container |> should equal None
+        report |> Json.Serialize |> should not' (contain "sensitive-value"))
+
+[<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """

@@ -21,6 +21,7 @@ let private buildNode id projectDir target action operations =
       GraphDef.Node.TargetHash = $"target-{id}"
       GraphDef.Node.ClusterHash = Some "cluster"
       GraphDef.Node.Operations = operations
+      GraphDef.Node.EvaluationInputs = []
       GraphDef.Node.Artifacts = GraphDef.ArtifactMode.Workspace
       GraphDef.Node.Build = GraphDef.BuildMode.Auto
       GraphDef.Node.Batch = GraphDef.BatchMode.Single

@@ -79,7 +79,12 @@ Debug mode replaces the previous diagnostic artifacts on every run and produces:
 - `terrabuild-debug.json`: the canonical, versioned diagnostic report.
 - `terrabuild-debug.log`: chronological commands, warnings, failures, and stack traces.
 
-Read `terrabuild-debug.json` first. It is deterministic in ordering, records variable names without their values, and may be `partial` if preparation or execution stopped early. Follow `executions[].operations[].log` only when command output is needed.
+Read `terrabuild-debug.json` first. It is deterministic in ordering and may be
+`partial` if preparation or execution stopped early. Each node records the
+evaluated inputs that affected it and its resolved operations. Sensitive values,
+injected environment values, and operation arguments are represented by hashes;
+forwarded variable names are recorded without their values. Follow
+`executions[].operations[].log` only when command output is needed.
 
 ## Investigating Common Issues
 

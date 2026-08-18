@@ -43,6 +43,12 @@ type RunAction =
     | Exec
 
 [<RequireQualifiedAccess>]
+type EvaluationInput = {
+    Name: string
+    ValueHash: string
+}
+
+[<RequireQualifiedAccess>]
 type Node = {
     Id: string
 
@@ -62,6 +68,7 @@ type Node = {
     ClusterHash: string option
 
     Operations: ContaineredShellOperation list
+    EvaluationInputs: EvaluationInput list
     Artifacts: ArtifactMode
     Build: BuildMode
     Batch: BatchMode

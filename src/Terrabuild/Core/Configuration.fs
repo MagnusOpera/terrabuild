@@ -39,6 +39,7 @@ type Target = {
     DependsOn: string set
     Outputs: string set
     Cache: ArtifactMode option
+    EvaluationInputs: EvaluationInput list
     Steps: TargetStep list
 }
 
@@ -166,6 +167,51 @@ let private resolvePhaseReference phaseNames phaseExpr =
         | String.Regex "^phase\.(.+)$" [ phaseName ] -> raiseSymbolError $"Phase '{phaseName}' is not defined in WORKSPACE"
         | _ -> raiseInvalidArg $"Invalid phase reference '{phaseReference}'"
     | _ -> raiseInvalidArg "Expected a phase reference or nothing for phase attribute"
+
+let private buildEvaluationInputs
+    (evaluationContext: Eval.EvaluationContext)
+    (locals: Map<string, Expr>)
+    (target: AST.Project.TargetBlock)
+    (extensions: Map<string, AST.ExtensionBlock>) =
+    let directDependencies =
+        let targetDependencies = Dependencies.reflectionFind target
+        target.Steps
+        |> Seq.choose (fun step -> extensions |> Map.tryFind step.Extension)
+        |> Seq.map Dependencies.reflectionFind
+        |> Seq.fold Set.union targetDependencies
+
+    let rec expand pending visited inputs =
+        match pending |> Set.toList with
+        | [] -> inputs
+        | dependency :: _ ->
+            let pending = pending |> Set.remove dependency
+            if visited |> Set.contains dependency then
+                expand pending visited inputs
+            else
+                let visited = visited |> Set.add dependency
+                match dependency with
+                | String.Regex "^local\\.(.+)$" [ localName ] ->
+                    let localDependencies =
+                        locals
+                        |> Map.tryFind localName
+                        |> Option.map Dependencies.find
+                        |> Option.defaultValue Set.empty
+                    expand (pending + localDependencies) visited inputs
+                | String.Regex "^(terrabuild\\..+|var\\..+)$" [ inputName ] ->
+                    expand pending visited (inputs |> Set.add inputName)
+                | _ ->
+                    expand pending visited inputs
+
+    expand directDependencies Set.empty Set.empty
+    |> Seq.choose (fun name ->
+        evaluationContext.Data
+        |> Map.tryFind name
+        |> Option.map (fun value -> {
+            EvaluationInput.Name = name
+            EvaluationInput.ValueHash = value |> Json.Serialize |> Hash.sha256
+        }))
+    |> Seq.sortBy _.Name
+    |> List.ofSeq
 
 let private buildEvaluationContext (engine: ConfigOptions.Engine) (options: ConfigOptions.Options) (workspaceConfig: AST.Workspace.WorkspaceFile) =
     let tagValue = 
@@ -854,6 +900,9 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Error error -> raiseParseError error
                 | _ -> BatchMode.Single
 
+            let evaluationInputs =
+                buildEvaluationInputs evaluationContext projectDef.Locals target projectDef.Extensions
+
             let clusterHash =
                 targetSteps
                 |> List.map (fun step -> step.Hash)
@@ -868,6 +917,7 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Outputs = targetOutputs
+                  Target.EvaluationInputs = evaluationInputs
                   Target.Steps = targetSteps }
 
             target

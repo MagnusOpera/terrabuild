@@ -20,6 +20,7 @@ let buildNode id clusterHash action deps group req =
       Node.TargetHash = ""
       Node.ClusterHash = clusterHash
       Node.Operations = []
+      Node.EvaluationInputs = []
       Node.Artifacts = ArtifactMode.Workspace
       Node.Action = action
       Node.Build = BuildMode.Auto
