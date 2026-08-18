@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Summarize selected environment-sensitivity violations at the top of `explain` output.
+- Finalize failed preparation diagnostics with the latest partial graph and error, and direct environment-sensitivity failures to `explain`.
 - Enforce environment-neutral targets by default and hash sensitive values only after explicit opt-in.
 - Add inherited `environment_sensitive` target opt-in and migration diagnostics.
 - Warn and report when selected targets consume environment-sensitive built-in inputs.
@@ -11,6 +13,7 @@ All notable changes to Terrabuild are documented in this file.
 - Show diagnostic action, cache, input, and operation explanations in the local console.
 - Add a readable `explain` command backed by the canonical diagnostic report.
 - Restore secret-safe resolved operation and evaluated input details in diagnostic JSON reports.
+
 ## [0.198.0-next]
 
 
