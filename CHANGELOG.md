@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.198.2-next]
+
+
 - Hide ignored nodes from the local console execution graph by default and allow showing them from Advanced controls.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.1-next...0.198.2-next
 
 ## [0.198.1-next]
 

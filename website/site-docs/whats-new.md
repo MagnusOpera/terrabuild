@@ -6,7 +6,11 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.198.1-next
+## 0.198.2-next
+
+### 0.198.2-next
+
+- Hide ignored nodes from the local console execution graph by default and allow showing them from Advanced controls.
 
 ### 0.198.1-next
 
@@ -26,4 +30,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Keep the rolling documentation labelled `Next` while selecting the latest stable Terrabuild tag as the default released documentation version.
 - Add a Getting Started guide for connecting Terrabuild to Insights, sharing encrypted artifacts, and reporting builds from developer machines and CI.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.9-next...0.198.1-next
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.9-next...0.198.2-next
