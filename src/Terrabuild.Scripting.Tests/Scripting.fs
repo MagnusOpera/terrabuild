@@ -8,6 +8,8 @@ open Terrabuild.Expression
 open Errors
 open System
 open System.IO
+open System.Threading
+open System.Threading.Tasks
 
 
 [<Test>]
@@ -201,6 +203,72 @@ let private withTemporaryWorkspace (test: string -> unit) =
     finally
         if Directory.Exists(tempRoot) then
             Directory.Delete(tempRoot, true)
+
+let private concurrentLoadSource =
+    """
+import "shared.fss" as Shared
+
+[<export>] let inspect (context: {| Command: string |}) = Shared.value
+
+type ExportFlag =
+  | Dispatch
+  | Default
+  | Never
+  | Local
+  | External
+  | Remote
+
+{ [nameof inspect] = [Remote] }
+"""
+
+[<Test>]
+let distinctFScriptCacheMissesLoadConcurrently() =
+    withTemporaryWorkspace (fun root ->
+        use started = new CountdownEvent(2)
+
+        let load entryName =
+            Task.Run(fun () ->
+                Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                    root
+                    root
+                    (Path.Combine(root, entryName))
+                    concurrentLoadSource
+                    (fun _ ->
+                        started.Signal() |> ignore
+                        if not (started.Wait(TimeSpan.FromSeconds(5.0))) then
+                            failwith "Distinct script preparations did not overlap"
+                        Some "let value = \"ok\""))
+
+        let first = load "ConcurrentA.fss"
+        let second = load "ConcurrentB.fss"
+        Task.WaitAll([| first :> Task; second :> Task |])
+        first.Result.GetMethod("inspect").IsSome |> should equal true
+        second.Result.GetMethod("inspect").IsSome |> should equal true)
+
+[<Test>]
+let failedFScriptCacheEntryCanBeRetried() =
+    withTemporaryWorkspace (fun root ->
+        let entryFile = Path.Combine(root, "Retry.fss")
+
+        (fun () ->
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                "let broken = missing"
+                (fun _ -> None)
+            |> ignore)
+        |> should throw typeof<FScript.Language.TypeException>
+
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root
+                root
+                entryFile
+                concurrentLoadSource
+                (fun _ -> Some "let value = \"ok\"")
+
+        script.GetMethod("inspect").IsSome |> should equal true)
 
 [<Test>]
 let fscriptSandboxExcludesRootGitForExistsAndKind() =

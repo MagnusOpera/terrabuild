@@ -5,6 +5,7 @@ open System.IO
 open System.Diagnostics
 open System.Threading
 open System.Collections.Concurrent
+open System.Collections.Generic
 open Microsoft.FSharp.Reflection
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
@@ -578,8 +579,36 @@ and private Conversions =
         Performance.trackFromFScriptConversion(Stopwatch.GetTimestamp() - startedAt)
         decoded
 
-let mutable private cache = Map.empty<string, Script>
-let private loadLock = obj ()
+let private cache = ConcurrentDictionary<string, Lazy<Script>>(StringComparer.Ordinal)
+
+let private removeCacheEntry cacheKey (entry: Lazy<Script>) =
+    (cache :> ICollection<KeyValuePair<string, Lazy<Script>>>).Remove(KeyValuePair(cacheKey, entry))
+    |> ignore
+
+let rec private loadCachedScript cacheKey load =
+    let candidate =
+        Lazy<Script>(
+            (fun () ->
+                let startedAt = Stopwatch.GetTimestamp()
+                let script = load ()
+                Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
+                script),
+            LazyThreadSafetyMode.ExecutionAndPublication)
+
+    let entry = cache.GetOrAdd(cacheKey, candidate)
+    let isCacheHit = not (obj.ReferenceEquals(entry, candidate))
+
+    try
+        let script = entry.Value
+        if isCacheHit then
+            Performance.trackScriptCacheHit()
+        script
+    with _ ->
+        removeCacheEntry cacheKey entry
+        if isCacheHit then
+            loadCachedScript cacheKey load
+        else
+            reraise ()
 
 let private toFScriptScript (scriptIdentity: string) (loaded: FScript.Runtime.ScriptHost.LoadedScript) =
     loaded.ExportedFunctionNames
@@ -734,26 +763,17 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (_references: string l
     let fullRootDirectory = Path.GetFullPath(rootDirectory)
     let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
     let cacheKey = $"{fullRootDirectory}::{deniedToken}::{fullScriptPath}"
-    lock loadLock (fun () ->
-        match cache |> Map.tryFind cacheKey with
-        | Some script ->
-            Performance.trackScriptCacheHit()
-            script
-        | None ->
-            let startedAt = Stopwatch.GetTimestamp()
-            let extension =
-                match Path.GetExtension(fullScriptPath) with
-                | null
-                | "" -> ""
-                | value -> value.ToLowerInvariant()
+    loadCachedScript cacheKey (fun () ->
+        let extension =
+            match Path.GetExtension(fullScriptPath) with
+            | null
+            | "" -> ""
+            | value -> value.ToLowerInvariant()
 
-            if extension <> ".fss" then
-                raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{scriptFile}' to '.fss'"
+        if extension <> ".fss" then
+            raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{scriptFile}' to '.fss'"
 
-            let script = loadFScript fullRootDirectory deniedPathGlobs fullScriptPath
-            cache <- cache |> Map.add cacheKey script
-            Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
-            script)
+        loadFScript fullRootDirectory deniedPathGlobs fullScriptPath)
 
 let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
     loadScriptWithDeniedPathGlobs rootDirectory references [ ".git" ] scriptFile
@@ -771,24 +791,14 @@ let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
     let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
     let cacheKey = $"{fullHostRootDirectory}::{deniedToken}::embedded::{fullIncludeRootDirectory}::{fullEntryFile}"
 
-    lock loadLock (fun () ->
-        match cache |> Map.tryFind cacheKey with
-        | Some script ->
-            Performance.trackScriptCacheHit()
-            script
-        | None ->
-            let startedAt = Stopwatch.GetTimestamp()
-            let script =
-                loadFScriptFromSourceWithIncludes
-                    fullHostRootDirectory
-                    deniedPathGlobs
-                    fullIncludeRootDirectory
-                    fullEntryFile
-                    entrySource
-                    resolveImportedSource
-            cache <- cache |> Map.add cacheKey script
-            Performance.trackScriptLoad(Stopwatch.GetTimestamp() - startedAt)
-            script)
+    loadCachedScript cacheKey (fun () ->
+        loadFScriptFromSourceWithIncludes
+            fullHostRootDirectory
+            deniedPathGlobs
+            fullIncludeRootDirectory
+            fullEntryFile
+            entrySource
+            resolveImportedSource)
 
 let loadScriptFromSourceWithIncludes
     (hostRootDirectory: string)
