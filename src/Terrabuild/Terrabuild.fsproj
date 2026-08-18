@@ -37,8 +37,8 @@
     <Compile Include="Core/GraphPipeline/EnvironmentSensitivity.fs" />
     <Compile Include="Core/GraphPipeline/Resolve.fs" />
     <Compile Include="Core/GraphPipeline/Action.fs" />
-    <Compile Include="Core/GraphPipeline/Batch.fs" />
     <Compile Include="Core/GraphPipeline/Cascade.fs" />
+    <Compile Include="Core/GraphPipeline/Batch.fs" />
     <Compile Include="Core/Runner.fs" />
     <Compile Include="Core/Mermaid.fs" />
     <Compile Include="Core/Logs.fs" />

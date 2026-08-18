@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Realize lazy dependencies when restored targets are promoted into an executing batch.
+
 ## [0.198.2-next]
 
 

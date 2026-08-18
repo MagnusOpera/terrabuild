@@ -377,3 +377,4 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
     { graph with
         GraphDef.Graph.Batches = batches
         GraphDef.Graph.Nodes = graph.Nodes |> Map.addMap batchNodes }
+    |> Cascade.build

@@ -759,6 +759,64 @@ target build {
         batchNode.Operations.Head.Arguments.Contains(".slnx") |> should equal true)
 
 [<Test>]
+let ``Batching restored nodes realizes their lazy dependencies`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target gen {
+  outputs = [ "generated/**" ]
+  build = ~lazy
+  artifacts = ~workspace
+}
+
+target build {
+  outputs = [ "bin/**" ]
+  artifacts = ~managed
+  batch = ~partition
+  depends_on = [ target.gen
+                 target.^build ]
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a {
+  depends_on = [ project.b ]
+  @dotnet {}
+  @shell {}
+}
+target gen { @shell echo { args = "gen a" } }
+target build { @dotnet build {} }
+"""
+        writeDotnetProject workspace "src/a" "a" [ "../b/b.csproj" ]
+
+        writeFile workspace "src/b/PROJECT" """
+project b {
+  @dotnet {}
+  @shell {}
+}
+target gen { @shell echo { args = "gen b" } }
+target build { @dotnet build {} }
+"""
+        writeDotnetProject workspace "src/b" "b" []
+
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let uncachedStages = runPipeline options
+        let aBuildId = "workspace/path#src/a:build"
+        let bBuildId = "workspace/path#src/b:build"
+        let bGenId = "workspace/path#src/b:gen"
+        let cache = successCache [ GraphDef.buildCacheKey uncachedStages.ResolvedGraph.Nodes[bBuildId] ]
+        let stages = runPipelineWithCache cache options
+
+        stages.ActionGraph.Nodes[aBuildId].Action |> should equal RunAction.Exec
+        stages.ActionGraph.Nodes[bBuildId].Action |> should equal RunAction.Restore
+        stages.CascadedGraph.Nodes[bGenId].Required |> should equal false
+        stages.FinalGraph.Nodes[bGenId].Required |> should equal true
+        stages.FinalGraph.Batches
+        |> Map.values
+        |> Seq.exactlyOne
+        |> should equal (Set [ aBuildId; bBuildId ]))
+
+[<Test>]
 let ``Configuration pipeline disables clustering when one step is non-batchable`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
