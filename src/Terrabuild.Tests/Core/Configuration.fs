@@ -271,6 +271,43 @@ let ``Matcher``() =
     scanFolder "tests/simple/src" |> should equal true
 
 [<Test>]
+let ``Local evaluation plan orders dependencies deterministically`` () =
+    let locals =
+        Map [ "third", Expr.Variable "local.second"
+              "first", Expr.Variable "terrabuild.environment"
+              "second", Expr.Variable "local.first" ]
+
+    match Configuration.buildLocalPlan (Set [ "terrabuild.environment" ]) locals with
+    | Ok plan -> plan |> List.map fst |> should equal [ "local.first"; "local.second"; "local.third" ]
+    | Error error -> Assert.Fail($"Unexpected local planning error: {error}")
+
+[<Test>]
+let ``Local evaluation plan reports unresolved dependencies`` () =
+    let locals = Map [ "value", Expr.Variable "local.missing" ]
+
+    match Configuration.buildLocalPlan Set.empty locals with
+    | Error error -> error |> should equal ("local.value", Set [ "local.missing" ])
+    | Ok plan -> Assert.Fail($"Unexpected local plan: {plan}")
+
+[<Test>]
+let ``Parallel project scan preserves ignore workspace and project boundaries`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "apps/one/PROJECT" ""
+        writeFile root "apps/two/PROJECT" ""
+        writeFile root "ignored/PROJECT" ""
+        writeFile root "nested/WORKSPACE" ""
+        writeFile root "nested/PROJECT" ""
+        writeFile root "parent/PROJECT" ""
+        writeFile root "parent/child/PROJECT" ""
+
+        let found = System.Collections.Concurrent.ConcurrentBag<string>()
+        let scanFolder = Configuration.scanFolders root (Set [ ".git"; "ignored" ])
+        Configuration.scanProjectDirectories 4 root scanFolder (fun dir ->
+            found.Add(FS.relativePath root dir))
+
+        found |> Set.ofSeq |> should equal (Set [ "apps/one"; "apps/two"; "parent" ]))
+
+[<Test>]
 let ``Extension script path must stay inside workspace``() =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
     let workspace = Path.Combine(root, "workspace")

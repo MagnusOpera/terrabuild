@@ -4,6 +4,9 @@ open System.IO
 open Collections
 open System
 open System.Collections.Concurrent
+open System.Runtime.ExceptionServices
+open System.Threading
+open System.Threading.Tasks
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
@@ -104,12 +107,52 @@ let scanFolders root (ignores: Set<string>) =
     fun dir ->
         // exclude sub-folders with WORKSPACE
         let relativeDir = dir |> FS.relativePath root
-        if matcher.Match(relativeDir).HasMatches then
+        // Matcher is configured once and shared by the parallel directory walk.
+        if lock matcher (fun () -> matcher.Match(relativeDir).HasMatches) then
             match FS.combinePath dir "WORKSPACE" with
             | FS.File _ -> false
             | _ -> true
         else
             false
+
+
+let internal scanProjectDirectories maxConcurrency root scanFolder loadProject =
+    if maxConcurrency <= 0 then
+        invalidArg (nameof maxConcurrency) "maxConcurrency must be > 0"
+
+    use directories = new BlockingCollection<string>(ConcurrentQueue<string>())
+    let errors = ConcurrentQueue<ExceptionDispatchInfo>()
+    let mutable pending = 1
+    directories.Add(root)
+
+    let completeDirectory () =
+        if Interlocked.Decrement(&pending) = 0 then
+            directories.CompleteAdding()
+
+    let enqueueDirectory directory =
+        Interlocked.Increment(&pending) |> ignore
+        directories.Add(directory)
+
+    let scan () =
+        for dir in directories.GetConsumingEnumerable() do
+            try
+                try
+                    if errors.IsEmpty && (dir = root || scanFolder dir) then
+                        match FS.combinePath dir "PROJECT" with
+                        | FS.File _ -> loadProject dir
+                        | _ ->
+                            for subdir in IO.enumerateDirs dir do
+                                enqueueDirectory subdir
+                with exn ->
+                    errors.Enqueue(ExceptionDispatchInfo.Capture exn)
+            finally
+                completeDirectory ()
+
+    Parallel.For(0, maxConcurrency, fun _ -> scan ()) |> ignore
+
+    match errors.TryDequeue() with
+    | true, error -> error.Throw()
+    | _ -> ()
 
 
 let (|Bool|Number|String|) (value: string) = 
@@ -659,6 +702,26 @@ let private loadProjectDef
       LoadedProject.Locals = locals }
 
 
+let internal buildLocalPlan knownNames (locals: Map<string, Expr>) =
+    let pending =
+        locals
+        |> Map.toSeq
+        |> Seq.map (fun (name, expr) ->
+            let localName = $"local.{name}"
+            localName, (expr, Dependencies.find expr))
+        |> Map.ofSeq
+
+    let rec build available pending plan =
+        match pending |> Seq.tryFind (fun (KeyValue(_, (_, dependencies))) -> Set.isSubset dependencies available) with
+        | Some (KeyValue(localName, (expr, _))) ->
+            build (available |> Set.add localName) (pending |> Map.remove localName) ((localName, expr) :: plan)
+        | None when pending.IsEmpty -> Ok (plan |> List.rev)
+        | None ->
+            let (KeyValue(localName, (_, dependencies))) = pending |> Seq.head
+            Error (localName, dependencies - available)
+
+    build knownNames pending []
+
 
 // this is the final stage: create targets and create the project
 let private finalizeProject repository workspaceDir projectDir evaluationContext phaseNames (projectDef: LoadedProject) (projectDependencies: Map<string, Project>) =
@@ -715,6 +778,15 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                 |> Map.add "project" (Value.Map projectsMap)
                 |> Map.addMap projectAliases }
 
+    let localPlan =
+        lazy (
+            let knownNames =
+                evaluationContext.Data.Keys
+                |> Set.ofSeq
+                |> Set.add "terrabuild.target"
+                |> Set.add "terrabuild.phase"
+            buildLocalPlan knownNames projectDef.Locals)
+
     let projectSteps =
         projectDef.Targets |> Map.map (fun targetName target ->
             let targetPhase =
@@ -732,38 +804,21 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                             evaluationContext.Data
                             |> Map.addMap terrabuildTargetVars }
 
-                // build the values
-                use localsHub = Hub.Create(1)
-
-                // bootstrap
-                for (KeyValue(name, value)) in evaluationContext.Data do
-                    localsHub.Subscribe name [] (fun () ->
-                        let varSignal = localsHub.GetSignal<Value> name
-                        varSignal.Set(value))
-
-                for (KeyValue(name, localExpr)) in projectDef.Locals do
-                    let localName = $"local.{name}"
-                    let deps = Dependencies.find localExpr
-                    let signalDeps =
-                        deps
-                        |> Seq.map (fun dep -> localsHub.GetSignal<Value> dep)
-                        |> List.ofSeq
-                    localsHub.Subscribe localName signalDeps (fun () ->
-                        try
-                            let localValue = Eval.eval evaluationContext localExpr
-                            evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
-                            let localSignal = localsHub.GetSignal<Value> localName
-                            localSignal.Set(localValue)
-                        with exn ->
-                            forwardExternalError($"Failed to evaluate '{localName}'", exn))
-
-                match localsHub.WaitCompletion() with
-                | Status.Ok -> evaluationContext
-                | Status.UnfulfilledSubscription (subscription, signals) ->
+                match localPlan.Value with
+                | Ok locals ->
+                    try
+                        for localName, localExpr in locals do
+                            try
+                                let localValue = Eval.eval evaluationContext localExpr
+                                evaluationContext <- { evaluationContext with Data = evaluationContext.Data |> Map.add localName localValue }
+                            with exn ->
+                                forwardExternalError($"Failed to evaluate '{localName}'", exn)
+                        evaluationContext
+                    with exn ->
+                        forwardExternalError("Failed to evaluate locals", exn)
+                | Error (subscription, signals) ->
                     let unraisedSignals = signals |> String.join ","
                     raiseInvalidArg $"Failed to evaluate '{subscription}': local value '{unraisedSignals}' is not declared."
-                | Status.SubscriptionError edi ->
-                    forwardExternalError("Failed to evaluate locals", edi.SourceException)
 
             // use value from project target
             // otherwise use workspace target
@@ -1130,20 +1185,12 @@ let read (options: ConfigOptions.Options) =
                             | _ -> ()
                         with exn -> forwardExternalError($"Error while parsing project '{projectDir}'", exn)))
 
-        let rec findDependencies isRoot dir =
-            if isRoot || scanFolder  dir then
-                let projectFile = FS.combinePath dir "PROJECT" 
-                match projectFile with
-                | FS.File file ->
-                    let projectFile = file |> FS.parentDirectory |> Option.get |> FS.relativePath options.Workspace
-                    try
-                        loadProject projectFile
-                    with exn -> forwardExternalError($"Error while parsing project '{projectFile}'", exn)
-                | _ ->
-                    for subdir in dir |> IO.enumerateDirs do
-                        findDependencies false subdir
-
-        findDependencies true options.Workspace
+        scanProjectDirectories options.MaxConcurrency options.Workspace scanFolder (fun projectDir ->
+            let projectFile = projectDir |> FS.relativePath options.Workspace
+            try
+                loadProject projectFile
+            with exn ->
+                forwardExternalError($"Error while parsing project '{projectFile}'", exn))
         let status = hub.WaitCompletion()
 
         match status with

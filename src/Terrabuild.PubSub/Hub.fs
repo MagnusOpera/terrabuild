@@ -32,11 +32,14 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
             if eventQueue.HasError then
                 ()
             else
-                lock signalLock (fun () ->
-                    match raised with
-                    | Some _ -> eventQueue.Enqueue kind onCompleted
-                    | _ -> subscribers.Enqueue(onCompleted)
-                )
+                let enqueue =
+                    lock signalLock (fun () ->
+                        match raised with
+                        | Some _ -> true
+                        | _ ->
+                            subscribers.Enqueue(onCompleted)
+                            false)
+                if enqueue then eventQueue.Enqueue kind onCompleted
         member _.Get<'Q>() =
             match box this with
             | :? ISignal<'Q> as signal -> signal.Value
@@ -53,33 +56,43 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
                 match raised with
                 | Some raised -> raised
                 | _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is not raised")
-            and set value = lock signalLock (fun () ->
-                match raised with
-                | Some _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is already raised"
-                | _ -> 
-                    let rec notify() =
-                        match subscribers.TryDequeue() with
-                        | true, subscriber ->
-                            eventQueue.Enqueue kind subscriber
-                            notify()
-                        | _ -> ()
-                    raised <- Some value
-                    notify())
+            and set value =
+                let notifications =
+                    lock signalLock (fun () ->
+                        match raised with
+                        | Some _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is already raised"
+                        | _ ->
+                            raised <- Some value
+                            let notifications = ResizeArray<SignalCompleted>(subscribers.Count)
+                            while subscribers.Count > 0 do
+                                notifications.Add(subscribers.Dequeue())
+                            notifications)
+                for subscriber in notifications do
+                    eventQueue.Enqueue kind subscriber
 
 
-type private Subscription(label:string, signal: ISignal<Unit>, signals: ISignal list) as this =
+type private Subscription(label:string, eventQueue: IEventQueue, kind: Priority, signals: ISignal list, handler: SignalCompleted) as this =
     let mutable count = signals.Length
+    let mutable completed = false
     let subscriptionLock = Lock()
     do
-        if count = 0 then signal.Value <- ()
+        if count = 0 then this.Complete()
         else signals |> Seq.iter (fun signal -> signal.Subscribe(this.Callback))
     member _.Label = label
-    member _.Signal = signal
+    member _.IsCompleted = Volatile.Read(&completed)
     member _.AwaitedSignals = signals
+    member private _.Complete() =
+        let schedule =
+            lock subscriptionLock (fun () ->
+                if completed then false
+                else
+                    completed <- true
+                    true)
+        if schedule then eventQueue.Enqueue kind handler
     member private _.Callback() =
         let count = lock subscriptionLock (fun () -> count <- count - 1; count)
         match count with
-        | 0 -> signal.Value <- ()
+        | 0 -> this.Complete()
         | _ -> ()
  
 
@@ -102,7 +115,8 @@ type IHub =
 type Hub(maxConcurrency) =
     let eventQueue = new EventQueue(maxConcurrency) :> IEventQueue
     let signals = ConcurrentDictionary<string, ISignal>()
-    let subscriptions = ConcurrentDictionary<string, Subscription>()
+    let subscriptions = ConcurrentDictionary<int64, Subscription>()
+    let mutable nextSubscriptionId = 0L
 
     member private _.GetSignal<'T> name =
         let getOrAdd _ = Signal<'T>(name, eventQueue, Priority.Normal) :> ISignal
@@ -115,11 +129,9 @@ type Hub(maxConcurrency) =
         if eventQueue.HasError then
             ()
         else
-            let name = Guid.NewGuid().ToString()
-            let signal = Signal<Unit>(name, eventQueue, kind)
-            let subscription = Subscription(label, signal :> ISignal<Unit>, signals)
-            subscriptions.TryAdd(name, subscription) |> ignore
-            (signal :> ISignal).Subscribe(handler)
+            let id = Interlocked.Increment(&nextSubscriptionId)
+            let subscription = Subscription(label, eventQueue, kind, signals, handler)
+            subscriptions.TryAdd(id, subscription) |> ignore
 
     interface IDisposable with
         member _.Dispose () =
@@ -133,7 +145,7 @@ type Hub(maxConcurrency) =
             match eventQueue.WaitCompletion() with
             | Some exn -> Status.SubscriptionError exn
             | _ ->
-                match subscriptions.Values |> Seq.tryFind (fun subscription -> subscription.Signal.IsRaised() |> not) with
+                match subscriptions.Values |> Seq.tryFind (fun subscription -> subscription.IsCompleted |> not) with
                 | Some subscription ->
                     let unraisedSignals =
                         subscription.AwaitedSignals |> Seq.filter (fun signal -> signal.IsRaised() |> not)

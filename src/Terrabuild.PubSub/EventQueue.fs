@@ -47,6 +47,7 @@ type EventQueue(maxConcurrency: int) =
     let gate = Lock()
 
     let mutable started = false
+    let mutable waiting = false
     let mutable pending = 0
     let mutable lastError : ExceptionDispatchInfo option = None
 
@@ -59,7 +60,7 @@ type EventQueue(maxConcurrency: int) =
 
     let decrementPending () =
         let value = Interlocked.Decrement(&pending)
-        if started && value = 0 then
+        if Volatile.Read(&waiting) && value = 0 then
             drained.TrySetResult() |> ignore
 
     let drainAndDrop (reader: ChannelReader<WorkItem>) =
@@ -171,8 +172,14 @@ type EventQueue(maxConcurrency: int) =
                         )
                     |> ignore
 
+                // Start processing immediately so producers such as workspace
+                // discovery can overlap with the work they enqueue.
+                ensureStarted ()
+
         member _.WaitCompletion() =
-            ensureStarted ()
+            Volatile.Write(&waiting, true)
+            if Volatile.Read(&pending) = 0 then
+                drained.TrySetResult() |> ignore
 
             // Wait until everything accepted has finished
             drained.Task.GetAwaiter().GetResult()

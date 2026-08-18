@@ -7,6 +7,22 @@ open System.Threading.Tasks
 
 
 [<Test>]
+let work_starts_before_wait_and_survives_an_idle_gap() =
+    use hub = Hub.Create(1)
+    use first = new ManualResetEventSlim(false)
+    use second = new ManualResetEventSlim(false)
+
+    hub.Subscribe "first" [] first.Set
+    first.Wait(1000) |> should equal true
+
+    // The queue has drained, but producers may still add work until WaitCompletion.
+    hub.Subscribe "second" [] second.Set
+
+    hub.WaitCompletion() |> should equal Status.Ok
+    second.IsSet |> should equal true
+
+
+[<Test>]
 let successful() =
     use hub = Hub.Create(1)
 
