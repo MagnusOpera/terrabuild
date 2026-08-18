@@ -4,7 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.198.3-next]
+
+
 - Realize lazy dependencies when restored targets are promoted into an executing batch.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.2-next...0.198.3-next
 
 ## [0.198.2-next]
 
