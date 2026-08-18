@@ -77,6 +77,8 @@ type NodeReport = {
     RequiredBy: string list
     EvaluationInputs: GraphDef.EvaluationInput list
     EnvironmentSensitiveInputs: GraphDef.EvaluationInput list
+    EnvironmentSensitive: bool option
+    EnvironmentSensitivityStatus: string
     ResolvedOperations: ResolvedOperationReport list
     Fingerprint: TargetFingerprint option
 }
@@ -235,6 +237,8 @@ let renderExplanation (report: Report) =
             builder.AppendLine("  environment-sensitive inputs:") |> ignore
             node.EnvironmentSensitiveInputs
             |> List.iter (fun input -> builder.AppendLine($"    - {input.Name}") |> ignore)
+
+        builder.AppendLine($"  environment sensitivity: {node.EnvironmentSensitivityStatus}") |> ignore
 
         if node.ResolvedOperations <> [] then
             builder.AppendLine("  resolved operations:") |> ignore
@@ -428,6 +432,8 @@ let private nodeReports
                 RequiredBy = requirement |> Option.map (fun item -> item.Dependents) |> Option.defaultValue []
                 EvaluationInputs = effectiveNode.EvaluationInputs
                 EnvironmentSensitiveInputs = effectiveNode.EvaluationInputs |> GraphDef.environmentSensitiveInputs
+                EnvironmentSensitive = effectiveNode.EnvironmentSensitive
+                EnvironmentSensitivityStatus = GraphDef.environmentSensitivityStatus effectiveNode.EnvironmentSensitive effectiveNode.EvaluationInputs
                 ResolvedOperations = resolvedOperations
                 Fingerprint = targetFingerprint
             })
@@ -649,7 +655,7 @@ let build (context: Context) =
     let projects = telemetry.Projects |> List.map (fun project -> { project with DurationMs = roundMs project.DurationMs })
     let endedAt = DateTime.UtcNow
     {
-        Report.SchemaVersion = 3
+        Report.SchemaVersion = 4
         Run = {
             RunReport.Status = context.Status
             Completeness = context.Completeness

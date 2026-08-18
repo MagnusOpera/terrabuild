@@ -13,6 +13,7 @@ target build {
     outputs = [ "dist/*" ]
     build = ~auto
     artifacts = ~workspace
+    environment_sensitive = false
 
     @npm build { arguments = { configuration: var.config } }
     @docker build { }
@@ -40,6 +41,7 @@ The following arguments are supported:
   * `~workspace` - Cache artifacts in workspace cache
   * `~managed` - Cache artifacts in managed cache (Insights)
   * `~external` - Cache artifacts externally
+* `environment_sensitive` - (Optional) Set to `true` to opt this target into consuming environment-sensitive predefined variables. If omitted, the matching workspace target value is inherited. Terrabuild reports `missing-opt-in`, `declared-neutral`, `opted-in`, or `opted-in-unused` migration status through `explain`, debug JSON, and the local console. This policy attribute does not contribute to the target hash.
 * `commands` - (Optional) List of commands (actions) to run to complete the target. Commands execute in order. Syntax is `@extension action { arguments }`. Each command is an action provided by an extension (e.g., `@dotnet build`, `@npm install`).
 
 :::warning

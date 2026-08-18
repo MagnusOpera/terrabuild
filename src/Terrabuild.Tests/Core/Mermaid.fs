@@ -19,6 +19,7 @@ let private node id phase =
       Node.ClusterHash = None
       Node.Operations = []
       Node.EvaluationInputs = []
+      Node.EnvironmentSensitive = None
       Node.Artifacts = ArtifactMode.Workspace
       Node.Build = BuildMode.Auto
       Node.Batch = BatchMode.Single

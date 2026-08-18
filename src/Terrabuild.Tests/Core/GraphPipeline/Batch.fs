@@ -21,6 +21,7 @@ let buildNode id clusterHash action deps group req =
       Node.ClusterHash = clusterHash
       Node.Operations = []
       Node.EvaluationInputs = []
+      Node.EnvironmentSensitive = None
       Node.Artifacts = ArtifactMode.Workspace
       Node.Action = action
       Node.Build = BuildMode.Auto

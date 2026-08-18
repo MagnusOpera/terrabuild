@@ -46,6 +46,7 @@ let private buildGraphNode id projectName projectDir target =
       GraphDef.Node.ClusterHash = None
       GraphDef.Node.Operations = []
       GraphDef.Node.EvaluationInputs = []
+      GraphDef.Node.EnvironmentSensitive = None
       GraphDef.Node.Artifacts = GraphDef.ArtifactMode.Workspace
       GraphDef.Node.Build = GraphDef.BuildMode.Auto
       GraphDef.Node.Batch = GraphDef.BatchMode.Single

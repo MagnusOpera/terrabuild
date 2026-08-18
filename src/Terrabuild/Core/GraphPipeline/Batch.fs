@@ -340,6 +340,13 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                     |> Seq.distinctBy (fun input -> input.Name, input.ValueHash)
                     |> Seq.sortBy _.Name
                     |> List.ofSeq
+                  GraphDef.Node.EnvironmentSensitive =
+                    if batch.Nodes |> List.exists (fun node -> node.EnvironmentSensitive = Some true) then
+                        Some true
+                    elif batch.Nodes |> List.forall (fun node -> node.EnvironmentSensitive = Some false) then
+                        Some false
+                    else
+                        None
                   GraphDef.Node.Artifacts = headNode.Artifacts
                   GraphDef.Node.Dependencies = batchDependencies
                   GraphDef.Node.PhaseDependencies = batchPhaseDependencies

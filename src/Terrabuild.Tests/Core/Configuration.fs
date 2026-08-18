@@ -386,6 +386,55 @@ target build {
         projectIds |> should not' (contain "workspace/path#src/apidefs/investapi"))
 
 [<Test>]
+let ``project target can inherit and override environment sensitivity`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {}
+
+target build {
+  environment_sensitive = true
+}
+
+extension @shell {}
+"""
+
+        writeFile root "apps/inherited/PROJECT" """
+project inherited { @shell {} }
+target build { @shell echo { args = "inherited" } }
+"""
+
+        writeFile root "apps/neutral/PROJECT" """
+project neutral { @shell {} }
+target build {
+  environment_sensitive = false
+  @shell echo { args = "neutral" }
+}
+"""
+
+        let _, config = Configuration.read (baseOptions root (Set [ "build" ]))
+        let inherited = config.Projects["workspace/path#apps/inherited"].Targets["build"]
+        let neutral = config.Projects["workspace/path#apps/neutral"].Targets["build"]
+
+        inherited.EnvironmentSensitive |> should equal (Some true)
+        neutral.EnvironmentSensitive |> should equal (Some false)
+
+        writeFile root "WORKSPACE" """
+workspace {}
+
+target build {
+  environment_sensitive = false
+}
+
+extension @shell {}
+"""
+
+        let _, updatedConfig = Configuration.read (baseOptions root (Set [ "build" ]))
+        let updatedInherited = updatedConfig.Projects["workspace/path#apps/inherited"].Targets["build"]
+
+        updatedInherited.EnvironmentSensitive |> should equal (Some false)
+        updatedInherited.Hash |> should equal inherited.Hash)
+
+[<Test>]
 let ``path-based extension dependencies still resolve to workspace path when resolution is omitted`` () =
     withTempWorkspace (fun root ->
         writeFile root "WORKSPACE" """

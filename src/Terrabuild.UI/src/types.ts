@@ -54,6 +54,8 @@ export type NodeExplanation = {
   cache?: CacheEvidence | null;
   evaluationInputs: EvaluationInput[];
   environmentSensitiveInputs: EvaluationInput[];
+  environmentSensitive?: boolean | null;
+  environmentSensitivityStatus: string;
   resolvedOperations: ResolvedOperation[];
   fingerprint?: {
     cacheKey: string;

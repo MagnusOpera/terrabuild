@@ -40,7 +40,8 @@ Terrabuild classifies the following predefined values as environment-sensitive:
 - `terrabuild.group`
 
 When a selected target consumes one of these values directly or through a
-local or extension configuration, Terrabuild emits a warning because the
-target's artifact may not be reusable in another environment. The same input
-names appear in diagnostic JSON, `terrabuild explain`, and the local console;
-their values remain hashed.
+local or extension configuration, declare `environment_sensitive = true` on
+the project target or its workspace target default. During migration,
+Terrabuild warns for consumers without that opt-in and reports their status in
+diagnostic JSON, `terrabuild explain`, and the local console. Values remain
+hashed in every diagnostic surface.

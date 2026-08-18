@@ -37,6 +37,7 @@ project id {
 target build {
   depends_on = [ target.dist ]
   batch = ~partition
+  environment_sensitive = true
   @dotnet build { }
 }
 

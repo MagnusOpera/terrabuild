@@ -75,7 +75,7 @@ let toProject (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"; "phase"]
+    |> checkAllowedAttributes ["outputs"; "depends_on"; "build"; "artifacts"; "batch"; "phase"; "environment_sensitive"]
     |> ignore
 
     let outputs = block |> tryFindAttribute "outputs"
@@ -91,6 +91,7 @@ let toTarget (block: Block) =
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
     let phase = block |> tryFindAttribute "phase"
+    let environmentSensitive = block |> tryFindAttribute "environment_sensitive"
     let steps =
         block.Blocks
         |> List.map (fun step ->
@@ -118,6 +119,7 @@ let toTarget (block: Block) =
       TargetBlock.Cache = cache
       TargetBlock.Batch = batch
       TargetBlock.Phase = phase
+      TargetBlock.EnvironmentSensitive = environmentSensitive
       TargetBlock.Steps = steps }
 
 

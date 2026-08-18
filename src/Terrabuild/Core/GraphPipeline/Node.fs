@@ -115,6 +115,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Phase = targetConfig.Phase
                   Node.Operations = []
                   Node.EvaluationInputs = targetConfig.EvaluationInputs
+                  Node.EnvironmentSensitive = targetConfig.EnvironmentSensitive
                   Node.Artifacts = targetConfig.Cache |> Option.defaultValue ArtifactMode.Managed
                   Node.Build = build
                   Node.Batch = targetConfig.Batch

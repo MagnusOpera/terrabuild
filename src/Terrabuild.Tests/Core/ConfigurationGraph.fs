@@ -270,6 +270,8 @@ target build {
         |> should equal [ "terrabuild.environment"; "var.deployment_token" ]
         node.EnvironmentSensitiveInputs |> List.map _.Name
         |> should equal [ "terrabuild.environment" ]
+        node.EnvironmentSensitive |> should equal None
+        node.EnvironmentSensitivityStatus |> should equal "missing-opt-in"
         operation.ForwardedVariableNames |> should equal [ "CI" ]
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
@@ -281,6 +283,7 @@ target build {
         explanation |> should contain "decision: exec (non-cacheable)"
         explanation |> should contain "terrabuild.environment"
         explanation |> should contain "environment-sensitive inputs:"
+        explanation |> should contain "environment sensitivity: missing-opt-in"
         explanation |> should contain "forwarded variables: CI"
         explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
         explanation |> should not' (contain "sensitive-value"))
@@ -312,6 +315,19 @@ let ``Environment-sensitive inputs exclude deterministic build dimensions`` () =
           "terrabuild.head_commit"
           "terrabuild.note"
           "terrabuild.tag" ]
+
+[<Test>]
+let ``Environment sensitivity status supports opt-in migration diagnostics`` () =
+    let sensitiveInput = {
+        GraphDef.EvaluationInput.Name = "terrabuild.environment"
+        GraphDef.EvaluationInput.ValueHash = "hash"
+    }
+
+    GraphDef.environmentSensitivityStatus None [] |> should equal "neutral"
+    GraphDef.environmentSensitivityStatus (Some true) [] |> should equal "opted-in-unused"
+    GraphDef.environmentSensitivityStatus None [ sensitiveInput ] |> should equal "missing-opt-in"
+    GraphDef.environmentSensitivityStatus (Some false) [ sensitiveInput ] |> should equal "declared-neutral"
+    GraphDef.environmentSensitivityStatus (Some true) [ sensitiveInput ] |> should equal "opted-in"
 
 [<Test>]
 let ``Configuration pipeline keeps non-batch operations ungrouped`` () =

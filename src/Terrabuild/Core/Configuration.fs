@@ -40,6 +40,7 @@ type Target = {
     Outputs: string set
     Cache: ArtifactMode option
     EvaluationInputs: EvaluationInput list
+    EnvironmentSensitive: bool option
     Steps: TargetStep list
 }
 
@@ -154,6 +155,7 @@ let private buildDeclaredTargetHash (target: AST.Project.TargetBlock) =
         Cache = target.Cache |> normalizeExpr
         Batch = target.Batch |> normalizeExpr
         Phase = None
+        EnvironmentSensitive = None
         Steps = target.Steps |> List.map normalizeStep }
     |> Json.Serialize
     |> Hash.sha256
@@ -174,7 +176,7 @@ let private buildEvaluationInputs
     (target: AST.Project.TargetBlock)
     (extensions: Map<string, AST.ExtensionBlock>) =
     let directDependencies =
-        let targetDependencies = Dependencies.reflectionFind target
+        let targetDependencies = Dependencies.reflectionFind { target with EnvironmentSensitive = None }
         target.Steps
         |> Seq.choose (fun step -> extensions |> Map.tryFind step.Extension)
         |> Seq.map Dependencies.reflectionFind
@@ -587,13 +589,15 @@ let private loadProjectDef
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
                 let phase = targetBlock.Phase |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Phase)
                 let outputs = targetBlock.Outputs |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Outputs)
+                let environmentSensitive = targetBlock.EnvironmentSensitive |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.EnvironmentSensitive)
                 { targetBlock with 
                     Build = build
                     DependsOn = dependsOn
                     Cache = cache
                     Batch = group
                     Phase = phase
-                    Outputs = outputs })
+                    Outputs = outputs
+                    EnvironmentSensitive = environmentSensitive })
         let environments =
             projectConfig.Project.Environments
             |> Option.bind (Eval.asStringSetOption << Eval.eval evaluationContext)
@@ -900,6 +904,13 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Error error -> raiseParseError error
                 | _ -> BatchMode.Single
 
+            let environmentSensitive =
+                target.EnvironmentSensitive
+                |> Option.map (fun value ->
+                    match value |> Eval.eval evaluationContext with
+                    | Value.Bool value -> value
+                    | _ -> raiseTypeError "environment_sensitive must evaluate to a boolean")
+
             let evaluationInputs =
                 buildEvaluationInputs evaluationContext projectDef.Locals target projectDef.Extensions
 
@@ -918,6 +929,7 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                   Target.Cache = targetCache
                   Target.Outputs = targetOutputs
                   Target.EvaluationInputs = evaluationInputs
+                  Target.EnvironmentSensitive = environmentSensitive
                   Target.Steps = targetSteps }
 
             target

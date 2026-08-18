@@ -21,7 +21,8 @@ type TargetBlock =
       Build: Expr option
       Cache: Expr option
       Batch: Expr option
-      Phase: Expr option }
+      Phase: Expr option
+      EnvironmentSensitive: Expr option }
 
 [<RequireQualifiedAccess>]
 type PhaseBlock =

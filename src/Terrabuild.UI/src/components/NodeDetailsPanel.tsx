@@ -117,7 +117,9 @@ const NodeDetailsPanel = ({
                     ) : null}
                     {explanation.environmentSensitiveInputs.length > 0 ? (
                       <Stack gap={2}>
-                        <Text size="xs" c="orange">Environment-sensitive inputs</Text>
+                        <Text size="xs" c="orange">
+                          Environment sensitivity: {explanation.environmentSensitivityStatus}
+                        </Text>
                         <Code block color="orange">
                           {explanation.environmentSensitiveInputs
                             .map((input) => input.name)

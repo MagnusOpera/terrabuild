@@ -69,6 +69,7 @@ type Node = {
 
     Operations: ContaineredShellOperation list
     EvaluationInputs: EvaluationInput list
+    EnvironmentSensitive: bool option
     Artifacts: ArtifactMode
     Build: BuildMode
     Batch: BatchMode
@@ -103,6 +104,15 @@ let environmentSensitiveInputs (inputs: EvaluationInput seq) =
     |> Seq.filter (fun input -> environmentSensitiveInputNames |> Set.contains input.Name)
     |> Seq.sortBy _.Name
     |> List.ofSeq
+
+let environmentSensitivityStatus environmentSensitive inputs =
+    match environmentSensitive, environmentSensitiveInputs inputs with
+    | Some true, [] -> "opted-in-unused"
+    | Some true, _ -> "opted-in"
+    | Some false, []
+    | None, [] -> "neutral"
+    | Some false, _ -> "declared-neutral"
+    | None, _ -> "missing-opt-in"
 
 let isRemoteCacheable (options: ConfigOptions.Options) (node: Node) = 
     match node.Artifacts with
