@@ -15,7 +15,7 @@ type Options = {
     HomeDir: string
     TmpDir: string
     SharedDir: string
-    WhatIf: bool
+    DryRun: bool
     Debug: bool
     MaxConcurrency: int
     Force: bool

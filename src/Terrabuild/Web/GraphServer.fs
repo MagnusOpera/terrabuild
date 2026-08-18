@@ -152,7 +152,7 @@ let private buildConfig
               ConfigOptions.Options.HomeDir = homeDir
               ConfigOptions.Options.TmpDir = tmpDir
               ConfigOptions.Options.SharedDir = sharedDir
-              ConfigOptions.Options.WhatIf = false
+              ConfigOptions.Options.DryRun = false
               ConfigOptions.Options.Debug = false
               ConfigOptions.Options.MaxConcurrency = 1
               ConfigOptions.Options.Force = false

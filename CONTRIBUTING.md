@@ -73,7 +73,7 @@ For contributors we use the standard GitHub workflow: fork, create a branch and 
 Changelog notes are written in the active imperative form. They should not end with a period. The simple rule is to pretend the message starts with "This change will ..."
 
 Good examples for changelog entries are:
-- move whatif at task level
+- add dry-run support at task level
 - invalidate local cache on cache inconsistency
 
 Here's some examples of what we're trying to avoid:

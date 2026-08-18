@@ -62,7 +62,7 @@ type RunArgs =
     | [<Unique>] Group of group:string
     | [<Unique>] Tag of tag:string
     | [<Unique>] Engine of engine:Engine
-    | [<Unique; Inherit>] What_If
+    | [<Unique; Inherit>] Dry_Run
 with
     interface IArgParserTemplate with
         member this.Usage =
@@ -84,7 +84,7 @@ with
             | Group _ -> "Group identifier for related builds."
             | Tag _ -> "Tag for build."
             | Engine _ -> "Container engine to use (docker, podman or host)."
-            | What_If -> "Prepare the action but do not apply."
+            | Dry_Run -> "Prepare the action but do not apply."
 
 [<RequireQualifiedAccess>]
 type ExplainArgs =

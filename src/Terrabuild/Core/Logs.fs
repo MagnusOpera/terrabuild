@@ -222,7 +222,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             ) (TimeSpan.Zero, TimeSpan.Zero)
         $"| Total Cost | {cost.HumanizeAbbreviated()} |" |> append
         $"| Total Gain | {gain.HumanizeAbbreviated()} |" |> append
-        if options.WhatIf |> not then
+        if options.DryRun |> not then
             let duration = summary.EndedAt - options.StartedAt
             $"| Duration | {duration.HumanizeAbbreviated()} |" |> append
 

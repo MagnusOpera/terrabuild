@@ -18,7 +18,7 @@ type RunTargetOptions = {
     Workspace: string
     RunResultFile: string option
     BaseCommit: string option
-    WhatIf: bool
+    DryRun: bool
     Debug: bool
     MaxConcurrency: int
     Force: bool
@@ -73,6 +73,13 @@ let private buildResultKey (projectName: string) (target: string) =
 
 let graphEnvironmentKey (options: ConfigOptions.Options) =
     options.Environment |> Option.defaultValue ""
+
+let normalizeTargetNames (targets: string seq) =
+    targets
+    |> Seq.map (fun target ->
+        if target.StartsWith("-", StringComparison.Ordinal) then
+            raiseInvalidArg $"Unknown option '{target}'."
+        target |> String.toLower)
 
 let getImpactBaseGraph (api: Contracts.IApiClient) (options: ConfigOptions.Options) (baseCommit: string) =
     api.GetCommitGraph options.Repository baseCommit (graphEnvironmentKey options)
@@ -303,7 +310,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             ConfigOptions.Options.HomeDir = homeDir
             ConfigOptions.Options.TmpDir = tmpDir
             ConfigOptions.Options.SharedDir = sharedDir
-            ConfigOptions.Options.WhatIf = runOptions.WhatIf
+            ConfigOptions.Options.DryRun = runOptions.DryRun
             ConfigOptions.Options.Debug = runOptions.Debug
             ConfigOptions.Options.MaxConcurrency = runOptions.MaxConcurrency
             ConfigOptions.Options.Force = runOptions.Force
@@ -406,7 +413,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         Log.Debug("====[ GraphPipeline Batch ]========================================================")
         let graph = runPhase "graph-batch" (fun () -> GraphPipeline.Batch.build options config graph)
-        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None (if options.WhatIf then "success" else "ready") (if options.WhatIf then "complete" else "partial") None
+        writeDiagnostic (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None (if options.DryRun then "success" else "ready") (if options.DryRun then "complete" else "partial") None
 
         { PreparedRunTarget.RunOptions = runOptions
           Options = options
@@ -447,7 +454,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 }
 
         let errCode =
-            if options.WhatIf then 0
+            if options.DryRun then 0
             else
                 Log.Debug("====[ Runner ]========================================================")
                 let runnerStartedOffset = DiagnosticsTelemetry.offsetMs()
@@ -521,7 +528,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 match currentDir() |> findWorkspace with
                 | Some ws -> ws
                 | _ -> raiseInvalidArg "Can't find workspace root directory. Check you are in a workspace."
-        let targets = runArgs.GetResult(RunArgs.Target) |> Seq.map String.toLower
+        let targets = runArgs.GetResult(RunArgs.Target) |> normalizeTargetNames
         let configuration = runArgs.TryGetResult(RunArgs.Configuration)
         let environment = runArgs.TryGetResult(RunArgs.Environment)
         let note = runArgs.TryGetResult(RunArgs.Note)
@@ -534,13 +541,13 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let maxConcurrency = runArgs.GetResult(RunArgs.Parallel, defaultValue = Environment.ProcessorCount/2) |> max 1
         let localOnly = runArgs.Contains(RunArgs.Local_Only)
         let tag = runArgs.TryGetResult(RunArgs.Tag)
-        let whatIf = runArgs.Contains(RunArgs.What_If)
+        let dryRun = runArgs.Contains(RunArgs.Dry_Run)
         let engine = runArgs.TryGetResult(RunArgs.Engine)
 
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = runResultFile |> Option.map FS.fullPath
                         RunTargetOptions.BaseCommit = None
-                        RunTargetOptions.WhatIf = whatIf
+                        RunTargetOptions.DryRun = dryRun
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = runArgs.Contains(RunArgs.Force)
                         RunTargetOptions.MaxConcurrency = maxConcurrency
@@ -582,7 +589,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             RunTargetOptions.Workspace = wsDir |> FS.fullPath
             RunTargetOptions.RunResultFile = None
             RunTargetOptions.BaseCommit = None
-            RunTargetOptions.WhatIf = true
+            RunTargetOptions.DryRun = true
             RunTargetOptions.Debug = debug
             RunTargetOptions.Force = explainArgs.Contains(ExplainArgs.Force)
             RunTargetOptions.MaxConcurrency = max 1 (Environment.ProcessorCount / 2)
@@ -649,7 +656,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = Some (outputFile |> FS.fullPath)
                         RunTargetOptions.BaseCommit = Some baseCommit
-                        RunTargetOptions.WhatIf = false
+                        RunTargetOptions.DryRun = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = 1
@@ -687,7 +694,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = None
                         RunTargetOptions.BaseCommit = None
-                        RunTargetOptions.WhatIf = false
+                        RunTargetOptions.DryRun = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = Int32.MaxValue
@@ -745,7 +752,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let options = { RunTargetOptions.Workspace = wsDir |> FS.fullPath
                         RunTargetOptions.RunResultFile = None
                         RunTargetOptions.BaseCommit = None
-                        RunTargetOptions.WhatIf = true
+                        RunTargetOptions.DryRun = true
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = 1

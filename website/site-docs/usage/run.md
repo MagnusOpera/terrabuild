@@ -12,7 +12,7 @@ USAGE: terrabuild run [--help] [--workspace <path>] [--out <path>]
                       [--force] [--retry] [--parallel <max>] [--local-only]
                       [--note <note>] [--group <group>] [--tag <tag>]
                       [--engine <engine>]
-                      [--what-if] <target>...
+                      [--dry-run] <target>...
 ```
 
 ## Examples
@@ -59,12 +59,12 @@ Node states are:
 
 `ignored` means the node exists in the final graph but the runner did not execute or restore it during that run.
 
-## What-If Mode
+## Dry-Run Mode
 
-Use `--what-if` to prepare the run without executing it:
+Use `--dry-run` to prepare the run without executing it:
 
 ```bash
-terrabuild run build --what-if
+terrabuild run build --dry-run
 ```
 
-In `--what-if` mode Terrabuild does not invoke the runner, so no run result file is written.
+In `--dry-run` mode Terrabuild does not invoke the runner, so no run result file is written.

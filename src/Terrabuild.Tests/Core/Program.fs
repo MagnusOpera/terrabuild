@@ -94,7 +94,7 @@ let ``getImpactBaseGraph uses resolved environment key`` () =
           HomeDir = "."
           TmpDir = "."
           SharedDir = "."
-          WhatIf = false
+          DryRun = false
           Debug = false
           MaxConcurrency = 1
           Force = false
@@ -135,6 +135,22 @@ let ``CLI parses out argument for run`` () =
     let runArgs = result.GetResult(TerrabuildArgs.Run)
 
     runArgs.GetResult(RunArgs.Out) |> should equal "out.json"
+
+[<Test>]
+let ``CLI accepts dry run and rejects removed what if option`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let result = parser.ParseCommandLine([| "run"; "build"; "--dry-run" |], raiseOnUsage = true)
+
+    result.GetResult(TerrabuildArgs.Run).Contains(RunArgs.Dry_Run)
+    |> should equal true
+
+    let removedResult =
+        parser.ParseCommandLine([| "run"; "build"; "--what-if" |], raiseOnUsage = true)
+    let removedTargets = removedResult.GetResult(TerrabuildArgs.Run).GetResult(RunArgs.Target)
+
+    Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+        global.Program.normalizeTargetNames removedTargets |> Seq.toList |> ignore))
+    |> should not' (equal null)
 
 [<Test>]
 let ``CLI parses optional build group for run`` () =

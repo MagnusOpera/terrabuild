@@ -1003,7 +1003,7 @@ let read (options: ConfigOptions.Options) =
         let warningConfig = [
             if options.Force then "force"
             elif options.Retry then "retry"
-            if options.WhatIf then "whatif" ] |> String.join(" ")    
+            if options.DryRun then "dry-run" ] |> String.join(" ")
         [
             if warningConfig |> String.IsNullOrWhiteSpace |> not then $"Build flags [{warningConfig}]"
             $"Engine {options.Engine |> string |> String.toLower}"
