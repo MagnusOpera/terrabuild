@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.198.1-next]
+
+
 - Summarize selected environment-sensitivity violations at the top of `explain` output.
 - Finalize failed preparation diagnostics with the latest partial graph and error, and direct environment-sensitivity failures to `explain`.
 - Enforce environment-neutral targets by default and hash sensitive values only after explicit opt-in.
@@ -13,6 +16,8 @@ All notable changes to Terrabuild are documented in this file.
 - Show diagnostic action, cache, input, and operation explanations in the local console.
 - Add a readable `explain` command backed by the canonical diagnostic report.
 - Restore secret-safe resolved operation and evaluated input details in diagnostic JSON reports.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.0-next...0.198.1-next
 
 ## [0.198.0-next]
 
