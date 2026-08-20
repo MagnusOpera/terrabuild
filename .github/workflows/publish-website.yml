@@ -9,19 +9,14 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: terrabuild-website
   cancel-in-progress: false
 
 jobs:
   deploy-website:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout website source
         uses: actions/checkout@v4
@@ -50,14 +45,11 @@ jobs:
       - name: Generate documentation and build website
         run: make website-build
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+      - name: Publish website to Cloudflare
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: website/build
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: website
+          command: deploy
+          wranglerVersion: "4.124.0"
