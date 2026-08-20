@@ -1,6 +1,6 @@
 ---
 title: Terrabuild
-description: Fast, deterministic builds for modern monorepos.
+description: Build and deployment orchestration for monorepos, with dependency-aware execution and caching.
 ---
 
 import Link from '@docusaurus/Link';
@@ -11,15 +11,15 @@ import Link from '@docusaurus/Link';
       <div className="tb-home-copy">
         <div className="tb-home-eyebrow">
           <span className="tb-home-eyebrow-dot" aria-hidden="true"></span>
-          <span className="tb-home-eyebrow-label">Built for complex monorepos</span>
+          <span className="tb-home-eyebrow-label">Build and deployment for monorepos</span>
         </div>
         <h1 className="tb-home-title">
-          Build the change.<br />
-          <span>Skip the rest.</span>
+          Build what changed.<br />
+          <span>Deploy what passed.</span>
         </h1>
         <p className="tb-home-lede">
-          Terrabuild turns your workspace into a deterministic build graph—then runs
-          only what matters, in the right order, at maximum concurrency.
+          Terrabuild uses one dependency graph to build, test, package, and deploy your workspace.
+          It orders every target, runs independent work in parallel, and restores unchanged results from cache.
         </p>
         <div className="tb-home-actions">
           <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start">
@@ -32,9 +32,9 @@ import Link from '@docusaurus/Link';
           </a>
         </div>
         <div className="tb-home-proof" aria-label="Terrabuild highlights">
-          <span><i aria-hidden="true">✓</i> Open source</span>
+          <span><i aria-hidden="true">✓</i> One graph for build and deployment</span>
           <span><i aria-hidden="true">✓</i> Local cache included</span>
-          <span><i aria-hidden="true">✓</i> Cross-platform</span>
+          <span><i aria-hidden="true">✓</i> Runs on macOS, Linux, and Windows</span>
         </div>
       </div>
 
@@ -42,10 +42,10 @@ import Link from '@docusaurus/Link';
         <div className="tb-graph-chrome">
           <div className="tb-graph-header">
             <div>
-              <span className="tb-graph-kicker">LIVE BUILD PLAN</span>
+              <span className="tb-graph-kicker">EXAMPLE DEPLOYMENT PLAN</span>
               <strong>workspace / deploy</strong>
             </div>
-            <span className="tb-graph-status"><i></i> Optimized</span>
+            <span className="tb-graph-status"><i></i> Ready</span>
           </div>
 
           <div className="tb-graph" role="img" aria-label="A build graph where two cached libraries feed parallel API and web builds, which converge into one deploy">
@@ -75,7 +75,7 @@ import Link from '@docusaurus/Link';
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 5-5 5 5 5M12.5 5l5 5-5 5"/></svg>
               </span>
               <span><small>TASK</small><strong>api:build</strong></span>
-              <em>1.2s</em>
+              <em>run</em>
             </div>
 
             <div className="tb-graph-node tb-node-lib tb-node-three">
@@ -91,7 +91,7 @@ import Link from '@docusaurus/Link';
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 5-5 5 5 5M12.5 5l5 5-5 5"/></svg>
               </span>
               <span><small>TASK</small><strong>web:build</strong></span>
-              <em>0.9s</em>
+              <em>run</em>
             </div>
 
             <div className="tb-graph-node tb-node-deploy">
@@ -104,17 +104,17 @@ import Link from '@docusaurus/Link';
           </div>
 
           <div className="tb-graph-footer">
-            <span><i className="tb-legend-cache"></i> 2 restored</span>
-            <span><i className="tb-legend-build"></i> 2 built in parallel</span>
-            <strong>4.8s saved</strong>
+            <span><i className="tb-legend-cache"></i> 2 cached</span>
+            <span><i className="tb-legend-build"></i> 2 to run in parallel</span>
+            <strong>deploy waits for both</strong>
           </div>
         </div>
         <div className="tb-graph-caption">
           <span>One command</span>
           <i aria-hidden="true"></i>
-          <span>Minimum work</span>
+          <span>Dependency order</span>
           <i aria-hidden="true"></i>
-          <span>Reproducible output</span>
+          <span>Cached results</span>
         </div>
       </div>
     </div>
@@ -123,9 +123,9 @@ import Link from '@docusaurus/Link';
   <section className="tb-home-value">
     <div className="container">
       <div className="tb-section-intro">
-        <span className="tb-section-label">THE BUILD SYSTEM THAT UNDERSTANDS YOUR REPO</span>
-        <h2>Complex graph. Simple workflow.</h2>
-        <p>Keep the tools your teams already use. Terrabuild coordinates them as one intelligent system.</p>
+        <span className="tb-section-label">BUILD AND DEPLOYMENT</span>
+        <h2>Build and deploy on the same graph.</h2>
+        <p>Define deployment like any other target, then make it depend on the builds, tests, packages, or infrastructure plans it needs.</p>
       </div>
       <div className="tb-value-grid">
         <article>
@@ -133,10 +133,10 @@ import Link from '@docusaurus/Link';
             <div className="tb-value-icon">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4c3 0 3-6 6-6M7 12h4c3 0 3 6 6 6"/></svg>
             </div>
-            <span className="tb-value-label">EXECUTION</span>
+            <span className="tb-value-label">ORCHESTRATION</span>
           </div>
-          <h3>Graph-aware execution</h3>
-          <p>Dependencies define the order. Independent tasks run concurrently. Every build is planned before it starts.</p>
+          <h3>Keep the whole run in order</h3>
+          <p>Terrabuild runs prerequisites first and independent targets in parallel. A failed prerequisite stops the targets that depend on it.</p>
         </article>
         <article>
           <div className="tb-value-card-top">
@@ -145,8 +145,8 @@ import Link from '@docusaurus/Link';
             </div>
             <span className="tb-value-label">CACHING</span>
           </div>
-          <h3>Content-based caching</h3>
-          <p>Deterministic hashes restore unchanged work locally. Shared remote caching across teams, branches, and CI is available with an Insights subscription.</p>
+          <h3>Cache by input</h3>
+          <p>Terrabuild fingerprints each target and its inputs. A matching fingerprint restores the saved output instead of running the target again. Insights adds a shared cache for developer machines and CI.</p>
         </article>
         <article>
           <div className="tb-value-card-top">
@@ -155,8 +155,8 @@ import Link from '@docusaurus/Link';
             </div>
             <span className="tb-value-label">CHANGE DETECTION</span>
           </div>
-          <h3>Change-aware by default</h3>
-          <p>From one edited library, Terrabuild finds every impacted task—and leaves everything else alone.</p>
+          <h3>Follow changes through the graph</h3>
+          <p>Change a library and Terrabuild includes the targets that depend on it. Unrelated branches of the graph stay out of the run.</p>
         </article>
       </div>
     </div>
@@ -166,12 +166,12 @@ import Link from '@docusaurus/Link';
     <div className="container">
       <div className="tb-extensions-heading">
         <div>
-          <span className="tb-section-label">EXTENSIBLE BY DESIGN</span>
-          <h2>Your tools. One build language.</h2>
+          <span className="tb-section-label">EXTENSIONS</span>
+          <h2>Keep your build and deployment tools.</h2>
         </div>
         <p>
-          Use the extensions Terrabuild ships with, or teach it a new tool in FScript—without
-          recompiling the build system.
+          Terrabuild ships extensions for common build and deployment tools. An FScript file can add
+          another tool without changing or recompiling Terrabuild.
         </p>
       </div>
 
@@ -183,10 +183,10 @@ import Link from '@docusaurus/Link';
             </span>
             <span className="tb-extension-card-index">EXTENSIONS</span>
           </div>
-          <h3>Built in. Open ended.</h3>
+          <h3>Start with the included extensions.</h3>
           <p>
-            Common toolchains work out of the box. Custom <a href="https://magnusopera.github.io/FScript/" target="_blank" rel="noreferrer">FScript</a> scripts add your own
-            actions, defaults, discovery, and batching rules.
+            Use the included commands for common toolchains. A custom <a href="https://magnusopera.github.io/FScript/" target="_blank" rel="noreferrer">FScript</a> extension can define
+            actions, defaults, project discovery, and batching rules for anything else.
           </p>
           <div className="tb-extension-tags" aria-label="Built-in extension examples">
             <span>dotnet</span>
@@ -207,9 +207,9 @@ import Link from '@docusaurus/Link';
             </span>
             <span className="tb-extension-card-index">CONTAINERS</span>
           </div>
-          <h3>Contained and reproducible.</h3>
+          <h3>Pin the execution environment.</h3>
           <p>
-            Pin an image and every action runs with the same toolchain using Docker, both locally and in CI.
+            Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker and Podman.
           </p>
           <div className="tb-extension-code" aria-label="Example containerized Terraform extension">
             <div><span>extension</span> <strong>terraform</strong> {'{'}</div>
@@ -228,11 +228,11 @@ import Link from '@docusaurus/Link';
   <section className="tb-home-cta">
     <div className="container tb-home-cta-inner">
       <div>
-        <span className="tb-section-label">FROM ZERO TO FIRST BUILD</span>
-        <h2>Your monorepo, only faster.</h2>
+        <span className="tb-section-label">QUICK START</span>
+        <h2>Run your first build or deployment.</h2>
       </div>
       <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start">
-        <span className="tb-home-button-label">Start building</span>
+        <span className="tb-home-button-label">Read the quick start</span>
         <span className="tb-home-button-arrow" aria-hidden="true">→</span>
       </Link>
     </div>

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Rewrite the website landing page to explain how Terrabuild handles build and deployment on the same dependency graph.
+
 ## [0.198.4]
 
 - Upgrade the embedded FScript language and runtime packages to `0.78.1`.
