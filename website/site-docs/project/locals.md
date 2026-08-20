@@ -1,5 +1,5 @@
 ---
-title: Locals Block
+title: Locals block
 
 ---
 
@@ -12,9 +12,9 @@ They are only visible inside the current `PROJECT` file.
 
 Project locals are referenced with `local.<identifier>`.
 
-## Example Usage
+## Example usage
 
-### Project-Only Values
+### Project-only values
 
 ```
 locals {
@@ -23,7 +23,7 @@ locals {
 }
 ```
 
-### Using Workspace Values
+### Using workspace values
 
 ```
 # In WORKSPACE:
@@ -39,7 +39,7 @@ locals {
 }
 ```
 
-### Derived Project Configuration
+### Derived project configuration
 
 ```
 # In WORKSPACE:

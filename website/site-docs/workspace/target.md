@@ -1,12 +1,12 @@
 ---
-title: Target Block
+title: Target block
 
 ---
 
 The `target` block defines workspace-wide behavior for a target name.
 Use it to declare defaults such as dependency rules, cacheability, batch mode, and an optional [phase](./phase) that apply across projects unless overridden in `PROJECT`.
 
-## Dependency Syntax
+## Dependency syntax
 
 The `depends_on` attribute uses target references:
 
@@ -49,7 +49,7 @@ flowchart TB
   class targetBuildB,targetBuildC tb-muted
 ```
 
-## Example Usage
+## Example usage
 ```hcl
 target build {
     phase = phase.application
@@ -62,7 +62,7 @@ target build {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 

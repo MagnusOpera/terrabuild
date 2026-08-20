@@ -1,5 +1,5 @@
 ---
-title: Phase Block
+title: Phase block
 
 ---
 
@@ -40,7 +40,7 @@ target dist {
 
 When an application `build` target is selected, Terrabuild enlists `pnpm:dist` because `application` depends on `toolchains`. The toolchain target must complete successfully before the application target starts.
 
-## A Phase Is a Barrier, Not a Filter
+## A phase is a barrier, not a filter
 
 A phase dependency applies to the whole prerequisite phase. Terrabuild does not inspect commands or extension images to determine which member appears necessary for the selected target. Crossing the phase boundary enlists every target assigned to the prerequisite phase, and the downstream target waits until all of them succeed.
 
@@ -65,9 +65,9 @@ flowchart TB
 
 The arrows in this illustration show execution progressing through the barrier. `application:build` cannot start when only `pnpm:dist` has succeeded; `nginx:dist` and `dotnet-runtime:dist` must also complete.
 
-This behavior is useful when the earlier phase represents an invariant such as “all toolchains are ready” or “all generated contracts exist.” It may intentionally do more work than a direct dependency would. When only one specific task is required, prefer an ordinary target dependency. When different lifecycle steps need different groups—for example, build toolchains versus distribution images—split them into separate phases so each barrier expresses the intended boundary.
+This behavior is useful when the earlier phase represents an invariant such as "all toolchains are ready" or "all generated contracts exist." It may intentionally do more work than a direct dependency would. When only one specific task is required, prefer an ordinary target dependency. Different lifecycle steps may need different groups. For example, split build toolchains and distribution images into separate phases so each barrier has one purpose.
 
-## Selection and Execution Rules
+## Selection and execution rules
 
 * Selecting a target assigned to a phase enlists every target assigned to all transitive prerequisite phases.
 * Prerequisite targets are enlisted even when they are outside an explicit project filter. Their ordinary target dependencies are enlisted as well.
@@ -80,7 +80,7 @@ This behavior is useful when the earlier phase represents an invariant such as �
 
 Phases affect scheduling but do not become artifact-cache inputs. Assigning a phase does not, by itself, change a target's artifact hash.
 
-## Target Assignment and Inheritance
+## Target assignment and inheritance
 
 A workspace target can provide a default phase for every matching project target:
 
@@ -103,13 +103,13 @@ The `phase` attribute is optional. Existing targets remain unphased when neither
 
 Within target expressions, [`terrabuild.phase`](../expression/predefined-variables) contains the assigned phase name or evaluates to `nothing` for an unphased target.
 
-## Batching and Graphs
+## Batching and graphs
 
 Batch builds never mix targets from different phases, and phased targets are never batched together with unphased targets. Compatible targets in the same phase can still be batched normally.
 
 Markdown graphs in debug logs and build summaries remain ungrouped for readability. In the interactive console, enable **Phases** in the advanced options when phase grouping helps explain execution order.
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 

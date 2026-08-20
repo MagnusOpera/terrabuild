@@ -29,7 +29,7 @@ To upgrade Terrabuild, run:
 brew upgrade magnusopera/tap/terrabuild
 ```
 
-#### GitHub Release
+#### GitHub release
 
 Download Terrabuild from [GitHub Releases](https://github.com/magnusopera/terrabuild/releases).
 
@@ -66,8 +66,8 @@ dotnet tool update --global Terrabuild
 ## Configuration
 
 Terrabuild uses two configuration files:
-* **WORKSPACE**: one file at the repository root containing [shared configuration](/docs/workspace).
-* **PROJECT**: one file at the root of each buildable unit containing [project configuration](/docs/project).
+* `WORKSPACE` contains [shared configuration](/docs/workspace) at the repository root.
+* `PROJECT` contains [project configuration](/docs/project) at the root of each buildable or deployable unit.
 
 For an existing monorepo, the [scaffold command](/docs/getting-started/scaffolding) can generate a useful starting point.
 

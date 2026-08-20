@@ -46,7 +46,7 @@ A list is an ordered sequence of values. Values can be of different types, and l
 
 Commas are optional. You can separate list items with whitespace or commas. For single-line lists, commas improve readability.
 
-### Simple Lists
+### Simple lists
 
 ```
 [ 1, 2, 3 ]
@@ -61,14 +61,14 @@ You can also use whitespace without commas:
 [ "a" "b" "c" ]
 ```
 
-### Mixed Type Lists
+### Mixed type lists
 
 ```
 [ 1, "value", 42, true ]
 [ "string", 123, false ]
 ```
 
-### Nested Lists
+### Nested lists
 
 Lists can contain other lists:
 
@@ -77,7 +77,7 @@ Lists can contain other lists:
 [ "outer", [ "inner1", "inner2" ], "outer2" ]
 ```
 
-### Recommended Formatting
+### Recommended formatting
 
 For single-line lists, use commas for better readability:
 
@@ -104,7 +104,7 @@ For multi-line lists, format with one item per line (commas optional):
   [ 5, 6 ] ]
 ```
 
-### Empty List
+### Empty list
 
 ```
 [ ]
@@ -116,7 +116,7 @@ A map is a collection of named values (key-value pairs). The key is always an id
 
 Commas are optional. You can separate map entries with whitespace or commas.
 
-### Simple Maps
+### Simple maps
 
 ```
 { configuration: "Release" }
@@ -124,7 +124,7 @@ Commas are optional. You can separate map entries with whitespace or commas.
 { name: "app", version: 42, enabled: true }
 ```
 
-### Mixed Type Values
+### Mixed type values
 
 ```
 { 
@@ -135,7 +135,7 @@ Commas are optional. You can separate map entries with whitespace or commas.
 }
 ```
 
-### Nested Maps
+### Nested maps
 
 Maps can contain other maps and lists:
 
@@ -151,7 +151,7 @@ Maps can contain other maps and lists:
 }
 ```
 
-### Complex Nested Structures
+### Complex nested structures
 
 ```
 {
@@ -166,7 +166,7 @@ Maps can contain other maps and lists:
 }
 ```
 
-### Recommended Formatting
+### Recommended formatting
 
 For readability, format maps with one entry per line (multi-line format is recommended):
 
@@ -184,7 +184,7 @@ For readability, format maps with one entry per line (multi-line format is recom
 }
 ```
 
-### Empty Map
+### Empty map
 
 ```
 { }

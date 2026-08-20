@@ -1,5 +1,5 @@
 ---
-title: FScript Extensions
+title: FScript extensions
 ---
 
 Terrabuild custom extensions are FScript (`.fss`) programs. FScript provides the language; Terrabuild provides a small host protocol that binds target arguments to exported functions and turns their results into executable operations.
@@ -10,7 +10,7 @@ If records, options, pipelines, pattern matching, or `[<export>]` are unfamiliar
 
 Legacy compiled F# scripts such as `.fsx` are not supported.
 
-## Your First Extension
+## Your first extension
 
 Create a script inside the workspace:
 
@@ -66,7 +66,7 @@ target install {
 
 The action name `install` resolves to the exported FScript function named `install`. Terrabuild supplies `context`; the target supplies `args`.
 
-## Handler Binding
+## Handler binding
 
 Every extension entrypoint follows the same rules:
 
@@ -85,7 +85,7 @@ Context records are structurally typed. Request only the fields the handler uses
 
 An omitted optional parameter becomes `None`. An omitted required parameter is a configuration error. Extra target arguments that are not present in the function signature are ignored.
 
-## Exact Actions and Dispatch
+## Exact actions and dispatch
 
 Terrabuild first looks for an exported function whose name matches the requested action. If none exists, it uses the single function marked `Dispatch`.
 
@@ -103,7 +103,7 @@ Terrabuild first looks for an exported function whose name matches the requested
 
 With this fallback, `my_extension lint { }` invokes `dispatch` with `context.Command = "lint"`. A script may define at most one dispatch handler.
 
-## The Descriptor
+## The descriptor
 
 The script's final expression must be a map from exported function names to lists of discriminated-union flags. Flags are union cases, not strings.
 
@@ -132,7 +132,7 @@ type ExportFlag =
 
 Batching is not a descriptor flag. Each invocation reports whether it supports batching through `CommandResult.Batchable`.
 
-## Optional Project Defaults
+## Optional project defaults
 
 A handler marked `Default` can discover project identity, outputs, and dependencies while Terrabuild constructs the project graph:
 
@@ -164,7 +164,7 @@ Set `Batchable = true` only when the handler can produce one correct operation f
 
 Returning `Batchable = false` keeps the action as an individual operation. Terrabuild still applies its normal graph and phase rules.
 
-## Local and Remote Scripts
+## Local and remote scripts
 
 A local script path is resolved from the directory containing the `WORKSPACE` or `PROJECT` file that declares it and must remain inside the workspace:
 
@@ -182,9 +182,9 @@ extension my_extension {
 }
 ```
 
-Imports in local scripts are resolved to workspace files. Imports in remote scripts are resolved relative to the script URL. Terrabuild confines filesystem host functions to the workspace and applies `workspace.deny`, but returned shell operations execute with the build's authority; review remote extension code as carefully as other build tooling.
+Imports in local scripts are resolved to workspace files. Imports in remote scripts are resolved relative to the script URL. Terrabuild confines filesystem host functions to the workspace and applies `workspace.deny`, but returned shell operations execute with the run's authority. Review remote extension code as carefully as other automation code.
 
-## Where to Continue
+## Where to continue
 
 - [Protocol Types](./types) lists every context and result shape.
 - [Host Functions](./functions) lists the functions Terrabuild exposes to scripts.

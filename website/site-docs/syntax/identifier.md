@@ -5,7 +5,7 @@ title: Identifier
 
 An identifier starts with an ASCII letter and may continue with letters or numbers. A single underscore can separate groups. Lowercase `snake_case` is the recommended convention, but uppercase letters are accepted.
 
-**Underscore rules:**
+The underscore rules are:
 * Underscores (`_`) can be used within the identifier
 * Only a single consecutive `_` is allowed (no `__`)
 * Underscores cannot be at the start or end of the identifier
@@ -19,7 +19,7 @@ There are some syntax extensions for specific usages:
 
 ## Examples
 
-### ✅ Valid identifiers
+### Valid identifiers
 * `config` - Simple identifier
 * `project42` - Contains numbers
 * `this_is_a_var` - Single underscore between words
@@ -28,7 +28,7 @@ There are some syntax extensions for specific usages:
 * `version_1_0` - Multiple single underscores
 * `Config` - Uppercase letters are accepted, although lowercase is recommended
 
-### ❌ Invalid identifiers
+### Invalid identifiers
 * `_config` - Cannot start with underscore
 * `config_` - Cannot end with underscore
 * `project__42` - Two consecutive underscores are not allowed

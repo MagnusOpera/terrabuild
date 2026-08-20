@@ -7,47 +7,37 @@ prev: /docs/getting-started/tasks
 
 Once Terrabuild has selected and scheduled the [tasks](/docs/getting-started/tasks) in a build graph, caching determines which results can be reused instead of executed again.
 
-## How Caching Works
+## How caching works
 
 For each task in the build graph, Terrabuild computes a unique cache key (hash) from:
 
-- **Project files** - Content is hashed (not timestamps), so same files = same hash
-- **Dependencies** - If a dependency changes, the hash changes
-- **Commands and arguments** - Different build commands = different hash
-- **Variables** - Build variables affect the hash
+- tracked project file contents
+- dependency fingerprints
+- resolved commands and arguments
+- evaluated inputs used by the target
 
-This creates a [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree) structure: any change to inputs produces a new hash, automatically invalidating the cache when needed.
+Dependency fingerprints form a [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree). A changed tracked input produces a different key for the affected task and its dependents.
 
-## Cache Key Properties
+## What a cache key covers
 
-Cache keys are:
+The same declared inputs produce the same key. A branch name or commit does not affect the key unless the target consumes a corresponding [predefined variable](/docs/expression/predefined-variables/) and opts in with `environment_sensitive = true`.
 
-- **Deterministic** - Same inputs always produce the same key
-- **Branch-agnostic** - Same content across branches produces the same key unless a target opts into commit-specific [predefined variables](/docs/expression/predefined-variables/)
-- **Comprehensive** - Any change affecting output changes the key
-- **Environment-neutral by default** - Environment, commit, branch, CI, and run metadata do not fragment cache keys unless a target explicitly opts in with `environment_sensitive = true`
+A key cannot include an input Terrabuild does not know about. Files excluded by `ignores`, host environment variables that are not forwarded, current time, network responses, and external service state require deliberate configuration or a non-cacheable target. Use `includes`, extension variables, and environment-sensitive inputs to describe values that affect output.
 
-This means builds can be shared across branches, team members, and CI/CD pipelines when nothing has changed.
+## Local and remote cache
 
-## Local vs Remote Cache
-
-### Local Cache
+### Local cache
 
 Terrabuild maintains a local cache under `~/.terrabuild/cache`. This cache:
 - Stores build artifacts for fast local builds
 - Works offline
 - Is specific to your machine
 
-### Remote Cache (Insights)
+### Remote cache with Insights
 
-When connected to [Insights](https://insights.magnusopera.io), Terrabuild can share caches:
-- **Across team members** - Your teammate's build can be reused by you
-- **Across CI/CD pipelines** - CI builds can reuse local builds and vice versa
-- **Across branches** - Same code on different branches shares cache
+When connected to [Insights](https://insights.magnusopera.io), Terrabuild can upload encrypted managed artifacts. Another developer machine or CI runner can restore them when it computes the same key and has access to the workspace.
 
-This dramatically speeds up builds, especially in CI/CD where most code hasn't changed.
-
-## Artifact Modes
+## Artifact modes
 
 Targets control where their outputs are managed through the `artifacts` setting:
 
@@ -58,7 +48,7 @@ Targets control where their outputs are managed through the `artifacts` setting:
 
 See the [Target Block reference](/docs/project/target) for target-level configuration.
 
-## Cache Invalidation
+## Cache invalidation
 
 Caches are invalidated (and tasks built) when:
 
@@ -69,7 +59,7 @@ Caches are invalidated (and tasks built) when:
 - `--force` flag is used
 - `build = ~always` is set on a target
 
-## Build, Restore, or Summary Decision
+## Build, restore, or summary
 
 For each task, Terrabuild decides whether to **Build** (execute commands), **Restore** (recover from cache), or **Summary** (report a previous failed cached run):
 
@@ -105,15 +95,13 @@ flowchart LR
 
 Successful cache summaries restore outputs. Failed cache summaries report the previous failure as `Summary` unless `--retry` is used, in which case the task builds again.
 
-## Optimizing Cache Usage
+## Improve cache reuse
 
-To maximize cache hits:
+To improve cache reuse:
 
-1. **Use consistent variables** - Avoid using commit-specific variables unless necessary
-2. **Minimize file changes** - Only track files that affect the build (use `includes`/`ignores`)
-3. **Connect to Insights** - Enable remote cache sharing for team and CI/CD
-4. **Avoid `--force`** - Only use when you need to invalidate cache
+1. Keep variables stable when they do not affect output.
+2. Track only the files the target reads, using `includes` and `ignores` where discovery needs correction.
+3. Reserve `--force` for runs that must bypass a valid cache entry.
+4. Connect to Insights when machines need to share managed artifacts.
 
-## How This All Fits Together
-
-The graph structure you learned about earlier enables this caching system. When Terrabuild builds the graph, it can check each node's cache key and decide whether to build, restore, or report a previous failed summary. This is why most builds are fast - most projects have not changed.
+Use `terrabuild explain <target>` to inspect the evaluated inputs, cache key, and action selected for each node.

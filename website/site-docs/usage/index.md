@@ -26,7 +26,7 @@ SUBCOMMANDS:
     Use 'terrabuild <subcommand> --help' for additional information.
 ```
 
-## Command Pages
+## Command pages
 
 - [run](./run): build, restore, or report selected targets
 - [impact](./impact): compare the current graph with a base commit
@@ -39,9 +39,9 @@ SUBCOMMANDS:
 - [login](./login): connect to Insights
 - [logout](./logout): remove a saved Insights connection
 
-## Common Patterns
+## Common patterns
 
-- Use `terrabuild run <target>` for normal local and CI builds.
+- Use `terrabuild run <target>` to build, test, package, or deploy locally and in CI.
 - Use `terrabuild explain <target>` to understand what Terrabuild would do and why.
 - Use `terrabuild run <target> --out <file>` when automation needs a machine-readable build report.
 - Use `terrabuild impact <target> --base <sha> --out <file>` to compute impacted targets from a stored base graph.

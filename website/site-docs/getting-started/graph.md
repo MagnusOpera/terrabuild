@@ -5,24 +5,20 @@ prev: /docs/getting-started/scaffolding
 
 ---
 
-At the heart of Terrabuild is a **DAG (Directed Acyclic Graph)** that represents your entire build. Understanding this graph is key to understanding how Terrabuild works.
+Terrabuild represents each run as a directed acyclic graph, or DAG. The graph contains the selected targets and every prerequisite Terrabuild must consider before it can run them.
 
-## What is the Build Graph?
+## What the graph contains
 
 When you run `terrabuild run <target>`, Terrabuild analyzes your workspace and builds a graph where:
 
-- **Nodes** represent tasks (e.g., "build project A's build target")
-- **Edges** represent dependencies (e.g., "project A depends on project B")
-- The graph is **directed** - dependencies flow in one direction
-- The graph is **acyclic** - no circular dependencies are allowed
+- Nodes represent tasks, such as the `build` target for project A.
+- Edges represent dependencies between tasks.
+- Edges have a direction. A dependent node points to the prerequisite it requires.
+- Circular dependency chains are invalid.
 
-This graph structure enables Terrabuild to:
-- Determine what needs to be built and in what order
-- Identify what can be built in parallel
-- Skip building unchanged projects
-- Use cached artifacts when available
+Terrabuild uses these relationships to order work and identify independent tasks that can run in parallel. Cache fingerprints determine whether a selected task executes or restores saved output.
 
-## How Terrabuild Constructs the Graph
+## How Terrabuild constructs the graph
 
 Graph construction happens before any target command runs:
 
@@ -43,11 +39,11 @@ Dependency references are permissive by project:
 
 Circular target dependency chains are rejected during graph construction and reported with the cycle path.
 
-## Example: How Projects Become a Graph
+## How projects become a graph
 
-The following example shows how multiple projects with dependencies become a build graph. Each project has its own `PROJECT` file, and dependencies are typically discovered automatically by Terrabuild's extensions (though you can also specify them explicitly).
+This example has two applications and one library behind each application. Extensions can discover project dependencies, and a `PROJECT` file can also declare them explicitly.
 
-This example is from the [Terrabuild Playground](https://github.com/MagnusOpera/Terrabuild-Playground) - a sample workspace you can use to experiment.
+The configuration comes from the [Terrabuild Playground](https://github.com/MagnusOpera/Terrabuild-Playground).
 
 ```mermaid
 flowchart TB
@@ -95,20 +91,13 @@ flowchart TB
 
 Arrows point from a dependent task to the prerequisite it requires. The runner executes prerequisites first.
 
-## How the Graph Enables Fast Builds
+## How changes affect a run
 
-The graph structure enables Terrabuild's core optimization: **only build what changed**.
+The graph defines which tasks can affect one another. Fingerprints and cache state decide the action assigned to each selected node.
 
-When you run a build:
-1. Terrabuild checks each node in the graph
-2. If a node is forced, uncached, non-cacheable, or depends on a non-lazy node that must build, that node builds
-3. If a successful cache summary exists, the node can be restored from cache (see [Caching](/docs/getting-started/caching))
-4. If a failed cache summary exists, the failure is reported unless `--retry` is used
-5. Dependent projects are automatically marked for build if their dependencies changed
+1. A forced, non-cacheable, or uncached node executes.
+2. A node with a successful matching cache entry can restore its outputs.
+3. A node with a failed cache summary reports that failure unless the run uses `--retry`.
+4. When a non-lazy prerequisite executes, Terrabuild also executes the dependent work required by the graph.
 
-This means:
-- **Most builds are fast** - Only changed projects are built
-- **Branches share cache** - Same code on different branches reuses cache
-- **Dependencies are handled automatically** - If a library changes, apps using it are built
-
-The graph is what makes Terrabuild efficient for monorepos. Even with hundreds of projects, you typically only build a handful on each change.
+Cache reuse depends on declared inputs. Branches and machines can reuse an entry only when they produce the same fingerprint and can access the stored artifacts. See [Caching](/docs/getting-started/caching) for the inputs and exclusions that matter.

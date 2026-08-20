@@ -64,6 +64,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/install',
         'getting-started/quick-start',
+        'getting-started/deployment',
         'getting-started/key-concepts',
         'getting-started/scaffolding',
         'getting-started/graph',

@@ -1,5 +1,5 @@
 ---
-title: Protocol Types
+title: Protocol types
 ---
 
 These are the FScript shapes exchanged with Terrabuild. They are ordinary FScript records and discriminated unions; see the [FScript type-system documentation](https://magnusopera.github.io/FScript/manual/0.78.1/language/type-system) for the language rules.
@@ -101,7 +101,7 @@ type CommandResult =
 
 Batchability belongs to the result, not the descriptor.
 
-## Descriptor Flags
+## Descriptor flags
 
 The script's final value maps exported function names to these flags:
 

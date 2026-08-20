@@ -20,7 +20,7 @@ USAGE: terrabuild impact [--help] --base <sha> --out <path> [--workspace <path>]
 terrabuild impact build --base 4d2f6d9 --out impact.json
 ```
 
-## Output File
+## Output file
 
 `impact` always writes its report to the file provided with `--out`.
 

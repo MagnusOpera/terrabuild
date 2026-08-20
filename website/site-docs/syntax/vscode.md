@@ -1,9 +1,9 @@
 ---
-title: VSCode Support
+title: VSCode support
 
 ---
 
-## VSCode Extension
+## VSCode extension
 
 Before going forward, you can install the Terrabuild VSCode on [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=MagnusOpera.terrabuild).
 

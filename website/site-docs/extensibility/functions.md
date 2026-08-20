@@ -1,8 +1,8 @@
 ---
-title: Host Functions
+title: Host functions
 ---
 
-FScript provides the language and standard library documented in the [FScript manual](https://magnusopera.github.io/FScript/manual/0.78.1/). Terrabuild additionally controls which host functions an extension may call.
+FScript provides the language and standard library documented in the [FScript manual](https://magnusopera.github.io/FScript/manual/0.78.1/). Terrabuild controls which host functions an extension may call.
 
 Terrabuild exposes the default FScript host registry except for concurrency and interactive-input functions that do not fit deterministic build-graph evaluation:
 
@@ -10,7 +10,7 @@ Terrabuild exposes the default FScript host registry except for concurrency and 
 - `Task.await`
 - `Console.readLine`
 
-## Functions Available to Extensions
+## Functions available to extensions
 
 ### Filesystem
 
@@ -41,6 +41,6 @@ Filesystem access is confined to the workspace root. Paths matching `workspace.d
 
 - `Console.writeLine`
 
-Use returned [`ShellOperation`](./types#shelloperation) values to request build commands. Host functions run while Terrabuild evaluates the extension; shell operations run later under normal graph scheduling, container, caching, and failure rules.
+Return [`ShellOperation`](./types#shelloperation) values to request commands. Host functions run while Terrabuild evaluates the extension. Shell operations run later under the graph's scheduling, container, caching, and failure rules.
 
 For the language's built-in modules and functions, use the [FScript standard-library reference](https://magnusopera.github.io/FScript/manual/0.78.1/stdlib/overview).

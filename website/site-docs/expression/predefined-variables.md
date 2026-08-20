@@ -1,8 +1,8 @@
 ---
-title: Predefined Variables
+title: Predefined variables
 
 ---
-Terrabuild provides several predefined variables that can be used in expressions. These variables provide information about the build context, system environment, and current project/target being built.
+Terrabuild supplies predefined values for the current run, machine, project, and target.
 
 | Name | Description | Scope |
 |----------|---------|-------|
@@ -27,7 +27,7 @@ Terrabuild provides several predefined variables that can be used in expressions
 | `terrabuild.version` | Version (hash) of current [project](/docs/project) | Target |
 | `project.<id>.version` | Version (hash) of given project `<id>` | Target |
 
-## Environment-Sensitive Inputs
+## Environment-sensitive inputs
 
 Terrabuild classifies the following predefined values as environment-sensitive:
 

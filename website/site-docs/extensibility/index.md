@@ -27,7 +27,7 @@ Terrabuild ships built-in extensions (identifiers like `@dotnet`, `@npm`, `@terr
 Use non-`@` identifiers for custom extensions.
 :::
 
-## Two Layers to Learn
+## Two layers to learn
 
 The FScript documentation explains the language: values, functions, type annotations, modules, imports, exports, and the standard library.
 
@@ -42,7 +42,7 @@ The Terrabuild documentation explains the host protocol layered on top:
 
 Start with [FScript Extensions](./script), then use [Protocol Types](./types) and [Host Functions](./functions) as references.
 
-## Authoring Path
+## Authoring path
 
 1. Learn enough [FScript](https://magnusopera.github.io/FScript/manual/0.78.1/learn/quickstart) to read functions, records, options, and pattern matching.
 2. Write a local `.fss` script with one exported command handler.

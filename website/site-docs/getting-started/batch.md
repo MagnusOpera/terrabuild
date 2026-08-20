@@ -5,11 +5,11 @@ prev: /docs/getting-started/insights
 
 ---
 
-Despite being smart at task scheduling and caching, Terrabuild can't always beat compiler optimizations when doing batch builds.
+Running one command per project is not always the cheapest option. Some toolchains can compile or restore several projects more efficiently with one native command.
 
-For example, .NET is able to build a whole solution and optimize how to restore and build dependencies. However, for that, you need to build and maintain a solution file. Also, you can't easily build a subset of this solution file.
+For example, .NET can build several projects through one generated solution. Terrabuild can create that batch from the selected graph instead of requiring a permanent solution file for every possible subset.
 
-To have the best of both worlds, Terrabuild supports batch builds and delegates the build to dedicated commands. To support this feature, clusters are created from the build graph when:
+Terrabuild creates a batch cluster only when:
 - All commands used in a target support batch mode
 - Commands resolve to the same batch cluster
 - Nodes are required in the current run
@@ -17,9 +17,11 @@ To have the best of both worlds, Terrabuild supports batch builds and delegates 
 - The candidate has more than one member
 - Adding the batch node would not create an external dependency cycle
 
-Once clusters are identified, Terrabuild asks extensions to craft dedicated batch commands. This way you do not need to maintain a solution file and you can benefit from faster builds transparently.
+The extension turns each cluster into a tool-specific batch command. Check the extension documentation before enabling batching because the supported actions and grouping rules differ by tool.
 
-You can configure targets to build when the cluster they belong to must build, even if the target itself could be restored from cache. This is particularly useful in clusters when it is faster to build as part of a batch operation than to restore individually. To use this feature, ensure the extension is compatible with batch mode and choose a `batch` mode on targets:
+A batch may include a target that could have restored from cache when another member must execute. This trade can help when one native batch costs less than a mixture of execution and artifact restoration. Measure both modes for the workspace before relying on that assumption.
+
+Choose a `batch` mode on the target:
 
 - `~single` - Build all required compatible nodes in the cluster using a single batch (default)
 - `~never` - Build affected nodes without batching

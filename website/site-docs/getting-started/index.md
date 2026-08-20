@@ -1,37 +1,15 @@
 ---
-title: Getting Started
-
+title: Getting started
 ---
 
-This section takes you from a first build to the mental model needed to configure and troubleshoot a real workspace.
+Start with the playground. It has application projects, shared libraries, container builds, and a Terraform deployment project.
 
-## Your Learning Journey
+Follow this path:
 
-Follow the pages in this order:
+1. [Install Terrabuild](./install) and clone the playground.
+2. [Run the quick start](./quick-start) to build the application artifacts and inspect the cache.
+3. [Inspect a deployment](./deployment) without applying infrastructure changes.
+4. Read [Key concepts](./key-concepts) when you need the exact difference between a project, target, task, and graph node.
+5. Use [Scaffolding](./scaffolding) to add configuration to your own repository.
 
-1. **Install** Terrabuild and run the playground.
-2. **Learn the core model**: workspace, project, target, task, dependency, and phase.
-3. **Scaffold your repository** and adapt the generated configuration.
-4. **Understand execution** through the graph, cache, and task-action model.
-5. **Connect and optimize later** with optional Insights and batch builds.
-
-Understanding these concepts will help you configure Terrabuild effectively and troubleshoot issues when they arise.
-
-Terrabuild turns project targets into one immutable task graph. It then decides for each selected node whether to execute it, restore its artifacts, or report a previous failed result. Extensions keep your existing build tools in charge of the actual work.
-
-## What You'll Learn
-
-As you progress through this section, you'll understand:
-
-- How Terrabuild discovers projects and creates a task graph
-- How project, target, and phase dependencies differ
-- How caching works and why it makes builds fast
-- How tasks execute and when they build vs restore
-- How to configure your workspace and projects
-- When phases or batch operations are appropriate
-
-By the end, you'll have a solid understanding of how Terrabuild works and how to use it effectively in your projects.
-
-- [Install](/docs/getting-started/install): Install the CLI
-- [Quick Start](/docs/getting-started/quick-start): Run a working example
-- [Key Concepts](/docs/getting-started/key-concepts): Build the mental model
+The remaining pages explain graph construction, task outcomes, caching, Insights, and batch execution. They are useful when a run does something you did not expect or when you need to tune a large workspace.

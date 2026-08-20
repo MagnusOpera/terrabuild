@@ -6,10 +6,10 @@ title: Variables
 Variables used in expressions have a scope and an identifier. The scope defines the source of the variable, and the identifier is the name of the variable within that scope.
 
 Terrabuild supports the following variable scopes:
-* **`terrabuild`** - [Predefined variables](/docs/expression/predefined-variables) provided by Terrabuild (build context, system info, etc.)
-* **`var`** - [Workspace variables](/docs/workspace/variable) defined in the WORKSPACE file
-* **`local`** - [Local values](/docs/workspace/locals) defined in WORKSPACE or [PROJECT](/docs/project/locals) files
-* **`project`** - [Project properties](/docs/project/project) from the project block
+* `terrabuild` contains [predefined values](/docs/expression/predefined-variables) supplied by Terrabuild.
+* `var` contains [workspace variables](/docs/workspace/variable) declared in `WORKSPACE`.
+* `local` contains values declared in [`WORKSPACE`](/docs/workspace/locals) or [`PROJECT`](/docs/project/locals).
+* `project` contains [project properties](/docs/project/project) from the project block.
 
 Here are some variable reference examples:
 * `terrabuild.branch_or_tag` - Access the current Git branch or tag

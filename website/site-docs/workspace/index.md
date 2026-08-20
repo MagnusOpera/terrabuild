@@ -3,9 +3,9 @@ title: Workspace
 
 ---
 
-A `WORKSPACE` file is required to describe how to build a workspace. This file must be located at the root of the workspace.
+A `WORKSPACE` file defines shared build and deployment policy. It sits at the workspace root.
 
-The WORKSPACE file defines global configuration that applies to all projects in the workspace, including:
+The file defines configuration that applies to all projects in the workspace, including:
 * Target dependencies and relationships
 * Optional build phases and their ordering
 * Default extension configurations

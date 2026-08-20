@@ -2,7 +2,7 @@
 title: run
 ---
 
-`terrabuild run` is the main command used to build one or more targets.
+`terrabuild run` executes one or more selected targets and their prerequisites.
 
 ```text
 USAGE: terrabuild run [--help] [--workspace <path>] [--out <path>]
@@ -28,7 +28,7 @@ terrabuild run deploy --group deployment-123
 
 If `workspace.engine` is set in `WORKSPACE`, that workspace value overrides `--engine`.
 
-## Machine-Readable Output
+## Machine-readable output
 
 Use `--out` to write a JSON result file:
 
@@ -59,7 +59,7 @@ Node states are:
 
 `ignored` means the node exists in the final graph but the runner did not execute or restore it during that run.
 
-## Dry-Run Mode
+## Dry-run mode
 
 Use `--dry-run` to prepare the run without executing it:
 

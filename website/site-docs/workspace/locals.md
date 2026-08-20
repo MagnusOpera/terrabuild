@@ -1,5 +1,5 @@
 ---
-title: Locals Block
+title: Locals block
 
 ---
 
@@ -13,9 +13,9 @@ Workspace locals are available in both `WORKSPACE` and `PROJECT`.
 Locals are referenced with `local.<identifier>`.
 They can reference variables, predefined values, functions, and other locals.
 
-## Example Usage
+## Example usage
 
-### Simple Values
+### Simple values
 
 ```
 locals {
@@ -24,7 +24,7 @@ locals {
 }
 ```
 
-### Computed Values
+### Computed values
 
 ```
 variable environment {
@@ -37,7 +37,7 @@ locals {
 }
 ```
 
-### Using in Extensions
+### Using in extensions
 
 ```
 locals {

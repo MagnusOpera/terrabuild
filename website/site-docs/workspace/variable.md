@@ -1,11 +1,11 @@
 ---
-title: Variable Block
+title: Variable block
 
 ---
 
-The `variable` block defines a variable that can be provided via the command line or environment variables. Variables allow you to parameterize your build configuration and make it flexible for different environments, configurations, or build scenarios.
+The `variable` block declares a value that the command line or an environment variable can override.
 
-## Example Usage
+## Example usage
 ```
 # define config variable - the default value is used if not provided via --variable
 variable config {
@@ -14,14 +14,14 @@ variable config {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 
 * `description` - (Optional) Description of the variable. This helps document what the variable is used for and appears in help text.
 * `default` - (Optional) Default value for the variable if not provided via command line or environment. It must evaluate to a scalar value (string, number, boolean) if provided.
 
-## Variable Override
+## Variable override
 
 Variables **must** be declared in the WORKSPACE file before they can be used.
 

@@ -1,26 +1,26 @@
 ---
-title: Project Block
+title: Project block
 
 slug: /project/project
 ---
 
-The `PROJECT` file defines one buildable unit inside a workspace.  
+The `PROJECT` file defines one buildable or deployable unit inside a workspace.
 It is mandatory and must be placed at the root of each project directory.
 
-## What Goes in `PROJECT`
+## What goes in `PROJECT`
 
 Typical responsibilities:
 
 - project identity and selection metadata (`identifier`, `labels`)
 - change detection boundaries (`includes`, `ignores`)
-- build output definition (`outputs`)
+- cached output definition (`outputs`)
 - project-level dependencies (`depends_on`)
 - target assignments to [workspace phases](../workspace/phase)
 - per-project extension configuration (`@dotnet`, `@pnpm`, `@docker`, ...)
 
 In short: if a setting is specific to one project, place it in `PROJECT`.
 
-## Minimal Example
+## Minimal example
 
 ```hcl
 project {
@@ -33,7 +33,7 @@ target build {
 }
 ```
 
-## Example Usage
+## Example usage
 
 ```hcl
 project api {
@@ -48,7 +48,7 @@ project api {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 

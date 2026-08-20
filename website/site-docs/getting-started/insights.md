@@ -7,7 +7,7 @@ prev: /docs/getting-started/caching
 
 [Insights](https://insights.magnusopera.io) is the optional managed service for Terrabuild. Terrabuild works without an account and always provides a local cache; connecting a workspace adds build history, graph snapshots, and encrypted cache sharing across developers and CI.
 
-## What Insights Adds
+## What Insights adds
 
 When a connected `terrabuild run` starts, Terrabuild reports:
 
@@ -20,7 +20,7 @@ Targets configured with `artifacts = ~managed` can also upload their logs and ou
 
 This gives a team one place to inspect builds and their graphs while avoiding repeated work across machines and branches. Graph snapshots also enable [`terrabuild impact`](/docs/usage/impact), which compares the current graph with a graph stored for an earlier commit.
 
-## Connect a Workspace
+## Connect a workspace
 
 ### 1. Create the Insights workspace
 
@@ -80,13 +80,13 @@ terrabuild run build
 
 Terrabuild prints `Connected to Insights` before preparing the graph when it finds credentials for the configured workspace. The run and graph then appear in Insights, and managed targets can reuse matching artifacts uploaded by other connected machines.
 
-## Artifact Encryption
+## Artifact encryption
 
 Terrabuild compresses and encrypts managed logs and outputs locally before uploading them. Downloads are decrypted locally with the saved master key. The master key is not part of the build metadata sent when Terrabuild opens an Insights build.
 
 The token and master key have different jobs: rotating a token changes access to the workspace, while changing the master key changes which managed artifacts that machine can decrypt. Coordinate master-key changes across the team.
 
-## Describe and Group Runs
+## Describe and group runs
 
 Optional `run` arguments make related work easier to identify in Insights:
 
@@ -129,7 +129,7 @@ Store the token and master key as protected CI secrets, log in before the build,
 
 The checkout must contain the same `workspace.id`. Terrabuild automatically includes supported source-control and GitHub Actions context in the reported build.
 
-## Temporarily Stay Local
+## Temporarily stay local
 
 Use `--local-only` for a run that must neither use the managed cache nor report to Insights:
 

@@ -3,7 +3,7 @@ title: Troubleshooting
 
 ---
 
-Terrabuild has limitations like all tools. This document explains common errors, misunderstandings, and how to resolve them.
+This page covers configuration mistakes and inputs Terrabuild cannot discover without help.
 
 ## Troubleshoot with Codex or Claude Code
 
@@ -35,19 +35,19 @@ curl -fsSL https://raw.githubusercontent.com/MagnusOpera/Terrabuild/main/docs/gu
 
 Claude Code discovers repository skills from `.claude/skills`. To make the skill available in every repository instead, save it as `~/.claude/skills/terrabuild/SKILL.md`. Claude can select it automatically for matching requests, or you can invoke it explicitly with `/terrabuild`. Restart Claude Code if a newly created top-level skill directory is not detected. See the [official Claude Code skills documentation](https://code.claude.com/docs/en/skills) for discovery scopes and skill management.
 
-## My project does not recompile despite a file has changed {#outside-files}
+## Project does not rebuild after a file changes {#outside-files}
 
-If your project references files outside the project hierarchy, use the `includes` attribute on the [project](/docs/project) block. By default, Terrabuild only tracks files below the project path. If you need to track files from parent directories or sibling projects, explicitly include them using glob patterns.
+By default, Terrabuild tracks files below the project path. Add files from a parent directory or sibling project with the `includes` attribute on the [project](/docs/project) block.
 
-## Support of props files in .net
+## .NET props files are not detected
 
-[Props files](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory?view=vs-2022) are not automatically supported as they lie outside the project structure and are not explicitly referenced. The [Dotnet](/docs/extensions/dotnet) extension does not attempt to find such files automatically.
+[Props files](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory?view=vs-2022) can sit above the project directory. The [.NET extension](/docs/extensions/dotnet) does not search parent directories for them.
 
-If you still need to track dependencies on such files, use the `includes` attribute on the [project](/docs/project) block to explicitly include the props files in change detection. 
+Add those files to the project block's `includes` attribute so they participate in change detection.
 
-## Build fails to use environment variables
+## Container does not receive an environment variable
 
-If your build fails to use environment variables, you are likely using Docker containers. By default, environment variables from the host are not passed to containers. To allow specific environment variables to be passed to the container, use the `variables` parameter when configuring the extension in either the [workspace](/docs/workspace/extension) or [project](/docs/project/extension) block.
+Terrabuild does not pass host environment variables into containers by default. List each required name in the extension's `variables` attribute in either the [workspace](/docs/workspace/extension) or [project](/docs/project/extension) block.
 
 ```
 extension @dotnet {

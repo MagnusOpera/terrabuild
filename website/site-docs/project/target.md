@@ -1,11 +1,11 @@
 ---
-title: Target Block
+title: Target block
 
 ---
 
-The `target` block describes how to build a specific target for a project. A target has a unique name in the scope of the PROJECT file (see [identifier](/docs/syntax/identifier)). Targets define the sequence of commands (actions) that need to be executed to produce the desired output, along with dependencies and caching behavior.
+The `target` block defines one named operation for a project. A target can build, test, package, plan, deploy, or run another tool-specific sequence. Its commands run in declaration order after its dependencies succeed.
 
-## Example Usage
+## Example usage
 ```
 target build {
     phase = phase.application
@@ -20,7 +20,7 @@ target build {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 

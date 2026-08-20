@@ -1,15 +1,15 @@
 ---
-title: Quick Start
+title: Quick start
 
 prev: /docs/getting-started/install
 
 ---
 
-This hands-on guide walks you through using Terrabuild with a real example. You'll see how projects, dependencies, targets, and caching work together.
+This guide uses the [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground), a small monorepo with .NET and web applications, shared libraries, container images, and a Terraform deployment project.
 
-**Prerequisites**: Terrabuild installed and Docker running.
+You need Terrabuild installed and Docker running.
 
-**Get Started**: Clone the [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground) repository to follow along.
+Clone the repository to follow along.
 
 The playground repository defines the following projects and dependencies. Arrows point from a task to the task it requires:
 
@@ -30,7 +30,7 @@ flowchart LR
   class cslibBuild,tslibBuild tb-muted
 ```
 
-## Running Your First Build
+## Run the first build
 
 To build the entire workspace, run:
 
@@ -46,9 +46,9 @@ This command:
 4. Builds only what is required
 5. Executes tasks in parallel where possible
 
-**Try it**: After the first build, modify a file in one project and run again. Notice how Terrabuild rebuilds the affected tasks and restores reusable work from cache.
+After the first build, modify a file in one project and run the command again. Terrabuild rebuilds the affected tasks and restores reusable work from cache.
 
-## Understanding the Configuration
+## Read the configuration
 
 Here is the current playground configuration, with the shared policy first and then each application or library project:
 
@@ -160,6 +160,25 @@ target serve {
 }
 ```
 
+```hcl {filename="src/deploy/PROJECT"}
+project deploy_apps {
+    labels = [ "deploy" ]
+    @terraform { }
+}
+
+target plan {
+    @terraform plan {
+        variables = { webapi_version: project.webapi.version
+                      webapp_version: project.webapp.version
+                      target_environment: local.dotnet.config }
+    }
+}
+
+target apply {
+    @terraform apply { }
+}
+```
+
 ```hcl {filename="src/libs/cslib/PROJECT"}
 project {
     labels = [ "lib" "dotnet" ]
@@ -183,15 +202,24 @@ target build {
 }
 ```
 
-## What's Next?
+## Inspect the deployment graph
 
-You've seen Terrabuild in action. Build the mental model next, then explore execution in depth:
+The playground also connects its application artifacts to Terraform. Inspect that path without executing Terraform:
 
-- [Key Concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
+```bash
+terrabuild explain apply --environment staging
+```
+
+The graph includes the `dist` targets required by `apply`, followed by the Terraform `plan` and `apply` targets. Continue with [Deployment](./deployment) before adapting this pattern to infrastructure of your own.
+
+## Continue from here
+
+- [Deployment](./deployment): Connect build artifacts to an environment-specific deployment
+- [Key concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
 - [Graph](/docs/getting-started/graph): Understand the build graph structure
 - [Tasks](/docs/getting-started/tasks): See how tasks execute
-- [Caching](/docs/getting-started/caching): Learn how caching makes builds fast
+- [Caching](/docs/getting-started/caching): See which inputs form a cache key
 
-### Enable Remote Caching (Optional)
+### Enable remote caching
 
-For even faster builds, especially in CI/CD, [connect the workspace to Insights](./insights) for encrypted remote cache sharing and build history. See [Caching](/docs/getting-started/caching) for details of cache keys and artifact modes.
+[Connect the workspace to Insights](./insights) when developer machines and CI should share encrypted artifacts. See [Caching](/docs/getting-started/caching) for cache keys and artifact modes.

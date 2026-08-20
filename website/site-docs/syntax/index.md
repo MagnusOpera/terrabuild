@@ -3,42 +3,44 @@ title: Syntax
 
 ---
 
-There are two different configuration file types in Terrabuild:
-* **WORKSPACE** - Located at the root of the workspace, defines global configuration
-* **PROJECT** - Located at the root of each project, defines project-specific configuration
+Terrabuild reads two configuration files:
 
-Both share the same syntax - but not the same functionalities - and are based on a simplified HCL (HashiCorp Configuration Language) syntax:
-* Comments are single-line and start with a `#`
-* Blocks - define structures like `project`, `target`, `extension`, etc.
-* Attributes - key-value pairs within blocks
-* Order is not important except for commands within a target
+- `WORKSPACE` sits at the repository root and defines shared configuration.
+- `PROJECT` sits at the root of a project and defines project-specific configuration.
 
-## WORKSPACE
-WORKSPACE is a mandatory file at the root of your repository. It describes target dependencies, optional build phases, configurations, and default extension configuration.
+Both use the same HCL-inspired syntax, but they accept different blocks and attributes.
+
+- A comment starts with `#` and ends at the newline.
+- A block defines a structure such as `project`, `target`, or `extension`.
+- An attribute assigns an expression to a name.
+- Declaration order does not matter. Command order inside a target does.
+
+## Workspace file
+
+`WORKSPACE` is required at the repository root. It defines target dependencies, optional phases, variables, and extension defaults.
 
 ``` {filename="WORKSPACE"}
-# before building, we want all dependencies to be completed
+# Build upstream project dependencies first.
 target build {
   depends_on = [ target.^build ]
 }
 
-# docs has no configuration (hence no dependencies)
+# This target has no shared dependencies.
 target docs { }
 
-# to publish, we need both build and docs to be completed
-# also this target is always built regardless of caching status
+# Publishing requires both build and docs.
 target publish {
+  build = ~always
   depends_on = [ target.build, target.docs ]
 }
 
-# configuration used by default
+# Default build configuration.
 variable config {
   description = "configuration to build"
   default = "Debug"
 }
 
-# configure the internal extension @dotnet
-# it uses a build image and provides default parameters for all actions of @dotnet
+# Run .NET actions in a pinned SDK image.
 extension @dotnet {
   image = "mcr.microsoft.com/dotnet/sdk:8.0"
   defaults {
@@ -46,13 +48,12 @@ extension @dotnet {
   }
 }
 
-# @npm extension uses only a build image
+# Run npm actions in a pinned Node image.
 extension @npm {
   image = "node:20"
 }
 
-# @docker extension is built without a container image override (hence must be deployed on host)
-# also default parameters are provided for all actions of @docker 
+# Run Docker actions on the host and share these defaults.
 extension @docker {
   defaults {
     arguments = { configuration: var.config }
@@ -61,45 +62,45 @@ extension @docker {
 }
 ```
 
-## PROJECT
-PROJECT is a mandatory file for each project. It defines how the project shall be built, including optional assignments to phases declared in `WORKSPACE`. It also describes outputs.
+## Project file
+
+Each project requires a `PROJECT` file. It defines project metadata, target commands, outputs, and optional phase assignments.
 
 In `PROJECT`, `includes` and `outputs` are merged with inferred/default values for that project. `ignores` remains an explicit project-level set.
 
 ``` {filename="PROJECT"}
 
-# provide the configuration for project - note
+# Project files and outputs.
 project {
-    # a list of files/directory to ignore (globbing format)
+    # Ignore files that do not affect target output.
     ignores = [ "**/*.binlog" ]
   
-    # outputs to cache
+    # Capture these paths after a cacheable target runs.
     outputs = [ "bin/", "obj/", "**/*.binlog" ]
 }
 
-# this is the implementation of the build target
-# it provides a list of action to run in order to complete the target
+# Commands run in declaration order.
 target build {
     depends_on = [ target.prepare ]
-    # invoke the publish command - also pass log parameter
+    # Pass the log argument to the .NET action.
     @dotnet publish { log = true }
 
-    # invoke docker build command - parameter are optional
+    # This action uses its configured defaults.
     @docker build { }
 }
 
-# another target implementation
+# Push the image built above.
 target publish {
     @docker push { }
 }
 ```
 
-Some extensions provide an `init` capability to discover and configure automatically the project defaults.
+Some extensions discover project dependencies, tracked files, and outputs through an initializer block.
 
 ``` {filename="PROJECT"}
-# @dotnet extension is able to find project to build, ignores, outputs, and all dependencies
+# Let the .NET extension discover project metadata.
 project {
-    # define labels for scoping the build
+    # Labels can filter a run.
     labels = [ "app", "dotnet" ]
     @dotnet { }
 }
@@ -114,9 +115,9 @@ target publish {
 }
 ```
 
-## Understanding Variable, Local, and Extension Scope
+## Scope across workspace and project
 
-The interplay between workspace and project blocks, along with variables, locals, and extensions, can be complex. Here's a comprehensive example showing how they work together:
+This example shows which values originate in `WORKSPACE` and which values a `PROJECT` file adds.
 
 ``` {filename="WORKSPACE"}
 # Workspace-level variable - can be overridden via command line or environment
@@ -196,17 +197,17 @@ target dist {
 }
 ```
 
-**Key Points:**
-- **Variables** (`var.*`) are declared in WORKSPACE and can be overridden
-- **Workspace locals** (`local.*` in WORKSPACE) are computed from variables and predefined values
-- **Project locals** (`local.*` in PROJECT) can reference workspace variables and locals
-- **Extensions** use shallow scalar overrides in PROJECT; `variables` are additive, while `defaults` and `env` may add new keys but cannot replace or remove inherited entries
-- **Project extensions** can use both workspace and project locals
-- **Expressions** can combine variables, locals, and functions: `local.registry + "/" + local.app_name`
+The scoping rules are:
+
+- `var.*` values are declared in `WORKSPACE` and can be overridden by the command line or environment.
+- A workspace `local.*` value can use variables and predefined values.
+- A project `local.*` value can also use workspace locals.
+- A project extension can specialize inherited scalar values. Its `variables` are additive. Its `defaults` and `env` maps can add keys but cannot replace or remove inherited entries.
+- Expressions can combine values and functions, as in `local.registry + "/" + local.app_name`.
 
 See [Variables](/docs/workspace/variable), [Locals](/docs/workspace/locals), and [Extensions](/docs/workspace/extension) for detailed reference.
 
-- [scaffolding](/docs/getting-started/scaffolding)
-- [workspace](/docs/workspace)
-- [project](/docs/project)
-- [extensibility](/docs/extensibility)
+- [Scaffolding](/docs/getting-started/scaffolding)
+- [Workspace reference](/docs/workspace)
+- [Project reference](/docs/project)
+- [Extension authoring](/docs/extensibility)

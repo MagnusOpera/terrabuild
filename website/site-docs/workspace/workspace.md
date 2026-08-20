@@ -1,5 +1,5 @@
 ---
-title: Workspace Block
+title: Workspace block
 
 slug: /workspace/workspace
 ---
@@ -7,7 +7,7 @@ slug: /workspace/workspace
 The `WORKSPACE` file configures the repository at the root level.
 Use it for settings that should apply across many projects.
 
-## What Goes in `WORKSPACE`
+## What goes in `WORKSPACE`
 
 Typical responsibilities:
 
@@ -21,7 +21,7 @@ Typical responsibilities:
 
 In short: if a setting should be shared, put it in `WORKSPACE`.
 
-## Minimal Example
+## Minimal example
 
 ```hcl
 workspace {
@@ -39,7 +39,7 @@ target test {
 }
 ```
 
-## Example Usage
+## Example usage
 
 ```hcl
 workspace {
@@ -53,7 +53,7 @@ workspace {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 * `configuration` - (Optional) Default configuration value exposed to the workspace. Default is `nothing`.
 * `environment` - (Optional) Default environment value exposed to the workspace. Default is `nothing`.
 
-## Shared Cache
+## Shared cache
 
 If you use a managed shared cache, set `workspace.id` to the workspace identifier and authenticate through the CLI:
 

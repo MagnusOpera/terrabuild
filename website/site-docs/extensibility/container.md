@@ -14,7 +14,7 @@ extension @terraform {
 }
 ```
 
-## Argument Reference
+## Argument reference
 
 The following arguments are supported:
 * `image` - (Optional) The container image to use. Default is `nothing`.

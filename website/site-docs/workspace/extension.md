@@ -1,5 +1,5 @@
 ---
-title: Extension Block
+title: Extension block
 
 ---
 
