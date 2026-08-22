@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Prevent batch contraction from introducing execution cycles.
 - Publish the website from GitHub Actions to Cloudflare Workers Static Assets.
 - Rewrite the website landing page to explain how Terrabuild handles build and deployment on the same dependency graph.
 - Rewrite the website documentation with direct build and deployment guidance, a dedicated deployment guide, and qualified cache behavior.

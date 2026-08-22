@@ -225,6 +225,122 @@ let private hasExternalDependencyCycle (graph: Graph) (candidateNodes: Node list
             | None -> ()
     reachesMember
 
+let private contractedDependencies (graph: Graph) (batches: Batch list) =
+    let memberToBatch =
+        batches
+        |> Seq.collect (fun batch ->
+            batch.Nodes |> Seq.map (fun node -> node.Id, batch.BatchId))
+        |> Map.ofSeq
+
+    let execId nodeId =
+        memberToBatch |> Map.tryFind nodeId |> Option.defaultValue nodeId
+
+    let scheduledNodeIds =
+        graph.Nodes
+        |> Seq.choose (fun (KeyValue(nodeId, node)) ->
+            if node.Required || graph.RootNodes.Contains nodeId then Some nodeId
+            else None)
+        |> Set.ofSeq
+
+    let executionIds =
+        scheduledNodeIds
+        |> Set.map execId
+
+    let emptyDependencies =
+        executionIds
+        |> Seq.map (fun nodeId -> nodeId, Set.empty)
+        |> Map.ofSeq
+
+    scheduledNodeIds
+    |> Seq.fold (fun dependencies nodeId ->
+        let sourceId = execId nodeId
+        let targetIds =
+            graph.Nodes[nodeId].Dependencies
+            |> Set.filter (fun dependencyId -> graph.Nodes[dependencyId].Required)
+            |> Set.map execId
+            |> Set.remove sourceId
+
+        dependencies
+        |> Map.change sourceId (fun existing ->
+            Some (targetIds + (existing |> Option.defaultValue Set.empty)))) emptyDependencies
+
+let private stronglyConnectedComponents (dependencies: Map<string, Set<string>>) =
+    let nodeIds =
+        dependencies
+        |> Seq.collect (fun (KeyValue(nodeId, targets)) -> Seq.append (Seq.singleton nodeId) targets)
+        |> Set.ofSeq
+
+    let visited = HashSet<string>()
+    let completed = ResizeArray<string>()
+
+    for startId in nodeIds do
+        if visited.Contains startId |> not then
+            let pending = Stack<struct (string * bool)>()
+            pending.Push(struct (startId, false))
+
+            while pending.Count > 0 do
+                let struct (nodeId, expanded) = pending.Pop()
+                if expanded then
+                    completed.Add nodeId
+                elif visited.Add nodeId then
+                    pending.Push(struct (nodeId, true))
+                    let targets = dependencies |> Map.tryFind nodeId |> Option.defaultValue Set.empty
+                    for targetId in targets |> Seq.rev do
+                        if visited.Contains targetId |> not then
+                            pending.Push(struct (targetId, false))
+
+    let reverseDependencies =
+        nodeIds
+        |> Seq.map (fun nodeId -> nodeId, ResizeArray<string>())
+        |> Map.ofSeq
+
+    for KeyValue(nodeId, targets) in dependencies do
+        for targetId in targets do
+            reverseDependencies[targetId].Add nodeId
+
+    let assigned = HashSet<string>()
+    let components = ResizeArray<Set<string>>()
+
+    for startId in completed |> Seq.rev do
+        if assigned.Add startId then
+            let group = HashSet<string>()
+            let pending = Stack<string>()
+            pending.Push startId
+
+            while pending.Count > 0 do
+                let nodeId = pending.Pop()
+                group.Add nodeId |> ignore
+                for sourceId in reverseDependencies[nodeId] do
+                    if assigned.Add sourceId then
+                        pending.Push sourceId
+
+            components.Add(group |> Set.ofSeq)
+
+    components |> Seq.filter (fun group -> group.Count > 1) |> List.ofSeq
+
+let private removeCyclicBatches (graph: Graph) (batches: Batch list) =
+    let rec remove batches =
+        let batchIds = batches |> Seq.map _.BatchId |> Set.ofSeq
+        let cyclicBatchIds =
+            contractedDependencies graph batches
+            |> stronglyConnectedComponents
+            |> Seq.collect (Set.intersect batchIds)
+            |> Set.ofSeq
+
+        if cyclicBatchIds.IsEmpty then
+            batches
+        else
+            for batchId in cyclicBatchIds do
+                Log.Debug(
+                    "Skipping batch '{BatchId}' because the contracted execution graph contains a cycle",
+                    batchId)
+
+            batches
+            |> List.filter (fun batch -> cyclicBatchIds.Contains batch.BatchId |> not)
+            |> remove
+
+    remove batches
+
 let computeBatches (graph: Graph) =
     // find clusters with at least one exec node
     let eligibleBuckets =
@@ -278,6 +394,7 @@ let computeBatches (graph: Graph) =
                            Batch.Phase = phase
                            Batch.Nodes = comp }))
     |> List.ofSeq
+    |> removeCyclicBatches graph
 
 let private createBatchNodes (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) (components: Batch list) =
     components

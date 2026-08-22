@@ -276,6 +276,32 @@ let ``batch computation skips candidates that would create an external dependenc
     |> should equal false
 
 [<Test>]
+let ``batch computation drops every batch in a contracted execution cycle``() =
+    let nodeA1 = buildNode "A1" (Some "hash-A") RunAction.Exec (Set [ "B1" ]) BatchMode.Single true
+    let nodeA2 = buildNode "A2" (Some "hash-A") RunAction.Exec Set.empty BatchMode.Single true
+    let nodeB1 = buildNode "B1" (Some "hash-B") RunAction.Exec Set.empty BatchMode.Single true
+    let nodeB2 = buildNode "B2" (Some "hash-B") RunAction.Exec (Set [ "A2" ]) BatchMode.Single true
+    let nodeC1 = buildNode "C1" (Some "hash-C") RunAction.Exec Set.empty BatchMode.Single true
+    let nodeC2 = buildNode "C2" (Some "hash-C") RunAction.Exec Set.empty BatchMode.Single true
+
+    let nodes =
+        [ nodeA1; nodeA2; nodeB1; nodeB2; nodeC1; nodeC2 ]
+        |> List.map (fun node -> node.Id, node)
+        |> Map.ofList
+
+    let graph =
+        { Graph.Nodes = nodes
+          Graph.RootNodes = Set [ "A1"; "B2"; "C1"; "C2" ]
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
+
+    let batches = computeBatches graph
+
+    batches
+    |> List.map (fun batch -> batch.ClusterHash, batch.Nodes |> List.map _.Id |> Set.ofList)
+    |> should equal [ ("hash-C", Set [ "C1"; "C2" ]) ]
+
+[<Test>]
 let ``batch computation never mixes phases or phased and unphased nodes`` () =
     let toolA = { buildNode "toolA" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }
     let toolB = { buildNode "toolB" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }
