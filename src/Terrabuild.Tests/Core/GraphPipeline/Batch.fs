@@ -302,6 +302,28 @@ let ``batch computation drops every batch in a contracted execution cycle``() =
     |> should equal [ ("hash-C", Set [ "C1"; "C2" ]) ]
 
 [<Test>]
+let ``batch computation requires an executing member in each candidate``() =
+    let execNever = buildNode "exec-never" (Some "cluster") RunAction.Exec Set.empty BatchMode.Never true
+    let singleA = buildNode "single-A" (Some "cluster") RunAction.Restore Set.empty BatchMode.Single true
+    let singleB = buildNode "single-B" (Some "cluster") RunAction.Restore Set.empty BatchMode.Single true
+    let partitionA =
+        buildNode "partition-A" (Some "cluster") RunAction.Restore (Set [ "partition-B" ]) BatchMode.Partition true
+    let partitionB = buildNode "partition-B" (Some "cluster") RunAction.Restore Set.empty BatchMode.Partition true
+
+    let nodes =
+        [ execNever; singleA; singleB; partitionA; partitionB ]
+        |> List.map (fun node -> node.Id, node)
+        |> Map.ofList
+
+    let graph =
+        { Graph.Nodes = nodes
+          Graph.RootNodes = Set [ "exec-never"; "single-A"; "single-B"; "partition-A" ]
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
+
+    computeBatches graph |> List.length |> should equal 0
+
+[<Test>]
 let ``batch computation never mixes phases or phased and unphased nodes`` () =
     let toolA = { buildNode "toolA" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }
     let toolB = { buildNode "toolB" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Phase = Some "toolchains" }

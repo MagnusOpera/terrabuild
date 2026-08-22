@@ -382,6 +382,7 @@ let computeBatches (graph: Graph) =
             |> Seq.choose (fun comp ->
                 // only batch if > 1 node and at least one member is actually executing
                 if comp.Length <= 1 then None
+                elif comp |> List.exists (fun node -> node.Action = RunAction.Exec) |> not then None
                 elif hasExternalDependencyCycle graph comp then
                     Log.Debug(
                         "Skipping batch candidate in cluster '{ClusterHash}' because external dependencies would create a cycle",
