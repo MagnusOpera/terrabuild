@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Remove stale declared outputs when restoring a cached target.
 - Avoid executing batches that contain only cached targets.
 - Prevent batch contraction from introducing execution cycles.
 - Publish the website from GitHub Actions to Cloudflare Workers Static Assets.

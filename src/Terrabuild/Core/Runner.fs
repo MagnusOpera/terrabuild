@@ -452,6 +452,18 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     match summary.Outputs with
                     | Some outputs ->
                         let files = IO.enumerateFiles outputs
+                        let cachedFiles =
+                            files
+                            |> Seq.map (FS.relativePath outputs)
+                            |> Set.ofSeq
+                        let currentFiles =
+                            (IO.createSnapshot node.Outputs projectDirectory).TimestampedFiles.Keys
+
+                        for currentFile in currentFiles do
+                            let relativeFile = FS.relativePath projectDirectory currentFile
+                            if cachedFiles.Contains relativeFile |> not then
+                                File.Delete currentFile
+
                         IO.copyFiles projectDirectory outputs files |> ignore
                         api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
                     | _ -> ()

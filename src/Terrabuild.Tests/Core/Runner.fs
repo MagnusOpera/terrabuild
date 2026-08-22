@@ -559,17 +559,23 @@ let ``run normalizes equivalent repository identities in uploaded graph hash`` (
         firstHash |> should equal secondHash)
 
 [<Test>]
-let ``run restores cached lazy dependencies pulled by executable roots`` () =
+let ``run restores the exact cached output set for lazy dependencies`` () =
     withTempWorkspace (fun workspace ->
         let genProjectDir = Path.Combine(workspace, "gen")
         let buildProjectDir = Path.Combine(workspace, "build")
         Directory.CreateDirectory(genProjectDir) |> ignore
         Directory.CreateDirectory(buildProjectDir) |> ignore
 
+        let generatedDir = Path.Combine(genProjectDir, "generated")
+        Directory.CreateDirectory(generatedDir) |> ignore
+        File.WriteAllText(Path.Combine(generatedDir, "cached.txt"), "old-content")
+        File.WriteAllText(Path.Combine(generatedDir, "stale.txt"), "stale-content")
+        File.WriteAllText(Path.Combine(genProjectDir, "unrelated.txt"), "unrelated-content")
+
         let genNode =
             { buildNode "gen" genProjectDir "gen" GraphDef.RunAction.Restore []
                 with Build = GraphDef.BuildMode.Lazy
-                     Outputs = Set [ "generated.txt" ] }
+                     Outputs = Set [ "generated/**" ] }
 
         let operation =
             { GraphDef.ContaineredShellOperation.Image = None
@@ -599,10 +605,15 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
         let cache = FakeCache(workspace)
         let api = FakeApiClient()
 
-        let makeSummary (node: GraphDef.Node) (filename: string) (content: string) =
+        let makeSummary (node: GraphDef.Node) (files: (string * string) list) =
             let cacheOutputs = Path.Combine(workspace, $"cache-{node.Id}")
             Directory.CreateDirectory(cacheOutputs) |> ignore
-            File.WriteAllText(Path.Combine(cacheOutputs, filename), content)
+            for filename, content in files do
+                let output = Path.Combine(cacheOutputs, filename)
+                Path.GetDirectoryName(output)
+                |> Option.ofObj
+                |> Option.iter (fun directory -> Directory.CreateDirectory(directory) |> ignore)
+                File.WriteAllText(output, content)
             { Cache.TargetSummary.Project = node.ProjectDir
               Cache.TargetSummary.Target = node.Target
               Cache.TargetSummary.Operations = []
@@ -613,10 +624,15 @@ let ``run restores cached lazy dependencies pulled by executable roots`` () =
               Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
               Cache.TargetSummary.Cache = node.Artifacts }
 
-        cache.SetSummary(GraphDef.buildCacheKey genNode, makeSummary genNode "generated.txt" "gen-output")
+        cache.SetSummary(
+            GraphDef.buildCacheKey genNode,
+            makeSummary genNode [ "generated/cached.txt", "cached-content"; "generated/new.txt", "new-content" ])
         let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
 
-        File.ReadAllText(Path.Combine(genProjectDir, "generated.txt")) |> should equal "gen-output"
+        File.ReadAllText(Path.Combine(generatedDir, "cached.txt")) |> should equal "cached-content"
+        File.ReadAllText(Path.Combine(generatedDir, "new.txt")) |> should equal "new-content"
+        File.Exists(Path.Combine(generatedDir, "stale.txt")) |> should equal false
+        File.ReadAllText(Path.Combine(genProjectDir, "unrelated.txt")) |> should equal "unrelated-content"
         cache.Completed |> should equal [ GraphDef.buildCacheKey buildNode ]
         api.AddCalls.Length |> should equal 1
         let (_, _, _, _, _, _, _, artifactStartedAt, artifactEndedAt) = api.AddCalls[0]
