@@ -182,6 +182,21 @@ let private SCOPE_NAME = "workspace/name"
 
 let private format_project_id scope id = $"{scope}#{id}"
 
+let private normalizeProjectSelector (value: string) =
+    let normalized = value.Trim().Replace('\\', '/').TrimEnd('/').ToLowerInvariant()
+    if normalized.StartsWith("./", StringComparison.Ordinal) then normalized[2..]
+    else normalized
+
+let private projectSelectors (project: Project) =
+    seq {
+        yield project.Id |> normalizeProjectSelector
+        yield project.Directory |> normalizeProjectSelector
+        match project.Name with
+        | Some name -> yield name |> normalizeProjectSelector
+        | None -> ()
+    }
+    |> Set.ofSeq
+
 let private resolve_dependency_scope (projectInfo: ProjectInfo) =
     projectInfo.DependencyResolution
     |> Option.defaultValue DependencyResolution.Path
@@ -1220,13 +1235,26 @@ let read (options: ConfigOptions.Options) =
         | Some filter -> projectSelection |> Map.filter (fun _ config -> Set.intersect config.Types filter <> Set.empty)
         | _ -> projectSelection
 
-    // select dependencies with id if any
+    // Select by declared identifier, internal id, or workspace-relative path. Unnamed projects use
+    // their path as their identifier, so restricting this filter to Project.Name made them
+    // impossible to select and silently produced an empty graph.
     let projectSelection =
         match options.Projects with
-        | Some filter -> projectSelection |> Map.filter (fun _ config ->
-            config.Name
-            |> Option.map(fun id -> filter |> Set.contains id)
-            |> Option.defaultValue false)
+        | Some filter ->
+            let filter = filter |> Set.map normalizeProjectSelector
+            let matchedSelectors =
+                projects
+                |> Map.values
+                |> Seq.collect projectSelectors
+                |> Set.ofSeq
+                |> Set.intersect filter
+            let invalidSelectors = filter - matchedSelectors
+            if invalidSelectors.IsEmpty |> not then
+                let invalid = invalidSelectors |> String.join ", "
+                raiseInvalidArg $"Unknown project selector(s): {invalid}. Use a project identifier or workspace-relative path."
+
+            projectSelection
+            |> Map.filter (fun _ config -> Set.intersect (projectSelectors config) filter <> Set.empty)
         | _ -> projectSelection
 
     let selectedProjects = projectSelection |> Map.keys |> Set

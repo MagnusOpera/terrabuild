@@ -40,7 +40,7 @@ with
             | Variable _ -> "Set variable."
             | Label _-> "Select projects based on labels."
             | Type _-> "Select projects based on extension types."
-            | Project _ -> "Select projets base on id."
+            | Project _ -> "Select projects by identifier or workspace-relative path."
             | Local_Only -> "Use local cache only."
 
 [<RequireQualifiedAccess>]
@@ -75,7 +75,7 @@ with
             | Variable _ -> "Set variable."
             | Label _ -> "Select projects based on labels."
             | Type _-> "Select projects based on extension types."
-            | Project _ -> "Select projets base on id."
+            | Project _ -> "Select projects by identifier or workspace-relative path."
             | Force -> "Ignore cache when building target."
             | Retry -> "Retry failed task."
             | Parallel _ -> "Max parallel build concurrency (default to number of processors)."
@@ -111,7 +111,7 @@ with
             | Variable _ -> "Set variable."
             | Label _ -> "Select projects based on labels."
             | Type _ -> "Select projects based on extension types."
-            | Project _ -> "Select projects based on id."
+            | Project _ -> "Select projects by identifier or workspace-relative path."
             | Force -> "Explain the forced execution decision."
             | Retry -> "Explain retry behavior for failed cached tasks."
             | Local_Only -> "Use local cache only."
@@ -142,7 +142,7 @@ with
             | Variable _ -> "Set variable."
             | Label _ -> "Select projects based on labels."
             | Type _ -> "Select projects based on extension types."
-            | Project _ -> "Select projets base on id."
+            | Project _ -> "Select projects by identifier or workspace-relative path."
 
 [<RequireQualifiedAccess>]
 type ServeArgs =
@@ -163,7 +163,7 @@ with
             | Variable _ -> "Set variable."
             | Label _ -> "Select projects based on labels."
             | Type _-> "Select projects based on extension types."
-            | Project _ -> "Select projets base on id."
+            | Project _ -> "Select projects by identifier or workspace-relative path."
 
 [<RequireQualifiedAccess>]
 type ConsoleArgs =

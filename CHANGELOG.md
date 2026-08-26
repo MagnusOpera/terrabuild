@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Select projects by identifier or workspace-relative path and reject unknown `--project` values.
 - Remove stale declared outputs when restoring a cached target.
 - Avoid executing batches that contain only cached targets.
 - Prevent batch contraction from introducing execution cycles.

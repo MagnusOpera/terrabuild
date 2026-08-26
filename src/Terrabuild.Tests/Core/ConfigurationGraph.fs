@@ -499,6 +499,55 @@ target build {
         stages.FinalGraph.Nodes[appNodeId].Operations.Head.Arguments |> should equal "app")
 
 [<Test>]
+let ``Configuration pipeline selects an unnamed project by workspace-relative path`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target test {}
+"""
+        writeFile workspace "src/apps/Api.Tests/PROJECT" """
+project { @shell {} }
+target test {
+  @shell echo { args = "tests" }
+}
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "test" ]) with
+                ConfigOptions.Options.Projects = Some (Set [ "SRC/APPS/API.TESTS/" ]) }
+
+        let stages = runPipeline options
+        let nodeId = "workspace/path#src/apps/api.tests:test"
+
+        stages.Config.SelectedProjects |> should equal (Set [ "workspace/path#src/apps/api.tests" ])
+        stages.FinalGraph.Nodes |> Map.keys |> Set.ofSeq |> should equal (Set [ nodeId ]))
+
+[<Test>]
+let ``Configuration rejects unknown project selectors`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = "app" }
+}
+"""
+
+        let options =
+            { baseOptions workspace (Set [ "build" ]) with
+                ConfigOptions.Options.Projects = Some (Set [ "app"; "missing/project" ]) }
+
+        Assert.That(
+            Action(fun () -> runPipeline options |> ignore),
+            Throws.TypeOf<TerrabuildException>()
+                .With.Message.Contains("Unknown project selector(s): missing/project")))
+
+[<Test>]
 let ``Graph node stage expands current and upstream target dependencies`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
