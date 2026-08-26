@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.199.0-next]
+
+
 - Select projects by identifier or workspace-relative path and reject unknown `--project` values.
 - Remove stale declared outputs when restoring a cached target.
 - Avoid executing batches that contain only cached targets.
@@ -11,6 +14,8 @@ All notable changes to Terrabuild are documented in this file.
 - Publish the website from GitHub Actions to Cloudflare Workers Static Assets.
 - Rewrite the website landing page to explain how Terrabuild handles build and deployment on the same dependency graph.
 - Rewrite the website documentation with direct build and deployment guidance, a dedicated deployment guide, and qualified cache behavior.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.4-next...0.199.0-next
 
 ## [0.198.4]
 
