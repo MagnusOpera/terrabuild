@@ -6,9 +6,9 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.199.0-next
+## 0.199.0
 
-### 0.199.0-next
+### 0.199.0
 
 - Select projects by identifier or workspace-relative path and reject unknown `--project` values.
 - Remove stale declared outputs when restoring a cached target.
@@ -18,4 +18,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Rewrite the website landing page to explain how Terrabuild handles build and deployment on the same dependency graph.
 - Rewrite the website documentation with direct build and deployment guidance, a dedicated deployment guide, and qualified cache behavior.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.4-next...0.199.0-next
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.4...0.199.0
