@@ -5,7 +5,7 @@ title: FScript extensions
 Terrabuild custom extensions are FScript (`.fss`) programs. FScript provides the language; Terrabuild provides a small host protocol that binds target arguments to exported functions and turns their results into executable operations.
 
 :::info FScript language documentation
-If records, options, pipelines, pattern matching, or `[<export>]` are unfamiliar, begin with the [FScript tutorial](https://magnusopera.github.io/FScript/manual/0.78.1/learn/quickstart). The [versioned FScript manual](https://magnusopera.github.io/FScript/manual/0.78.1/) documents the language embedded by Terrabuild.
+If records, options, pipelines, pattern matching, or `[<export>]` are unfamiliar, begin with the [FScript tutorial](https://fscript.magnusopera.io/manual/0.78.1/learn/quickstart). The [versioned FScript manual](https://fscript.magnusopera.io/manual/0.78.1/) documents the language embedded by Terrabuild.
 :::
 
 Legacy compiled F# scripts such as `.fsx` are not supported.

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Updated Terrabuild website links to use the FScript custom domain.
+
 ## [0.199.0]
 
 - Select projects by identifier or workspace-relative path and reject unknown `--project` values.

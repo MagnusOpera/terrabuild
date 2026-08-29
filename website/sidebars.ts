@@ -144,7 +144,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'link',
           label: 'FScript documentation ↗',
-          href: 'https://magnusopera.github.io/FScript/',
+          href: 'https://fscript.magnusopera.io/',
         },
         'extensibility/script',
         'extensibility/types',
