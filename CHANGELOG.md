@@ -4,9 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Kept FScript links current in generated released-documentation sidebars.
-- Kept FScript links current when generating released documentation snapshots.
-- Updated Terrabuild website links to use the FScript custom domain.
+- Updated all Terrabuild website documentation to link directly to the FScript custom domain without legacy URL rewriting.
 
 ## [0.199.0]
 

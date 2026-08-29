@@ -45,38 +45,6 @@ if [[ ! -d "$snapshot_dir" || ! -f "$snapshot_sidebar" ]]; then
   cp "$temp_dir/website/versioned_sidebars/version-$latest_stable-sidebars.json" "$snapshot_sidebar"
 fi
 
-node - "$snapshot_dir" "$snapshot_sidebar" <<'NODE'
-const fs = require('node:fs');
-const path = require('node:path');
-
-const [snapshotDir, snapshotSidebar] = process.argv.slice(2);
-const oldBaseUrl = 'https://magnusopera.github.io/FScript';
-const newBaseUrl = 'https://fscript.magnusopera.io';
-
-function updateFile(filePath) {
-  const contents = fs.readFileSync(filePath, 'utf8');
-  const updated = contents.replaceAll(oldBaseUrl, newBaseUrl);
-  if (updated !== contents) {
-    fs.writeFileSync(filePath, updated);
-  }
-}
-
-function updateLinks(directory) {
-  for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      updateLinks(entryPath);
-      continue;
-    }
-
-    updateFile(entryPath);
-  }
-}
-
-updateLinks(snapshotDir);
-updateFile(snapshotSidebar);
-NODE
-
 node - "$website_dir/versions.json" "$latest_stable" <<'NODE'
 const fs = require('node:fs');
 
