@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.199.1]
+
 - Updated all Terrabuild website documentation to link directly to the FScript custom domain without legacy URL rewriting.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.0...0.199.1
 
 ## [0.199.0]
 
