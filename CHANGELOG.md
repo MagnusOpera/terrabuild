@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Realize explicitly selected lazy targets even when no dependent requires them.
+- Make `explain` distinguish target selection, action, and final scheduling outcome.
+
 ## [0.199.1]
 
 - Updated all Terrabuild website documentation to link directly to the FScript custom domain without legacy URL rewriting.
