@@ -56,6 +56,10 @@ Here is the current playground configuration, with the shared policy first and t
 # build project dependencies first
 target build {
     depends_on = [ target.^build ]
+    build = ~auto
+    artifacts = ~managed
+    batch = ~partition
+    environment_sensitive = false
 }
 
 # test the current project after building it
@@ -70,12 +74,15 @@ target dist {
 
 # deployment targets
 target plan {
-    build = terrabuild.retry ? ~always : ~auto
-    depends_on = [ ]
+    depends_on = [ target.^dist ]
+    artifacts = ~workspace
+    environment_sensitive = true
 }
 
-target apply {
-    depends_on = [ target.plan target.^dist ]
+target deploy {
+    depends_on = [ target.plan ]
+    build = ~always
+    artifacts = ~none
 }
 
 locals {
@@ -113,6 +120,15 @@ extension @npm {
     image = "node:${local.docker_tags.nodejs}"
 }
 ```
+
+The attributes are policies rather than boilerplate:
+
+- `build` follows upstream projects, reuses matching managed outputs, and batches only dependency-connected compatible components.
+- `plan` intentionally varies by deployment environment and keeps its Terraform plan file in the local workspace cache.
+- `deploy` is a side effect, so it always executes and retains no reusable result.
+- The `dist` commands below finish with Docker builds. Docker owns those images, so their inferred artifact mode is external and Terrabuild reuses only their execution summaries.
+
+The [Target policies](/docs/getting-started/target-policies) guide explains when to choose different values.
 
 ```hcl {filename="src/apps/webapi/PROJECT"}
 project webapi {
@@ -161,20 +177,24 @@ target serve {
 ```
 
 ```hcl {filename="src/deploy/PROJECT"}
-project deploy_apps {
+project infrastructure {
     labels = [ "deploy" ]
+    depends_on = [ project.webapi project.webapp ]
+    environments = [ "staging" "production" ]
     @terraform { }
 }
 
 target plan {
+    @terraform init { }
     @terraform plan {
         variables = { webapi_version: project.webapi.version
                       webapp_version: project.webapp.version
-                      target_environment: local.dotnet.config }
+                      target_environment: terrabuild.environment }
     }
 }
 
-target apply {
+target deploy {
+    @terraform init { }
     @terraform apply { }
 }
 ```
@@ -207,10 +227,10 @@ target build {
 The playground also connects its application artifacts to Terraform. Inspect that path without executing Terraform:
 
 ```bash
-terrabuild explain apply --environment staging
+terrabuild explain deploy --environment staging
 ```
 
-The graph includes the `dist` targets required by `apply`, followed by the Terraform `plan` and `apply` targets. Continue with [Deployment](./deployment) before adapting this pattern to infrastructure of your own.
+The graph includes the application `dist` targets required by `plan`, followed by the Terraform `plan` and `deploy` targets. Inspect the action reason, artifact mode, environment-sensitive inputs, and final scheduling outcome for each node. Continue with [Deployment](./deployment) before adapting this pattern to infrastructure of your own.
 
 ## Continue from here
 
@@ -218,6 +238,7 @@ The graph includes the `dist` targets required by `apply`, followed by the Terra
 - [Key concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
 - [Graph](/docs/getting-started/graph): Understand the build graph structure
 - [Tasks](/docs/getting-started/tasks): See how tasks execute
+- [Target policies](/docs/getting-started/target-policies): Choose scheduling, caching, batching, environment, and lock behavior
 - [Caching](/docs/getting-started/caching): See which inputs form a cache key
 
 ### Enable remote caching

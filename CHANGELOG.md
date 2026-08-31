@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Turn the playground quick start into an annotated target-policy tutorial.
 - Explain batch-mode use cases, tradeoffs, locking differences, and troubleshooting.
 - Add ownership-based caching guidance and concrete artifact-mode recipes.
 - Add a decision guide for target scheduling, reuse, batching, environment, and locking policies.
