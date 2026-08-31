@@ -268,6 +268,14 @@ let private originKey = function
     | LocalFile path -> $"file:{path}"
     | RemoteUrl uri -> $"url:{uri.AbsoluteUri}"
 
+let internal stableLocalScriptIdentity workspaceRoot path =
+    Path.GetRelativePath(workspaceRoot, path).Replace('\\', '/')
+    |> sprintf "file:%s"
+
+let private stableOriginIdentity workspaceRoot = function
+    | LocalFile path -> stableLocalScriptIdentity workspaceRoot path
+    | RemoteUrl uri -> $"url:{uri.AbsoluteUri}"
+
 let private loadScriptFromOriginWithIncludes
     (workspaceRoot: string)
     (deniedPathGlobs: string list)
@@ -337,7 +345,8 @@ let private loadScriptFromOriginWithIncludes
         | true, source -> Some source
         | _ -> None
 
-    loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+    loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
+        (stableOriginIdentity workspaceRoot entryOrigin)
         workspaceRoot
         deniedPathGlobs
         workspaceRoot
@@ -372,7 +381,8 @@ let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name:
                 | Some entrySource ->
                     let resolveImportedSource (path: string) =
                         sourceMap |> Map.tryFind (Path.GetFullPath(path))
-                    loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+                    loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
+                        $"embedded:{normalizeRelativeScriptPath relativePath}"
                         workspaceRoot
                         deniedPathGlobs
                         embeddedScriptsVirtualRoot

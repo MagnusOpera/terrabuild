@@ -528,7 +528,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "batchId": "B3A239BE0F01C8CAE33FB49EA7FDBA75ABD74844D95081C98975BCFC06DFAD52",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -601,7 +601,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
+      "batchId": "B3A239BE0F01C8CAE33FB49EA7FDBA75ABD74844D95081C98975BCFC06DFAD52",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -760,7 +760,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "batchId": "3A0811FD3510D3F3E27FE000E63D00452C8F5E76F94504010BF30CAFA0DA284F",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -872,7 +872,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "batchId": "3A0811FD3510D3F3E27FE000E63D00452C8F5E76F94504010BF30CAFA0DA284F",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -1251,31 +1251,31 @@
   ],
   "batches": [
     {
-      "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
-      "members": [
-        "@pnpm#npm-app:build",
-        "@pnpm#npm-lib:build"
-      ],
-      "dependencies": [],
-      "locks": [],
-      "targetHash": "1463263B5FE81F394E8698535C554F85AA143147F473CBA10FB977863C828460",
-      "operationHashes": [
-        "D532B28CB3189404F0F3D8D659C6F83637C10604CB3906C27085A3FFB9B46E0F",
-        "F725AF76CD3177EF8C2743C3AB8D8032010FA678AF80D22509798298642814ED"
-      ]
-    },
-    {
-      "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "id": "3A0811FD3510D3F3E27FE000E63D00452C8F5E76F94504010BF30CAFA0DA284F",
       "members": [
         "workspace/path#libraries/dotnet-lib:build",
         "workspace/path#projects/dotnet-app:build"
       ],
       "dependencies": [],
       "locks": [],
-      "targetHash": "2829EB4DA662544250A377F310F8B7544D84BC0502B289C0F42C21B0E6F882CE",
+      "targetHash": "37F7BD11719C26985913F9B059F2347DA109033476C28ADBDCA54FAD17B8BE80",
       "operationHashes": [
-        "D6D95470B01DAB008AA22BF8FCFDE36C49A977BF15B7937FC0D717482F19381B",
-        "E4CCA1A70A243F3CB1843ADA1B861D088407242E6F87D94E19150FB1D61B3341"
+        "CD04EB5A6217B557E0ED0E8D22220D6FD64B960CCFC59A4B958FF3D2ECED8D28",
+        "F375EA266E68987D0EE5A0E9FE014A443669D8A7F0A958B13AAC0DD7E63ECA42"
+      ]
+    },
+    {
+      "id": "B3A239BE0F01C8CAE33FB49EA7FDBA75ABD74844D95081C98975BCFC06DFAD52",
+      "members": [
+        "@pnpm#npm-app:build",
+        "@pnpm#npm-lib:build"
+      ],
+      "dependencies": [],
+      "locks": [],
+      "targetHash": "A360A5A03BF4341015A580696DEAEC462DB78BE7F74A619B47CCD2CF1F6558F7",
+      "operationHashes": [
+        "D532B28CB3189404F0F3D8D659C6F83637C10604CB3906C27085A3FFB9B46E0F",
+        "F725AF76CD3177EF8C2743C3AB8D8032010FA678AF80D22509798298642814ED"
       ]
     }
   ],
@@ -1348,33 +1348,7 @@
   ],
   "executions": [
     {
-      "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
-      "kind": "batch",
-      "events": [
-        "scheduled",
-        "ready",
-        "batch-started",
-        "batch-ended"
-      ],
-      "operations": [
-        {
-          "metaCommand": "@pnpm install",
-          "command": "docker",
-          "argumentsHash": "CB7BF66DE88A07F6B4FFA90C626A5394B6B7CD7D7014EA22D12CF489497DDA38",
-          "container": "guergeiro/pnpm:20-10",
-          "exitCode": 0
-        },
-        {
-          "metaCommand": "@pnpm build",
-          "command": "docker",
-          "argumentsHash": "AB8FD6363C6FDDB6D9EE7B5BAB6B8B6A7E7DC04E065641AEB00849B1227382C1",
-          "container": "guergeiro/pnpm:20-10",
-          "exitCode": 0
-        }
-      ]
-    },
-    {
-      "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+      "id": "3A0811FD3510D3F3E27FE000E63D00452C8F5E76F94504010BF30CAFA0DA284F",
       "kind": "batch",
       "events": [
         "scheduled",
@@ -1386,14 +1360,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "D966AD6E44B4779BE3887764BD6A1DB0401BE46047822D9A61004007B1E18344",
+          "argumentsHash": "723A951CA1ECD8BBBF90B4E8B187F7C0CE6259E608DB266CAF341709BF7C9B67",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "6453E2248D166C0FA2C0703FE5881AE1C1DF7CADE555B75F0F71716CFBAE684A",
+          "argumentsHash": "1FF485B17B4556861C7F67030481FE24DE80B8DEE1CEB6527B465594D2DB95FF",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -1437,6 +1411,32 @@
           "command": "docker",
           "argumentsHash": "56DE73D616A55A12C86CB10DAFEA7943371D7883A6BD491EA289E2679267E5E2",
           "container": "golang:1.26.5-bookworm",
+          "exitCode": 0
+        }
+      ]
+    },
+    {
+      "id": "B3A239BE0F01C8CAE33FB49EA7FDBA75ABD74844D95081C98975BCFC06DFAD52",
+      "kind": "batch",
+      "events": [
+        "scheduled",
+        "ready",
+        "batch-started",
+        "batch-ended"
+      ],
+      "operations": [
+        {
+          "metaCommand": "@pnpm install",
+          "command": "docker",
+          "argumentsHash": "7FB4A0BCF9E00D6BCBC781E4DF06F476B00B320DA4ACD40C1AB13437BB1E5E94",
+          "container": "guergeiro/pnpm:20-10",
+          "exitCode": 0
+        },
+        {
+          "metaCommand": "@pnpm build",
+          "command": "docker",
+          "argumentsHash": "2120E29250DCBD33B84E97A135590603DA860F34D56E3A782A635842F195C144",
+          "container": "guergeiro/pnpm:20-10",
           "exitCode": 0
         }
       ]
@@ -1650,11 +1650,7 @@
     ],
     "slowestTasks": [
       {
-        "id": "1565C663A6AA8DD76CC475B61F6DA9891C4B6088668874E4C620C276749985A8",
-        "kind": "batch"
-      },
-      {
-        "id": "5FF221712FFC15D83449C90E8FCD4C9742CCDDDBD9437B76A2A3D29911DB071B",
+        "id": "3A0811FD3510D3F3E27FE000E63D00452C8F5E76F94504010BF30CAFA0DA284F",
         "kind": "batch"
       },
       {
@@ -1664,6 +1660,10 @@
       {
         "id": "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:test",
         "kind": "execution"
+      },
+      {
+        "id": "B3A239BE0F01C8CAE33FB49EA7FDBA75ABD74844D95081C98975BCFC06DFAD52",
+        "kind": "batch"
       },
       {
         "id": "workspace/path#deployments/terraform-deploy:build",

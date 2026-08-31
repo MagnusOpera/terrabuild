@@ -144,6 +144,8 @@ type Script internal
     let commandResolutionCache = ConcurrentDictionary<string, string option>(StringComparer.Ordinal)
     let mutable defaultResolutionCache: string option option = None
 
+    member _.Identity = scriptId
+
     member _.GetMethod(name: string) =
         methodCache.GetOrAdd(
             name,
@@ -737,9 +739,11 @@ let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (
             fullPath
             entrySource
             (fun resolvedPath -> File.ReadAllText(resolvedPath) |> Some)
-    toFScriptScript fullPath loaded
+    let scriptIdentity = Path.GetRelativePath(rootDirectory, fullPath).Replace('\\', '/')
+    toFScriptScript $"file:{scriptIdentity}" loaded
 
 let private loadFScriptFromSourceWithIncludes
+    (scriptIdentity: string)
     (hostRootDirectory: string)
     (deniedPathGlobs: string list)
     (includeRootDirectory: string)
@@ -756,7 +760,7 @@ let private loadFScriptFromSourceWithIncludes
             entryFile
             entrySource
             resolveImportedSource
-    toFScriptScript entryFile loaded
+    toFScriptScript scriptIdentity loaded
 
 let loadScriptWithDeniedPathGlobs (rootDirectory: string) (_references: string list) (deniedPathGlobs: string list) (scriptFile: string) =
     let fullScriptPath = Path.GetFullPath(scriptFile)
@@ -778,7 +782,8 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (_references: string l
 let loadScript (rootDirectory: string) (references: string list) (scriptFile: string) =
     loadScriptWithDeniedPathGlobs rootDirectory references [ ".git" ] scriptFile
 
-let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+let private loadScriptFromSourceWithIncludesWithIdentity
+    (scriptIdentity: string)
     (hostRootDirectory: string)
     (deniedPathGlobs: string list)
     (includeRootDirectory: string)
@@ -793,12 +798,49 @@ let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
 
     loadCachedScript cacheKey (fun () ->
         loadFScriptFromSourceWithIncludes
+            scriptIdentity
             fullHostRootDirectory
             deniedPathGlobs
             fullIncludeRootDirectory
             fullEntryFile
             entrySource
             resolveImportedSource)
+
+let loadScriptFromSourceWithIncludesWithDeniedPathGlobs
+    (hostRootDirectory: string)
+    (deniedPathGlobs: string list)
+    (includeRootDirectory: string)
+    (entryFile: string)
+    (entrySource: string)
+    (resolveImportedSource: string -> string option) =
+    let scriptIdentity =
+        Path.GetRelativePath(includeRootDirectory, entryFile).Replace('\\', '/')
+        |> sprintf "file:%s"
+    loadScriptFromSourceWithIncludesWithIdentity
+        scriptIdentity
+        hostRootDirectory
+        deniedPathGlobs
+        includeRootDirectory
+        entryFile
+        entrySource
+        resolveImportedSource
+
+let loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
+    (scriptIdentity: string)
+    (hostRootDirectory: string)
+    (deniedPathGlobs: string list)
+    (includeRootDirectory: string)
+    (entryFile: string)
+    (entrySource: string)
+    (resolveImportedSource: string -> string option) =
+    loadScriptFromSourceWithIncludesWithIdentity
+        scriptIdentity
+        hostRootDirectory
+        deniedPathGlobs
+        includeRootDirectory
+        entryFile
+        entrySource
+        resolveImportedSource
 
 let loadScriptFromSourceWithIncludes
     (hostRootDirectory: string)

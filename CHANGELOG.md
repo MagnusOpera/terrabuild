@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep execution batches separate when container CPU limits or extension scripts differ.
 - Prevent targets with different names from being combined into one execution batch.
 - Define the last command as the source of a target's default artifact mode.
 - Select the latest website-capable release tag when preparing local documentation.

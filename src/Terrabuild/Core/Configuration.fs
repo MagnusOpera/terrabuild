@@ -220,6 +220,19 @@ let private buildDeclaredTargetHash (target: AST.Project.TargetBlock) =
     |> Json.Serialize
     |> Hash.sha256
 
+let internal buildTargetStepHash extensionName command image platform cpus variables scriptIdentity =
+    let containerDependencies =
+        match image with
+        | Some container ->
+            [ yield container
+              yield! variables |> Seq.sort
+              yield! platform |> Option.toList
+              yield! cpus |> Option.map string |> Option.toList ]
+        | None -> []
+
+    [ extensionName; command; scriptIdentity ] @ containerDependencies
+    |> Hash.sha256strings
+
 let private resolvePhaseReference phaseNames phaseExpr =
     match phaseExpr |> Expr.StripLocations with
     | Expr.Nothing -> None
@@ -912,17 +925,8 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                         |> Option.map (Map.map (fun _ -> Eval.valueToString << Eval.eval evaluationContext))
                         |> Option.defaultValue Map.empty
 
-                    let containerDeps =
-                        match image with
-                        | Some container ->
-                            let lstVariables = variables |> List.ofSeq |> List.sort
-                            let lstPlatform = platform |> Option.map (fun p -> [ p ]) |> Option.defaultValue []
-                            container :: lstVariables @ lstPlatform
-                        | _ -> []
-
                     let targetStepHash =
-                        [ extensionName; step.Command ] @ containerDeps
-                        |> Hash.sha256strings
+                        buildTargetStepHash extensionName step.Command image platform cpus variables script.Identity
 
                     let targetContext = {
                         TargetStep.Hash = targetStepHash

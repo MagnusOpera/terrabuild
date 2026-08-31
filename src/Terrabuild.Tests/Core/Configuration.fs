@@ -335,6 +335,44 @@ let ``Built-in extension script override is rejected``() =
     |> should (throwWithMessage "Script override is not allowed for built-in extension '@dotnet'") typeof<TerrabuildException>
 
 [<Test>]
+let ``Batch step hash includes container CPU allocation`` () =
+    let hash cpus =
+        Configuration.buildTargetStepHash
+            "custom"
+            "build"
+            (Some "build-image")
+            None
+            (Some cpus)
+            Set.empty
+            "scripts/custom.fss"
+
+    hash 1 = hash 2 |> should equal false
+
+[<Test>]
+let ``Batch step hash includes extension script identity`` () =
+    let hash scriptIdentity =
+        Configuration.buildTargetStepHash
+            "custom"
+            "build"
+            None
+            None
+            None
+            Set.empty
+            scriptIdentity
+
+    hash "scripts/first.fss" = hash "scripts/second.fss" |> should equal false
+
+[<Test>]
+let ``Local extension script identity is stable across workspace roots`` () =
+    Extensions.stableLocalScriptIdentity
+        "/Users/developer/workspace"
+        "/Users/developer/workspace/scripts/custom.fss"
+    |> should equal (
+        Extensions.stableLocalScriptIdentity
+            "/home/runner/workspace"
+            "/home/runner/workspace/scripts/custom.fss")
+
+[<Test>]
 let ``Legacy fsx extension script is rejected``() =
     withTempWorkspace (fun root ->
         writeFile root "scripts/custom.fsx" "let value = 1"

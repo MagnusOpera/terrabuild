@@ -432,7 +432,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "batchId": "5FBF3D6284E6E51008A9049564B8A48390DD30416F10D93ED6A6BDFD97C0DC96",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -499,7 +499,7 @@
       "artifacts": "managed",
       "build": "always",
       "batchMode": "single",
-      "batchId": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "batchId": "5FBF3D6284E6E51008A9049564B8A48390DD30416F10D93ED6A6BDFD97C0DC96",
       "action": "exec",
       "actionReason": "forced-cli",
       "actionDependencies": [],
@@ -682,7 +682,7 @@
   ],
   "batches": [
     {
-      "id": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "id": "5FBF3D6284E6E51008A9049564B8A48390DD30416F10D93ED6A6BDFD97C0DC96",
       "members": [
         "workspace/path#d:build",
         "workspace/path#e:build"
@@ -691,10 +691,10 @@
         "workspace/path#c:build"
       ],
       "locks": [],
-      "targetHash": "9AF96C32AC5F99047896D940BAD2FE70309C6C6DDD6406DD06EB7DF01DDF7498",
+      "targetHash": "E5ABAB086DBA5856B72A70282CB773A5E3AAA6D2C7EE0A5E6E2A805D0AD70C44",
       "operationHashes": [
-        "97584219AB52FD44C4523DDE8EB3357964D14CC6135FE60F570B266B30D34133",
-        "57523F5D7A14609E83F2322EFDE3B153D5588B2C0DFE9E495BAFD359486F410A"
+        "38A161E1A839F8317224E0AD0DB6E0BDA4AFA5B75ECCA3865015EFDA292CCE24",
+        "4347281220844958B19A0DE4B8D24322284AB37D27842C0F0FB8C726A5DCE701"
       ]
     }
   ],
@@ -737,7 +737,7 @@
   ],
   "executions": [
     {
-      "id": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+      "id": "5FBF3D6284E6E51008A9049564B8A48390DD30416F10D93ED6A6BDFD97C0DC96",
       "kind": "batch",
       "events": [
         "scheduled",
@@ -749,14 +749,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "E6D37111373DD6DEEE9982018B08B5468D713753B4824B6E3C9B438BC3F16AD2",
+          "argumentsHash": "DCE028871567BA4E085A0A585E3955B6DC3819AB41F20D9EAABE6CD6D6EADB47",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "2484DBE2DB3313CB2E4365F9DD7E15DF1E24B5D44A7BC413D1F99037048A8E83",
+          "argumentsHash": "24A765501921E60EC5D2557CF35EFE3FC30E0B1937BCA16555A5103DE966BA37",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -955,7 +955,7 @@
     ],
     "slowestTasks": [
       {
-        "id": "7056094FCF7AC0A106BAFB40D6D38923CF9D6C1D9A1D0AC0BF956544C28014CE",
+        "id": "5FBF3D6284E6E51008A9049564B8A48390DD30416F10D93ED6A6BDFD97C0DC96",
         "kind": "batch"
       },
       {
