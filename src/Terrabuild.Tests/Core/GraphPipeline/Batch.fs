@@ -348,3 +348,20 @@ let ``batch computation never mixes phases or phased and unphased nodes`` () =
     |> should equal (Set [ (Some "toolchains", Set [ "toolA"; "toolB" ]);
                           (Some "application", Set [ "appA"; "appB" ]);
                           (None, Set [ "plainA"; "plainB" ]) ])
+
+[<Test>]
+let ``batch computation never mixes target names`` () =
+    let buildA = buildNode "a:build" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true
+    let buildB = buildNode "b:build" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true
+    let testA = { buildNode "a:test" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Target = "test" }
+    let testB = { buildNode "b:test" (Some "cluster") RunAction.Exec Set.empty BatchMode.Single true with Target = "test" }
+    let nodes = [ buildA; buildB; testA; testB ]
+    let graph =
+        { Graph.Nodes = nodes |> List.map (fun node -> node.Id, node) |> Map.ofList
+          Graph.RootNodes = nodes |> List.map _.Id |> Set.ofList
+          Graph.Batches = Map.empty
+          Graph.Phases = Map.empty }
+
+    computeBatches graph
+    |> List.map (fun batch -> batch.Nodes |> List.map _.Target |> Set.ofList)
+    |> should equal [ Set [ "build" ]; Set [ "test" ] ]

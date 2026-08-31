@@ -347,18 +347,18 @@ let computeBatches (graph: Graph) =
         graph.Nodes
         |> Seq.choose (fun (KeyValue(_, node)) -> 
             match node with
-            | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some (clusterHash, node.Phase)
+            | { Action = RunAction.Exec; ClusterHash = Some clusterHash } -> Some (clusterHash, node.Phase, node.Target)
             | _ -> None)
         |> Set.ofSeq
 
     graph.Nodes
     |> Seq.choose (fun (KeyValue(_, node)) ->
         match node with
-        | { ClusterHash = Some clusterHash; Required = true } when eligibleBuckets |> Set.contains (clusterHash, node.Phase) ->
-            Some ((clusterHash, node.Phase), node)
+        | { ClusterHash = Some clusterHash; Required = true } when eligibleBuckets |> Set.contains (clusterHash, node.Phase, node.Target) ->
+            Some ((clusterHash, node.Phase, node.Target), node)
         | _ -> None)
     |> Seq.groupBy fst
-    |> Seq.collect (fun ((clusterHash, phase), items) ->
+    |> Seq.collect (fun ((clusterHash, phase, _target), items) ->
         let bucketNodes =
             items
             |> Seq.map snd
@@ -412,8 +412,8 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                 |> List.map _.ProjectDir
                 |> Set.ofList
 
-            // reuse the same project/target operations definition as head node
-            // NOTE: this assumes batching is only meaningful for nodes with same target (as your previous code)
+            // All members have the same target name by construction, so reuse the
+            // head project's target definition as the basis for the merged steps.
             let projectId = headNode.ProjectId
             let projectConfig = configuration.Projects[projectId]
             let targetConfig = projectConfig.Targets[headNode.Target]
