@@ -147,9 +147,10 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>)
             logIndex <- logIndex + 1
             Path.Combine(logsDir, $"step{logIndex}.log")
 
-        member _.CompleteLogFile(_summary) = ()
-        member _.Outputs = outputsDir
-        member _.Logs = logsDir
+        member _.StoreOutputs sourceDir entries = IO.copyFiles outputsDir sourceDir entries
+        member _.StoreLogs entries =
+            for entry in entries do
+                File.Copy(entry, Path.Combine(logsDir, IO.getFilename entry), true)
 
         member _.Complete(_summary) =
             completed.Add(id)

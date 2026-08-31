@@ -51,9 +51,8 @@ type PruneSummary = {
 
 type IEntry =
     abstract NextLogFile: unit -> string
-    abstract CompleteLogFile: summary:TargetSummary -> unit
-    abstract Outputs: string with get
-    abstract Logs: string with get
+    abstract StoreOutputs: sourceDir:string -> entries:string list -> string option
+    abstract StoreLogs: entries:string list -> unit
     abstract Complete: summary:TargetSummary -> string list
 
 type ICache =
@@ -200,12 +199,12 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                     filename
             nextLogFile()
 
-        member _.CompleteLogFile summary =
-            FS.combinePath logsDir $"step{logNum}.json" |> write summary
+        member _.StoreOutputs sourceDir entries =
+            IO.copyFiles outputsDir sourceDir entries
 
-        member _.Outputs = outputsDir
-
-        member _.Logs = logsDir
+        member _.StoreLogs entries =
+            for entry in entries do
+                File.Copy(entry, FS.combinePath logsDir (IO.getFilename entry), true)
 
         member _.Complete summary =
             let files =

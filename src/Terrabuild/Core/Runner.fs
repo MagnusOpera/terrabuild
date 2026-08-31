@@ -510,7 +510,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
                 let afterFiles = IO.createSnapshot node.Outputs projectDirectory
                 let newFiles = afterFiles - IO.Snapshot.Empty
-                IO.copyFiles cacheEntry.Outputs projectDirectory newFiles
+                cacheEntry.StoreOutputs projectDirectory newFiles
             | _ -> None
 
         let endedAt = DateTime.UtcNow
@@ -612,14 +612,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | _, Some cacheEntry ->
                     // copy logs only for members that publish a new cache entry
                     let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
-                    IO.copyFiles cacheEntry.Logs batchCacheEntry.Logs logs |> ignore
+                    cacheEntry.StoreLogs logs
 
                     let outputs =
                         match node.Artifacts with
                         | GraphDef.ArtifactMode.Workspace
                         | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
                             let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                            IO.copyFiles cacheEntry.Outputs node.ProjectDir newFiles
+                            cacheEntry.StoreOutputs node.ProjectDir newFiles
                         | _ -> None
 
                     let summary =

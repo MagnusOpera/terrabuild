@@ -91,9 +91,8 @@ let private withTempWorkspace action =
 type private NoopEntry() =
     interface Cache.IEntry with
         member _.NextLogFile() = raiseBugError "Not expected in this test"
-        member _.CompleteLogFile(_summary) = ()
-        member _.Outputs = raiseBugError "Not expected in this test"
-        member _.Logs = raiseBugError "Not expected in this test"
+        member _.StoreOutputs _ _ = raiseBugError "Not expected in this test"
+        member _.StoreLogs _ = raiseBugError "Not expected in this test"
         member _.Complete(_summary) = []
 
 type private NoopCache() =

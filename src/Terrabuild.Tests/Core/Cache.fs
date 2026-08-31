@@ -70,10 +70,13 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
         let entry = Cache.NewEntry(entryDir, true, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
-        Directory.CreateDirectory(entry.Outputs) |> ignore
-        File.WriteAllText(Path.Combine(entry.Outputs, "artifact.txt"), "artifact")
+        let sourceDir = Path.Combine(root, "source")
+        Directory.CreateDirectory(sourceDir) |> ignore
+        let artifact = Path.Combine(sourceDir, "artifact.txt")
+        File.WriteAllText(artifact, "artifact")
+        entry.StoreOutputs sourceDir [ artifact ] |> ignore
 
-        let files = entry.Complete(summary (Some entry.Outputs))
+        let files = entry.Complete(summary (Some "outputs"))
 
         files |> should equal [ "outputs"; "logs" ]
         storage.Uploads |> should equal [
@@ -87,12 +90,11 @@ let ``cache completion omits summary outputs marker when outputs are not materia
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
         let entry = Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
-        let outputsPath = entry.Outputs
 
-        entry.Complete(summary (Some outputsPath)) |> ignore
+        entry.Complete(summary (Some "outputs")) |> ignore
 
         let writtenSummary =
-            Path.Combine(entry.Logs, "summary.json")
+            Path.Combine(entryDir, "logs", "summary.json")
             |> File.ReadAllText
             |> Json.Deserialize<Cache.TargetSummary>
 
