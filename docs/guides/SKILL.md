@@ -135,6 +135,7 @@ Reason codes are:
 - `dependency-executed`: one or more IDs in `actionDependencies` executed and propagated the rebuild.
 - `non-cacheable`: the target does not retain a reusable summary.
 - `cache-miss`: no summary exists for the reported cache key and scope.
+- `cache-outputs-missing`: a successful managed or workspace summary exists, but its declared output archive cannot be restored, so Terrabuild executes the target again.
 - `retry-failed-cache`: `--retry` replaced a failed cached result with execution.
 - `cached-failure`: Terrabuild reported a previous failed result without rerunning it.
 - `cache-hit`: Terrabuild reused a successful local or remote summary.

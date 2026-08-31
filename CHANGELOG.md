@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Document the diagnostic reason used when cached summaries have no restorable outputs.
 - Explain that successful external cache hits reuse summaries without restoring files.
 - Drain captured process output streams concurrently to prevent full-pipe deadlocks.
 - Finalize started Insights builds as failed when runner operations raise an exception.
