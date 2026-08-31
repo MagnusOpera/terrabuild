@@ -95,7 +95,7 @@ Determines each node action without running commands.
 
 After actions are assigned, root nodes are recalculated from the selected roots:
 
-- `Exec` roots remain roots unless they are `build = ~lazy`.
+- `Exec` roots remain roots and are marked required, including roots using `build = ~lazy`.
 - `Summary` roots remain roots so selected failed cache entries are reported.
 - `Restore` roots are removed because successful cache hits do not need runner work unless required by a dependent.
 
@@ -104,6 +104,7 @@ After actions are assigned, root nodes are recalculated from the selected roots:
 Marks the nodes that the runner must visit.
 
 - A node remains required if it was already required by `BuildMode.Always`.
+- An explicitly selected `Exec` root remains required even when it uses `BuildMode.Lazy`.
 - A node becomes required when it is `Exec` and not `BuildMode.Lazy`.
 - A node becomes required when a dependent is both required and executing.
 - `Restore` and `Summary` nodes are realization barriers: their cached result does not require their own build-time dependencies.

@@ -1233,7 +1233,7 @@ target build {
         stages.FinalGraph.RootNodes |> should equal (Set [ node.Id ]))
 
 [<Test>]
-let ``Action pipeline excludes selected lazy roots when they must execute`` () =
+let ``Action pipeline realizes selected lazy roots when they must execute`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
 workspace {}
@@ -1256,7 +1256,12 @@ target gen {
         let genNode = stages.ActionGraph.Nodes["workspace/path#src/a:gen"]
 
         genNode.Action |> should equal RunAction.Exec
-        stages.ActionGraph.RootNodes |> should equal Set.empty<string>)
+        genNode.Required |> should equal true
+        stages.ActionGraph.RootNodes |> should equal (Set [ genNode.Id ])
+        stages.CascadedGraph.Nodes[genNode.Id].Required |> should equal true
+        stages.CascadedGraph.RootNodes |> should equal (Set [ genNode.Id ])
+        stages.FinalGraph.Nodes[genNode.Id].Required |> should equal true
+        stages.FinalGraph.RootNodes |> should equal (Set [ genNode.Id ]))
 
 [<Test>]
 let ``Phase graph enlists transitive prerequisite targets without selecting phase peers`` () =

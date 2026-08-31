@@ -119,9 +119,16 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         |> Set.filter (fun nodeId ->
             let node = nodes[nodeId]
             match node.Action with
-            | RunAction.Exec -> node.Build <> BuildMode.Lazy
+            | RunAction.Exec -> true
             | RunAction.Summary -> true
             | _ -> false)
+
+    // Explicitly selected roots must run even when their dependency behavior is lazy.
+    rootNodes
+    |> Set.iter (fun nodeId ->
+        let node = nodes[nodeId]
+        if node.Action = RunAction.Exec && not node.Required then
+            nodes <- nodes |> Map.add nodeId { node with Required = true })
 
     let graph =
         { graph with
