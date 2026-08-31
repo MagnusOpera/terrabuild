@@ -5,8 +5,8 @@ open System.Threading
 let spinnerScheduled = "⠁⠂⠄⠂"
 let frequencyScheduled = 200.0
 
-let spinnerWaitingForLock = "⌛"
-let frequencyWaitingForLock = 1000.0
+let spinnerWaitingForLock = "◰◳◲◱"
+let frequencyWaitingForLock = 500.0
 
 let spinnerUpload = "↑  ↑ ↑ "
 let frequencyUpload = 200.0
