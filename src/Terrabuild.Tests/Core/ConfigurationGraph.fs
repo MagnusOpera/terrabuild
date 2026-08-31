@@ -1372,6 +1372,48 @@ target build { @shell echo { args = "build peer" } }
         stages.SourceGraph.Nodes.ContainsKey peerBuild |> should equal false)
 
 [<Test>]
+let ``Phase barriers do not propagate execution into cached downstream targets`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+phase toolchains {}
+phase application { depends_on = [ phase.toolchains ] }
+
+target dist {}
+target build { phase = phase.application }
+"""
+        writeFile workspace "toolchains/pnpm/PROJECT" """
+project pnpm { @shell {} }
+target dist {
+  phase = phase.toolchains
+  artifacts = ~external
+  @shell echo { args = "build toolchain" }
+}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build {
+  artifacts = ~workspace
+  @shell echo { args = "build app" }
+}
+"""
+
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let uncached = runPipeline options
+        let toolchainId = "workspace/path#toolchains/pnpm:dist"
+        let appId = "workspace/path#apps/app:build"
+        let appCacheKey = GraphDef.buildCacheKey uncached.ResolvedGraph.Nodes[appId]
+        let stages = runPipelineWithCache (successCache [ appCacheKey ]) options
+
+        stages.SourceGraph.Nodes[appId].PhaseDependencies |> should contain toolchainId
+        stages.ActionGraph.Nodes[toolchainId].Action |> should equal RunAction.Exec
+        stages.ActionGraph.Nodes[appId].Action |> should equal RunAction.Restore
+        let decision = actionDecision appId
+        decision.Reason |> should equal "cache-hit"
+        decision.Dependencies.Length |> should equal 0)
+
+[<Test>]
 let ``Project phase nothing cancels workspace target phase inheritance`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """

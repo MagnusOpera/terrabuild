@@ -90,7 +90,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                 |> List.ofSeq
             hub.SubscribeBackground $"{nodeId} status" dependencyStatus (fun () ->
                 let buildingDependencies =
-                    targetNode.Dependencies
+                    targetNode.Dependencies - targetNode.PhaseDependencies
                     |> Seq.filter (fun projectId ->
                         let node = nodes[projectId]
                         node.Action = RunAction.Exec && node.Build <> BuildMode.Lazy)

@@ -86,7 +86,7 @@ Resolves operations and final cache inputs for each selected node.
 Determines each node action without running commands.
 
 - `Exec` when the node is forced by `--force` or `build = ~always`.
-- `Exec` when a dependency is executing and the dependency is not `build = ~lazy`.
+- `Exec` when an ordinary target dependency is executing and the dependency is not `build = ~lazy`; phase-only dependencies do not propagate execution.
 - `Exec` when the node is not cacheable.
 - `Exec` when no cache summary exists.
 - `Exec` for a failed cache summary when `--retry` is enabled.
