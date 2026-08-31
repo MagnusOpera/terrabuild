@@ -4,8 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.199.2]
+
 - Realize explicitly selected lazy targets even when no dependent requires them.
 - Make `explain` distinguish target selection, action, and final scheduling outcome.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.1...0.199.2
 
 ## [0.199.1]
 

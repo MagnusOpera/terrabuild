@@ -6,7 +6,12 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.199.1
+## 0.199.2
+
+### 0.199.2
+
+- Realize explicitly selected lazy targets even when no dependent requires them.
+- Make `explain` distinguish target selection, action, and final scheduling outcome.
 
 ### 0.199.1
 
@@ -22,4 +27,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Rewrite the website landing page to explain how Terrabuild handles build and deployment on the same dependency graph.
 - Rewrite the website documentation with direct build and deployment guidance, a dedicated deployment guide, and qualified cache behavior.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.4...0.199.1
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.4...0.199.2
