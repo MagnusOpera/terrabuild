@@ -209,3 +209,15 @@ Selecting a phased target enlists all targets assigned to its transitive prerequ
 Targets in one phase may run concurrently, but no target in a downstream phase starts until every enlisted prerequisite-phase target succeeds. Batch execution never combines targets from different phases or combines phased and unphased targets. Markdown graphs remain ungrouped; phase grouping is an opt-in view in the interactive console.
 
 Inside target expressions, `terrabuild.phase` contains the assigned phase name. It evaluates to `nothing` for an unphased target.
+
+## Named Target Locks
+
+Use a named lock when independent targets must not execute concurrently because they mutate the same machine-global resource:
+
+```hcl
+target gen {
+  lock = "nuget-tools"
+}
+```
+
+The matching workspace target provides the default lock for project targets. A project target may replace it or use `lock = nothing` to opt out. Cache hits do not acquire the lock. Executing nodes and batches sharing a name are serialized across both threads and Terrabuild processes through an exclusive file lease under the user-global Terrabuild profile. The lease is released by the operating system if the owning process terminates.

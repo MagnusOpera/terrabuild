@@ -38,6 +38,7 @@ let private buildGraphNode id projectName projectDir target =
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = target
       GraphDef.Node.Phase = None
+      GraphDef.Node.Locks = Set.empty
       GraphDef.Node.Dependencies = Set.empty
       GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty

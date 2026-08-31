@@ -71,7 +71,7 @@ let toWorkspace (block: Block) =
 
 let toTarget (block: Block) =
     block
-    |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"; "phase"; "environment_sensitive"]
+    |> checkAllowedAttributes ["depends_on"; "outputs"; "build"; "artifacts"; "batch"; "phase"; "lock"; "environment_sensitive"]
     |> checkNoNestedBlocks
     |> ignore
 
@@ -88,6 +88,7 @@ let toTarget (block: Block) =
     let cache = block |> tryFindAttribute "artifacts"
     let batch = block |> tryFindAttribute "batch"
     let phase = block |> tryFindAttribute "phase"
+    let targetLock = block |> tryFindAttribute "lock"
     let environmentSensitive = block |> tryFindAttribute "environment_sensitive"
     { TargetBlock.DependsOn = dependsOn
       TargetBlock.Outputs = outputs
@@ -95,6 +96,7 @@ let toTarget (block: Block) =
       TargetBlock.Cache = cache
       TargetBlock.Batch = batch
       TargetBlock.Phase = phase
+      TargetBlock.Lock = targetLock
       TargetBlock.EnvironmentSensitive = environmentSensitive }
 
 let toPhase (block: Block) =

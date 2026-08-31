@@ -14,6 +14,7 @@ let private buildNode id projectDir target action operations =
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = target
       GraphDef.Node.Phase = None
+      GraphDef.Node.Locks = Set.empty
       GraphDef.Node.Dependencies = Set.empty
       GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty
@@ -104,6 +105,25 @@ let private withTempWorkspace action =
         Environment.CurrentDirectory <- oldCurrentDir
         if Directory.Exists(root) then
             Directory.Delete(root, true)
+
+[<Test>]
+let ``named target locks serialize competing leases and survive release`` () =
+    withTempWorkspace (fun root ->
+        let profile = Path.Combine(root, "profile")
+        let first = TargetLock.acquireAt profile (Set [ "nuget-tools" ])
+        use attempted = new System.Threading.ManualResetEventSlim(false)
+
+        let second =
+            System.Threading.Tasks.Task.Run(fun () ->
+                attempted.Set()
+                use _lease = TargetLock.acquireAt profile (Set [ "nuget-tools" ])
+                ())
+
+        attempted.Wait(TimeSpan.FromSeconds(2.0)) |> should equal true
+        second.Wait(TimeSpan.FromMilliseconds(150.0)) |> should equal false
+        first.Dispose()
+        second.Wait(TimeSpan.FromSeconds(2.0)) |> should equal true
+        File.Exists(TargetLock.lockFilePath profile "nuget-tools") |> should equal true)
 
 let private withEnvironmentVariable name value action =
     let previous = Environment.GetEnvironmentVariable(name)

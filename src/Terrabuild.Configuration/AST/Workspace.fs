@@ -22,6 +22,7 @@ type TargetBlock =
       Cache: Expr option
       Batch: Expr option
       Phase: Expr option
+      Lock: Expr option
       EnvironmentSensitive: Expr option }
 
 [<RequireQualifiedAccess>]

@@ -27,6 +27,7 @@
     <Compile Include="Core/Notification.fs" />
     <Compile Include="Core/GraphDef.fs" />
     <Compile Include="Core/Cache.fs" />
+    <Compile Include="Core/TargetLock.fs" />
     <Compile Include="Core/DiagnosticsTelemetry.fs" />
     <Compile Include="Core/Auth.fs" />
     <Compile Include="Core/Scaffold.fs" />

@@ -39,6 +39,7 @@ type Target = {
     Build: BuildMode option
     Batch: BatchMode
     Phase: string option
+    Lock: string option
     DependsOn: string set
     Outputs: string set
     Cache: ArtifactMode option
@@ -213,6 +214,7 @@ let private buildDeclaredTargetHash (target: AST.Project.TargetBlock) =
         Cache = target.Cache |> normalizeExpr
         Batch = target.Batch |> normalizeExpr
         Phase = None
+        Lock = None
         EnvironmentSensitive = None
         Steps = target.Steps |> List.map normalizeStep }
     |> Json.Serialize
@@ -646,6 +648,7 @@ let private loadProjectDef
                 let cache = targetBlock.Cache |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Cache)
                 let group = targetBlock.Batch |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Batch)
                 let phase = targetBlock.Phase |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Phase)
+                let targetLock = targetBlock.Lock |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Lock)
                 let outputs = targetBlock.Outputs |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.Outputs)
                 let environmentSensitive = targetBlock.EnvironmentSensitive |> Option.orElseWith (fun () -> workspaceTarget |> Option.bind _.EnvironmentSensitive)
                 { targetBlock with 
@@ -654,6 +657,7 @@ let private loadProjectDef
                     Cache = cache
                     Batch = group
                     Phase = phase
+                    Lock = targetLock
                     Outputs = outputs
                     EnvironmentSensitive = environmentSensitive })
         let environments =
@@ -981,6 +985,16 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                     | Value.Bool value -> value
                     | _ -> raiseTypeError "environment_sensitive must evaluate to a boolean")
 
+            let targetLock =
+                target.Lock
+                |> Option.bind (fun value ->
+                    match value |> Eval.eval evaluationContext with
+                    | Value.String value when String.IsNullOrWhiteSpace(value) ->
+                        raiseInvalidArg "lock must not be empty"
+                    | Value.String value -> Some value
+                    | Value.Nothing -> None
+                    | _ -> raiseTypeError "lock must evaluate to a string or nothing")
+
             let evaluationInputs =
                 buildEvaluationInputs evaluationContext projectDef.Locals target projectDef.Extensions
 
@@ -995,6 +1009,7 @@ let private finalizeProject repository workspaceDir projectDir evaluationContext
                   Target.Build = targetBuild
                   Target.Batch = targetBatch
                   Target.Phase = targetPhase
+                  Target.Lock = targetLock
                   Target.DependsOn = targetDependsOn
                   Target.Cache = targetCache
                   Target.Outputs = targetOutputs

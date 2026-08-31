@@ -73,6 +73,7 @@ let parseProject() =
               TargetBlock.Cache = None
               TargetBlock.Batch = Expr.Enum "partition" |> Some
               TargetBlock.Phase = None
+              TargetBlock.Lock = Expr.String "nuget-tools" |> Some
               TargetBlock.EnvironmentSensitive = Expr.Bool true |> Some
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
         let targetDist =
@@ -82,6 +83,7 @@ let parseProject() =
               TargetBlock.Cache = None
               TargetBlock.Batch = None
               TargetBlock.Phase = None
+              TargetBlock.Lock = None
               TargetBlock.EnvironmentSensitive = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty }
                                     { Extension = "@dotnet"; Command = "publish"; Parameters = Map.empty } ] }
@@ -92,6 +94,7 @@ let parseProject() =
               TargetBlock.Cache = "remote" |> Expr.Enum |> Some
               TargetBlock.Batch = None
               TargetBlock.Phase = None
+              TargetBlock.Lock = None
               TargetBlock.EnvironmentSensitive = None
               TargetBlock.Steps = [ { Extension = "@shell"; Command = "echo"
                                       Parameters = Map [ "arguments", Expr.Function (Function.Trim,
@@ -153,6 +156,7 @@ let parseProject2() =
               TargetBlock.Cache = None
               TargetBlock.Batch = None
               TargetBlock.Phase = None
+              TargetBlock.Lock = None
               TargetBlock.EnvironmentSensitive = None
               TargetBlock.Steps = [ { Extension = "@dotnet"; Command = "build"; Parameters = Map.empty } ] }
 

@@ -472,6 +472,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing Node", node.Id)
         buildProgress.TaskBuilding node.Id
+        use _targetLocks = TargetLock.acquire node.Locks
 
         let projectDirectory = node.ProjectDir
         let useRemote = GraphDef.isRemoteCacheable options node
@@ -537,6 +538,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         Log.Debug("{NodeId}: executing batch", batchNode.Id)
         if not flattenBatchProgress then
             buildProgress.TaskBuilding batchNode.Id
+        use _targetLocks = TargetLock.acquire batchNode.Locks
 
         let batchId = batchNode.Id
         let members = graph.Batches[batchId]

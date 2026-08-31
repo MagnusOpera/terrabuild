@@ -11,6 +11,7 @@ let private node id phase =
       Node.ProjectDir = id
       Node.Target = "build"
       Node.Phase = phase
+      Node.Locks = Set.empty
       Node.Dependencies = Set.empty
       Node.PhaseDependencies = Set.empty
       Node.Outputs = Set.empty

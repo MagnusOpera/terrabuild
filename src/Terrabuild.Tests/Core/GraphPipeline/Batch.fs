@@ -13,6 +13,7 @@ let buildNode id clusterHash action deps group req =
       Node.ProjectDir = $"/src/project{id}"
       Node.Target = "build"
       Node.Phase = None
+      Node.Locks = Set.empty
       Node.Dependencies = deps
       Node.PhaseDependencies = Set.empty
       Node.Outputs = Set.empty

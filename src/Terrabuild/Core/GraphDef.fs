@@ -57,6 +57,7 @@ type Node = {
     ProjectDir: string
     Target: string
     Phase: string option
+    Locks: string set
 
     Dependencies: string set
     [<JsonIgnore>]

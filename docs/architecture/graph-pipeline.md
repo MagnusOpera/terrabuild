@@ -31,6 +31,7 @@ Builds the full source graph from configuration.
 - Combines workspace-level and project-level target dependencies.
 - Detects circular target dependency chains and reports the chain as `Circular target dependency detected: ...`.
 - Initializes `Build` from `--force` or target configuration.
+- Carries an optional inherited target `lock` into the node's execution-lock set. Lock metadata does not participate in artifact target hashes.
 - Sets `Required = true` only for `BuildMode.Always`.
 - Produces `RootNodes` from the full graph: nodes that no other full-graph node depends on.
 
@@ -124,6 +125,11 @@ Adds batch execution nodes after actions and required flags are known.
 - Excludes `batch = ~never` nodes from batch candidates.
 - Skips a candidate if adding the batch node would create an external dependency cycle.
 - Creates a synthetic batch node with `BatchContext` and records the original member nodes for runner scheduling and logging.
+- Assigns the synthetic batch node the union of its members' named locks.
+
+## TargetLock.fs and Runner.run
+
+Executing nodes acquire their named locks in deterministic order before commands start. Lock files live under the user-global Terrabuild profile rather than the workspace or mounted build home. Ownership is represented by an open handle with exclusive sharing, so locks coordinate separate Terrabuild processes and are released automatically after exceptions, process termination, or reboot. Cache hits do not execute and therefore do not acquire target locks. Cache entry publication remains protected independently by per-entry cache locks.
 
 ## Debug outputs
 

@@ -448,7 +448,8 @@ target build {
 }
 """
 
-        let _, config = Configuration.read (baseOptions root (Set [ "build" ]))
+        let options = baseOptions root (Set [ "build" ])
+        let _, config = Configuration.read options
         let inherited = config.Projects["workspace/path#apps/inherited"].Targets["build"]
         let neutral = config.Projects["workspace/path#apps/neutral"].Targets["build"]
 
@@ -469,6 +470,71 @@ extension @shell {}
         let updatedInherited = updatedConfig.Projects["workspace/path#apps/inherited"].Targets["build"]
 
         updatedInherited.EnvironmentSensitive |> should equal (Some false)
+        updatedInherited.Hash |> should equal inherited.Hash)
+
+[<Test>]
+let ``project target can inherit override and remove a named lock`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "WORKSPACE" """
+workspace {}
+
+target build {
+  lock = "nuget-tools"
+}
+
+extension @shell {}
+"""
+
+        writeFile root "apps/inherited/PROJECT" """
+project inherited { @shell {} }
+target build { @shell echo { args = "inherited" } }
+"""
+
+        writeFile root "apps/overridden/PROJECT" """
+project overridden { @shell {} }
+target build {
+  lock = "other-resource"
+  @shell echo { args = "overridden" }
+}
+"""
+
+        writeFile root "apps/unlocked/PROJECT" """
+project unlocked { @shell {} }
+target build {
+  lock = nothing
+  @shell echo { args = "unlocked" }
+}
+"""
+
+        let options = baseOptions root (Set [ "build" ])
+        let _, config = Configuration.read options
+        let inherited = config.Projects["workspace/path#apps/inherited"].Targets["build"]
+        let overridden = config.Projects["workspace/path#apps/overridden"].Targets["build"]
+        let unlocked = config.Projects["workspace/path#apps/unlocked"].Targets["build"]
+
+        inherited.Lock |> should equal (Some "nuget-tools")
+        overridden.Lock |> should equal (Some "other-resource")
+        unlocked.Lock |> should equal None
+
+        let graph = GraphPipeline.Node.build options config
+        graph.Nodes["workspace/path#apps/inherited:build"].Locks |> should equal (Set [ "nuget-tools" ])
+        graph.Nodes["workspace/path#apps/overridden:build"].Locks |> should equal (Set [ "other-resource" ])
+        graph.Nodes["workspace/path#apps/unlocked:build"].Locks.IsEmpty |> should equal true
+
+        writeFile root "WORKSPACE" """
+workspace {}
+
+target build {
+  lock = "replacement-lock"
+}
+
+extension @shell {}
+"""
+
+        let _, updatedConfig = Configuration.read (baseOptions root (Set [ "build" ]))
+        let updatedInherited = updatedConfig.Projects["workspace/path#apps/inherited"].Targets["build"]
+
+        updatedInherited.Lock |> should equal (Some "replacement-lock")
         updatedInherited.Hash |> should equal inherited.Hash)
 
 [<Test>]

@@ -14,6 +14,7 @@ let private buildNode id dependencies phase action artifacts build required =
       Node.ProjectDir = id
       Node.Target = "build"
       Node.Phase = phase
+      Node.Locks = Set.empty
       Node.Dependencies = dependencies
       Node.PhaseDependencies = Set.empty
       Node.Outputs = Set.empty

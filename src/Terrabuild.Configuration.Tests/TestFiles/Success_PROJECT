@@ -37,6 +37,7 @@ project id {
 target build {
   depends_on = [ target.dist ]
   batch = ~partition
+  lock = "nuget-tools"
   environment_sensitive = true
   @dotnet build { }
 }

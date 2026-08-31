@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Serialize targets that declare the same named lock across concurrent Terrabuild processes.
 - Keep execution diagnostics stable when concurrent containers use unique names.
 - Restore cached outputs transactionally without exposing cache directories to the runner.
 - Pass container arguments without shell re-parsing and isolate concurrent container names.

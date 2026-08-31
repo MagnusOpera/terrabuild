@@ -59,6 +59,7 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.ProjectDir = projectDir
       GraphDef.Node.Target = "build"
       GraphDef.Node.Phase = None
+      GraphDef.Node.Locks = Set.empty
       GraphDef.Node.Dependencies = Set.empty
       GraphDef.Node.PhaseDependencies = Set.empty
       GraphDef.Node.Outputs = Set.empty
