@@ -223,6 +223,8 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit) =
             | true, summary -> Some (Cache.Origin.Local, summary)
             | _ -> None
 
+        member _.CanRestore _useRemote _id _summary = true
+
         member _.TryGetSummary _useRemote id =
             match summaries.TryGetValue(id) with
             | true, summary -> Some summary

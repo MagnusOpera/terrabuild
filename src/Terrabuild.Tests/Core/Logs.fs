@@ -120,6 +120,7 @@ let private buildFailedTargetSummary (logFile: string) =
 type private FakeCache(summaries: Map<string, Origin * TargetSummary>) =
     interface ICache with
         member _.TryGetSummaryOnly _ id = summaries |> Map.tryFind id
+        member _.CanRestore _ _ _ = true
         member _.TryGetSummary _ id = summaries |> Map.tryFind id |> Option.map snd
         member _.Restore _ id _outputs _projectDirectory = summaries |> Map.tryFind id |> Option.map snd
         member _.GetEntry _ _ = raise (NotImplementedException("unused in Logs tests"))

@@ -65,9 +65,12 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
                     let cache = cacheEvidence "hit" origin (Some "failure") (Some summary.EndedAt)
                     (record RunAction.Summary "cached-failure" [] cache, summary.EndedAt)
                 // task is cached
-                else
+                elif cache.CanRestore useRemote cacheEntryId summary then
                     let cache = cacheEvidence "hit" origin (Some "success") (Some summary.EndedAt)
                     (record RunAction.Restore "cache-hit" [] cache, summary.EndedAt)
+                else
+                    let cache = cacheEvidence "miss" origin (Some "success") (Some summary.EndedAt)
+                    (record RunAction.Exec "cache-outputs-missing" [] cache, DateTime.MaxValue)
             | _ ->
                 let cache = cacheEvidence "miss" None None None
                 (record RunAction.Exec "cache-miss" [] cache, DateTime.MaxValue)

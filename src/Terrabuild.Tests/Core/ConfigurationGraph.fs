@@ -98,6 +98,7 @@ type private NoopEntry() =
 type private NoopCache() =
     interface Cache.ICache with
         member _.TryGetSummaryOnly _useRemote _id = None
+        member _.CanRestore _useRemote _id _summary = false
         member _.TryGetSummary _useRemote _id = None
         member _.Restore _useRemote _id _outputs _projectDirectory = None
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
@@ -113,13 +114,17 @@ let private buildTargetSummary isSuccessful =
       Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
       Cache.TargetSummary.Cache = ArtifactMode.Workspace }
 
-type private SummaryCache(summaries: Map<string, Cache.TargetSummary>) =
+type private SummaryCache(summaries: Map<string, Cache.TargetSummary>, ?canRestore: bool) =
+
+    let canRestore = defaultArg canRestore true
 
     interface Cache.ICache with
         member _.TryGetSummaryOnly _useRemote id =
             summaries
             |> Map.tryFind id
             |> Option.map (fun summary -> Cache.Origin.Local, summary)
+
+        member _.CanRestore _useRemote _id _summary = canRestore
 
         member _.TryGetSummary _useRemote id =
             summaries |> Map.tryFind id
@@ -1251,6 +1256,33 @@ target build { @shell echo { args = "build" } }
         hit.Reason |> should equal "cache-hit"
         hit.Cache.Value.Lookup |> should equal "hit"
         hit.Cache.Value.Origin |> should equal (Some "local"))
+
+[<Test>]
+let ``Action rebuilds a successful summary whose outputs are unavailable offline`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build {
+  outputs = ["dist/**"]
+  artifacts = ~managed
+}
+"""
+        writeFile workspace "src/a/PROJECT" """
+project a { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false; LocalOnly = true }
+        let uncached = runPipeline options
+        let node = uncached.ResolvedGraph.Nodes["workspace/path#src/a:build"]
+        let cachedSummary = { buildTargetSummary true with HasOutputs = true; Cache = ArtifactMode.Managed }
+        let cache = SummaryCache(Map [ GraphDef.buildCacheKey node, cachedSummary ], canRestore = false) :> Cache.ICache
+
+        let stages = runPipelineWithCache cache options
+
+        stages.ActionGraph.Nodes[node.Id].Action |> should equal RunAction.Exec
+        let decision = actionDecision node.Id
+        decision.Reason |> should equal "cache-outputs-missing"
+        decision.Cache.Value.Lookup |> should equal "miss")
 
 [<Test>]
 let ``Action diagnostics identify dependencies that propagate execution`` () =

@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Rebuild offline targets when a cached summary exists without its managed outputs.
 - Report named locks and lock-wait timing separately from target execution.
 - Keep batch output and log staging inside named target lock leases.
 - Remove idle target lock files with `terrabuild clear --all`.

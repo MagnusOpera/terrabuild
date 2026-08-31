@@ -72,6 +72,7 @@ type IEntry =
 
 type ICache =
     abstract TryGetSummaryOnly: useRemote:bool -> id:string -> (Origin * TargetSummary) option
+    abstract CanRestore: useRemote:bool -> id:string -> summary:TargetSummary -> bool
     abstract TryGetSummary: useRemote:bool -> id:string -> TargetSummary option
     abstract Restore: useRemote:bool -> id:string -> outputs:string set -> projectDirectory:string -> TargetSummary option
     abstract GetEntry: useRemote:bool -> id:string -> IEntry
@@ -452,6 +453,13 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
     interface ICache with
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
+
+        member _.CanRestore useRemote id summary =
+            if not summary.HasOutputs || useRemote then
+                true
+            else
+                let entryDir = FS.combinePath (createCache()) id
+                Directory.Exists(FS.combinePath entryDir "outputs")
 
         member _.TryGetSummary useRemote id =
             getSummaryOnly useRemote id |> Option.map snd

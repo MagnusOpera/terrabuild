@@ -136,6 +136,30 @@ let ``remote summary downloads become durable local entries`` () =
         ))
 
 [<Test>]
+let ``remote summary without downloaded outputs is not offline-restorable`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/remote-outputs"
+            let source = Path.Combine(root, "source")
+            Directory.CreateDirectory(source) |> ignore
+            let output = Path.Combine(source, "artifact.txt")
+            File.WriteAllText(output, "artifact")
+
+            let producer = Cache.Cache(storage, None) :> Cache.ICache
+            let entry = producer.GetEntry true id
+            entry.StoreOutputs source [ output ] |> ignore
+            entry.Complete(summary (Some "outputs")) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+
+            let consumer = Cache.Cache(storage, None) :> Cache.ICache
+            let _, downloadedSummary = consumer.TryGetSummaryOnly true id |> Option.get
+
+            consumer.CanRestore false id downloadedSummary |> should equal false
+            consumer.CanRestore true id downloadedSummary |> should equal true
+        ))
+
+[<Test>]
 let ``new entries publish atomically over completed entries`` () =
     withTempDir (fun root ->
         let storage = FakeStorage()

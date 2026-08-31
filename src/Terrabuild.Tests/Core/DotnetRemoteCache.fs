@@ -31,6 +31,9 @@ type private RecordingCache(inner: Cache.ICache) =
             summaryOnlyCalls.Enqueue(id)
             inner.TryGetSummaryOnly useRemote id
 
+        member _.CanRestore useRemote id summary =
+            inner.CanRestore useRemote id summary
+
         member _.TryGetSummary useRemote id =
             summaryCalls.Enqueue(id)
             inner.TryGetSummary useRemote id
