@@ -69,6 +69,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/scaffolding',
         'getting-started/graph',
         'getting-started/tasks',
+        'getting-started/target-policies',
         'getting-started/caching',
         'getting-started/insights',
         'getting-started/batch',

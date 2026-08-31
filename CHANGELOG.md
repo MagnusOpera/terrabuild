@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Add a decision guide for target scheduling, reuse, batching, environment, and locking policies.
 - Expose the `explain` command in the documentation navigation and command index.
 - Clarify how `terrabuild clear --all` treats idle and active target locks.
 - Document inherited named locks in the workspace and project target references.

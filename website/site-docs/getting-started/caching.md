@@ -1,7 +1,7 @@
 ---
 title: Caching
 
-prev: /docs/getting-started/tasks
+prev: /docs/getting-started/target-policies
 
 ---
 
