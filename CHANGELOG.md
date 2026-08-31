@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Pass container arguments without shell re-parsing and isolate concurrent container names.
 - Publish cache entries atomically and persist remotely downloaded summaries locally.
 - Encapsulate cache output and log storage behind the cache entry API.
 - Clarify that external cache hits reuse execution summaries without restoring artifact files.

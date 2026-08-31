@@ -19,6 +19,12 @@ let ``remove extra shell arg spaces``() =
     |> should equal "build --no-restore --no-dependencies \"--configuration\" Debug"
 
 [<Test>]
+let ``split shell args preserves quoted and empty values``() =
+    "build \"Project With Spaces.csproj\" --property='A B' \"\" escaped\\ value"
+    |> String.splitShellArgs
+    |> should equal [ "build"; "Project With Spaces.csproj"; "--property=A B"; ""; "escaped value" ]
+
+[<Test>]
 let ``slugify path``() =
     "libs/project.dir/path123"
     |> String.slugify

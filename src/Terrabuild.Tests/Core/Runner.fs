@@ -235,6 +235,7 @@ let ``buildCommands formats docker container requests through docker path on lin
             commands.Length |> should equal 1
 
             let metaCommand, workDir, cmd, args, image, errorLevel, envs, stdout = commands[0]
+            let args = Exec.renderArguments args
             metaCommand |> should equal "test"
             workDir |> should equal workspace
             cmd |> should equal "docker"
@@ -258,6 +259,37 @@ let ``buildCommands formats docker container requests through docker path on lin
             args |> should contain "build App.csproj"))
 
 [<Test>]
+let ``buildCommands preserves spaced paths and uses unique readable container names`` () =
+    withTempWorkspace (fun root ->
+        let workspace = Path.Combine(root, "workspace with spaces")
+        Directory.CreateDirectory(workspace) |> ignore
+        let operation = buildOperation "dotnet" "build \"Project With Spaces.csproj\"" (Some "sdk:image")
+        let node = buildNode "workspace/path#src/My App:build" "src/My App" "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
+
+        let getArgs () =
+            let _, _, _, arguments, _, _, _, _ =
+                Runner.buildCommandsForRuntime linuxRuntime node options node.ProjectDir workspace workspace
+                |> List.exactlyOne
+            match arguments with
+            | Exec.Arguments.List args -> args
+            | _ -> Assert.Fail("Expected structured container arguments"); []
+
+        let first = getArgs ()
+        let second = getArgs ()
+        first |> should contain $"{workspace}:/terrabuild"
+        first |> should contain $"{workspace}:/terrabuild-home"
+        first |> should contain "Project With Spaces.csproj"
+
+        let containerName args =
+            args
+            |> List.windowed 2
+            |> List.find (fun pair -> pair.Head = "--name")
+            |> List.last
+        (containerName first).StartsWith("terrabuild-workspace-path-src-my-app-build-") |> should equal true
+        containerName first = containerName second |> should equal false)
+
+[<Test>]
 let ``buildCommands omits docker user mapping on macos`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")
@@ -268,6 +300,7 @@ let ``buildCommands omits docker user mapping on macos`` () =
         commands.Length |> should equal 1
 
         let _, _, cmd, args, _, _, _, _ = commands[0]
+        let args = Exec.renderArguments args
         cmd |> should equal "docker"
         args |> should not' (contain "--user 501:20"))
 
@@ -282,6 +315,7 @@ let ``buildCommands formats podman container requests through podman path on lin
         commands.Length |> should equal 1
 
         let _, workDir, cmd, args, _, _, _, _ = commands[0]
+        let args = Exec.renderArguments args
         workDir |> should equal workspace
         cmd |> should equal "podman"
         args |> should contain "--entrypoint dotnet"
@@ -303,6 +337,7 @@ let ``buildCommands mounts docker socket only for docker client commands`` () =
         commands.Length |> should equal 1
 
         let _, _, _, args, _, _, _, _ = commands[0]
+        let args = Exec.renderArguments args
         args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock")
 
 [<Test>]
@@ -315,6 +350,7 @@ let ``buildCommands uses explicit host path when engine is host even with image`
         commands.Length |> should equal 1
 
         let _, workDir, cmd, args, image, _, _, _ = commands[0]
+        let args = Exec.renderArguments args
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/env"
         args |> should equal "printenv"
@@ -331,6 +367,7 @@ let ``buildCommands uses host path when operation has no image regardless of eng
         commands.Length |> should equal 1
 
         let _, workDir, cmd, args, image, _, _, _ = commands[0]
+        let args = Exec.renderArguments args
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/true"
         args |> should equal "--flag"

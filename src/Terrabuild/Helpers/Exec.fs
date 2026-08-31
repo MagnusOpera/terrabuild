@@ -100,16 +100,34 @@ module Native =
 // ----------------------
 let private children = ConcurrentBag<Process>()
 
+[<RequireQualifiedAccess>]
+type Arguments =
+    | Raw of string
+    | List of string list
+
+let renderArguments = function
+    | Arguments.Raw args -> args
+    | Arguments.List args ->
+        args
+        |> List.map (fun arg ->
+            if arg = "" || arg |> Seq.exists Char.IsWhiteSpace then
+                let escaped = arg.Replace("\\", "\\\\").Replace("\"", "\\\"")
+                $"\"{escaped}\""
+            else arg)
+        |> String.join " "
 
 
 
-let private createProcess workingDir command args envs redirect =
+let private createProcess workingDir command arguments envs redirect =
     let psi = ProcessStartInfo (FileName = command,
-                                Arguments = args,
                                 UseShellExecute = false,
                                 WorkingDirectory = workingDir,
                                 RedirectStandardOutput = redirect,
                                 RedirectStandardError = redirect)
+
+    match arguments with
+    | Arguments.Raw args -> psi.Arguments <- args
+    | Arguments.List args -> args |> List.iter psi.ArgumentList.Add
 
     envs |> Map.iter (fun key value -> psi.EnvironmentVariables[key] <- value)
 
@@ -149,22 +167,27 @@ type CaptureResult =
 
 let execCaptureOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
     Log.Debug("Running and capturing output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
-    use proc = createProcess workingDir command args envs true
+    use proc = createProcess workingDir command (Arguments.Raw args) envs true
     proc.WaitForExit()
 
     match proc.ExitCode with
     | 0 -> Success (proc.StandardOutput.ReadToEnd(), proc.ExitCode)
     | _ -> Error (proc.StandardError.ReadToEnd(), proc.ExitCode)
 
-let execConsole (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
+let execConsoleArguments (workingDir: string) (command: string) arguments (envs: Map<string, string>) =
+    let args = renderArguments arguments
     try
-        use proc = createProcess workingDir command args envs false
+        use proc = createProcess workingDir command arguments envs false
         proc.WaitForExit()
         proc.ExitCode
     with
         | exn -> forwardExternalError($"Process '{command}' with arguments '{args}' in directory '{workingDir}' failed", exn)
 
-let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) captureStdout =
+let execConsole (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
+    execConsoleArguments workingDir command (Arguments.Raw args) envs
+
+let execCaptureTimestampedOutputArguments (workingDir: string) (command: string) arguments (envs: Map<string, string>) (logFile: string) captureStdout =
+    let args = renderArguments arguments
     try
         use logWriter = new StreamWriter(logFile)
         let stdout = if captureStdout then Some (StringBuilder()) else None
@@ -180,7 +203,7 @@ let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: s
             | _ -> ()
 
         Log.Debug("Running and capturing timestamped output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
-        use proc = createProcess workingDir command args envs true
+        use proc = createProcess workingDir command arguments envs true
         proc.OutputDataReceived.Add(fun e -> lockWrite true e.Data)
         proc.ErrorDataReceived.Add(fun e -> lockWrite false e.Data)
         proc.BeginOutputReadLine()
@@ -189,3 +212,6 @@ let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: s
         proc.ExitCode, (stdout |> Option.map string)
     with
         | exn -> forwardExternalError($"Process '{command}' with arguments '{args}' in directory '{workingDir}' failed", exn)
+
+let execCaptureTimestampedOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) (logFile: string) captureStdout =
+    execCaptureTimestampedOutputArguments workingDir command (Arguments.Raw args) envs logFile captureStdout

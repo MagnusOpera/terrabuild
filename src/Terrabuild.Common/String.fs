@@ -59,6 +59,60 @@ let normalizeShellArgs (input: string) : string =
 
     sb.ToString().Trim()
 
+let splitShellArgs (input: string) =
+    let args = ResizeArray<string>()
+    let current = StringBuilder()
+    let mutable quote: char option = None
+    let mutable started = false
+
+    let complete () =
+        if started then
+            args.Add(current.ToString())
+            current.Clear() |> ignore
+            started <- false
+
+    let mutable index = 0
+    while index < input.Length do
+        let ch = input[index]
+        match quote, ch with
+            | Some '\'', '\''
+            | Some '"', '"' ->
+                quote <- None
+                started <- true
+            | Some '\'', _ ->
+                current.Append(ch) |> ignore
+                started <- true
+            | Some '"', '\\' ->
+                if index + 1 < input.Length && (input[index + 1] = '\\' || input[index + 1] = '"') then
+                    index <- index + 1
+                    current.Append(input[index]) |> ignore
+                else
+                    current.Append(ch) |> ignore
+                started <- true
+            | Some '"', _ ->
+                current.Append(ch) |> ignore
+                started <- true
+            | None, ('\'' | '"') ->
+                quote <- Some ch
+                started <- true
+            | None, '\\' ->
+                if index + 1 < input.Length then
+                    index <- index + 1
+                    current.Append(input[index]) |> ignore
+                else
+                    current.Append(ch) |> ignore
+                started <- true
+            | None, ch when Char.IsWhiteSpace(ch) -> complete ()
+            | None, _ ->
+                current.Append(ch) |> ignore
+                started <- true
+            | Some _, _ -> failwith "Unsupported command-line quote"
+        index <- index + 1
+
+    if quote.IsSome then invalidArg (nameof input) "Unterminated quote in command arguments"
+    complete ()
+    args |> List.ofSeq
+
 let slugify (s: string) =
     let replace (m: string) (r: string) (s: string) = Regex.Replace(s, m, r)
     let s =

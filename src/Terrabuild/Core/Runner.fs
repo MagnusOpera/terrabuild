@@ -41,7 +41,7 @@ type Summary = {
     Nodes: Map<string, NodeInfo>
 }
 
-type private BuiltCommand = string * string * string * string * string option * int * Map<string, string> * string option
+type private BuiltCommand = string * string * string * Exec.Arguments * string option * int * Map<string, string> * string option
 
 type internal HostRuntime = {
     Platform: Environment.HostPlatform
@@ -86,12 +86,10 @@ let private detectHostRuntime () =
       GroupId = groupId }
 
 let private formatPlatform (operation: GraphDef.ContaineredShellOperation) =
-    operation.Platform |> Option.map (fun platform -> $"--platform={platform}") |> Option.defaultValue ""
+    operation.Platform |> Option.map (fun platform -> $"--platform={platform}")
 
 let private formatCpus (operation: GraphDef.ContaineredShellOperation) =
-    match operation.Cpus with
-    | Some cpus -> $"--cpus={cpus}"
-    | _ -> ""
+    operation.Cpus |> Option.map (fun cpus -> $"--cpus={cpus}")
 
 let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) containerHome =
     let matcher = Matcher()
@@ -100,7 +98,7 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
         [ "HOME", containerHome
           "TERRABUILD_HOME", containerHome
           "TMPDIR", containerTmp ]
-        |> List.map (fun (key, value) -> $"-e {key}={value}")
+        |> List.collect (fun (key, value) -> [ "-e"; $"{key}={value}" ])
 
     let passthroughEnvs =
         envVars()
@@ -109,28 +107,28 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
             let value = entry.Value
             if matcher.Match([ key ]).HasMatches then
                 let expandedValue = value |> expandTerrabuildHome containerHome
-                if value = expandedValue then Some $"-e {key}"
-                else Some $"-e {key}={expandedValue}"
+                if value = expandedValue then Some [ "-e"; key ]
+                else Some [ "-e"; $"{key}={expandedValue}" ]
             else None)
+        |> Seq.collect id
         |> List.ofSeq
 
     [ yield! fixedEnvs
       yield! passthroughEnvs
-      yield! (operation.Envs.Keys |> Seq.map (fun key -> $"-e {key}")) ]
-    |> String.join " "
+      yield! (operation.Envs.Keys |> Seq.collect (fun key -> [ "-e"; key ])) ]
 
 let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
-    operation.MetaCommand, projectDirectory, operation.Command, operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
+    operation.MetaCommand, projectDirectory, operation.Command, Exec.Arguments.Raw operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
 
 let private requiresContainerSocket (command: string) =
     let fileName = command |> Path.GetFileName
     fileName = "docker"
 
 let private formatDockerMount source target =
-    $"-v {source}:{target}"
+    [ "-v"; $"{source}:{target}" ]
 
 let private formatPodmanMount source target =
-    $"--mount type=bind,src={source},target={target}"
+    [ "--mount"; $"type=bind,src={source},target={target}" ]
 
 let private buildDockerPolicy (runtime: HostRuntime) (operation: GraphDef.ContaineredShellOperation) homeDir tmpDir wsDir =
     let extraArgs =
@@ -138,15 +136,18 @@ let private buildDockerPolicy (runtime: HostRuntime) (operation: GraphDef.Contai
           "--pid=host"
           "--ipc=host"
           match runtime.Platform, runtime.UserId, runtime.GroupId with
-          | Environment.HostPlatform.Linux, Some userId, Some groupId -> $"--user {userId}:{groupId}"
+          | Environment.HostPlatform.Linux, Some userId, Some groupId ->
+              "--user"
+              $"{userId}:{groupId}"
           | _ -> ()
           if requiresContainerSocket operation.Command then
-              "-v /var/run/docker.sock:/var/run/docker.sock" ]
+              "-v"
+              "/var/run/docker.sock:/var/run/docker.sock" ]
 
     let mountArgs =
-        [ formatDockerMount homeDir containerHome
-          formatDockerMount tmpDir containerTmp
-          formatDockerMount wsDir "/terrabuild" ]
+        [ yield! formatDockerMount homeDir containerHome
+          yield! formatDockerMount tmpDir containerTmp
+          yield! formatDockerMount wsDir "/terrabuild" ]
 
     { EngineCommand = "docker"
       ExtraArgs = extraArgs
@@ -165,9 +166,9 @@ let private buildPodmanPolicy (runtime: HostRuntime) (operation: GraphDef.Contai
           | _ -> () ]
 
     let mountArgs =
-        [ formatPodmanMount homeDir containerHome
-          formatPodmanMount tmpDir containerTmp
-          formatPodmanMount wsDir "/terrabuild" ]
+        [ yield! formatPodmanMount homeDir containerHome
+          yield! formatPodmanMount tmpDir containerTmp
+          yield! formatPodmanMount wsDir "/terrabuild" ]
 
     { EngineCommand = "podman"
       ExtraArgs = extraArgs
@@ -180,31 +181,33 @@ let private buildContainerPolicy runtime engineRequestPath operation homeDir tmp
     | EngineRequestPath.Host -> invalidArg "engineRequestPath" "Host engine does not support container policy"
 
 let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node) (operation: GraphDef.ContaineredShellOperation) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir : BuiltCommand =
-    let wsDir = currentDir()
+    let wsDir = options.Workspace
     let platform = formatPlatform operation
     let cpus = formatCpus operation
     let image = operation.Image.Value
     let envs = formatContainerEnvs operation containerHome
     let policy = buildContainerPolicy runtime engineRequestPath operation homeDir tmpDir wsDir
+    let nodeSlug = node.Id |> String.slugify |> String.cut 35
+    let nonce = Guid.NewGuid().ToString("N").Substring(0, 12)
+    let containerName = $"terrabuild-{nodeSlug}-{nonce}"
     let runArgs =
         [ "run"
           "--rm"
-          $"--name {node.TargetHash}"
-          cpus ]
+          "--name"
+          containerName
+          yield! cpus |> Option.toList ]
         @ policy.ExtraArgs
         @ policy.MountArgs
-        @ [ $"-w /terrabuild/{projectDirectory}"
-            platform
-            $"--entrypoint {operation.Command}"
-            envs
+        @ [ "-w"
+            $"/terrabuild/{projectDirectory}"
+            yield! platform |> Option.toList
+            "--entrypoint"
+            operation.Command
+            yield! envs
             image
-            operation.Arguments ]
-    let args =
-        runArgs
-        |> List.filter (String.IsNullOrWhiteSpace >> not)
-        |> String.join " "
+            yield! operation.Arguments |> String.splitShellArgs ]
 
-    operation.MetaCommand, options.Workspace, policy.EngineCommand, args, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
+    operation.MetaCommand, options.Workspace, policy.EngineCommand, Exec.Arguments.List runArgs, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
 
 let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir
@@ -234,7 +237,8 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
     while cmdLineIndex < allCommands.Length && cmdLastSuccess do
         startedAt <- if cmdLineIndex > 0 then DateTime.UtcNow else cmdFirstStartedAt
-        let metaCommand, workDir, cmd, args, container, errorLevel, envs, stdout = allCommands[cmdLineIndex]
+        let metaCommand, workDir, cmd, arguments, container, errorLevel, envs, stdout = allCommands[cmdLineIndex]
+        let args = Exec.renderArguments arguments
         cmdLineIndex <- cmdLineIndex + 1
 
         Log.Debug("{NodeId}: running '{Command}' with '{Arguments}'", node.Id, cmd, args)
@@ -243,9 +247,9 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         try
             let exitCode, capturedStdout =
                 if options.Targets |> Set.contains "serve" && stdout.IsNone then
-                    Exec.execConsole workDir cmd args envs, None
+                    Exec.execConsoleArguments workDir cmd arguments envs, None
                 else
-                    Exec.execCaptureTimestampedOutput workDir cmd args envs logFile stdout.IsSome
+                    Exec.execCaptureTimestampedOutputArguments workDir cmd arguments envs logFile stdout.IsSome
 
             if exitCode <= errorLevel then
                 match stdout, capturedStdout with
