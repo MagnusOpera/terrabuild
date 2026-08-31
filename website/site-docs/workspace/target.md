@@ -83,4 +83,5 @@ The following arguments are supported:
   * `~workspace` - Cache artifacts in workspace cache
   * `~managed` - Cache artifacts in managed cache (Insights)
   * `~external` - The action manages its artifacts externally; Terrabuild caches only the execution summary and never restores artifact files
+* `lock` - (Optional) Name a machine-global resource that matching targets must use exclusively. Targets with the same name are serialized across threads and concurrent Terrabuild processes. The lock covers command execution, batch output staging, and restoration of declared workspace or managed outputs. A project target inherits this value, may replace it, or may opt out with `lock = nothing`. Lock ownership is released automatically when the process terminates.
 * `environment_sensitive` - (Optional) Default opt-in for matching project targets. Omitted targets are environment-neutral. Set it to `true` only for targets whose operations intentionally depend on environment-sensitive predefined variables. A project target may override this boolean.

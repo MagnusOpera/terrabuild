@@ -41,6 +41,7 @@ The following arguments are supported:
   * `~workspace` - Cache artifacts in workspace cache
   * `~managed` - Cache artifacts in managed cache (Insights)
   * `~external` - The action manages its artifacts externally; Terrabuild caches only the execution summary and never restores artifact files
+* `lock` - (Optional) Name a machine-global resource that this target must use exclusively. Targets with the same name are serialized across threads and concurrent Terrabuild processes. The lock covers command execution, batch output staging, and restoration of declared workspace or managed outputs. If omitted, the matching workspace target value is inherited; use `lock = nothing` to opt out. Lock ownership is released automatically when the process terminates.
 * `environment_sensitive` - (Optional) Set to `true` to opt this target into consuming environment-sensitive predefined variables. If omitted, the matching workspace target value is inherited; otherwise the target is neutral. A neutral consumer fails before operation resolution. For an opted-in target, sensitive value hashes participate in its cache key. `explain`, debug JSON, and the local console report the resulting sensitivity status.
 * `commands` - (Optional) List of commands (actions) to run to complete the target. Commands execute in order. Syntax is `@extension action { arguments }`. Each command is an action provided by an extension (e.g., `@dotnet build`, `@npm install`).
 
