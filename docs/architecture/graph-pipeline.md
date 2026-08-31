@@ -129,7 +129,7 @@ Adds batch execution nodes after actions and required flags are known.
 
 ## TargetLock.fs and Runner.run
 
-Executing nodes acquire their named locks in deterministic order before commands start. Lock files live under the user-global Terrabuild profile rather than the workspace or mounted build home. Ownership is represented by an open handle with exclusive sharing, so locks coordinate separate Terrabuild processes and are released automatically after exceptions, process termination, or reboot. Cache hits do not execute and therefore do not acquire target locks. Batch leases cover member log and output staging; cache entry publication remains protected independently by per-entry cache locks. Progress and diagnostics distinguish lock waiting from command execution, and diagnostic graph nodes expose their lock names.
+Executing nodes acquire their named locks in deterministic order before commands start. Managed and workspace cache hits acquire the same locks before replacing declared outputs; summary-only external cache hits do not. Lock files live under the user-global Terrabuild profile rather than the workspace or mounted build home. Ownership is represented by an open handle with exclusive sharing, so locks coordinate separate Terrabuild processes and are released automatically after exceptions, process termination, or reboot. Batch leases cover member log and output staging; cache entry publication remains protected independently by per-entry cache locks. Progress and diagnostics distinguish lock waiting from command execution or restore time, and diagnostic graph nodes expose their lock names.
 
 ## Debug outputs
 

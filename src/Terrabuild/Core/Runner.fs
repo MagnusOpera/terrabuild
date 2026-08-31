@@ -449,6 +449,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         DiagnosticsTelemetry.recordTask node.Id "summary-ended"
 
     let restoreNode (node: GraphDef.Node) =
+        let restoreLocks =
+            match node.Artifacts with
+            | GraphDef.ArtifactMode.Workspace
+            | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty -> node.Locks
+            | _ -> Set.empty
+        use _targetLocks = acquireTargetLocks node.Id [ node.Id ] restoreLocks
         DiagnosticsTelemetry.recordTask node.Id "restore-started"
         Log.Debug("{NodeId}: restoring Node", node.Id)
         buildProgress.TaskDownloading node.Id

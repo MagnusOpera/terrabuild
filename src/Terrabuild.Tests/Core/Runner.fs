@@ -204,13 +204,14 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
             completed.Add(id)
             [ $"artifact-{id}" ]
 
-type private FakeCache(root: string, ?onStoreOutputs: unit -> unit) =
+type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: unit -> unit) =
     let completed = ResizeArray<string>()
     let entries = Dictionary<string, FakeEntry>()
     let opened = ResizeArray<string>()
     let summaries = Dictionary<string, Cache.TargetSummary>()
     let restoreOutputs = Dictionary<string, string>()
     let onStoreOutputs = defaultArg onStoreOutputs ignore
+    let onRestore = defaultArg onRestore ignore
 
     member _.Completed = completed |> Seq.toList
     member _.Opened = opened |> Seq.toList
@@ -231,6 +232,7 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit) =
             | _ -> None
 
         member _.Restore _useRemote id outputs projectDirectory =
+            onRestore()
             match summaries.TryGetValue(id) with
             | true, summary ->
                 match restoreOutputs.TryGetValue(id) with
@@ -620,6 +622,51 @@ let ``batch output staging completes while named target lock is held`` () =
             summary.IsSuccess |> should equal true
             observedLease |> should equal true
             cache.Completed |> should equal [ GraphDef.buildCacheKey memberNode ]))
+
+[<Test>]
+let ``managed output restore completes while named target lock is held`` () =
+    withTempWorkspace (fun workspace ->
+        withEnvironmentVariable "HOME" workspace (fun () ->
+            let projectDir = Path.Combine(workspace, "project")
+            Directory.CreateDirectory(projectDir) |> ignore
+            let lockName = "restore-finalization"
+            let lockPath = TargetLock.lockFilePath (Path.Combine(workspace, ".terrabuild")) lockName
+            let mutable observedLease = false
+
+            let assertLeaseHeld () =
+                try
+                    use _stream = new FileStream(lockPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                    observedLease <- false
+                with :? IOException ->
+                    observedLease <- true
+
+            let node =
+                { buildNode "restore-node" projectDir "build" GraphDef.RunAction.Restore [] with
+                    Locks = Set [ lockName ]
+                    Outputs = Set [ "generated/**" ]
+                    Artifacts = GraphDef.ArtifactMode.Managed }
+            let graph =
+                { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+                  GraphDef.Graph.RootNodes = Set [ node.Id ]
+                  GraphDef.Graph.Batches = Map.empty
+                  GraphDef.Graph.Phases = Map.empty }
+            let cache = FakeCache(workspace, onRestore = assertLeaseHeld)
+            let cachedSummary =
+                { Cache.TargetSummary.Project = node.ProjectDir
+                  Cache.TargetSummary.Target = node.Target
+                  Cache.TargetSummary.Operations = []
+                  Cache.TargetSummary.HasOutputs = true
+                  Cache.TargetSummary.IsSuccessful = true
+                  Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+                  Cache.TargetSummary.EndedAt = DateTime.UtcNow
+                  Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+                  Cache.TargetSummary.Cache = node.Artifacts }
+            cache.SetSummary(GraphDef.buildCacheKey node, cachedSummary)
+
+            let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph
+
+            summary.IsSuccess |> should equal true
+            observedLease |> should equal true))
 
 [<Test>]
 let ``named target lock waits are reported separately from execution`` () =

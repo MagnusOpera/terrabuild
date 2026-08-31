@@ -220,4 +220,4 @@ target gen {
 }
 ```
 
-The matching workspace target provides the default lock for project targets. A project target may replace it or use `lock = nothing` to opt out. Cache hits do not acquire the lock. Executing nodes and batches sharing a name are serialized across both threads and Terrabuild processes through an exclusive file lease under the user-global Terrabuild profile. The lease is released by the operating system if the owning process terminates.
+The matching workspace target provides the default lock for project targets. A project target may replace it or use `lock = nothing` to opt out. Executing nodes, batches, and cache hits that restore declared files acquire the lock; summary-only external cache hits do not. Operations sharing a name are serialized across both threads and Terrabuild processes through an exclusive file lease under the user-global Terrabuild profile. The lease is released by the operating system if the owning process terminates.
