@@ -109,7 +109,7 @@ Marks the nodes that the runner must visit.
 - A node becomes required when a dependent is both required and executing.
 - `Restore` and `Summary` nodes are realization barriers: their cached result does not require their own build-time dependencies.
 - `Ignore` nodes are not required.
-- `Restore` nodes with `Artifacts = External` are not required unless a dependent requires them.
+- `Restore` nodes with `Artifacts = External` are never scheduled: the successful summary is sufficient because the artifact is managed outside Terrabuild.
 
 ## Batch.fs
 
@@ -139,7 +139,7 @@ Synthetic batch scheduler nodes are represented under `batches` and `executions`
 - Lazy dependencies behind a restored or summarized node are not realized unless another executing node requires them directly.
 - Failed cached selected roots remain runner roots as `Summary`, so failures are reported correctly.
 - Successful restore roots are skipped unless a dependent requires them.
-- External restore nodes are skipped unless a dependent requires them.
+- External cache hits reuse only the execution summary; Terrabuild never restores externally managed artifacts, even when an executing target depends on them.
 - Missing target references are permissive inside dependency expansion: `target.name` and `target.^name` add only targets that exist in the relevant project scope.
 - Circular target dependency chains are invalid and reported during graph construction.
 - Environment-sensitive predefined inputs are invalid unless the consuming target explicitly sets `environment_sensitive = true`.

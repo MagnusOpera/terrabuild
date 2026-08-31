@@ -44,7 +44,7 @@ Targets control where their outputs are managed through the `artifacts` setting:
 - `~none`: do not cache outputs
 - `~workspace`: store outputs in the local cache
 - `~managed`: store outputs in the encrypted Insights cache when connected
-- `~external`: the action manages its artifacts externally; Terrabuild keeps the summary
+- `~external`: the action manages its artifacts externally; Terrabuild keeps only the execution summary and never restores artifact files
 
 See the [Target Block reference](/docs/project/target) for target-level configuration.
 

@@ -1156,6 +1156,41 @@ target plan { @shell echo { args = "plan" } }
         stages.CascadedGraph.Nodes[planId].Required |> should equal true)
 
 [<Test>]
+let ``Cascade never restores externally managed artifacts`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target image {
+  outputs = []
+  artifacts = ~external
+}
+
+target build {
+  outputs = []
+  artifacts = ~none
+  depends_on = [ target.image ]
+}
+"""
+        writeFile workspace "src/app/PROJECT" """
+project app { @shell {} }
+target image { @shell echo { args = "publish image" } }
+target build { @shell echo { args = "consume image" } }
+"""
+
+        let options = { baseOptions workspace (Set [ "build" ]) with Force = false }
+        let uncached = runPipeline options
+        let imageId = "workspace/path#src/app:image"
+        let buildId = "workspace/path#src/app:build"
+        let imageCacheKey = GraphDef.buildCacheKey uncached.ResolvedGraph.Nodes[imageId]
+        let stages = runPipelineWithCache (successCache [ imageCacheKey ]) options
+
+        stages.ActionGraph.Nodes[imageId].Action |> should equal RunAction.Restore
+        stages.ActionGraph.Nodes[buildId].Action |> should equal RunAction.Exec
+        stages.CascadedGraph.Nodes[imageId].Required |> should equal false
+        stages.CascadedGraph.Nodes[buildId].Required |> should equal true)
+
+[<Test>]
 let ``Action diagnostics distinguish forced and configured always builds`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """

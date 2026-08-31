@@ -40,7 +40,7 @@ The following arguments are supported:
   * `~none` - Do not cache artifacts
   * `~workspace` - Cache artifacts in workspace cache
   * `~managed` - Cache artifacts in managed cache (Insights)
-  * `~external` - Cache artifacts externally
+  * `~external` - The action manages its artifacts externally; Terrabuild caches only the execution summary and never restores artifact files
 * `environment_sensitive` - (Optional) Set to `true` to opt this target into consuming environment-sensitive predefined variables. If omitted, the matching workspace target value is inherited; otherwise the target is neutral. A neutral consumer fails before operation resolution. For an opted-in target, sensitive value hashes participate in its cache key. `explain`, debug JSON, and the local console report the resulting sensitivity status.
 * `commands` - (Optional) List of commands (actions) to run to complete the target. Commands execute in order. Syntax is `@extension action { arguments }`. Each command is an action provided by an extension (e.g., `@dotnet build`, `@npm install`).
 
