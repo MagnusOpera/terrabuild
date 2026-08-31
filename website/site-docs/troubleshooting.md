@@ -16,7 +16,7 @@ terrabuild explain deploy --environment staging
 
 For each node, it reports selection, dependencies, action and reason, cache evidence, evaluated inputs, environment sensitivity, resolved operations, named locks, batch membership, and final scheduling outcome without executing commands. Use a real run with `--debug` only when the question concerns command output, actual timing, or a failure during execution.
 
-See the [`explain` command](/docs/usage/explain) and [target policy guide](/docs/getting-started/target-policies) for the fields and policies behind the decision.
+See the [`explain` command](./usage/explain) and [target policy guide](./getting-started/target-policies) for the fields and policies behind the decision.
 
 ## Target rebuilt unexpectedly
 
@@ -57,13 +57,13 @@ If the summary exists but the required archive does not, the action reason is `c
 
 Execution propagates through ordinary target dependencies unless the executing prerequisite uses `build = ~lazy`. Use lazy mode for setup or generation that must be available to executing consumers but whose execution should not invalidate otherwise reusable downstream results.
 
-Phase dependencies behave differently: they enforce selection, ordering, and success, but execution in a prerequisite phase does not by itself force a downstream target with a valid cache entry to execute. Use [phases](/docs/workspace/phase) for workspace-wide barriers and direct dependencies for concrete producer-consumer relationships.
+Phase dependencies behave differently: they enforce selection, ordering, and success, but execution in a prerequisite phase does not by itself force a downstream target with a valid cache entry to execute. Use [phases](./workspace/phase) for workspace-wide barriers and direct dependencies for concrete producer-consumer relationships.
 
 ## Compatible targets were not batched
 
 Common reasons include a single compatible required node, no member that needs execution, a non-batchable command, different cluster identities, `batch = ~never`, different phases, or an external dependency cycle that prevents safe contraction.
 
-The [batch guide](/docs/getting-started/batch#why-no-batch-was-created) explains each case. Remember that `batch = ~never` creates individual commands but does not make them sequential.
+The [batch guide](./getting-started/batch#why-no-batch-was-created) explains each case. Remember that `batch = ~never` creates individual commands but does not make them sequential.
 
 ## Target is waiting for a named lock
 

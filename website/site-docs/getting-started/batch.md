@@ -37,7 +37,7 @@ Batching is decided after Terrabuild has assigned build, restore, and summary ac
 | `~partition` | Independent dependency components should remain isolated while connected projects still benefit from native batching. | Creates more invocations than `~single`, but a disconnected component cannot enlarge or fail another component's batch. |
 | `~never` | Every project must have its own command for correctness, project-specific diagnostics, or comparison while investigating batch behavior. | Removes native batching benefits. Individual nodes may still execute concurrently when the graph allows it. |
 
-`batch = ~never` does **not** serialize targets. If separate commands collide on a shared NuGet tool directory, SDK installation, generator cache, or other machine-global resource, use a named [`lock`](/docs/getting-started/target-policies#serialize-shared-machine-state-with-a-named-lock). A lock controls concurrency; batch mode controls command grouping.
+`batch = ~never` does **not** serialize targets. If separate commands collide on a shared NuGet tool directory, SDK installation, generator cache, or other machine-global resource, use a named [`lock`](./target-policies#serialize-shared-machine-state-with-a-named-lock). A lock controls concurrency; batch mode controls command grouping.
 
 ## Examples
 

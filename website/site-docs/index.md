@@ -41,7 +41,7 @@ Read [Deployment](getting-started/deployment) for a complete example with enviro
 
 Terrabuild fingerprints the files, dependency state, commands, and evaluated inputs known to each target. A matching fingerprint can restore Terrabuild-managed outputs or reuse the successful summary of an externally managed artifact instead of executing the target again. Targets with side effects, such as deployment, should use `build = ~always` and `artifacts = ~none`.
 
-Read [Target policies](/docs/getting-started/target-policies) to choose target behavior and [Caching](/docs/getting-started/caching) for cache-key inputs and artifact ownership.
+Read [Target policies](getting-started/target-policies) to choose target behavior and [Caching](/docs/getting-started/caching) for cache-key inputs and artifact ownership.
 
 ## Keep the tools already in the repository
 

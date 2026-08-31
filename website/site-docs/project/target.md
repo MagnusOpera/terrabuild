@@ -5,7 +5,7 @@ title: Target block
 
 The `target` block defines one named operation for a project. A target can build, test, package, plan, deploy, or run another tool-specific sequence. Its commands run in declaration order after its dependencies succeed.
 
-Use [Target policies](/docs/getting-started/target-policies) to choose values from a use case. This page is the complete project-level syntax and inheritance reference.
+Use [Target policies](../getting-started/target-policies) to choose values from a use case. This page is the complete project-level syntax and inheritance reference.
 
 ## Example usage
 ```

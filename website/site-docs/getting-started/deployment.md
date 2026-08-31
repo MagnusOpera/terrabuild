@@ -44,7 +44,7 @@ The policies reflect the ownership and lifetime of each result:
 - `build = ~always` makes every selected deployment perform the side effect even when its declared inputs match an earlier run.
 - `artifacts = ~none` prevents a previous application from becoming a reusable result for a new deployment request.
 
-These settings are deliberate, not a required template. Use `artifacts = ~workspace` when a plan must remain on one machine, and keep the inferred/default artifact mode when the extension already expresses the intended ownership. See [Target policies](/docs/getting-started/target-policies) for the decision guide.
+These settings are deliberate, not a required template. Use `artifacts = ~workspace` when a plan must remain on one machine, and keep the inferred/default artifact mode when the extension already expresses the intended ownership. See [Target policies](./target-policies) for the decision guide.
 
 The deployment project names the application projects as dependencies. That relationship gives `target.^dist` its upstream project set.
 

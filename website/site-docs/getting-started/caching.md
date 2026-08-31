@@ -52,7 +52,7 @@ The target's `outputs` patterns define the files stored for `~workspace` and `~m
 
 `artifacts` and `build` answer different questions. Artifact mode controls whether a result can be retained and restored. Build mode controls when execution is required and whether dependency execution propagates to dependents. For example, `artifacts = ~external` normally reuses a successful publication summary, while `build = ~always` deliberately executes again despite that summary.
 
-See [Target policies](/docs/getting-started/target-policies) for the complete decision model and the [Target Block reference](/docs/project/target) for syntax.
+See [Target policies](./target-policies) for the complete decision model and the [Target Block reference](/docs/project/target) for syntax.
 
 ## Common caching policies
 

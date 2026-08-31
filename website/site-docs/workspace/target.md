@@ -6,7 +6,7 @@ title: Target block
 The `target` block defines workspace-wide behavior for a target name.
 Use it to declare defaults such as dependency rules, cacheability, batch mode, and an optional [phase](./phase) that apply across projects unless overridden in `PROJECT`.
 
-Use [Target policies](/docs/getting-started/target-policies) to choose values from a use case. This page is the complete workspace-level syntax and inheritance reference.
+Use [Target policies](../getting-started/target-policies) to choose values from a use case. This page is the complete workspace-level syntax and inheritance reference.
 
 ## Dependency syntax
 

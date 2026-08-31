@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep links to the Next-only target policy guide within the active documentation version.
 - Correct target reference examples to keep managed files separate from external images.
 - Explain deployment target policies through plan ownership and side-effect use cases.
 - Connect introductory and reference documentation to the target policy decision guide.

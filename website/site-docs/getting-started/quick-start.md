@@ -128,7 +128,7 @@ The attributes are policies rather than boilerplate:
 - `deploy` is a side effect, so it always executes and retains no reusable result.
 - The `dist` commands below finish with Docker builds. Docker owns those images, so their inferred artifact mode is external and Terrabuild reuses only their execution summaries.
 
-The [Target policies](/docs/getting-started/target-policies) guide explains when to choose different values.
+The [Target policies](./target-policies) guide explains when to choose different values.
 
 ```hcl {filename="src/apps/webapi/PROJECT"}
 project webapi {
@@ -238,7 +238,7 @@ The graph includes the application `dist` targets required by `plan`, followed b
 - [Key concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
 - [Graph](/docs/getting-started/graph): Understand the build graph structure
 - [Tasks](/docs/getting-started/tasks): See how tasks execute
-- [Target policies](/docs/getting-started/target-policies): Choose scheduling, caching, batching, environment, and lock behavior
+- [Target policies](./target-policies): Choose scheduling, caching, batching, environment, and lock behavior
 - [Caching](/docs/getting-started/caching): See which inputs form a cache key
 
 ### Enable remote caching

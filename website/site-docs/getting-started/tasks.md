@@ -37,7 +37,7 @@ Scheduling tells Terrabuild **when** a task may proceed. Once ready, the task re
 
 The task graph treats each outcome as completion, but only a successful build or cache hit can satisfy dependent work. External artifacts remain in their registry or service and are never copied into the workspace. If a task fails, its dependents do not run.
 
-The next page, [Target policies](/docs/getting-started/target-policies), explains how target attributes control these scheduling and reuse decisions. [Caching](/docs/getting-started/caching) then describes reusable identities and storage in detail.
+The next page, [Target policies](./target-policies), explains how target attributes control these scheduling and reuse decisions. [Caching](/docs/getting-started/caching) then describes reusable identities and storage in detail.
 
 ## Propagating work
 

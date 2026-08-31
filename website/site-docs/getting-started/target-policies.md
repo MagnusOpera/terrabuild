@@ -75,7 +75,7 @@ target dist {
 
 Use a `phase` when the invariant applies to a whole workspace category. A prerequisite phase is a success barrier: selecting a downstream phased target enlists every target in the prerequisite phase, and none of the downstream phase starts until all enlisted work succeeds.
 
-Do not use a broad phase when one target needs one producer. Prefer a direct target or project dependency in that case so Terrabuild can keep unrelated work outside the selected graph. See [Phases](/docs/workspace/phase) for the complete selection and inheritance rules.
+Do not use a broad phase when one target needs one producer. Prefer a direct target or project dependency in that case so Terrabuild can keep unrelated work outside the selected graph. See [Phases](../workspace/phase) for the complete selection and inheritance rules.
 
 ## Choose a build mode
 
@@ -197,4 +197,4 @@ terrabuild explain build
 terrabuild explain deploy --environment staging
 ```
 
-For each selected target, verify the dependencies, assigned phase, action and reason, artifact mode, outputs, batch membership, environment-sensitive inputs, named locks, and final scheduling outcome. See the [`explain` command](/docs/usage/explain) for details.
+For each selected target, verify the dependencies, assigned phase, action and reason, artifact mode, outputs, batch membership, environment-sensitive inputs, named locks, and final scheduling outcome. See the [`explain` command](../usage/explain) for details.
