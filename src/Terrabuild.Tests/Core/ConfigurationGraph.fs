@@ -242,6 +242,7 @@ extension @shell {
 
 target build {
   environment_sensitive = true
+  lock = "deployment"
 }
 """
         writeFile workspace "PROJECT" """
@@ -280,6 +281,7 @@ target build {
         |> should equal [ "terrabuild.environment" ]
         node.EnvironmentSensitive |> should equal (Some true)
         node.EnvironmentSensitivityStatus |> should equal "opted-in"
+        node.Locks |> should equal [ "deployment" ]
         operation.ForwardedVariableNames |> should equal [ "CI" ]
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
@@ -294,6 +296,7 @@ target build {
         explanation |> should contain "terrabuild.environment"
         explanation |> should contain "environment-sensitive inputs:"
         explanation |> should contain "environment sensitivity: opted-in"
+        explanation |> should contain "locks: deployment"
         explanation |> should contain "forwarded variables: CI"
         explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
         explanation |> should not' (contain "sensitive-value"))

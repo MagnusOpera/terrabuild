@@ -14,6 +14,7 @@ locals {
 
 target build {
   depends_on = [ target.^build ]
+  lock = "basic-build"
 }
 
 target dist {

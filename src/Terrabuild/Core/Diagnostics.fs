@@ -73,6 +73,7 @@ type NodeReport = {
     OutcomeReason: string option
     Dependencies: string list
     PhaseDependencies: string list
+    Locks: string list
     Outputs: string list
     Artifacts: string
     Build: string
@@ -98,6 +99,7 @@ type BatchReport = {
     Members: string list
     Dependencies: string list
     Phase: string option
+    Locks: string list
     TargetHash: string
     OperationHashes: string list
 }
@@ -116,6 +118,7 @@ type ExecutionReport = {
     Id: string
     Kind: string
     Events: DiagnosticsTelemetry.TaskEvent list
+    LockWaitMs: float option
     DurationMs: float option
     Operations: OperationReport list
 }
@@ -276,6 +279,7 @@ let renderExplanation (report: Report) =
 
         appendValues builder "dependencies" "none" node.Dependencies
         appendValues builder "action dependencies" "none" node.ActionDependencies
+        appendValues builder "locks" "none" node.Locks
 
         match node.Cache with
         | Some cache ->
@@ -513,6 +517,7 @@ let private nodeReports
                 OutcomeReason = outcomeReason
                 Dependencies = effectiveNode.Dependencies |> Seq.sort |> List.ofSeq
                 PhaseDependencies = effectiveNode.PhaseDependencies |> Seq.sort |> List.ofSeq
+                Locks = effectiveNode.Locks |> Seq.sort |> List.ofSeq
                 Outputs = effectiveNode.Outputs |> Seq.sort |> List.ofSeq
                 Artifacts = (string effectiveNode.Artifacts).ToLowerInvariant()
                 Build = (string effectiveNode.Build).ToLowerInvariant()
@@ -547,6 +552,7 @@ let private batchReports (graph: GraphDef.Graph option) =
                 Members = members |> Seq.sort |> List.ofSeq
                 Dependencies = node.Dependencies |> Seq.sort |> List.ofSeq
                 Phase = node.Phase
+                Locks = node.Locks |> Seq.sort |> List.ofSeq
                 TargetHash = node.TargetHash
                 OperationHashes = node.Operations |> List.map (Json.Serialize >> Hash.sha256)
             })
@@ -575,7 +581,11 @@ let private results (summary: Runner.Summary option) =
 let private eventDuration (events: DiagnosticsTelemetry.TaskEvent list) =
     let started =
         events
-        |> List.tryFind (fun event -> event.Event.EndsWith("-started", StringComparison.Ordinal))
+        |> List.tryFind (fun event ->
+            event.Event = "execution-started"
+            || event.Event = "batch-started"
+            || event.Event = "restore-started"
+            || event.Event = "summary-started")
     let completed =
         events
         |> List.filter (fun event ->
@@ -585,6 +595,14 @@ let private eventDuration (events: DiagnosticsTelemetry.TaskEvent list) =
     match started, completed with
     | Some started, Some completed when completed.OffsetMs >= started.OffsetMs ->
         Some (roundMs (completed.OffsetMs - started.OffsetMs))
+    | _ -> None
+
+let private lockWaitDuration (events: DiagnosticsTelemetry.TaskEvent list) =
+    let waiting = events |> List.tryFind (fun event -> event.Event = "lock-wait-started")
+    let acquired = events |> List.tryFind (fun event -> event.Event = "lock-acquired")
+    match waiting, acquired with
+    | Some waiting, Some acquired when acquired.OffsetMs >= waiting.OffsetMs ->
+        Some (roundMs (acquired.OffsetMs - waiting.OffsetMs))
     | _ -> None
 
 let private executionReports
@@ -645,6 +663,7 @@ let private executionReports
             ExecutionReport.Id = taskId
             Kind = kind
             Events = events
+            LockWaitMs = lockWaitDuration events
             DurationMs = eventDuration events
             Operations = operations
         })
@@ -750,7 +769,7 @@ let build (context: Context) =
     let projects = telemetry.Projects |> List.map (fun project -> { project with DurationMs = roundMs project.DurationMs })
     let endedAt = DateTime.UtcNow
     {
-        Report.SchemaVersion = 4
+        Report.SchemaVersion = 5
         Run = {
             RunReport.Status = context.Status
             Completeness = context.Completeness

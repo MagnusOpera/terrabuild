@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -63,6 +63,9 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [
+        "basic-build"
+      ],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -117,11 +120,14 @@
       "events": [
         "scheduled",
         "ready",
+        "lock-wait-started",
+        "lock-acquired",
         "execution-started",
         "execution-ended",
         "upload-started",
         "upload-ended"
       ],
+      "lockWaitMs": true,
       "operations": [
         {
           "metaCommand": "@shell echo",

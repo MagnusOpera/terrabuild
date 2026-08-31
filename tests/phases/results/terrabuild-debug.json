@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -75,6 +75,7 @@
       "phaseDependencies": [
         "workspace/path#tools/pnpm:dist"
       ],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -123,6 +124,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",

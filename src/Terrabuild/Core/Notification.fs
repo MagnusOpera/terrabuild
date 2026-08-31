@@ -5,6 +5,9 @@ open System.Threading
 let spinnerScheduled = "⠁⠂⠄⠂"
 let frequencyScheduled = 200.0
 
+let spinnerWaitingForLock = "⌛"
+let frequencyWaitingForLock = 1000.0
+
 let spinnerUpload = "↑  ↑ ↑ "
 let frequencyUpload = 200.0
 
@@ -18,6 +21,7 @@ let frequencyBuilding = 100.0
 [<RequireQualifiedAccess>]
 type TaskStatus =
     | Scheduled
+    | WaitingForLock
     | Building
     | Downloading
     | Uploading
@@ -74,6 +78,7 @@ type BuildNotification() =
                 let spinner, frequency =
                     match status with
                     | TaskStatus.Scheduled -> spinnerScheduled, frequencyScheduled
+                    | TaskStatus.WaitingForLock -> spinnerWaitingForLock, frequencyWaitingForLock
                     | TaskStatus.Downloading -> spinnerDownload, frequencyDownload
                     | TaskStatus.Uploading -> spinnerUpload, frequencyUpload
                     | TaskStatus.Building -> spinnerBuilding, frequencyBuilding
@@ -110,6 +115,10 @@ type BuildNotification() =
 
         member _.BatchScheduled(tasks: (string * string) list) = 
             PrinterProtocol.BatchScheduled tasks
+            |> printerAgent.Post
+
+        member _.TaskWaitingForLock (taskId:string) =
+            PrinterProtocol.TaskStatusChanged (taskId, TaskStatus.WaitingForLock)
             |> printerAgent.Post
 
         member _.TaskDownloading (taskId:string) = 

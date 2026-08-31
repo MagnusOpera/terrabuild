@@ -393,6 +393,20 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let scheduledExec = Concurrent.ConcurrentDictionary<string, bool>()
     use hub = Hub.Create(options.MaxConcurrency)
 
+    let acquireTargetLocks taskId progressIds locks =
+        if locks |> Set.isEmpty then
+            TargetLock.acquire locks
+        else
+            DiagnosticsTelemetry.recordTask taskId "lock-wait-started"
+            progressIds |> Seq.iter buildProgress.TaskWaitingForLock
+            try
+                let lease = TargetLock.acquire locks
+                DiagnosticsTelemetry.recordTask taskId "lock-acquired"
+                lease
+            with _ ->
+                DiagnosticsTelemetry.recordTask taskId "lock-failed"
+                reraise()
+
     // member node id -> batch id
     let memberToBatch =
         graph.Batches
@@ -468,11 +482,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         DiagnosticsTelemetry.recordTask node.Id "restore-ended"
 
     let execNode (node: GraphDef.Node) =
+        use _targetLocks = acquireTargetLocks node.Id [ node.Id ] node.Locks
         DiagnosticsTelemetry.recordTask node.Id "execution-started"
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing Node", node.Id)
         buildProgress.TaskBuilding node.Id
-        use _targetLocks = TargetLock.acquire node.Locks
 
         let projectDirectory = node.ProjectDir
         let useRemote = GraphDef.isRemoteCacheable options node
@@ -533,15 +547,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         )
 
     let batchExecNode (batchNode: GraphDef.Node) =
+        let batchId = batchNode.Id
+        let members = graph.Batches[batchId]
+        let progressIds = if flattenBatchProgress then members else Set [ batchNode.Id ]
+        use _targetLocks = acquireTargetLocks batchNode.Id progressIds batchNode.Locks
         DiagnosticsTelemetry.recordTask batchNode.Id "batch-started"
         let startedAt = DateTime.UtcNow
         Log.Debug("{NodeId}: executing batch", batchNode.Id)
         if not flattenBatchProgress then
             buildProgress.TaskBuilding batchNode.Id
-        use _targetLocks = TargetLock.acquire batchNode.Locks
-
-        let batchId = batchNode.Id
-        let members = graph.Batches[batchId]
 
         let cacheEntries =
             members

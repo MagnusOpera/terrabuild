@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -419,6 +419,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "bin/"
       ],
@@ -466,6 +467,7 @@
         "@go#github.com/MagnusOpera/terrabuild/tests/simple/go-app:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "bin/"
       ],
@@ -519,6 +521,7 @@
         "@pnpm#npm-lib:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -591,6 +594,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -660,6 +664,7 @@
         "workspace/path#projects/dotnet-app:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "*.planfile"
       ],
@@ -724,6 +729,7 @@
       "selected": false,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "*.planfile"
       ],
@@ -745,6 +751,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -811,6 +818,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -855,6 +863,7 @@
         "workspace/path#libraries/dotnet-lib:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -928,6 +937,7 @@
         "workspace/path#projects/dotnet-app:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -959,6 +969,7 @@
         "workspace/path#projects/dotnet-app:dist"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -988,6 +999,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -1044,6 +1056,7 @@
         "workspace/path#libraries/shell-lib:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -1098,6 +1111,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "managed",
       "build": "always",
@@ -1141,6 +1155,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "target/debug/",
         "target/release/"
@@ -1188,6 +1203,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -1241,6 +1257,7 @@
         "@pnpm#npm-lib:build"
       ],
       "dependencies": [],
+      "locks": [],
       "targetHash": "1463263B5FE81F394E8698535C554F85AA143147F473CBA10FB977863C828460",
       "operationHashes": [
         "D532B28CB3189404F0F3D8D659C6F83637C10604CB3906C27085A3FFB9B46E0F",
@@ -1254,6 +1271,7 @@
         "workspace/path#projects/dotnet-app:build"
       ],
       "dependencies": [],
+      "locks": [],
       "targetHash": "2829EB4DA662544250A377F310F8B7544D84BC0502B289C0F42C21B0E6F882CE",
       "operationHashes": [
         "D6D95470B01DAB008AA22BF8FCFDE36C49A977BF15B7937FC0D717482F19381B",

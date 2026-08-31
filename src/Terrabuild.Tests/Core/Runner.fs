@@ -620,6 +620,59 @@ let ``batch output staging completes while named target lock is held`` () =
             cache.Completed |> should equal [ GraphDef.buildCacheKey memberNode ]))
 
 [<Test>]
+let ``named target lock waits are reported separately from execution`` () =
+    withTempWorkspace (fun workspace ->
+        withEnvironmentVariable "HOME" workspace (fun () ->
+            DiagnosticsTelemetry.reset true
+            try
+                let lockName = "reported-lock"
+                let profile = Path.Combine(workspace, ".terrabuild")
+                let heldLease = TargetLock.acquireAt profile (Set [ lockName ])
+                let release =
+                    System.Threading.Tasks.Task.Run(fun () ->
+                        System.Threading.Thread.Sleep(200)
+                        heldLease.Dispose())
+
+                let node =
+                    { buildNode "locked-node" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/true" "" None ] with
+                        Locks = Set [ lockName ] }
+                let graph =
+                    { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+                      GraphDef.Graph.RootNodes = Set [ node.Id ]
+                      GraphDef.Graph.Batches = Map.empty
+                      GraphDef.Graph.Phases = Map.empty }
+                let cache = FakeCache(workspace)
+                let options = { baseOptions workspace with Debug = true }
+                let summary = Runner.run options (cache :> Cache.ICache) None graph graph
+                release.Wait()
+
+                let report =
+                    Diagnostics.build {
+                        Diagnostics.Context.Options = options
+                        Configuration = None
+                        FullGraph = Some graph
+                        SelectedGraph = Some graph
+                        ResolvedGraph = Some graph
+                        FinalGraph = Some graph
+                        Cache = Some (cache :> Cache.ICache)
+                        Summary = Some summary
+                        Status = "success"
+                        Completeness = "complete"
+                        Error = None
+                    }
+
+                let execution = report.Executions |> List.exactlyOne
+                execution.Events |> List.map _.Event
+                |> should contain "lock-wait-started"
+                execution.Events |> List.map _.Event
+                |> should contain "lock-acquired"
+                execution.LockWaitMs |> Option.defaultValue 0.0 |> should be (greaterThanOrEqualTo 150.0)
+                execution.DurationMs |> Option.defaultValue Double.MaxValue |> should be (lessThan 150.0)
+                report.Nodes |> List.exactlyOne |> _.Locks |> should equal [ lockName ]
+            finally
+                DiagnosticsTelemetry.reset false))
+
+[<Test>]
 let ``run includes repository in uploaded graph hash`` () =
     withTempWorkspace (fun workspace ->
         let operation =

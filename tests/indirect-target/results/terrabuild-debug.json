@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -81,6 +81,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -125,6 +126,7 @@
         "workspace/path#a:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "managed",
       "build": "always",
@@ -147,6 +149,7 @@
         "workspace/path#b:plan"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -194,6 +197,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -241,6 +245,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -285,6 +290,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "managed",
       "build": "always",

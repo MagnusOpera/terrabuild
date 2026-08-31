@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -210,6 +210,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -276,6 +277,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -345,6 +347,7 @@
         "workspace/path#b:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -420,6 +423,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -486,6 +490,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "**/*.binlog",
         "bin/",
@@ -553,6 +558,7 @@
         "workspace/path#e:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -620,6 +626,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [
         "dist/**"
       ],
@@ -683,6 +690,7 @@
       "dependencies": [
         "workspace/path#c:build"
       ],
+      "locks": [],
       "targetHash": "9AF96C32AC5F99047896D940BAD2FE70309C6C6DDD6406DD06EB7DF01DDF7498",
       "operationHashes": [
         "97584219AB52FD44C4523DDE8EB3357964D14CC6135FE60F570B266B30D34133",

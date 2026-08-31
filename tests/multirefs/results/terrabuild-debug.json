@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "run": {
     "status": "success",
     "completeness": "complete",
@@ -90,6 +90,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -143,6 +144,7 @@
         "workspace/path#c:build"
       ],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
@@ -190,6 +192,7 @@
       "selected": true,
       "dependencies": [],
       "phaseDependencies": [],
+      "locks": [],
       "outputs": [],
       "artifacts": "none",
       "build": "always",
