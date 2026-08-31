@@ -1,7 +1,9 @@
 module Cache
 open System
 open System.IO
+open System.Threading
 open Collections
+open Errors
 open Serilog
 
 [<RequireQualifiedAccess>]
@@ -98,6 +100,50 @@ let private touchOrigin entryDir =
     if File.Exists originFile then
         File.SetLastWriteTimeUtc(originFile, DateTime.UtcNow)
 
+let private withEntryLock entryDir action =
+    let parent =
+        entryDir
+        |> FS.parentDirectory
+        |> Option.defaultWith (fun () -> raiseBugError $"Cache entry '{entryDir}' has no parent directory")
+    IO.createDirectory parent
+    let lockFile = $"{entryDir}.lock"
+
+    let rec acquire () =
+        try
+            new FileStream(lockFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+        with :? IOException ->
+            Thread.Sleep(25)
+            acquire ()
+
+    use lease = acquire ()
+    action ()
+
+let private createStagingDirectory entryDir =
+    let parent =
+        entryDir
+        |> FS.parentDirectory
+        |> Option.defaultWith (fun () -> raiseBugError $"Cache entry '{entryDir}' has no parent directory")
+    IO.createDirectory parent
+    let name = IO.getFilename entryDir
+    let stagingDir = FS.combinePath parent $".{name}.tmp-{Guid.NewGuid():N}"
+    IO.createDirectory stagingDir
+    stagingDir
+
+let private replaceDirectory entryDir stagingDir =
+    let backupDir = $"{entryDir}.old-{Guid.NewGuid():N}"
+    let hadPrevious = Directory.Exists entryDir
+    try
+        if hadPrevious then Directory.Move(entryDir, backupDir)
+        Directory.Move(stagingDir, entryDir)
+        if hadPrevious then IO.deleteAny backupDir
+    with _ ->
+        if Directory.Exists entryDir then IO.deleteAny entryDir
+        if hadPrevious && Directory.Exists backupDir then Directory.Move(backupDir, entryDir)
+        reraise()
+
+let private publishDirectory entryDir stagingDir =
+    withEntryLock entryDir (fun () -> replaceDirectory entryDir stagingDir)
+
 let clearCache () =
     IO.deleteAny (createCache())
 
@@ -137,8 +183,15 @@ let pruneCacheEntries cacheDir cutoff =
                     { summary with Skipped = summary.Skipped + 1 }
                 else
                     try
-                        Directory.Delete(entryDir, true)
-                        { summary with Pruned = summary.Pruned + 1 }
+                        withEntryLock entryDir (fun () ->
+                            if File.Exists originFile && File.GetLastWriteTimeUtc(originFile) <= cutoff then
+                                Directory.Delete(entryDir, true)
+                                true
+                            else
+                                false)
+                        |> function
+                            | true -> { summary with Pruned = summary.Pruned + 1 }
+                            | false -> { summary with Skipped = summary.Skipped + 1 }
                     with exn ->
                         Log.Warning(exn, "Failed to prune cache entry {EntryDir}", entryDir)
                         { summary with Skipped = summary.Skipped + 1 }
@@ -154,20 +207,17 @@ let pruneCache days =
 
 
 type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.IStorage, masterKey: byte[] option) =
-    let logsDir = FS.combinePath entryDir "logs"
-    let outputsDir = FS.combinePath entryDir "outputs"
+    let stagingDir = createStagingDirectory entryDir
+    let logsDir = FS.combinePath stagingDir "logs"
+    let outputsDir = FS.combinePath stagingDir "outputs"
     let mutable logNum = 1
+    let mutable completed = false
 
     let hasMaterializedOutputs () =
         Directory.Exists outputsDir &&
         (IO.enumerateFiles outputsDir |> List.isEmpty |> not)
 
     do
-        match entryDir with
-        | FS.Directory _ | FS.File _ -> IO.deleteAny entryDir
-        | FS.None _ -> ()
-
-        IO.createDirectory entryDir
         IO.createDirectory logsDir
         // NOTE: outputs is created on demand only
 
@@ -207,6 +257,8 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                 File.Copy(entry, FS.combinePath logsDir (IO.getFilename entry), true)
 
         member _.Complete summary =
+            if completed then raiseBugError $"Cache entry '{id}' has already been completed"
+            completed <- true
             let files =
                 let uploadDir sourceDir name =
                     let mutable tarFile: string | null = null
@@ -225,24 +277,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                         IO.deleteAny tarFile
 
                 let genFinalSummary() =
-                    let rec collect logNum =
-                        seq {
-                            let filename = FS.combinePath logsDir $"step{logNum}.json"
-                            if IO.exists filename then
-                                let json = IO.readTextFile filename
-                                json |> Json.Deserialize<TargetSummary>
-                                yield! collect (logNum+1)
-                            else
-                                summary
-                        }
-
-                    let finalSummary =
-                        collect 1
-                        |> Seq.reduce (fun s1 s2 -> { s1 with
-                                                            Operations = s1.Operations @ s2.Operations
-                                                            EndedAt = s2.EndedAt
-                                                            Duration = s1.Duration + s2.Duration })
-                    FS.combinePath logsDir "summary.json" |> write finalSummary
+                    FS.combinePath logsDir "summary.json" |> write summary
 
                 if useRemote then
                     let files = [
@@ -255,13 +290,12 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                     genFinalSummary()
                     []
 
-            entryDir |> setOrigin Origin.Local
+            stagingDir |> setOrigin Origin.Local
+            publishDirectory entryDir stagingDir
             files
 
 
 type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
-    // if there is a entry we already tried to download the summary (result is the value)
-    // if not we have never tried to download the summary
     let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()
 
     let tryDownload targetDir id name =
@@ -284,7 +318,10 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         | _ ->
             false
 
-    let tryLoadSummary logsDir outputsDir summaryFile =
+    let tryLoadSummary entryDir =
+        let logsDir = FS.combinePath entryDir "logs"
+        let outputsDir = FS.combinePath entryDir "outputs"
+        let summaryFile = FS.combinePath logsDir summaryFilename
         try
             let summary  = summaryFile |> IO.readTextFile |> Json.Deserialize<TargetSummary>
             let summary = { summary with
@@ -300,78 +337,74 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 Log.Error(exn, "Failed to process content {summaryFile}", summaryFile)
                 None
 
-    interface ICache with
-        // NOTE: do not use when building - only use for graph building
-        member _.TryGetSummaryOnly useRemote id : (Origin * TargetSummary) option =
-            let entryDir = FS.combinePath (createCache()) id
-            match cachedSummaries.TryGetValue(id) with
-            | true, (Some _ as originSummary) ->
-                touchOrigin entryDir
-                originSummary
-            | true, originSummary -> originSummary
-            | false, _ ->
-                let logsDir = FS.combinePath entryDir "logs"
-                let outputsDir = FS.combinePath entryDir "outputs"
-                let summaryFile = FS.combinePath logsDir summaryFilename
-                let completeFile = FS.combinePath entryDir originFilename
+    let tryLoadCompleteEntry entryDir =
+        let originFile = FS.combinePath entryDir originFilename
+        if File.Exists originFile then
+            tryLoadSummary entryDir |> Option.map (fun summary -> getOrigin entryDir, summary)
+        else
+            None
 
-                // do we have the summary in local cache?
-                match completeFile with
-                | FS.File _ ->
-                    match tryLoadSummary logsDir outputsDir summaryFile with
-                    | Some summary ->
-                        let origin = getOrigin entryDir
+    let downloadEntry id includeOutputs entryDir =
+        let stagingDir = createStagingDirectory entryDir
+        let stagingLogs = FS.combinePath stagingDir "logs"
+        let stagingOutputs = FS.combinePath stagingDir "outputs"
+        try
+            if tryDownload stagingLogs id "logs" |> not then
+                None
+            else
+                match tryLoadSummary stagingDir with
+                | None -> None
+                | Some summary ->
+                    let outputsReady =
+                        match includeOutputs, summary.Outputs with
+                        | true, Some _ -> tryDownload stagingOutputs id "outputs"
+                        | _ -> true
+
+                    if outputsReady then
+                        stagingDir |> setOrigin Origin.Remote
+                        replaceDirectory entryDir stagingDir
+                        tryLoadSummary entryDir |> Option.map (fun loaded -> Origin.Remote, loaded)
+                    else
+                        None
+        finally
+            if Directory.Exists stagingDir then IO.deleteAny stagingDir
+
+    let getSummaryOnly useRemote id =
+        let entryDir = FS.combinePath (createCache()) id
+        match cachedSummaries.TryGetValue(id) with
+        | true, (Some _ as originSummary) ->
+            touchOrigin entryDir
+            originSummary
+        | true, originSummary -> originSummary
+        | false, _ ->
+            let originSummary =
+                withEntryLock entryDir (fun () ->
+                    match tryLoadCompleteEntry entryDir with
+                    | Some originSummary ->
                         touchOrigin entryDir
-                        cachedSummaries.TryAdd(id, Some (origin, summary)) |> ignore
-                        Some (origin, summary)
-                    | _ -> None
-                | _ ->
-                    if useRemote then
-                        if tryDownload logsDir id "logs" then
-                            match tryLoadSummary logsDir outputsDir summaryFile with
-                            | Some summary ->
-                                cachedSummaries.TryAdd(id, Some (Origin.Remote, summary)) |> ignore
-                                Some (Origin.Remote, summary)
-                            | _ -> None
-                        else
-                            cachedSummaries.TryAdd(id, None) |> ignore
-                            None
-                    else
-                        None
+                        Some originSummary
+                    | None when useRemote -> downloadEntry id false entryDir
+                    | None -> None)
+            cachedSummaries.TryAdd(id, originSummary) |> ignore
+            originSummary
 
-        member _.TryGetSummary useRemote id : TargetSummary option =
-            let entryDir = FS.combinePath (createCache()) id
-            let logsDir = FS.combinePath entryDir "logs"
-            let outputsDir = FS.combinePath entryDir "outputs"
-            let summaryFile = FS.combinePath logsDir summaryFilename
-            let completeFile = FS.combinePath entryDir originFilename
+    let getFullSummary useRemote id =
+        let entryDir = FS.combinePath (createCache()) id
+        withEntryLock entryDir (fun () ->
+            match tryLoadCompleteEntry entryDir with
+            | Some (origin, summary) when summary.Outputs.IsNone || Directory.Exists(FS.combinePath entryDir "outputs") ->
+                touchOrigin entryDir
+                Some (origin, summary)
+            | _ when useRemote -> downloadEntry id true entryDir
+            | _ -> None)
 
-            match completeFile with
-            | FS.File _ ->
-                tryLoadSummary logsDir outputsDir summaryFile
-            | _ ->
-                if useRemote then
-                    if tryDownload logsDir id "logs" then
-                        match tryLoadSummary logsDir outputsDir summaryFile with
-                        | Some summary ->
-                            match summary.Outputs with
-                            | Some _ ->
-                                if tryDownload outputsDir id "outputs" then
-                                    entryDir |> setOrigin Origin.Remote
-                                    Some summary
-                                else
-                                    None
-                            | _ ->
-                                entryDir |> setOrigin Origin.Remote
-                                Some summary
-                        | _ -> None
-                    else
-                        None
-                else
-                    None
+    interface ICache with
+        member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
+
+        member _.TryGetSummary useRemote id =
+            getFullSummary useRemote id |> Option.map snd
 
         member _.GetEntry useRemote id : IEntry =
-            // invalidate cache as we are creating a new entry
             cachedSummaries.TryRemove(id) |> ignore
             let entryDir = FS.combinePath (createCache()) id
             NewEntry(entryDir, useRemote, id, storage, masterKey)

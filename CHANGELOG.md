@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Publish cache entries atomically and persist remotely downloaded summaries locally.
 - Encapsulate cache output and log storage behind the cache entry API.
 - Clarify that external cache hits reuse execution summaries without restoring artifact files.
 - Document that explicitly selected lazy targets execute on cache misses.

@@ -7,13 +7,25 @@ open Collections
 
 type private FakeStorage() =
     let uploads = ResizeArray<string>()
+    let blobs = Collections.Generic.Dictionary<string, byte[]>()
+    let mutable downloads = 0
 
     member _.Uploads = uploads |> Seq.toList
+    member _.Downloads = downloads
 
     interface Contracts.IStorage with
-        member _.Exists _id = false
-        member _.TryDownload _id = None
-        member _.Upload id _summaryFile = uploads.Add(id)
+        member _.Exists id = blobs.ContainsKey(id)
+        member _.TryDownload id =
+            match blobs.TryGetValue(id) with
+            | true, contents ->
+                downloads <- downloads + 1
+                let file = Path.GetTempFileName()
+                File.WriteAllBytes(file, contents)
+                Some file
+            | _ -> None
+        member _.Upload id sourceFile =
+            uploads.Add(id)
+            blobs[id] <- File.ReadAllBytes(sourceFile)
         member _.Name = "fake"
 
 let private withTempDir action =
@@ -99,6 +111,44 @@ let ``cache completion omits summary outputs marker when outputs are not materia
             |> Json.Deserialize<Cache.TargetSummary>
 
         writtenSummary.Outputs |> should equal None)
+
+[<Test>]
+let ``remote summary downloads become durable local entries`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/remote-summary"
+            let cache = Cache.Cache(storage, None) :> Cache.ICache
+            cache.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
+
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+
+            let downloaded = Cache.Cache(storage, None) :> Cache.ICache
+            downloaded.TryGetSummaryOnly true id |> should not' (equal None)
+            storage.Downloads |> should equal 1
+
+            let offline = Cache.Cache(storage, None) :> Cache.ICache
+            offline.TryGetSummaryOnly false id |> should not' (equal None)
+            storage.Downloads |> should equal 1
+        ))
+
+[<Test>]
+let ``new entries publish atomically over completed entries`` () =
+    withTempDir (fun root ->
+        let storage = FakeStorage()
+        let entryDir = createLocalCacheEntry root "project-hash/build/target-hash" (summary None)
+        let oldSummary = Path.Combine(entryDir, "logs", "summary.json") |> File.ReadAllText
+        let entry = Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+
+        Path.Combine(entryDir, "logs", "summary.json") |> File.ReadAllText |> should equal oldSummary
+
+        entry.Complete({ summary None with Target = "replacement" }) |> ignore
+
+        let published =
+            Path.Combine(entryDir, "logs", "summary.json")
+            |> File.ReadAllText
+            |> Json.Deserialize<Cache.TargetSummary>
+        published.Target |> should equal "replacement")
 
 [<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
