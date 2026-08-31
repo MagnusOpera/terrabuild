@@ -86,10 +86,15 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                 resolveTargetOperations options projectConfig targetConfig projectConfig.Hash None
 
             let opsCmds = ops |> List.map Json.Serialize
+            let outputsHash =
+                targetConfig.Outputs
+                |> Seq.sort
+                |> Hash.sha256strings
             let targetContent =
                 opsCmds @ [
                     yield projectConfig.Hash
                     yield targetConfig.Hash
+                    yield outputsHash
                     yield!
                         sourceNode.Dependencies - sourceNode.PhaseDependencies
                         |> Seq.map (fun childId -> allNodes[childId].TargetHash)

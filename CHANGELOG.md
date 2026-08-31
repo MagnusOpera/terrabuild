@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Recompute target cache keys when evaluated output patterns change.
+
 ## [0.199.2]
 
 - Realize explicitly selected lazy targets even when no dependent requires them.

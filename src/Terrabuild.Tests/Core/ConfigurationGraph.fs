@@ -619,6 +619,40 @@ target build {
         node.ClusterHash |> should equal None)
 
 [<Test>]
+let ``Resolved output patterns participate in target hash`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target build {
+  artifacts = ~workspace
+  outputs = terrabuild.configuration == "debug" ? [ "debug/**" ] : [ "release/**" ]
+}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+target build {
+  @shell echo { args = "build" }
+}
+"""
+
+        let debug =
+            runPipeline
+                { baseOptions workspace (Set [ "build" ]) with
+                    Configuration = Some "debug" }
+        let release =
+            runPipeline
+                { baseOptions workspace (Set [ "build" ]) with
+                    Configuration = Some "release" }
+        let nodeId = "workspace/path#apps/app:build"
+        let debugNode = debug.ResolvedGraph.Nodes[nodeId]
+        let releaseNode = release.ResolvedGraph.Nodes[nodeId]
+
+        debugNode.Outputs |> should equal (Set [ "debug/**" ])
+        releaseNode.Outputs |> should equal (Set [ "release/**" ])
+        debugNode.TargetHash = releaseNode.TargetHash |> should equal false)
+
+[<Test>]
 let ``Configuration pipeline includes repository in project hash`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
