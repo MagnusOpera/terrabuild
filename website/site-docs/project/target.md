@@ -31,7 +31,7 @@ The following arguments are supported:
 * `build` - (Optional) Override default build mode. By default, the target is built if the hash has changed (`~auto`). Possible values:
   * `~auto` - Build when changes are detected (default)
   * `~always` - Always build, ignoring cache
-  * `~lazy` - Do not run as a selected root; build only when required by another node
+  * `~lazy` - Build on cache miss when selected explicitly, but realize it as a dependency only when an executing dependent requires it; its execution does not force dependents to rebuild
 * `batch` - (Optional) Override default batch mode. Extension must support batch mode to enable this feature. Batching is applied only to required, compatible nodes in a cluster that contains at least one node that must build. Possible values:
   * `~single` - Build all required compatible nodes in the cluster using a single batch (default)
   * `~never` - Build affected nodes without batching

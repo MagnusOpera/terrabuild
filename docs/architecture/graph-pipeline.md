@@ -135,7 +135,7 @@ Synthetic batch scheduler nodes are represented under `batches` and `executions`
 
 ## Edge cases
 
-- Lazy roots do not run just because they are selected; they run only when required by a dependent.
+- Explicitly selected lazy roots execute when their action is `Exec`; laziness controls dependency realization and rebuild propagation, not explicit selection.
 - Lazy dependencies behind a restored or summarized node are not realized unless another executing node requires them directly.
 - Failed cached selected roots remain runner roots as `Summary`, so failures are reported correctly.
 - Successful restore roots are skipped unless a dependent requires them.

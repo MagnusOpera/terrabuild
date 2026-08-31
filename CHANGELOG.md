@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Document that explicitly selected lazy targets execute on cache misses.
 - Keep phase barriers from rebuilding downstream targets that already have valid cached artifacts.
 - Recompute target cache keys when evaluated output patterns change.
 
