@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Expose the `explain` command in the documentation navigation and command index.
 - Clarify how `terrabuild clear --all` treats idle and active target locks.
 - Document inherited named locks in the workspace and project target references.
 - Document the diagnostic reason used when cached summaries have no restorable outputs.

@@ -158,6 +158,7 @@ const sidebars: SidebarsConfig = {
       link: {type: 'doc', id: 'usage/index'},
       items: [
         'usage/run',
+        'usage/explain',
         'usage/impact',
         'usage/logs',
         'usage/serve',
