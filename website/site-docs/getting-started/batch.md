@@ -28,3 +28,64 @@ Choose a `batch` mode on the target:
 - `~partition` - Split compatible nodes into dependency-connected partitions and build each partition in its own batch
 
 Batching is decided after Terrabuild has assigned build, restore, and summary actions. A batch can include required restored nodes from the same cluster when at least one cluster member is executing; this lets the extension replace several individual operations with one native batch command.
+
+## Choose a mode by failure and performance boundaries
+
+| Mode | Choose it when | Tradeoff |
+|------|----------------|----------|
+| `~single` | The tool handles all required compatible projects efficiently in one invocation and they should share one success or failure boundary. | Usually minimizes tool startup and repeated dependency discovery, but creates the largest batch and failure scope. |
+| `~partition` | Independent dependency components should remain isolated while connected projects still benefit from native batching. | Creates more invocations than `~single`, but a disconnected component cannot enlarge or fail another component's batch. |
+| `~never` | Every project must have its own command for correctness, project-specific diagnostics, or comparison while investigating batch behavior. | Removes native batching benefits. Individual nodes may still execute concurrently when the graph allows it. |
+
+`batch = ~never` does **not** serialize targets. If separate commands collide on a shared NuGet tool directory, SDK installation, generator cache, or other machine-global resource, use a named [`lock`](/docs/getting-started/target-policies#serialize-shared-machine-state-with-a-named-lock). A lock controls concurrency; batch mode controls command grouping.
+
+## Examples
+
+### One native build for the selected cluster
+
+```hcl {filename="WORKSPACE"}
+target build {
+  depends_on = [ target.^build ]
+  batch = ~single
+}
+```
+
+This suits a .NET workspace where one generated solution is generally cheaper than invoking MSBuild once per project. The selected graph still determines which projects enter the generated solution.
+
+### Keep disconnected applications separate
+
+```hcl {filename="WORKSPACE"}
+target build {
+  depends_on = [ target.^build ]
+  batch = ~partition
+}
+```
+
+Suppose application A depends on library A, while application B depends on library B and there is no dependency path between the pairs. Terrabuild creates one connected batch for each pair instead of one workspace-wide batch.
+
+This is a useful middle ground for large monorepos: native tools retain dependency-aware batching, while unrelated components keep separate timing, failure, and lock boundaries.
+
+### Diagnose or isolate individual commands
+
+```hcl {filename="WORKSPACE"}
+target build {
+  depends_on = [ target.^build ]
+  batch = ~never
+}
+```
+
+Use this temporarily when comparing performance, locating a tool-specific batch failure, or when an extension command is safe only per project. Do not assume it makes execution sequential.
+
+## Why no batch was created
+
+Run `terrabuild explain <target>` and inspect the selected nodes, actions, batch compatibility, and scheduling outcome. Common reasons are:
+
+- only one compatible required node exists
+- every compatible node is already reusable and none needs to execute
+- one command does not support batching
+- command inputs produce different cluster identities
+- target policies use `batch = ~never`
+- phase boundaries separate otherwise compatible nodes
+- contracting the candidate into a batch would introduce an external dependency cycle
+
+Measure a representative warm and changed build before choosing a workspace policy. A native batch can avoid repeated tool startup, but it can also execute members that could otherwise have restored independently.
