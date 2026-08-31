@@ -285,7 +285,9 @@ target build {
 
         let explanation = Diagnostics.renderExplanation report
         explanation |> should contain "app:build"
-        explanation |> should contain "decision: exec (non-cacheable)"
+        explanation |> should contain "selection: explicit-root"
+        explanation |> should contain "action: exec (non-cacheable)"
+        explanation |> should contain "outcome: execute (explicit-root)"
         explanation |> should contain "terrabuild.environment"
         explanation |> should contain "environment-sensitive inputs:"
         explanation |> should contain "environment sensitivity: opted-in"
@@ -1261,7 +1263,32 @@ target gen {
         stages.CascadedGraph.Nodes[genNode.Id].Required |> should equal true
         stages.CascadedGraph.RootNodes |> should equal (Set [ genNode.Id ])
         stages.FinalGraph.Nodes[genNode.Id].Required |> should equal true
-        stages.FinalGraph.RootNodes |> should equal (Set [ genNode.Id ]))
+        stages.FinalGraph.RootNodes |> should equal (Set [ genNode.Id ])
+
+        let report =
+            Diagnostics.build {
+                Diagnostics.Context.Options = stages.Options
+                Configuration = Some stages.Config
+                FullGraph = Some stages.FullGraph
+                SelectedGraph = Some stages.SourceGraph
+                ResolvedGraph = Some stages.ResolvedGraph
+                FinalGraph = Some stages.FinalGraph
+                Cache = None
+                Summary = None
+                Status = "success"
+                Completeness = "complete"
+                Error = None
+            }
+        let explanation = Diagnostics.renderExplanation report
+        explanation |> should contain "selection: explicit-root"
+        explanation |> should contain "action: exec (cache-miss)"
+        explanation |> should contain "outcome: execute (explicit-root)"
+
+        let invalidReport =
+            { report with
+                Nodes = report.Nodes |> List.map (fun node -> { node with Scheduled = Some false; Outcome = Some "skip" }) }
+        (fun () -> Diagnostics.renderExplanation invalidReport |> ignore)
+        |> assertKnownErrorContainsAll [ "Explicitly selected root"; genNode.Id ])
 
 [<Test>]
 let ``Phase graph enlists transitive prerequisite targets without selecting phase peers`` () =

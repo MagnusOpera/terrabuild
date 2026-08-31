@@ -4,7 +4,9 @@ open System
 open System.IO
 open System.Collections.Concurrent
 open System.Text
+open System.Text.Json.Serialization
 open Collections
+open Errors
 
 type FileFingerprint = {
     Path: string
@@ -61,6 +63,14 @@ type NodeReport = {
     Target: string
     Phase: string option
     Selected: bool
+    [<JsonIgnore>]
+    SelectionKind: string option
+    [<JsonIgnore>]
+    Scheduled: bool option
+    [<JsonIgnore>]
+    Outcome: string option
+    [<JsonIgnore>]
+    OutcomeReason: string option
     Dependencies: string list
     PhaseDependencies: string list
     Outputs: string list
@@ -218,6 +228,15 @@ let internal renderEnvironmentSensitivitySummary violations =
 let renderExplanation (report: Report) =
     let builder = StringBuilder()
     let selectedNodes = report.Nodes |> List.filter _.Selected
+
+    selectedNodes
+    |> List.tryFind (fun node ->
+        node.SelectionKind = Some "explicit-root"
+        && node.Action = Some "exec"
+        && node.Scheduled = Some false)
+    |> Option.iter (fun node ->
+        raiseBugError $"Explicitly selected root '{node.Id}' resolved to exec but was not scheduled")
+
     let sensitivityViolations =
         selectedNodes
         |> List.filter (fun node ->
@@ -240,17 +259,23 @@ let renderExplanation (report: Report) =
         let project = node.ProjectName |> Option.defaultValue node.ProjectId
         builder.AppendLine($"{project}:{node.Target}") |> ignore
         builder.AppendLine($"  id: {node.Id}") |> ignore
+        let selectionKind = node.SelectionKind |> Option.defaultValue "unresolved"
+        builder.AppendLine($"  selection: {selectionKind}") |> ignore
 
         let action = node.Action |> Option.defaultValue "unresolved"
         let actionReason = node.ActionReason |> Option.map (fun reason -> $" ({reason})") |> Option.defaultValue ""
-        builder.AppendLine($"  decision: {action}{actionReason}") |> ignore
+        builder.AppendLine($"  action: {action}{actionReason}") |> ignore
+
+        let outcome = node.Outcome |> Option.defaultValue "unresolved"
+        let outcomeReason = node.OutcomeReason |> Option.map (fun reason -> $" ({reason})") |> Option.defaultValue ""
+        builder.AppendLine($"  outcome: {outcome}{outcomeReason}") |> ignore
 
         let required = node.Required |> Option.map (fun value -> if value then "yes" else "no") |> Option.defaultValue "unresolved"
         let requirementReason = node.RequirementReason |> Option.map (fun reason -> $" ({reason})") |> Option.defaultValue ""
         builder.AppendLine($"  required: {required}{requirementReason}") |> ignore
 
         appendValues builder "dependencies" "none" node.Dependencies
-        appendValues builder "decision dependencies" "none" node.ActionDependencies
+        appendValues builder "action dependencies" "none" node.ActionDependencies
 
         match node.Cache with
         | Some cache ->
@@ -394,11 +419,37 @@ let private nodeReports
         fullGraph.Nodes
         |> Seq.map (fun (KeyValue(nodeId, sourceNode)) ->
             let selected = selectedGraph |> Option.exists (fun graph -> graph.Nodes |> Map.containsKey nodeId)
+            let selectionKind =
+                if not selected then None
+                elif selectedGraph |> Option.exists (fun graph -> graph.RootNodes |> Set.contains nodeId) then Some "explicit-root"
+                else Some "dependency"
             let resolvedNode = resolvedGraph |> Option.bind (fun graph -> graph.Nodes |> Map.tryFind nodeId)
             let finalNode = finalGraph |> Option.bind (fun graph -> graph.Nodes |> Map.tryFind nodeId)
             let effectiveNode = finalNode |> Option.orElse resolvedNode |> Option.defaultValue sourceNode
             let action = actionMap |> Map.tryFind nodeId
             let requirement = requirementMap |> Map.tryFind nodeId
+            let finalRoot = finalGraph |> Option.exists (fun graph -> graph.RootNodes |> Set.contains nodeId)
+            let scheduled = finalGraph |> Option.map (fun _ -> finalRoot || (finalNode |> Option.exists _.Required))
+            let outcome =
+                match action |> Option.map _.Action, scheduled with
+                | Some "exec", Some true -> Some "execute"
+                | Some "restore", Some true -> Some "restore"
+                | Some "summary", Some true -> Some "summary"
+                | Some _, Some false -> Some "skip"
+                | _ -> None
+            let outcomeReason =
+                match scheduled with
+                | Some true when finalRoot -> selectionKind |> Option.orElse (Some "scheduled-root")
+                | Some true when memberToBatch |> Map.containsKey nodeId -> Some "batch-member"
+                | Some true -> requirement |> Option.map _.Reason |> Option.orElse (Some "required")
+                | Some false ->
+                    match action |> Option.map _.Action with
+                    | Some "restore" -> Some "cache-hit-not-required"
+                    | Some "summary" -> Some "cached-failure-not-required"
+                    | Some "ignore" -> Some "ignored"
+                    | Some _ -> requirement |> Option.map _.Reason |> Option.orElse (Some "not-required")
+                    | None -> None
+                | None -> None
             let targetFingerprint =
                 resolvedNode
                 |> Option.map (fun node ->
@@ -450,6 +501,10 @@ let private nodeReports
                 Target = sourceNode.Target
                 Phase = sourceNode.Phase
                 Selected = selected
+                SelectionKind = selectionKind
+                Scheduled = scheduled
+                Outcome = outcome
+                OutcomeReason = outcomeReason
                 Dependencies = effectiveNode.Dependencies |> Seq.sort |> List.ofSeq
                 PhaseDependencies = effectiveNode.PhaseDependencies |> Seq.sort |> List.ofSeq
                 Outputs = effectiveNode.Outputs |> Seq.sort |> List.ofSeq

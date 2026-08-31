@@ -24,6 +24,12 @@ terrabuild explain deploy --environment staging
 terrabuild explain build --force
 ```
 
-For every selected node, the output includes its action and reason, dependency
-and cache evidence, cache key, evaluated input names, and resolved operation
-metadata. Values that could contain secrets remain hashed.
+For every selected node, the output distinguishes an explicit root from a
+dependency, reports the computed action, and states the final scheduling outcome
+with its reason. It also includes requirement, dependency, and cache evidence,
+the cache key, evaluated input names, and resolved operation metadata. Values
+that could contain secrets remain hashed.
+
+An explicit root that resolves to `exec` but is absent from the final schedule is
+an internal consistency error. `explain` reports it as a Terrabuild bug instead
+of presenting a contradictory `exec` and `not-required` combination.
