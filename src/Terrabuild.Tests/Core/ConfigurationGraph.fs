@@ -99,13 +99,14 @@ type private NoopCache() =
     interface Cache.ICache with
         member _.TryGetSummaryOnly _useRemote _id = None
         member _.TryGetSummary _useRemote _id = None
+        member _.Restore _useRemote _id _outputs _projectDirectory = None
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
 
 let private buildTargetSummary isSuccessful =
     { Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
-      Cache.TargetSummary.Outputs = None
+      Cache.TargetSummary.HasOutputs = false
       Cache.TargetSummary.IsSuccessful = isSuccessful
       Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
       Cache.TargetSummary.EndedAt = DateTime.UtcNow
@@ -121,6 +122,9 @@ type private SummaryCache(summaries: Map<string, Cache.TargetSummary>) =
             |> Option.map (fun summary -> Cache.Origin.Local, summary)
 
         member _.TryGetSummary _useRemote id =
+            summaries |> Map.tryFind id
+
+        member _.Restore _useRemote id _outputs _projectDirectory =
             summaries |> Map.tryFind id
 
         member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry

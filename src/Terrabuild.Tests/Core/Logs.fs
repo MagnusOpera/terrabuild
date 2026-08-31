@@ -97,7 +97,7 @@ let private buildTargetSummary (logFile: string) =
     { TargetSummary.Project = "."
       TargetSummary.Target = "build"
       TargetSummary.Operations = [ [ buildStep logFile ] ]
-      TargetSummary.Outputs = None
+      TargetSummary.HasOutputs = false
       TargetSummary.IsSuccessful = true
       TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-5.0)
       TargetSummary.EndedAt = DateTime.UtcNow.AddSeconds(-1.0)
@@ -109,7 +109,7 @@ let private buildFailedTargetSummary (logFile: string) =
     { TargetSummary.Project = "."
       TargetSummary.Target = "build"
       TargetSummary.Operations = [ [ failedStep ] ]
-      TargetSummary.Outputs = None
+      TargetSummary.HasOutputs = false
       TargetSummary.IsSuccessful = false
       TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-5.0)
       TargetSummary.EndedAt = DateTime.UtcNow.AddSeconds(-1.0)
@@ -120,6 +120,7 @@ type private FakeCache(summaries: Map<string, Origin * TargetSummary>) =
     interface ICache with
         member _.TryGetSummaryOnly _ id = summaries |> Map.tryFind id
         member _.TryGetSummary _ id = summaries |> Map.tryFind id |> Option.map snd
+        member _.Restore _ id _outputs _projectDirectory = summaries |> Map.tryFind id |> Option.map snd
         member _.GetEntry _ _ = raise (NotImplementedException("unused in Logs tests"))
 
 let private markdownAnchorCount (content: string) =

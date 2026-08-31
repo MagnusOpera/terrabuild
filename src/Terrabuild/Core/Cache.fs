@@ -29,6 +29,19 @@ type TargetSummary = {
     Project: string
     Target: string
     Operations: OperationSummary list list
+    HasOutputs: bool
+    IsSuccessful: bool
+    StartedAt: DateTime
+    EndedAt: DateTime
+    Duration: TimeSpan
+    Cache: GraphDef.ArtifactMode
+}
+
+[<RequireQualifiedAccess>]
+type private StoredTargetSummary = {
+    Project: string
+    Target: string
+    Operations: OperationSummary list list
     Outputs: string option
     IsSuccessful: bool
     StartedAt: DateTime
@@ -60,6 +73,7 @@ type IEntry =
 type ICache =
     abstract TryGetSummaryOnly: useRemote:bool -> id:string -> (Origin * TargetSummary) option
     abstract TryGetSummary: useRemote:bool -> id:string -> TargetSummary option
+    abstract Restore: useRemote:bool -> id:string -> outputs:string set -> projectDirectory:string -> TargetSummary option
     abstract GetEntry: useRemote:bool -> id:string -> IEntry
 
 
@@ -144,6 +158,44 @@ let private replaceDirectory entryDir stagingDir =
 let private publishDirectory entryDir stagingDir =
     withEntryLock entryDir (fun () -> replaceDirectory entryDir stagingDir)
 
+let private restoreOutputsTransaction entryDir outputs projectDirectory =
+    let cachedOutputs = FS.combinePath entryDir "outputs"
+    let projectDirectory = Path.GetFullPath(projectDirectory)
+    let parent =
+        projectDirectory
+        |> FS.parentDirectory
+        |> Option.defaultWith (fun () -> raiseBugError $"Project directory '{projectDirectory}' has no parent")
+    let transactionDir = FS.combinePath parent $".terrabuild-restore-{Guid.NewGuid():N}"
+    let stagedDir = FS.combinePath transactionDir "staged"
+    let backupDir = FS.combinePath transactionDir "backup"
+    let cachedFiles = IO.enumerateFiles cachedOutputs
+    let currentFiles = (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys |> List.ofSeq
+
+    let moveFiles targetDir baseDir files =
+        for file in files do
+            let relative = FS.relativePath baseDir file
+            let target = FS.combinePath targetDir relative
+            target
+            |> FS.parentDirectory
+            |> Option.iter IO.createDirectory
+            File.Move(file, target, true)
+
+    try
+        IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore
+        IO.copyFiles backupDir projectDirectory currentFiles |> ignore
+
+        try
+            currentFiles |> List.iter File.Delete
+            IO.enumerateFiles stagedDir |> moveFiles projectDirectory stagedDir
+        with _ ->
+            (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys
+            |> Seq.iter File.Delete
+            if Directory.Exists backupDir then
+                IO.enumerateFiles backupDir |> moveFiles projectDirectory backupDir
+            reraise()
+    finally
+        if Directory.Exists transactionDir then IO.deleteAny transactionDir
+
 let clearCache () =
     IO.deleteAny (createCache())
 
@@ -222,20 +274,24 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
         // NOTE: outputs is created on demand only
 
     let write (summary: TargetSummary) file =
-        let summary =
-            { summary
-                with Operations = summary.Operations
-                             |> List.map (fun stepGroup ->
-                                stepGroup
-                                |> List.map (fun step -> { step
-                                                            with Log = IO.getFilename step.Log }))
-                     Outputs =
-                        if hasMaterializedOutputs () then
-                            summary.Outputs |> Option.map IO.getFilename
-                        else
-                            None }
+        let stored =
+            { StoredTargetSummary.Project = summary.Project
+              StoredTargetSummary.Target = summary.Target
+              StoredTargetSummary.Operations =
+                summary.Operations
+                |> List.map (fun stepGroup ->
+                    stepGroup
+                    |> List.map (fun step -> { step with Log = IO.getFilename step.Log }))
+              StoredTargetSummary.Outputs =
+                if summary.HasOutputs && hasMaterializedOutputs () then Some "outputs"
+                else None
+              StoredTargetSummary.IsSuccessful = summary.IsSuccessful
+              StoredTargetSummary.StartedAt = summary.StartedAt
+              StoredTargetSummary.EndedAt = summary.EndedAt
+              StoredTargetSummary.Duration = summary.Duration
+              StoredTargetSummary.Cache = summary.Cache }
 
-        summary |> Json.Serialize |> IO.writeTextFile file
+        stored |> Json.Serialize |> IO.writeTextFile file
 
     interface IEntry with
 
@@ -320,17 +376,23 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
     let tryLoadSummary entryDir =
         let logsDir = FS.combinePath entryDir "logs"
-        let outputsDir = FS.combinePath entryDir "outputs"
         let summaryFile = FS.combinePath logsDir summaryFilename
         try
-            let summary  = summaryFile |> IO.readTextFile |> Json.Deserialize<TargetSummary>
-            let summary = { summary with
-                                Operations = summary.Operations
-                                        |> List.map (fun stepGroup ->
-                                            stepGroup
-                                            |> List.map (fun stepLog -> { stepLog with
-                                                                            Log = FS.combinePath logsDir stepLog.Log }))
-                                Outputs = summary.Outputs |> Option.map (fun _ -> outputsDir) }
+            let stored = summaryFile |> IO.readTextFile |> Json.Deserialize<StoredTargetSummary>
+            let summary =
+                { TargetSummary.Project = stored.Project
+                  TargetSummary.Target = stored.Target
+                  TargetSummary.Operations =
+                    stored.Operations
+                    |> List.map (fun stepGroup ->
+                        stepGroup
+                        |> List.map (fun stepLog -> { stepLog with Log = FS.combinePath logsDir stepLog.Log }))
+                  TargetSummary.HasOutputs = stored.Outputs.IsSome
+                  TargetSummary.IsSuccessful = stored.IsSuccessful
+                  TargetSummary.StartedAt = stored.StartedAt
+                  TargetSummary.EndedAt = stored.EndedAt
+                  TargetSummary.Duration = stored.Duration
+                  TargetSummary.Cache = stored.Cache }
             Some summary
         with
             | exn ->
@@ -356,8 +418,8 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 | None -> None
                 | Some summary ->
                     let outputsReady =
-                        match includeOutputs, summary.Outputs with
-                        | true, Some _ -> tryDownload stagingOutputs id "outputs"
+                        match includeOutputs, summary.HasOutputs with
+                        | true, true -> tryDownload stagingOutputs id "outputs"
                         | _ -> true
 
                     if outputsReady then
@@ -388,21 +450,30 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             cachedSummaries.TryAdd(id, originSummary) |> ignore
             originSummary
 
-    let getFullSummary useRemote id =
-        let entryDir = FS.combinePath (createCache()) id
-        withEntryLock entryDir (fun () ->
-            match tryLoadCompleteEntry entryDir with
-            | Some (origin, summary) when summary.Outputs.IsNone || Directory.Exists(FS.combinePath entryDir "outputs") ->
-                touchOrigin entryDir
-                Some (origin, summary)
-            | _ when useRemote -> downloadEntry id true entryDir
-            | _ -> None)
-
     interface ICache with
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
 
         member _.TryGetSummary useRemote id =
-            getFullSummary useRemote id |> Option.map snd
+            getSummaryOnly useRemote id |> Option.map snd
+
+        member _.Restore useRemote id outputs projectDirectory =
+            let entryDir = FS.combinePath (createCache()) id
+            let originSummary =
+                withEntryLock entryDir (fun () ->
+                    let available =
+                        match tryLoadCompleteEntry entryDir with
+                        | Some (origin, summary) when not summary.HasOutputs || Directory.Exists(FS.combinePath entryDir "outputs") ->
+                            Some (origin, summary)
+                        | _ when useRemote -> downloadEntry id true entryDir
+                        | _ -> None
+
+                    match available with
+                    | Some (_, summary) when summary.HasOutputs ->
+                        restoreOutputsTransaction entryDir outputs projectDirectory
+                    | _ -> ()
+                    available)
+
+            originSummary |> Option.map snd
 
         member _.GetEntry useRemote id : IEntry =
             cachedSummaries.TryRemove(id) |> ignore

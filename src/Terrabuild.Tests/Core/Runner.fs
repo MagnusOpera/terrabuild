@@ -161,10 +161,12 @@ type private FakeCache(root: string) =
     let entries = Dictionary<string, FakeEntry>()
     let opened = ResizeArray<string>()
     let summaries = Dictionary<string, Cache.TargetSummary>()
+    let restoreOutputs = Dictionary<string, string>()
 
     member _.Completed = completed |> Seq.toList
     member _.Opened = opened |> Seq.toList
     member _.SetSummary(id, summary) = summaries[id] <- summary
+    member _.SetRestoreOutputs(id, directory) = restoreOutputs[id] <- directory
 
     interface Cache.ICache with
         member _.TryGetSummaryOnly _useRemote id =
@@ -175,6 +177,20 @@ type private FakeCache(root: string) =
         member _.TryGetSummary _useRemote id =
             match summaries.TryGetValue(id) with
             | true, summary -> Some summary
+            | _ -> None
+
+        member _.Restore _useRemote id outputs projectDirectory =
+            match summaries.TryGetValue(id) with
+            | true, summary ->
+                match restoreOutputs.TryGetValue(id) with
+                | true, source ->
+                    let files = IO.enumerateFiles source
+                    let cached = files |> Seq.map (FS.relativePath source) |> Set.ofSeq
+                    for current in (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys do
+                        if cached.Contains(FS.relativePath projectDirectory current) |> not then File.Delete(current)
+                    IO.copyFiles projectDirectory source files |> ignore
+                | _ -> ()
+                Some summary
             | _ -> None
 
         member _.GetEntry _useRemote id =
@@ -652,19 +668,21 @@ let ``run restores the exact cached output set for lazy dependencies`` () =
                 |> Option.ofObj
                 |> Option.iter (fun directory -> Directory.CreateDirectory(directory) |> ignore)
                 File.WriteAllText(output, content)
-            { Cache.TargetSummary.Project = node.ProjectDir
-              Cache.TargetSummary.Target = node.Target
-              Cache.TargetSummary.Operations = []
-              Cache.TargetSummary.Outputs = Some cacheOutputs
-              Cache.TargetSummary.IsSuccessful = true
-              Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
-              Cache.TargetSummary.EndedAt = DateTime.UtcNow
-              Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
-              Cache.TargetSummary.Cache = node.Artifacts }
+            ({ Cache.TargetSummary.Project = node.ProjectDir
+               Cache.TargetSummary.Target = node.Target
+               Cache.TargetSummary.Operations = []
+               Cache.TargetSummary.HasOutputs = true
+               Cache.TargetSummary.IsSuccessful = true
+               Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+               Cache.TargetSummary.EndedAt = DateTime.UtcNow
+               Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+               Cache.TargetSummary.Cache = node.Artifacts }, cacheOutputs)
 
-        cache.SetSummary(
-            GraphDef.buildCacheKey genNode,
-            makeSummary genNode [ "generated/cached.txt", "cached-content"; "generated/new.txt", "new-content" ])
+        let cacheKey = GraphDef.buildCacheKey genNode
+        let cachedSummary, cachedOutputs =
+            makeSummary genNode [ "generated/cached.txt", "cached-content"; "generated/new.txt", "new-content" ]
+        cache.SetSummary(cacheKey, cachedSummary)
+        cache.SetRestoreOutputs(cacheKey, cachedOutputs)
         let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
 
         File.ReadAllText(Path.Combine(generatedDir, "cached.txt")) |> should equal "cached-content"

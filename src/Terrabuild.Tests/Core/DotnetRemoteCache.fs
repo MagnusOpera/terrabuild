@@ -35,6 +35,10 @@ type private RecordingCache(inner: Cache.ICache) =
             summaryCalls.Enqueue(id)
             inner.TryGetSummary useRemote id
 
+        member _.Restore useRemote id outputs projectDirectory =
+            summaryCalls.Enqueue(id)
+            inner.Restore useRemote id outputs projectDirectory
+
         member _.GetEntry useRemote id =
             entryCalls.Enqueue(id)
             inner.GetEntry useRemote id

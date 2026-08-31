@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Core.Cache
 open System
 open System.IO
+open System.Text.Json
 open FsUnit
 open NUnit.Framework
 open Collections
@@ -49,7 +50,7 @@ let private summary outputsDir =
     { Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
-      Cache.TargetSummary.Outputs = outputsDir
+      Cache.TargetSummary.HasOutputs = outputsDir |> Option.isSome
       Cache.TargetSummary.IsSuccessful = true
       Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-1.0)
       Cache.TargetSummary.EndedAt = DateTime.UtcNow
@@ -105,12 +106,14 @@ let ``cache completion omits summary outputs marker when outputs are not materia
 
         entry.Complete(summary (Some "outputs")) |> ignore
 
-        let writtenSummary =
+        use writtenSummary =
             Path.Combine(entryDir, "logs", "summary.json")
             |> File.ReadAllText
-            |> Json.Deserialize<Cache.TargetSummary>
+            |> JsonDocument.Parse
 
-        writtenSummary.Outputs |> should equal None)
+        writtenSummary.RootElement.EnumerateObject()
+        |> Seq.exists (fun property -> property.Name = "outputs")
+        |> should equal false)
 
 [<Test>]
 let ``remote summary downloads become durable local entries`` () =
@@ -144,11 +147,66 @@ let ``new entries publish atomically over completed entries`` () =
 
         entry.Complete({ summary None with Target = "replacement" }) |> ignore
 
-        let published =
+        use published =
             Path.Combine(entryDir, "logs", "summary.json")
             |> File.ReadAllText
-            |> Json.Deserialize<Cache.TargetSummary>
-        published.Target |> should equal "replacement")
+            |> JsonDocument.Parse
+        published.RootElement.GetProperty("target").GetString() |> should equal "replacement")
+
+[<Test>]
+let ``restore replaces the complete declared output set`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let project = Path.Combine(root, "project")
+            let generated = Path.Combine(project, "generated")
+            let source = Path.Combine(root, "source")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(Path.Combine(source, "generated")) |> ignore
+            File.WriteAllText(Path.Combine(generated, "cached.txt"), "old")
+            File.WriteAllText(Path.Combine(generated, "stale.txt"), "stale")
+            File.WriteAllText(Path.Combine(source, "generated", "cached.txt"), "cached")
+            File.WriteAllText(Path.Combine(source, "generated", "new.txt"), "new")
+
+            let id = "project-hash/build/restore"
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            let entry = cache.GetEntry false id
+            entry.StoreOutputs source (IO.enumerateFiles source) |> ignore
+            entry.Complete(summary (Some "outputs")) |> ignore
+
+            cache.Restore false id (Set [ "generated/**" ]) project |> should not' (equal None)
+
+            File.ReadAllText(Path.Combine(generated, "cached.txt")) |> should equal "cached"
+            File.ReadAllText(Path.Combine(generated, "new.txt")) |> should equal "new"
+            File.Exists(Path.Combine(generated, "stale.txt")) |> should equal false
+        ))
+
+[<Test>]
+let ``failed restore rolls the workspace back`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let project = Path.Combine(root, "project")
+            let generated = Path.Combine(project, "generated")
+            let source = Path.Combine(root, "source")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(Path.Combine(source, "generated")) |> ignore
+            File.WriteAllText(Path.Combine(generated, "a.txt"), "original")
+            Directory.CreateDirectory(Path.Combine(generated, "z-conflict")) |> ignore
+            File.WriteAllText(Path.Combine(source, "generated", "a.txt"), "replacement")
+            File.WriteAllText(Path.Combine(source, "generated", "z-conflict"), "cannot replace a directory")
+
+            let id = "project-hash/build/rollback"
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            let entry = cache.GetEntry false id
+            entry.StoreOutputs source (IO.enumerateFiles source) |> ignore
+            entry.Complete(summary (Some "outputs")) |> ignore
+
+            (fun () -> cache.Restore false id (Set [ "generated/**" ]) project |> ignore)
+            |> should throw typeof<IOException>
+
+            File.ReadAllText(Path.Combine(generated, "a.txt")) |> should equal "original"
+            Directory.Exists(Path.Combine(generated, "z-conflict")) |> should equal true
+            Directory.EnumerateDirectories(root, ".terrabuild-restore-*") |> Seq.isEmpty |> should equal true
+        ))
 
 [<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
