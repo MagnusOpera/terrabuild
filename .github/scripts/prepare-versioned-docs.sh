@@ -7,11 +7,12 @@ website_dir="$repo_root/website"
 
 latest_stable=""
 while IFS= read -r tag; do
-  if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+     git -C "$repo_root" cat-file -e "$tag:website" 2>/dev/null; then
     latest_stable="$tag"
     break
   fi
-done < <(git -C "$repo_root" tag --list --sort=-version:refname)
+done < <(git -C "$repo_root" tag --list --sort=-creatordate)
 
 if [[ -z "$latest_stable" ]]; then
   echo "No stable application tag found; skipping released documentation snapshot."

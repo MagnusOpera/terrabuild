@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Select the latest website-capable release tag when preparing local documentation.
 - Render caching and batching criteria as proper documentation lists.
 - Keep links to the Next-only target policy guide within the active documentation version.
 - Correct target reference examples to keep managed files separate from external images.
