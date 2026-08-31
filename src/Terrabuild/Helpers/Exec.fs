@@ -168,11 +168,15 @@ type CaptureResult =
 let execCaptureOutput (workingDir: string) (command: string) (args: string) (envs: Map<string, string>) =
     Log.Debug("Running and capturing output of '{Command}' with arguments '{Args}' in working dir '{WorkingDir}'", command, args, workingDir)
     use proc = createProcess workingDir command (Arguments.Raw args) envs true
+    let stdout = proc.StandardOutput.ReadToEndAsync()
+    let stderr = proc.StandardError.ReadToEndAsync()
     proc.WaitForExit()
+    let stdout = stdout.GetAwaiter().GetResult()
+    let stderr = stderr.GetAwaiter().GetResult()
 
     match proc.ExitCode with
-    | 0 -> Success (proc.StandardOutput.ReadToEnd(), proc.ExitCode)
-    | _ -> Error (proc.StandardError.ReadToEnd(), proc.ExitCode)
+    | 0 -> Success (stdout, proc.ExitCode)
+    | _ -> Error (stderr, proc.ExitCode)
 
 let execConsoleArguments (workingDir: string) (command: string) arguments (envs: Map<string, string>) =
     let args = renderArguments arguments

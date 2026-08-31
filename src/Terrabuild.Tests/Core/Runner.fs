@@ -156,6 +156,25 @@ let private writeExecutableScript (path: string) (content: string) =
     if not (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
         File.SetUnixFileMode(path, UnixFileMode.UserRead ||| UnixFileMode.UserWrite ||| UnixFileMode.UserExecute)
 
+[<Test; CancelAfter(10000)>]
+let ``captured processes drain large stdout and stderr streams concurrently`` () =
+    if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) |> not then
+        withTempWorkspace (fun workspace ->
+            let script = Path.Combine(workspace, "large-output.sh")
+            writeExecutableScript script """#!/bin/sh
+i=0
+while [ "$i" -lt 20000 ]; do
+  printf 'stdout-012345678901234567890123456789\n'
+  printf 'stderr-012345678901234567890123456789\n' >&2
+  i=$((i + 1))
+done
+exit 7
+"""
+
+            match Exec.execCaptureOutput workspace script "" Map.empty with
+            | Exec.Error (stderr, 7) -> stderr.Length |> should be (greaterThan 500000)
+            | result -> Assert.Fail($"Expected captured exit code 7, got {result}"))
+
 let private linuxRuntime =
     { Runner.HostRuntime.Platform = Environment.HostPlatform.Linux
       Runner.HostRuntime.UserId = Some 1000u
