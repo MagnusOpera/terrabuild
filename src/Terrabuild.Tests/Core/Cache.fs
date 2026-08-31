@@ -13,6 +13,7 @@ type private FakeStorage() =
 
     member _.Uploads = uploads |> Seq.toList
     member _.Downloads = downloads
+    member _.Delete id = blobs.Remove(id) |> ignore
 
     interface Contracts.IStorage with
         member _.Exists id = blobs.ContainsKey(id)
@@ -157,6 +158,30 @@ let ``remote summary without downloaded outputs is not offline-restorable`` () =
 
             consumer.CanRestore false id downloadedSummary |> should equal false
             consumer.CanRestore true id downloadedSummary |> should equal true
+        ))
+
+[<Test>]
+let ``remote summary is not restorable when its output blob is missing`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/missing-remote-outputs"
+            let source = Path.Combine(root, "source")
+            Directory.CreateDirectory(source) |> ignore
+            let output = Path.Combine(source, "artifact.txt")
+            File.WriteAllText(output, "artifact")
+
+            let producer = Cache.Cache(storage, None) :> Cache.ICache
+            let entry = producer.GetEntry true id
+            entry.StoreOutputs source [ output ] |> ignore
+            entry.Complete(summary (Some "outputs")) |> ignore
+            storage.Delete $"{id}/outputs"
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+
+            let consumer = Cache.Cache(storage, None) :> Cache.ICache
+            let _, downloadedSummary = consumer.TryGetSummaryOnly true id |> Option.get
+
+            consumer.CanRestore true id downloadedSummary |> should equal false
         ))
 
 [<Test>]

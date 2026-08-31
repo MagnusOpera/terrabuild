@@ -472,46 +472,53 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true false
         DiagnosticsTelemetry.recordTask node.Id "summary-ended"
 
-    let restoreNode (node: GraphDef.Node) =
-        let restoreLocks =
-            match node.Artifacts with
-            | GraphDef.ArtifactMode.Workspace
-            | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty -> node.Locks
-            | _ -> Set.empty
-        use _targetLocks = acquireTargetLocks node.Id [ node.Id ] restoreLocks
-        DiagnosticsTelemetry.recordTask node.Id "restore-started"
-        Log.Debug("{NodeId}: restoring Node", node.Id)
-        buildProgress.TaskDownloading node.Id
-
-        let projectDirectory =
-            match node.ProjectDir with
-            | FS.Directory d -> d
-            | FS.File f -> f |> FS.parentDirectory |> Option.get
-            | _ -> "."
-
-        let useRemote = GraphDef.isRemoteCacheable options node
+    let rec restoreNode (node: GraphDef.Node) =
         let cacheEntryId = GraphDef.buildCacheKey node
+        let restoredSummary =
+            let restoreLocks =
+                match node.Artifacts with
+                | GraphDef.ArtifactMode.Workspace
+                | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty -> node.Locks
+                | _ -> Set.empty
+            use _targetLocks = acquireTargetLocks node.Id [ node.Id ] restoreLocks
+            DiagnosticsTelemetry.recordTask node.Id "restore-started"
+            Log.Debug("{NodeId}: restoring Node", node.Id)
+            buildProgress.TaskDownloading node.Id
 
-        let status =
-            match cache.Restore useRemote cacheEntryId node.Outputs projectDirectory with
-            | Some summary ->
-                api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+            let projectDirectory =
+                match node.ProjectDir with
+                | FS.Directory d -> d
+                | FS.File f -> f |> FS.parentDirectory |> Option.get
+                | _ -> "."
+
+            let useRemote = GraphDef.isRemoteCacheable options node
+            let summary = cache.Restore useRemote cacheEntryId node.Outputs projectDirectory
+            DiagnosticsTelemetry.recordTask node.Id "restore-ended"
+            summary
+
+        match restoredSummary with
+        | Some summary ->
+            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+            let status =
                 if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                 else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
+            nodeResults[node.Id] <- (TaskRequest.Restore, status)
+
+            match status with
+            | TaskStatus.Success completionDate ->
+                hub.GetSignal<DateTime>(node.Id).Set completionDate
+                buildProgress.TaskCompleted node.Id true true
             | _ ->
-                TaskStatus.Failure (DateTime.UtcNow, $"Unable to download build output for {cacheEntryId} for node {node.Id}")
+                buildProgress.TaskCompleted node.Id true false
+        | None ->
+            Log.Warning(
+                "{NodeId}: cached outputs for {CacheEntryId} disappeared before restoration; executing the target instead",
+                node.Id,
+                cacheEntryId)
+            DiagnosticsTelemetry.recordTask node.Id "restore-missed"
+            execNode node
 
-        nodeResults[node.Id] <- (TaskRequest.Restore, status)
-
-        match status with
-        | TaskStatus.Success completionDate ->
-            hub.GetSignal<DateTime>(node.Id).Set completionDate
-            buildProgress.TaskCompleted node.Id true true
-        | _ ->
-            buildProgress.TaskCompleted node.Id true false
-        DiagnosticsTelemetry.recordTask node.Id "restore-ended"
-
-    let execNode (node: GraphDef.Node) =
+    and execNode (node: GraphDef.Node) =
         use _targetLocks = acquireTargetLocks node.Id [ node.Id ] node.Locks
         DiagnosticsTelemetry.recordTask node.Id "execution-started"
         let startedAt = DateTime.UtcNow

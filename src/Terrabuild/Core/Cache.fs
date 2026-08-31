@@ -455,11 +455,13 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
 
         member _.CanRestore useRemote id summary =
-            if not summary.HasOutputs || useRemote then
+            if not summary.HasOutputs then
                 true
             else
                 let entryDir = FS.combinePath (createCache()) id
-                Directory.Exists(FS.combinePath entryDir "outputs")
+                if Directory.Exists(FS.combinePath entryDir "outputs") then true
+                elif useRemote then storage.Exists $"{id}/outputs"
+                else false
 
         member _.TryGetSummary useRemote id =
             getSummaryOnly useRemote id |> Option.map snd

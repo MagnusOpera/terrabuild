@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Rebuild targets when remotely cached output files disappear before restoration.
 - Keep execution batches separate when container CPU limits or extension scripts differ.
 - Prevent targets with different names from being combined into one execution batch.
 - Define the last command as the source of a target's default artifact mode.

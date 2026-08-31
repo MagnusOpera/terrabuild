@@ -695,6 +695,27 @@ let ``managed output restore completes while named target lock is held`` () =
             observedLease |> should equal true))
 
 [<Test>]
+let ``missing cached outputs fall back to target execution`` () =
+    withTempWorkspace (fun workspace ->
+        let marker = Path.Combine(workspace, "rebuilt.txt")
+        let node =
+            { buildNode "restore-miss" workspace "build" GraphDef.RunAction.Restore [ buildOperation "/usr/bin/touch" marker None ] with
+                Outputs = Set [ "rebuilt.txt" ]
+                Artifacts = GraphDef.ArtifactMode.Managed }
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+              GraphDef.Graph.RootNodes = Set [ node.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace)
+
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph
+
+        File.Exists(marker) |> should equal true
+        summary.IsSuccess |> should equal true
+        summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec)
+
+[<Test>]
 let ``named target lock waits are reported separately from execution`` () =
     withTempWorkspace (fun workspace ->
         withEnvironmentVariable "HOME" workspace (fun () ->
