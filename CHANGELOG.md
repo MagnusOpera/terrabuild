@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep batch output and log staging inside named target lock leases.
 - Remove idle target lock files with `terrabuild clear --all`.
 - Keep named-lock waiters stable during sustained contention.
 - Serialize targets that declare the same named lock across concurrent Terrabuild processes.

@@ -178,7 +178,7 @@ let private buildOperation command arguments image =
       GraphDef.ContaineredShellOperation.ErrorLevel = 0
       GraphDef.ContaineredShellOperation.Stdout = None }
 
-type private FakeEntry(root: string, id: string, completed: ResizeArray<string>) =
+type private FakeEntry(root: string, id: string, completed: ResizeArray<string>, onStoreOutputs: unit -> unit) =
     let entryRoot = Path.Combine(root, id.Replace("/", "_"))
     let logsDir = Path.Combine(entryRoot, "logs")
     let outputsDir = Path.Combine(entryRoot, "outputs")
@@ -193,7 +193,9 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>)
             logIndex <- logIndex + 1
             Path.Combine(logsDir, $"step{logIndex}.log")
 
-        member _.StoreOutputs sourceDir entries = IO.copyFiles outputsDir sourceDir entries
+        member _.StoreOutputs sourceDir entries =
+            onStoreOutputs()
+            IO.copyFiles outputsDir sourceDir entries
         member _.StoreLogs entries =
             for entry in entries do
                 File.Copy(entry, Path.Combine(logsDir, IO.getFilename entry), true)
@@ -202,12 +204,13 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>)
             completed.Add(id)
             [ $"artifact-{id}" ]
 
-type private FakeCache(root: string) =
+type private FakeCache(root: string, ?onStoreOutputs: unit -> unit) =
     let completed = ResizeArray<string>()
     let entries = Dictionary<string, FakeEntry>()
     let opened = ResizeArray<string>()
     let summaries = Dictionary<string, Cache.TargetSummary>()
     let restoreOutputs = Dictionary<string, string>()
+    let onStoreOutputs = defaultArg onStoreOutputs ignore
 
     member _.Completed = completed |> Seq.toList
     member _.Opened = opened |> Seq.toList
@@ -245,7 +248,7 @@ type private FakeCache(root: string) =
             match entries.TryGetValue(id) with
             | true, entry -> entry :> Cache.IEntry
             | _ ->
-                let entry = FakeEntry(root, id, completed)
+                let entry = FakeEntry(root, id, completed, onStoreOutputs)
                 entries[id] <- entry
                 entry :> Cache.IEntry
 
@@ -577,6 +580,44 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         summary.Nodes[execMember.Id].Status.IsSuccess |> should equal expectedSuccess
         summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess
         summary.Nodes |> Map.containsKey batchNode.Id |> should equal false)
+
+[<Test>]
+let ``batch output staging completes while named target lock is held`` () =
+    withTempWorkspace (fun workspace ->
+        withEnvironmentVariable "HOME" workspace (fun () ->
+            let projectDir = Path.Combine(workspace, "project")
+            Directory.CreateDirectory(projectDir) |> ignore
+            let output = Path.Combine(projectDir, "generated.txt")
+            let lockName = "batch-finalization"
+            let lockPath = TargetLock.lockFilePath (Path.Combine(workspace, ".terrabuild")) lockName
+            let mutable observedLease = false
+
+            let assertLeaseHeld () =
+                try
+                    use _stream = new FileStream(lockPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                    observedLease <- false
+                with :? IOException ->
+                    observedLease <- true
+
+            let memberNode =
+                { buildNode "member-exec" projectDir "build" GraphDef.RunAction.Exec [] with
+                    Locks = Set [ lockName ]
+                    Outputs = Set [ "generated.txt" ] }
+            let batchNode =
+                { buildNode "batch-build" "." "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/touch" output None ] with
+                    Locks = Set [ lockName ] }
+            let graph =
+                { GraphDef.Graph.Nodes = Map [ memberNode.Id, memberNode; batchNode.Id, batchNode ]
+                  GraphDef.Graph.RootNodes = Set [ memberNode.Id ]
+                  GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ]
+                  GraphDef.Graph.Phases = Map.empty }
+
+            let cache = FakeCache(workspace, assertLeaseHeld)
+            let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph
+
+            summary.IsSuccess |> should equal true
+            observedLease |> should equal true
+            cache.Completed |> should equal [ GraphDef.buildCacheKey memberNode ]))
 
 [<Test>]
 let ``run includes repository in uploaded graph hash`` () =

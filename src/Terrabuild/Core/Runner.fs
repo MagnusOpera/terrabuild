@@ -581,20 +581,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             if successful then TaskStatus.Success endedAt
             else TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
-        // async upload summaries for each member node
-        cacheEntries
-        |> Map.iter (fun nodeId cacheEntry ->
-            hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
-                DiagnosticsTelemetry.recordTask nodeId "upload-started"
+        // Snapshot outputs and stage logs while the batch still owns its target locks.
+        let preparedEntries =
+            cacheEntries
+            |> Map.map (fun nodeId cacheEntry ->
                 let node = graph.Nodes[nodeId]
-                buildProgress.TaskUploading node.Id
-
                 match node.Action, cacheEntry with
-                | GraphDef.RunAction.Restore, _ ->
-                    nodeResults[nodeId] <- (TaskRequest.Restore, status)
-                    api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                | GraphDef.RunAction.Restore, _ -> None
                 | _, Some cacheEntry ->
-                    // copy logs only for members that publish a new cache entry
                     let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                     cacheEntry.StoreLogs logs
 
@@ -617,6 +611,23 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                           Cache.TargetSummary.Duration = duration
                           Cache.TargetSummary.Cache = node.Artifacts }
 
+                    Some (cacheEntry, summary)
+                | _, None ->
+                    raiseBugError $"No cache entry created for executing batch member {node.Id}")
+
+        // Complete cache publication asynchronously after member data is safely staged.
+        preparedEntries
+        |> Map.iter (fun nodeId preparedEntry ->
+            hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
+                DiagnosticsTelemetry.recordTask nodeId "upload-started"
+                let node = graph.Nodes[nodeId]
+                buildProgress.TaskUploading node.Id
+
+                match node.Action, preparedEntry with
+                | GraphDef.RunAction.Restore, _ ->
+                    nodeResults[nodeId] <- (TaskRequest.Restore, status)
+                    api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                | _, Some (cacheEntry, summary) ->
                     nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                     let files = cacheEntry.Complete summary
