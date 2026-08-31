@@ -125,6 +125,23 @@ let ``named target locks serialize competing leases and survive release`` () =
         second.Wait(TimeSpan.FromSeconds(2.0)) |> should equal true
         File.Exists(TargetLock.lockFilePath profile "nuget-tools") |> should equal true)
 
+[<Test>]
+let ``clearing target locks removes idle sentinels without disrupting active leases`` () =
+    withTempWorkspace (fun root ->
+        let profile = Path.Combine(root, "profile")
+        let active = TargetLock.acquireAt profile (Set [ "active" ])
+        use idle = TargetLock.acquireAt profile (Set [ "idle" ])
+        idle.Dispose()
+
+        TargetLock.clearAt profile
+
+        File.Exists(TargetLock.lockFilePath profile "active") |> should equal true
+        File.Exists(TargetLock.lockFilePath profile "idle") |> should equal false
+
+        active.Dispose()
+        TargetLock.clearAt profile
+        File.Exists(TargetLock.lockFilePath profile "active") |> should equal false)
+
 let private withEnvironmentVariable name value action =
     let previous = Environment.GetEnvironmentVariable(name)
     Environment.SetEnvironmentVariable(name, value)

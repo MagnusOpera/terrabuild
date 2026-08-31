@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Remove idle target lock files with `terrabuild clear --all`.
 - Keep named-lock waiters stable during sustained contention.
 - Serialize targets that declare the same named lock across concurrent Terrabuild processes.
 - Keep execution diagnostics stable when concurrent containers use unique names.

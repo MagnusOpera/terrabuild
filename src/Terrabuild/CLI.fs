@@ -192,7 +192,7 @@ with
             | Cache -> "Clear build cache."
             | Home -> "Clear home cache."
             | Temporary -> "Clear tmp cache."
-            | All -> "Clear all caches."
+            | All -> "Clear all caches and idle target lock files."
 
 [<RequireQualifiedAccess>]
 type PruneArgs =

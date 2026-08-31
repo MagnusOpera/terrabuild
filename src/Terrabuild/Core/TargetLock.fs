@@ -53,3 +53,16 @@ let internal acquireAt profileDir (names: Set<string>) =
 
 let acquire names =
     acquireAt (Cache.createTerrabuildProfile()) names
+
+let internal clearAt profileDir =
+    let lockDir = FS.combinePath profileDir "locks/targets"
+    if Directory.Exists(lockDir) then
+        for path in Directory.EnumerateFiles(lockDir, "*.lock", SearchOption.TopDirectoryOnly) do
+            try
+                use _lease = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Delete)
+                File.Delete(path)
+            with :? IOException ->
+                ()
+
+let clear () =
+    clearAt (Cache.createTerrabuildProfile())
