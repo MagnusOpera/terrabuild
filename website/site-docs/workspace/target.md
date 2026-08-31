@@ -55,14 +55,15 @@ flowchart TB
 ```hcl
 target build {
     phase = phase.application
-    depends_on = [ target.^build
-                   target.init ]
+    depends_on = [ target.^build ]
     build = ~auto
     artifacts = ~managed
     batch = ~partition
     environment_sensitive = false
 }
 ```
+
+This example describes a deterministic application build in a larger workspace: it waits at the application phase barrier, follows upstream project builds, shares output files through Insights, and batches dependency-connected components separately. It remains environment-neutral so accidental deployment context cannot fragment or contaminate the build cache. These are scenario choices rather than required defaults.
 
 ## Argument reference
 

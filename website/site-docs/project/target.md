@@ -14,13 +14,14 @@ target build {
     depends_on = [ target.^build ]
     outputs = [ "dist/*" ]
     build = ~auto
-    artifacts = ~workspace
+    artifacts = ~managed
     environment_sensitive = false
 
     @npm build { arguments = { configuration: var.config } }
-    @docker build { }
 }
 ```
+
+This example keeps one ownership model: the npm command produces declared filesystem output that Terrabuild can store and restore. A target whose actual result is a Docker image should instead use or inherit `artifacts = ~external`, because the registry or Docker engine owns that image and Terrabuild should reuse only its successful execution summary.
 
 ## Argument reference
 

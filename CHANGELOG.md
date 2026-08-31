@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Correct target reference examples to keep managed files separate from external images.
 - Explain deployment target policies through plan ownership and side-effect use cases.
 - Connect introductory and reference documentation to the target policy decision guide.
 - Add symptom-based troubleshooting for cache, propagation, batching, locks, and environment inputs.
