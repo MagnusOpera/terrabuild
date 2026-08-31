@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep execution diagnostics stable when concurrent containers use unique names.
 - Restore cached outputs transactionally without exposing cache directories to the runner.
 - Pass container arguments without shell re-parsing and isolate concurrent container names.
 - Publish cache entries atomically and persist remotely downloaded summaries locally.

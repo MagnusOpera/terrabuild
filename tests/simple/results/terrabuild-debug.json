@@ -1342,14 +1342,14 @@
         {
           "metaCommand": "@pnpm install",
           "command": "docker",
-          "argumentsHash": "AE4C6862AC56EBC892334A8F04A22F4F723541D57A3F061BE91A192A7D3C5F67",
+          "argumentsHash": "CB7BF66DE88A07F6B4FFA90C626A5394B6B7CD7D7014EA22D12CF489497DDA38",
           "container": "guergeiro/pnpm:20-10",
           "exitCode": 0
         },
         {
           "metaCommand": "@pnpm build",
           "command": "docker",
-          "argumentsHash": "1B06308597E5C3A49D15331886099493AC3BC09C7811036D0EACAFE36C28CB25",
+          "argumentsHash": "AB8FD6363C6FDDB6D9EE7B5BAB6B8B6A7E7DC04E065641AEB00849B1227382C1",
           "container": "guergeiro/pnpm:20-10",
           "exitCode": 0
         }
@@ -1368,14 +1368,14 @@
         {
           "metaCommand": "@dotnet restore",
           "command": "docker",
-          "argumentsHash": "B48B5958B282620FC201EA2D1ED61A4F1363846B57FD00834B70961CE95F6760",
+          "argumentsHash": "D966AD6E44B4779BE3887764BD6A1DB0401BE46047822D9A61004007B1E18344",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         },
         {
           "metaCommand": "@dotnet build",
           "command": "docker",
-          "argumentsHash": "804560A74EEDE42BB5E65D10DFA40B29245C2B489DA55532E5032588AD745133",
+          "argumentsHash": "6453E2248D166C0FA2C0703FE5881AE1C1DF7CADE555B75F0F71716CFBAE684A",
           "container": "mcr.microsoft.com/dotnet/sdk:9.0.202",
           "exitCode": 0
         }
@@ -1396,7 +1396,7 @@
         {
           "metaCommand": "@go build",
           "command": "docker",
-          "argumentsHash": "B18700F1A83B288AD258F2863EBB52A5DFBC3E34C433BA936832748157835132",
+          "argumentsHash": "721F0283508D88908CC512F863BAA658F11AAB7A755FDD7DFDEC4271F691FF16",
           "container": "golang:1.26.5-bookworm",
           "exitCode": 0
         }
@@ -1417,7 +1417,7 @@
         {
           "metaCommand": "@go test",
           "command": "docker",
-          "argumentsHash": "5EA1CE4649C4CA5F93B24958981C9CD78D73553AB251F3137DC1FF4232303998",
+          "argumentsHash": "56DE73D616A55A12C86CB10DAFEA7943371D7883A6BD491EA289E2679267E5E2",
           "container": "golang:1.26.5-bookworm",
           "exitCode": 0
         }
@@ -1438,14 +1438,14 @@
         {
           "metaCommand": "@terraform init",
           "command": "docker",
-          "argumentsHash": "37700252E6D6A0AF7F00F05005184EF9A5A4FC99488EE25DADC4A71883AB4D42",
+          "argumentsHash": "5AFC0A3619282E93301323E9AD5BBDFF9A44695A117ED7AA4B3276D6EF2A1D93",
           "container": "hashicorp/terraform:1.10",
           "exitCode": 0
         },
         {
           "metaCommand": "@terraform plan",
           "command": "docker",
-          "argumentsHash": "2F8CCC7DC2FF02D1DBF07364A65B84ADDAE09B453C1F54FA939F5530580439E5",
+          "argumentsHash": "EB81CF96BD866D3AFBC2700113ED1E52814D3DD921834357C840A68DA613764C",
           "container": "hashicorp/terraform:1.10",
           "exitCode": 0
         }
@@ -1538,7 +1538,7 @@
         {
           "metaCommand": "@openapi generate",
           "command": "docker",
-          "argumentsHash": "DF4AAED76CA0E736E909A2591C34EFA96CCBDF4483BE1C1B87547DD5479C76E6",
+          "argumentsHash": "125887E20984C23957A6D451D113CDD02BDB3C32C93EA8B2093104DD5393B3CF",
           "container": "openapitools/openapi-generator-cli:v7.10.0",
           "exitCode": 0
         }
@@ -1559,7 +1559,7 @@
         {
           "metaCommand": "@cargo build",
           "command": "docker",
-          "argumentsHash": "02D87C44931358FEC130C6713BE9E0C5CB80369EF482C31893718A1C375F7F26",
+          "argumentsHash": "02AB787AB160AF0CB2DBDE9C9ADE7A139A9E3BC989422BA61FD2FAEAD90944B9",
           "container": "rust:1.81.0-slim",
           "exitCode": 0
         }
@@ -1586,7 +1586,7 @@
         {
           "metaCommand": "@playwright test",
           "command": "docker",
-          "argumentsHash": "A8A6B850886AD579E9FF4569CAFDB5CCAB3D5ACD2C6F4B6E717CD682C25BA8EE",
+          "argumentsHash": "939309AF61A2A8CFFFEB4896E333E0CC46950259EC16EA743E2FB195EAD34ACC",
           "container": "mcr.microsoft.com/playwright:v1.54.0-noble",
           "exitCode": 0
         }

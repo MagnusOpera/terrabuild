@@ -191,7 +191,7 @@
         {
           "metaCommand": "@pnpm build",
           "command": "docker",
-          "argumentsHash": "58F9FD05C5508A7776D116775EC695AA963CCE69580699D450132819413E4F47",
+          "argumentsHash": "8B39EBF5A278B7830421F9BD94BFB2E2187908E1B959A76EE6CA98C104C65517",
           "container": "terrabuild-test-pnpm:818128CC8B2E6AD6497FAAB384855D93B977910C57791A406145ED6C6F0DFFA2",
           "exitCode": 0
         }

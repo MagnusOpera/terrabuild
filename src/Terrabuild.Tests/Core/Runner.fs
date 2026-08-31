@@ -84,6 +84,15 @@ let ``operation argument fingerprints are stable across machine roots`` () =
     Diagnostics.normalizeOperationArguments unixOptions unixArguments
     |> should equal (Diagnostics.normalizeOperationArguments ciOptions ciArguments)
 
+[<Test>]
+let ``operation argument fingerprints ignore unique container instance suffixes`` () =
+    let options = baseOptions "/workspace"
+    let first = "run --rm --name terrabuild-workspace-path-app-build-0123456789ab image command"
+    let second = "run --rm --name terrabuild-workspace-path-app-build-fedcba987654 image command"
+
+    Diagnostics.normalizeOperationArguments options first
+    |> should equal (Diagnostics.normalizeOperationArguments options second)
+
 let private withTempWorkspace action =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-runner-tests-{Guid.NewGuid():N}")
     Directory.CreateDirectory(root) |> ignore

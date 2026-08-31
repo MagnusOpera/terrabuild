@@ -350,7 +350,13 @@ let internal normalizeOperationArguments (options: ConfigOptions.Options) (argum
                 .Replace(path.Replace('\\', '/'), alias, StringComparison.Ordinal)
                 .Replace(path.Replace('/', '\\'), alias, StringComparison.Ordinal)) arguments
 
-    Text.RegularExpressions.Regex.Replace(normalizedPaths, @"--user \d+:\d+\s*", "")
+    let normalizedUser =
+        Text.RegularExpressions.Regex.Replace(normalizedPaths, @"--user \d+:\d+\s*", "")
+
+    Text.RegularExpressions.Regex.Replace(
+        normalizedUser,
+        @"(--name\s+terrabuild-\S+-)[0-9a-fA-F]{12}(?=\s|$)",
+        fun matched -> matched.Groups[1].Value + "$INSTANCE")
 
 let private projectFingerprintCache = ConcurrentDictionary<string, ProjectFingerprint>()
 
