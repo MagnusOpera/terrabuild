@@ -75,7 +75,10 @@ Validates environment neutrality before extension operations are resolved.
 Resolves operations and final cache inputs for each selected node.
 
 - Invokes extension scripts to get command operations.
-- Resolves command cacheability from extension metadata.
+- Resolves each command's cacheability from extension metadata. When a target has
+  multiple commands, the last command deliberately defines the target's default
+  artifact mode. Command order therefore controls artifact ownership; an explicit
+  target `artifacts` value overrides that default.
 - Marks a node non-batchable when any command says it is not batchable.
 - Computes the final target hash from project hash, target hash, resolved operations, and dependency target hashes.
 - Applies explicit target cache overrides.

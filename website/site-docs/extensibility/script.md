@@ -130,6 +130,13 @@ type ExportFlag =
 | `Remote` | Use managed caching, including Insights when connected. |
 | `External` | The command manages artifacts externally; Terrabuild stores its summary. |
 
+When a target runs several commands, the cacheability of the **last command** is
+the target's default artifact mode. This is intentional: the final command is
+treated as the owner of the target's resulting artifacts. Reordering commands can
+therefore change whether Terrabuild stores files locally, manages them remotely,
+keeps only an external execution summary, or does not cache them. Set the target's
+`artifacts` attribute when ownership should not be inferred from command order.
+
 Batching is not a descriptor flag. Each invocation reports whether it supports batching through `CommandResult.Batchable`.
 
 ## Optional project defaults

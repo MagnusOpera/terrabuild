@@ -630,6 +630,38 @@ target build {
         node.ClusterHash |> should equal None)
 
 [<Test>]
+let ``Resolve stage uses the last command cacheability as the target default`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+
+target remote_last {}
+target local_last {}
+
+extension @pnpm {}
+"""
+        writeFile workspace "apps/app/PROJECT" """
+project app { @shell {} }
+
+target remote_last {
+  @pnpm install {}
+  @pnpm build {}
+}
+
+target local_last {
+  @pnpm build {}
+  @pnpm install {}
+}
+"""
+
+        let stages = runPipeline (baseOptions workspace (Set [ "remote_last"; "local_last" ]))
+        let remoteLast = stages.ResolvedGraph.Nodes["workspace/path#apps/app:remote_last"]
+        let localLast = stages.ResolvedGraph.Nodes["workspace/path#apps/app:local_last"]
+
+        remoteLast.Artifacts |> should equal ArtifactMode.Managed
+        localLast.Artifacts |> should equal ArtifactMode.Workspace)
+
+[<Test>]
 let ``Resolved output patterns participate in target hash`` () =
     withTempWorkspace (fun workspace ->
         writeFile workspace "WORKSPACE" """
