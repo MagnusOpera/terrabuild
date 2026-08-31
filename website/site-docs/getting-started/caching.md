@@ -29,6 +29,7 @@ A key cannot include an input Terrabuild does not know about. Files excluded by 
 ### Local cache
 
 Terrabuild maintains a local cache under `~/.terrabuild/cache`. This cache:
+
 - Stores build artifacts for fast local builds
 - Works offline
 - Is specific to your machine

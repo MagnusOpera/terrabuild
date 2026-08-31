@@ -10,6 +10,7 @@ Running one command per project is not always the cheapest option. Some toolchai
 For example, .NET can build several projects through one generated solution. Terrabuild can create that batch from the selected graph instead of requiring a permanent solution file for every possible subset.
 
 Terrabuild creates a batch cluster only when:
+
 - All commands used in a target support batch mode
 - Commands resolve to the same batch cluster
 - Nodes are required in the current run
