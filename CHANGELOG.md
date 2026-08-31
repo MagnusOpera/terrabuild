@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Finalize started Insights builds as failed when runner operations raise an exception.
 - Apply named target locks while cached outputs are restored into the workspace.
 - Rebuild offline targets when a cached summary exists without its managed outputs.
 - Report named locks and lock-wait timing separately from target execution.

@@ -55,6 +55,29 @@ type private ContainerEnginePolicy = {
     MountArgs: string list
 }
 
+type private ApiBuildLifecycle(api: Contracts.IApiClient option) =
+    let mutable started = false
+    let mutable completed = false
+
+    member _.Start() =
+        api |> Option.iter (fun api ->
+            api.StartBuild()
+            started <- true)
+
+    member _.Complete(success) =
+        if started && not completed then
+            api.Value.CompleteBuild(success)
+            completed <- true
+
+    interface IDisposable with
+        member _.Dispose() =
+            if started && not completed then
+                try
+                    api.Value.CompleteBuild(false)
+                    completed <- true
+                with ex ->
+                    Log.Error(ex, "Failed to finalize Insights build after runner failure")
+
 [<RequireQualifiedAccess>]
 type private EngineRequestPath =
     | Docker
@@ -337,6 +360,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         |> Option.defaultValue options.Repository
     $"{Ansi.Emojis.rocket} Processing tasks" |> Terminal.writeLine
     let buildProgress = Notification.BuildNotification() :> BuildProgress.IBuildProgress
+    use apiBuild = new ApiBuildLifecycle(api)
     let flattenBatchProgress =
         options.LogTypes
         |> List.exists (function
@@ -344,7 +368,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | _ -> false)
     buildProgress.BuildStarted()
     api |> Option.iter (fun api ->
-        api.StartBuild()
+        apiBuild.Start()
 
         let graphNodes =
             uploadGraph.Nodes.Values
@@ -784,7 +808,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
           Summary.Targets = options.Targets
           Summary.Nodes = nodeStatus }
 
-    api |> Option.iter (fun api -> api.CompleteBuild buildInfo.IsSuccess)
+    apiBuild.Complete(buildInfo.IsSuccess)
     buildInfo
 
 let loadSummary (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =

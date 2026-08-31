@@ -256,16 +256,19 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: 
                 entries[id] <- entry
                 entry :> Cache.IEntry
 
-type private FakeApiClient() =
+type private FakeApiClient(?failAddArtifact: bool) =
     let addCalls = ResizeArray<string * string option * string * string * string * string list * bool * DateTime * DateTime>()
     let useCalls = ResizeArray<string * string>()
     let graphUploads = ResizeArray<string * BuildGraphNode list>()
     let lifecycle = ResizeArray<string>()
+    let completions = ResizeArray<bool>()
+    let failAddArtifact = defaultArg failAddArtifact false
 
     member _.AddCalls = addCalls |> Seq.toList
     member _.UseCalls = useCalls |> Seq.toList
     member _.GraphUploads = graphUploads |> Seq.toList
     member _.Lifecycle = lifecycle |> Seq.toList
+    member _.Completions = completions |> Seq.toList
 
     interface Contracts.IApiClient with
         member _.StartBuild() =
@@ -275,8 +278,9 @@ type private FakeApiClient() =
             lifecycle.Add("upload-graph")
             graphUploads.Add(graphHash, nodes)
 
-        member _.CompleteBuild(_success) =
+        member _.CompleteBuild(success) =
             lifecycle.Add("complete")
+            completions.Add(success)
 
         member _.GetCommitGraph _repository _commit _environment =
             { Contracts.CommitGraph.Repository = "acme/repo"
@@ -287,7 +291,10 @@ type private FakeApiClient() =
         member _.GetArtifact(_path) (_operation) = Uri("https://example.invalid/artifact"), None
 
         member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
-            addCalls.Add(project, projectName, target, projectHash, targetHash, files, success, startedAt, endedAt)
+            if failAddArtifact then
+                failwith "artifact publication failed"
+            else
+                addCalls.Add(project, projectName, target, projectHash, targetHash, files, success, startedAt, endedAt)
 
         member _.UseArtifact projectHash targetHash =
             useCalls.Add(projectHash, targetHash)
@@ -760,6 +767,37 @@ let ``run includes repository in uploaded graph hash`` () =
         let secondHash = runForRepository "acme/repo-b"
 
         firstHash = secondHash |> should equal false)
+
+[<Test>]
+let ``run finalizes Insights as failed when artifact publication throws`` () =
+    withTempWorkspace (fun workspace ->
+        let node =
+            buildNode
+                "failed-publication"
+                workspace
+                "build"
+                GraphDef.RunAction.Exec
+                [ buildOperation "/usr/bin/true" "" None ]
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+              GraphDef.Graph.RootNodes = Set [ node.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace)
+        let api = FakeApiClient(failAddArtifact = true)
+
+        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+            Runner.run
+                (baseOptions workspace)
+                (cache :> Cache.ICache)
+                (Some (api :> Contracts.IApiClient))
+                graph
+                graph
+            |> ignore))
+        |> ignore
+
+        api.Lifecycle |> should equal [ "start"; "upload-graph"; "complete" ]
+        api.Completions |> should equal [ false ])
 
 [<Test>]
 let ``run normalizes equivalent repository identities in uploaded graph hash`` () =
