@@ -21,6 +21,7 @@ target dist {
 
 target plan {
   environment_sensitive = true
+  artifacts = ~managed
   depends_on = [ target.^dist ]
 }
 
@@ -34,6 +35,16 @@ extension @terraform {
   image = "hashicorp/terraform:1.8.4"
 }
 ```
+
+The policies reflect the ownership and lifetime of each result:
+
+- `target.^dist` selects distributable outputs from the deployment project's upstream applications.
+- `environment_sensitive = true` permits the plan to consume the selected environment and includes that consumed value in its cache identity.
+- `artifacts = ~managed` preserves the declared Terraform plan file so an authorized developer or CI runner can restore it through Insights.
+- `build = ~always` makes every selected deployment perform the side effect even when its declared inputs match an earlier run.
+- `artifacts = ~none` prevents a previous application from becoming a reusable result for a new deployment request.
+
+These settings are deliberate, not a required template. Use `artifacts = ~workspace` when a plan must remain on one machine, and keep the inferred/default artifact mode when the extension already expresses the intended ownership. See [Target policies](/docs/getting-started/target-policies) for the decision guide.
 
 The deployment project names the application projects as dependencies. That relationship gives `target.^dist` its upstream project set.
 
@@ -81,7 +92,7 @@ Run the plan after configuring the Terraform backend and credentials:
 terrabuild run plan --environment staging
 ```
 
-The built-in Terraform extension writes `terrabuild.planfile`. Terrabuild can cache that file according to the target's artifact mode.
+The built-in Terraform extension writes `terrabuild.planfile`. With the managed policy above, Terrabuild stores it locally and uploads it to encrypted Insights storage when connected. A workspace-only policy would keep the same restoration behavior local to one machine.
 
 ## Apply the deployment
 

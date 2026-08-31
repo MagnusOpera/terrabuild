@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Explain deployment target policies through plan ownership and side-effect use cases.
 - Connect introductory and reference documentation to the target policy decision guide.
 - Add symptom-based troubleshooting for cache, propagation, batching, locks, and environment inputs.
 - Turn the playground quick start into an annotated target-policy tutorial.
