@@ -120,7 +120,7 @@ let ``named target locks serialize competing leases and survive release`` () =
                 ())
 
         attempted.Wait(TimeSpan.FromSeconds(2.0)) |> should equal true
-        second.Wait(TimeSpan.FromMilliseconds(150.0)) |> should equal false
+        second.Wait(TimeSpan.FromSeconds(3.0)) |> should equal false
         first.Dispose()
         second.Wait(TimeSpan.FromSeconds(2.0)) |> should equal true
         File.Exists(TargetLock.lockFilePath profile "nuget-tools") |> should equal true)
