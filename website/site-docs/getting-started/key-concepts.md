@@ -35,6 +35,8 @@ workspace/
 
 Relationship: `target` defines intent, `task` is the runtime instance, `node` is the graph representation.
 
+Target attributes form the scheduling and reuse policy for every task with that name. See [Target policies](/docs/getting-started/target-policies) for dependency, phase, build, output, artifact, batch, environment, and lock decisions.
+
 ### Extension, action, and command
 
 | Term | Meaning |
@@ -118,5 +120,6 @@ See [Batch](/docs/getting-started/batch) for details.
 
 - [Graph](/docs/getting-started/graph) for how Terrabuild models work
 - [Tasks](/docs/getting-started/tasks) for build-vs-restore decisions
+- [Target policies](/docs/getting-started/target-policies) for choosing target attributes from use cases
 - [Glossary](/docs/getting-started/glossary) for short term definitions
 - [Syntax](/docs/syntax) for the file format

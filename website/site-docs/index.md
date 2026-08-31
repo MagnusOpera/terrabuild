@@ -39,9 +39,9 @@ Read [Deployment](getting-started/deployment) for a complete example with enviro
 
 ## Cache work that can be reused
 
-Terrabuild fingerprints the files, dependency state, commands, and evaluated inputs known to each target. A matching fingerprint can restore saved outputs instead of executing the target again. Targets with side effects, such as deployment, should use `build = ~always` and `artifacts = ~none`.
+Terrabuild fingerprints the files, dependency state, commands, and evaluated inputs known to each target. A matching fingerprint can restore Terrabuild-managed outputs or reuse the successful summary of an externally managed artifact instead of executing the target again. Targets with side effects, such as deployment, should use `build = ~always` and `artifacts = ~none`.
 
-Read [Caching](/docs/getting-started/caching) for the cache-key inputs and artifact modes.
+Read [Target policies](/docs/getting-started/target-policies) to choose target behavior and [Caching](/docs/getting-started/caching) for cache-key inputs and artifact ownership.
 
 ## Keep the tools already in the repository
 
@@ -51,5 +51,6 @@ Start with one of these pages:
 
 - [Quick start](getting-started/quick-start) runs a working monorepo example.
 - [Deployment](getting-started/deployment) connects application artifacts to an infrastructure target.
+- [Target policies](getting-started/target-policies) explains when to use each target attribute.
 - [Graph](getting-started/graph) explains selection, ordering, and execution.
 - [Workspace](workspace) and [Project](project) document the configuration files.
