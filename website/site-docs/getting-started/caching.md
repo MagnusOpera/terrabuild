@@ -61,7 +61,7 @@ Caches are invalidated (and tasks built) when:
 
 ## Build, restore, or summary
 
-For each task, Terrabuild decides whether to **Build** (execute commands), **Restore** (recover from cache), or **Summary** (report a previous failed cached run):
+For each task, Terrabuild decides whether to **Build** (execute commands), **Restore** (recover Terrabuild-managed outputs), or reuse a cached **Summary**. A successful external summary needs no file restoration because the artifact remains in its registry or external service. A failed summary reports the previous failure without rerunning it.
 
 ```mermaid
 flowchart LR
@@ -73,16 +73,18 @@ flowchart LR
   cacheable -->|No| build
   cacheable -->|Yes| cache{"Cache summary?"}
   cache -->|Missing| build
-  cache -->|Success| restore(["Restore"])
+  cache -->|Success| ownership{"Artifacts managed<br/>by Terrabuild?"}
+  ownership -->|Yes| restore(["Restore outputs"])
+  ownership -->|No, external| reuse(["Reuse summary"])
   cache -->|Failed| retry{"Retry?"}
   retry -->|Yes| build
   retry -->|No| summary(["Summary"])
 
   class start tb-start
-  class force,dependency,cacheable,cache,retry tb-decision
+  class force,dependency,cacheable,cache,ownership,retry tb-decision
   class build tb-primary
   class restore tb-success
-  class summary tb-muted
+  class reuse,summary tb-muted
 ```
 
 | Condition | Description |
@@ -91,9 +93,10 @@ flowchart LR
 | `Dependency built` | A non-lazy dependency must build |
 | `Cacheable` | The target has cacheable artifacts |
 | `Cache summary` | Existing cache metadata is missing, successful, or failed |
+| `Artifacts managed by Terrabuild` | `~workspace` and `~managed` restore declared files; `~external` leaves the artifact in its external store |
 | `Retry` | `--retry` is enabled for a failed cache summary |
 
-Successful cache summaries restore outputs. Failed cache summaries report the previous failure as `Summary` unless `--retry` is used, in which case the task builds again.
+Successful `~workspace` and `~managed` cache summaries restore declared outputs when required. A successful `~external` summary is sufficient by itself: Terrabuild never tries to download the Docker image, package, or other externally managed artifact. Failed cache summaries report the previous failure as `Summary` unless `--retry` is used, in which case the task builds again.
 
 ## Improve cache reuse
 
