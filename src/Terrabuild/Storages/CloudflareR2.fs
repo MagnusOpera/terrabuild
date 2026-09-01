@@ -25,7 +25,7 @@ type CloudflareR2(?httpClient: HttpClient) =
                     true
             with
             | exn ->
-                Log.Fatal(exn, "CloudflareR2: failed to check '{Id}'", id)
+                Log.Debug(exn, "CloudflareR2: failed to check '{Id}'", id)
                 reraise()
 
         override _.TryDownload id location =
@@ -47,7 +47,7 @@ type CloudflareR2(?httpClient: HttpClient) =
             with
             | exn ->
                 File.Delete(tmpFile)
-                Log.Fatal(exn, "CloudflareR2: failed to download '{Id}'", id)
+                Log.Debug(exn, "CloudflareR2: failed to download '{Id}'", id)
                 reraise()
 
         override _.Upload id location summaryFile =
@@ -59,5 +59,5 @@ type CloudflareR2(?httpClient: HttpClient) =
                 Log.Debug("CloudflareR2: upload of '{Id}' successful", id)
             with
             | exn ->
-                Log.Fatal(exn, "CloudflareR2: upload of '{Id}' failed", id)
+                Log.Debug(exn, "CloudflareR2: upload of '{Id}' failed", id)
                 reraise()

@@ -649,33 +649,38 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
         member _.Complete summary =
             if completed then raiseBugError $"Cache entry '{id}' has already been completed"
             completed <- true
-            let files =
-                let genFinalSummary() =
-                    FS.combinePath logsDir "summary.json" |> write summary
+            let genFinalSummary() =
+                FS.combinePath logsDir "summary.json" |> write summary
 
+            // The local entry is authoritative for this process. Remote publication is an
+            // optimization and must not discard a completed execution when the backend is down.
+            genFinalSummary()
+            let files =
                 if useRemote then
-                    let generation = Guid.NewGuid().ToString("N")
-                    let generationRoot = $"{id}/generations/{generation}"
-                    let outputs =
-                        if Directory.Exists outputsDir then
-                            Some (uploadBlob outputsDir $"{generationRoot}/outputs")
-                        else
-                            None
-                    genFinalSummary()
-                    let logs = uploadBlob logsDir $"{generationRoot}/logs"
-                    let manifest : RemoteManifest =
-                        { RemoteManifest.Version = 1
-                          RemoteManifest.Generation = generation
-                          RemoteManifest.Logs = logs
-                          RemoteManifest.Outputs = outputs }
                     let manifestFile = FS.combinePath stagingDir remoteManifestFilename
-                    manifest |> Json.Serialize |> IO.writeTextFile manifestFile
-                    storage.Upload $"{id}/manifest" manifestFile
-                    [ if outputs.IsSome then yield "outputs"
-                      yield "logs" ]
-                else
-                    genFinalSummary()
-                    []
+                    try
+                        let generation = Guid.NewGuid().ToString("N")
+                        let generationRoot = $"{id}/generations/{generation}"
+                        let outputs =
+                            if Directory.Exists outputsDir then
+                                Some (uploadBlob outputsDir $"{generationRoot}/outputs")
+                            else
+                                None
+                        let logs = uploadBlob logsDir $"{generationRoot}/logs"
+                        let manifest : RemoteManifest =
+                            { RemoteManifest.Version = 1
+                              RemoteManifest.Generation = generation
+                              RemoteManifest.Logs = logs
+                              RemoteManifest.Outputs = outputs }
+                        manifest |> Json.Serialize |> IO.writeTextFile manifestFile
+                        storage.Upload $"{id}/manifest" manifestFile
+                        [ if outputs.IsSome then yield "outputs"
+                          yield "logs" ]
+                    with exn ->
+                        IO.deleteAny manifestFile
+                        Log.Warning(exn, "Remote cache publication failed for {CacheEntryId}; retaining the completed local entry", id)
+                        []
+                else []
 
             stagingDir |> setOrigin Origin.Local
             releaseStagingLease ()
@@ -690,8 +695,20 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
 type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
     let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()
 
+    let tryRemoteDownload path =
+        try storage.TryDownload path
+        with exn ->
+            Log.Warning(exn, "Remote cache read failed for {BlobPath}; treating it as a cache miss", path)
+            None
+
+    let remoteExists path =
+        try storage.Exists path
+        with exn ->
+            Log.Warning(exn, "Remote cache availability check failed for {BlobPath}; treating it as unavailable", path)
+            false
+
     let tryDownloadBlob (targetDir: string) (id: string) (blob: RemoteBlob) =
-        match storage.TryDownload blob.Path with
+        match tryRemoteDownload blob.Path with
         | Some file ->
             let mutable decryptedFile: string option = None
             let mutable decompressedFile: string | null = null
@@ -718,7 +735,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             false
 
     let tryDownloadLegacy (targetDir: string) (id: string) (name: string) =
-        match storage.TryDownload $"{id}/{name}" with
+        match tryRemoteDownload $"{id}/{name}" with
         | Some file ->
             let mutable decryptedFile: string option = None
             let mutable decompressedFile: string | null = null
@@ -740,7 +757,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         | _ -> false
 
     let tryReadRemoteManifest (id: string) =
-        match storage.TryDownload $"{id}/manifest" with
+        match tryRemoteDownload $"{id}/manifest" with
         | None -> RemoteManifestResult.Missing
         | Some file ->
             try
@@ -888,15 +905,15 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                     match tryLoadLocalRemoteManifest entryDir with
                     | Some manifest ->
                         manifest.Outputs
-                        |> Option.map (fun blob -> storage.Exists blob.Path)
+                        |> Option.map (fun blob -> remoteExists blob.Path)
                         |> Option.defaultValue false
                     | None ->
                         match tryReadRemoteManifest id with
                         | RemoteManifestResult.Found manifest ->
                             manifest.Outputs
-                            |> Option.map (fun blob -> storage.Exists blob.Path)
+                            |> Option.map (fun blob -> remoteExists blob.Path)
                             |> Option.defaultValue false
-                        | RemoteManifestResult.Missing -> storage.Exists $"{id}/outputs"
+                        | RemoteManifestResult.Missing -> remoteExists $"{id}/outputs"
                         | RemoteManifestResult.Invalid -> false
                 else false
 

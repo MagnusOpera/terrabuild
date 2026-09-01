@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep builds usable through remote cache read and publication failures.
 - Recover interrupted workspace restores conservatively when their transaction index is unreadable.
 - Exclude Git repository metadata from workspace project discovery by default.
 - Validate smoke-test reports against the current diagnostic schema.

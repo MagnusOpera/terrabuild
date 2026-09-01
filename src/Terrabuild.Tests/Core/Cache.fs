@@ -10,15 +10,22 @@ type private FakeStorage() =
     let uploads = ResizeArray<string>()
     let blobs = Collections.Generic.Dictionary<string, byte[]>()
     let mutable downloads = 0
+    let mutable failReads = false
+    let mutable failUploads = false
 
     member _.Uploads = uploads |> Seq.toList
     member _.Downloads = downloads
+    member _.FailReads with get() = failReads and set value = failReads <- value
+    member _.FailUploads with get() = failUploads and set value = failUploads <- value
     member _.Delete id = blobs.Remove(id) |> ignore
     member _.Corrupt id = blobs[id] <- [| 0uy; 1uy; 2uy |]
 
     interface Contracts.IStorage with
-        member _.Exists id = blobs.ContainsKey(id)
+        member _.Exists id =
+            if failReads then failwith "remote read unavailable"
+            blobs.ContainsKey(id)
         member _.TryDownload id =
+            if failReads then failwith "remote read unavailable"
             match blobs.TryGetValue(id) with
             | true, contents ->
                 downloads <- downloads + 1
@@ -27,6 +34,7 @@ type private FakeStorage() =
                 Some file
             | _ -> None
         member _.Upload id sourceFile =
+            if failUploads then failwith "remote upload unavailable"
             uploads.Add(id)
             blobs[id] <- File.ReadAllBytes(sourceFile)
         member _.Name = "fake"
@@ -205,6 +213,47 @@ let ``corrupt remote generations are treated as cache misses`` () =
 
             let consumer = Cache.Cache(storage, None) :> Cache.ICache
             consumer.TryGetSummaryOnly true id |> should equal None
+        ))
+
+[<Test>]
+let ``remote transport failures are treated as cache misses`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            storage.FailReads <- true
+            let cache = Cache.Cache(storage, None) :> Cache.ICache
+
+            cache.TryGetSummaryOnly true "project-hash/build/unavailable" |> should equal None
+        ))
+
+[<Test>]
+let ``remote availability failures make missing outputs non-restorable`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/unavailable-outputs"
+            let entrySummary = summary (Some "outputs")
+            createLocalCacheEntry root id entrySummary |> ignore
+            storage.FailReads <- true
+            let cache = Cache.Cache(storage, None) :> Cache.ICache
+
+            cache.CanRestore true id entrySummary |> should equal false
+        ))
+
+[<Test>]
+let ``remote publication failure preserves the completed local entry`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            storage.FailUploads <- true
+            let id = "project-hash/build/upload-unavailable"
+            let cache = Cache.Cache(storage, None) :> Cache.ICache
+            let entry = cache.GetEntry true id
+
+            entry.Complete(summary None) |> should be Empty
+
+            let offline = Cache.Cache(storage, None) :> Cache.ICache
+            offline.TryGetSummaryOnly false id |> should not' (equal None)
         ))
 
 [<Test>]

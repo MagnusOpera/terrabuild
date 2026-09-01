@@ -19,7 +19,7 @@ type AzureBlobStorage() =
             with
             | :? Azure.RequestFailedException as exn when exn.Status = 404 -> false
             | exn ->
-                Log.Fatal(exn, "AzureBlobStorage: failed to download '{Id}'", id)
+                Log.Debug(exn, "AzureBlobStorage: failed to check '{Id}'", id)
                 reraise()
 
 
@@ -32,12 +32,12 @@ type AzureBlobStorage() =
                 Some tmpFile
             with
             | :? Azure.RequestFailedException as exn when exn.Status = 404 ->
-                Log.Fatal("AzureBlobStorage: '{Id}' does not exist", id)
+                Log.Debug("AzureBlobStorage: '{Id}' does not exist", id)
                 System.IO.File.Delete(tmpFile)
                 None
             | exn ->
                 System.IO.File.Delete(tmpFile)
-                Log.Fatal(exn, "AzureBlobStorage: failed to download '{Id}'", id)
+                Log.Debug(exn, "AzureBlobStorage: failed to download '{Id}'", id)
                 reraise()
 
 
@@ -48,5 +48,5 @@ type AzureBlobStorage() =
                 Log.Debug("AzureBlobStorage: upload of '{Id}' successful", id)
             with
             | exn ->
-                Log.Fatal(exn, "AzureBlobStorage: upload of '{Id}' failed", id)
+                Log.Debug(exn, "AzureBlobStorage: upload of '{Id}' failed", id)
                 reraise()
