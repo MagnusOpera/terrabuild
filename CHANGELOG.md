@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.200.0-next]
+
+
 - Document that Insights reporting is mandatory once a run connects while remote artifact transfer remains a cache concern.
 - Replace debug diagnostics atomically without allowing diagnostic I/O to mask build failures.
 - Fail file-lock acquisition on filesystem errors while continuing to wait for genuine contention.
@@ -70,6 +73,8 @@ All notable changes to Terrabuild are documented in this file.
 - Document that explicitly selected lazy targets execute on cache misses.
 - Keep phase barriers from rebuilding downstream targets that already have valid cached artifacts.
 - Recompute target cache keys when evaluated output patterns change.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.0-next...0.200.0-next
 
 ## [0.199.2]
 
