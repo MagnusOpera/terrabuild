@@ -346,6 +346,31 @@ let ``restore recovery keeps a transaction committed before process death`` () =
         ))
 
 [<Test>]
+let ``workspace recovery repairs nested projects before graph preparation`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let workspace = Path.Combine(root, "workspace")
+            let project = Path.Combine(workspace, "apps", "api") |> Path.GetFullPath
+            let generated = Path.Combine(project, "generated")
+            let projectHash = (Hash.sha256 project).Substring(0, 12).ToLowerInvariant()
+            let transactionDir = Path.Combine(workspace, "apps", $".terrabuild-restore-{projectHash}-interrupted")
+            let backup = Path.Combine(transactionDir, "backup", "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(backup) |> ignore
+            File.WriteAllText(Path.Combine(generated, "value.txt"), "partial")
+            File.WriteAllText(Path.Combine(backup, "value.txt"), "original")
+            {| ProjectDirectory = project; Outputs = [ "generated/**" ] |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(transactionDir, "transaction.json"))
+            File.WriteAllText(Path.Combine(transactionDir, "state"), "applying")
+
+            Cache.recoverWorkspaceOutputTransactions workspace
+
+            File.ReadAllText(Path.Combine(generated, "value.txt")) |> should equal "original"
+            Directory.Exists(transactionDir) |> should equal false
+        ))
+
+[<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
     withTempDir (fun root ->
         let staleEntry = createLocalCacheEntry root "project-hash/build/stale-target" (summary None)

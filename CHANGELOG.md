@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Recover interrupted output restores before configuration and project hashing begin.
 - Recover interrupted cache output restores from a durable transaction journal.
 - Report realized restore fallbacks and include batch staging and publication in finalization timing.
 - Dispose synthetic batch cache entries after their logs are copied to member results.

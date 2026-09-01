@@ -1070,6 +1070,10 @@ let private validatePhases (phases: Map<string, AST.Workspace.PhaseBlock>) =
 let read (options: ConfigOptions.Options) =
     $"{Ansi.Emojis.unicorn} Settings" |> Terminal.writeLine
 
+    // Restore transactions may contain the last complete copy of project files.
+    // Recover them before configuration, file hashing, or operation resolution reads the workspace.
+    Cache.recoverWorkspaceOutputTransactions options.Workspace
+
     let workspaceContent = FS.combinePath options.Workspace "WORKSPACE" |> File.ReadAllText
     let workspaceConfig =
         try

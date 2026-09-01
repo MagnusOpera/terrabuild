@@ -239,6 +239,35 @@ let internal recoverOutputTransactions projectDirectory =
     withEntryLock (restoreLockEntry projectDirectory) (fun () ->
         recoverOutputTransactionsUnlocked projectDirectory parent)
 
+let private isWithinDirectory root path =
+    let relative = Path.GetRelativePath(root, path)
+    relative = "."
+    || (Path.IsPathRooted(relative) |> not
+        && relative <> ".."
+        && relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal) |> not)
+
+let internal recoverWorkspaceOutputTransactions workspaceDirectory =
+    let workspaceDirectory = Path.GetFullPath(workspaceDirectory)
+
+    // A transaction for the workspace root is its sibling, not its child.
+    recoverOutputTransactions workspaceDirectory
+
+    if Directory.Exists workspaceDirectory then
+        let projectDirectories =
+            Directory.EnumerateDirectories(workspaceDirectory, ".terrabuild-restore-*", SearchOption.AllDirectories)
+            |> Seq.choose (fun transactionDir ->
+                let metadataFile = FS.combinePath transactionDir restoreMetadataFilename
+                if File.Exists metadataFile then
+                    let transaction = metadataFile |> IO.readTextFile |> Json.Deserialize<RestoreTransaction>
+                    let projectDirectory = Path.GetFullPath(transaction.ProjectDirectory)
+                    if isWithinDirectory workspaceDirectory projectDirectory then Some projectDirectory
+                    else None
+                else
+                    None)
+            |> Set.ofSeq
+
+        projectDirectories |> Set.iter recoverOutputTransactions
+
 let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
     let projectDirectory = Path.GetFullPath(projectDirectory)
     let parent =
