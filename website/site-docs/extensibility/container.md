@@ -20,7 +20,7 @@ The following arguments are supported:
 * `image` - (Optional) The container image to use. Default is `nothing`.
 * `platform` - (Optional) The platform for the container image. Default is `nothing` (the current host architecture).
 * `cpus` - (Optional) Positive CPU limit passed to the container engine.
-* `variables` - (Optional) List of host environment variable names to forward. Supports wildcards. Default is `[]`.
+* `variables` - (Optional) List of host environment variable names to forward. Supports wildcards. Default is `[]`. The matched names and values affect the target cache identity through a one-way aggregate fingerprint; plaintext values are not stored in cache entries or diagnostics.
 * `env` - (Optional) Environment values added to every action for the extension.
 
 All actions for this extension run in the configured image, providing isolation and avoiding toolchain discrepancies.

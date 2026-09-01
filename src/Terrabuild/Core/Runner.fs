@@ -8,7 +8,6 @@ open Serilog
 open Terrabuild.PubSub
 open Environment
 open Errors
-open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type TaskRequest =
@@ -115,8 +114,6 @@ let private formatCpus (operation: GraphDef.ContaineredShellOperation) =
     operation.Cpus |> Option.map (fun cpus -> $"--cpus={cpus}")
 
 let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) containerHome =
-    let matcher = Matcher()
-    matcher.AddIncludePatterns(operation.Variables)
     let fixedEnvs =
         [ "HOME", containerHome
           "TERRABUILD_HOME", containerHome
@@ -124,15 +121,11 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
         |> List.collect (fun (key, value) -> [ "-e"; $"{key}={value}" ])
 
     let passthroughEnvs =
-        envVars()
-        |> Seq.choose (fun entry ->
-            let key = entry.Key
-            let value = entry.Value
-            if matcher.Match([ key ]).HasMatches then
-                let expandedValue = value |> expandTerrabuildHome containerHome
-                if value = expandedValue then Some [ "-e"; key ]
-                else Some [ "-e"; $"{key}={expandedValue}" ]
-            else None)
+        Environment.matchingEnvVars operation.Variables
+        |> Seq.map (fun (KeyValue(key, value)) ->
+            let expandedValue = value |> expandTerrabuildHome containerHome
+            if value = expandedValue then [ "-e"; key ]
+            else [ "-e"; $"{key}={expandedValue}" ])
         |> Seq.collect id
         |> List.ofSeq
 

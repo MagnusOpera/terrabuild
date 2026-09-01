@@ -89,6 +89,24 @@ type Graph = {
 
 let buildCacheKey (node: Node) = $"{node.ProjectHash}/{node.Target}/{node.TargetHash}"
 
+/// Fingerprint declared host environment inputs without retaining their values.
+let forwardedVariablesFingerprint variables =
+    Environment.matchingEnvVars variables
+    |> Seq.collect (fun (KeyValue(name, value)) -> [ name; value ])
+    |> Hash.sha256strings
+
+let operationCacheInput (operation: ContaineredShellOperation) =
+    let declaredOperation = Json.Serialize operation
+    if operation.Variables |> Set.isEmpty then
+        declaredOperation
+    else
+        [ declaredOperation
+          forwardedVariablesFingerprint operation.Variables ]
+        |> String.join "\n"
+
+let operationCacheHash operation =
+    operationCacheInput operation |> Hash.sha256
+
 let environmentSensitiveInputNames =
     Set [
         "terrabuild.environment"

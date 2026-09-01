@@ -52,6 +52,7 @@ type ResolvedOperationReport = {
     Platform: string option
     Cpus: int option
     ForwardedVariableNames: string list
+    ForwardedVariablesFingerprint: string option
     InjectedEnvironment: EnvironmentEntryReport list
 }
 
@@ -314,6 +315,8 @@ let renderExplanation (report: Report) =
                 operation.Platform |> Option.iter (fun value -> builder.AppendLine($"      platform: {value}") |> ignore)
                 operation.Cpus |> Option.iter (fun value -> builder.AppendLine($"      cpus: {value}") |> ignore)
                 appendValues builder "    forwarded variables" "none" operation.ForwardedVariableNames
+                operation.ForwardedVariablesFingerprint
+                |> Option.iter (fun fingerprint -> builder.AppendLine($"      forwarded variables fingerprint: {fingerprint}") |> ignore)
                 operation.InjectedEnvironment
                 |> List.map _.Name
                 |> appendValues builder "    injected environment" "none"))
@@ -478,7 +481,7 @@ let private nodeReports
                         |> List.ofSeq
                     {
                         TargetFingerprint.DeclaredTargetHash = declaredTargetHash
-                        OperationHashes = node.Operations |> List.map (Json.Serialize >> Hash.sha256)
+                        OperationHashes = node.Operations |> List.map GraphDef.operationCacheHash
                         DependencyTargetHashes = dependencies
                         PhaseDependenciesExcludedFromHash = node.PhaseDependencies |> Seq.sort |> List.ofSeq
                         TargetHash = node.TargetHash
@@ -494,6 +497,9 @@ let private nodeReports
                     Platform = operation.Platform
                     Cpus = operation.Cpus
                     ForwardedVariableNames = operation.Variables |> Seq.sort |> List.ofSeq
+                    ForwardedVariablesFingerprint =
+                        if operation.Variables.IsEmpty then None
+                        else Some (GraphDef.forwardedVariablesFingerprint operation.Variables)
                     InjectedEnvironment =
                         operation.Envs
                         |> Seq.map (fun (KeyValue(name, value)) -> {
@@ -554,7 +560,7 @@ let private batchReports (graph: GraphDef.Graph option) =
                 Phase = node.Phase
                 Locks = node.Locks |> Seq.sort |> List.ofSeq
                 TargetHash = node.TargetHash
-                OperationHashes = node.Operations |> List.map (Json.Serialize >> Hash.sha256)
+                OperationHashes = node.Operations |> List.map GraphDef.operationCacheHash
             })
         |> Seq.sortBy (fun batch -> batch.Id)
         |> List.ofSeq

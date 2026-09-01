@@ -147,7 +147,7 @@ let internal computeBatchTargetHash (batch: Batch) (operations: ContaineredShell
           batch.Nodes
           |> List.sortBy _.Id
           |> List.collect (fun node -> [ node.Id; node.TargetHash ])
-      yield! operations |> List.map Json.Serialize ]
+      yield! operations |> List.map operationCacheInput ]
     |> Hash.sha256strings
 
 let private partitionByDependencies (bucketNodes: Node list) =

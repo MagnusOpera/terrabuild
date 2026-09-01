@@ -81,6 +81,7 @@ Resolves operations and final cache inputs for each selected node.
   target `artifacts` value overrides that default.
 - Marks a node non-batchable when any command says it is not batchable.
 - Computes the final target hash from project hash, target hash, resolved operations, and dependency target hashes.
+- Adds a one-way aggregate fingerprint of declared forwarded environment names and values to resolved operation cache inputs without retaining their plaintext values.
 - Applies explicit target cache overrides.
 - Clears outputs when artifacts are not cacheable.
 - Sets `ClusterHash` only when the resolved command set is batchable.
@@ -136,7 +137,7 @@ Executing nodes acquire their named locks in deterministic order before commands
 
 ## Debug outputs
 
-When `--debug` is enabled, the run command writes `terrabuild-debug.json`, a versioned report checkpointed after configuration and each graph stage and finalized after execution. Nodes appear once and include selection, resolved fingerprints, structured action and requirement reasons, batch membership, logical results, and monotonic timing. They also include the evaluated input names that affected the target, identify environment-sensitive built-ins separately, and provide a secret-safe view of resolved operations. Argument and injected environment values are hashed, while forwarded environment variables are represented only by name. `terrabuild-debug.log` retains chronological commands and exceptional details. Both files replace their previous-run versions.
+When `--debug` is enabled, the run command writes `terrabuild-debug.json`, a versioned report checkpointed after configuration and each graph stage and finalized after execution. Nodes appear once and include selection, resolved fingerprints, structured action and requirement reasons, batch membership, logical results, and monotonic timing. They also include the evaluated input names that affected the target, identify environment-sensitive built-ins separately, and provide a secret-safe view of resolved operations. Argument and injected environment values are hashed. Forwarded environment variables are represented by name plus one aggregate fingerprint; their plaintext values are never retained. `terrabuild-debug.log` retains chronological commands and exceptional details. Both files replace their previous-run versions.
 
 The report's action reasons are `forced-cli`, `configured-always`, `dependency-executed`, `non-cacheable`, `cache-miss`, `cache-outputs-missing`, `retry-failed-cache`, `cached-failure`, and `cache-hit`. `cache-outputs-missing` means that a successful managed or workspace summary exists but its declared output archive is unavailable, so execution is safer than reporting a restore that cannot be completed. Cache evidence includes the lookup scope, key, result, origin, prior status, and summary time. Project and target fingerprint components allow two reports to be compared without changing the cache-key algorithm.
 

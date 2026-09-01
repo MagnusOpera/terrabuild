@@ -3,6 +3,7 @@ open System
 open System.Collections
 open System.Text.RegularExpressions
 open System.Runtime.InteropServices
+open Microsoft.Extensions.FileSystemGlobbing
 
 [<RequireQualifiedAccess>]
 type HostPlatform =
@@ -36,6 +37,15 @@ let envVars() =
     |> Seq.cast<DictionaryEntry>
     |> Seq.map (fun entry -> $"{entry.Key}", $"{entry.Value}")
     |> Map.ofSeq
+
+let matchingEnvVars (patterns: Set<string>) =
+    if patterns.IsEmpty then
+        Map.empty
+    else
+        let matcher = Matcher()
+        matcher.AddIncludePatterns(patterns)
+        envVars()
+        |> Map.filter (fun name _ -> matcher.Match([ name ]).HasMatches)
 
 let expandTerrabuildHome (terrabuildHome: string) (input: string) : string =
     // Match either $TERRABUILD_HOME or ${TERRABUILD_HOME} not followed by a letter/underscore/digit

@@ -15,6 +15,7 @@ For each task in the build graph, Terrabuild computes a unique cache key (hash) 
 - dependency fingerprints
 - resolved commands and arguments
 - evaluated inputs used by the target
+- a one-way aggregate fingerprint of host environment values selected through extension `variables`
 
 Dependency fingerprints form a [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree). A changed tracked input produces a different key for the affected task and its dependents.
 
@@ -22,7 +23,7 @@ Dependency fingerprints form a [Merkle tree](https://en.wikipedia.org/wiki/Merkl
 
 The same declared inputs produce the same key. A branch name or commit does not affect the key unless the target consumes a corresponding [predefined variable](/docs/expression/predefined-variables/) and opts in with `environment_sensitive = true`.
 
-A key cannot include an input Terrabuild does not know about. Files excluded by `ignores`, host environment variables that are not forwarded, current time, network responses, and external service state require deliberate configuration or a non-cacheable target. Use `includes`, extension variables, and environment-sensitive inputs to describe values that affect output.
+A key cannot include an input Terrabuild does not know about. Files excluded by `ignores`, undeclared host environment variables, current time, network responses, and external service state require deliberate configuration or a non-cacheable target. Use `includes`, extension `variables`, and environment-sensitive inputs to describe values that affect output. Terrabuild hashes the names and values matched by extension `variables` into one fingerprint; it never stores or reports their plaintext values.
 
 ## Local and remote cache
 

@@ -85,7 +85,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let cachable, batchable, ops =
                 resolveTargetOperations options projectConfig targetConfig projectConfig.Hash None
 
-            let opsCmds = ops |> List.map Json.Serialize
+            let opsCmds = ops |> List.map operationCacheInput
             let outputsHash =
                 targetConfig.Outputs
                 |> Seq.sort

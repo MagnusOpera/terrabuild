@@ -52,6 +52,37 @@ let private writeFile (root: string) (path: string) (content: string) =
     | directory -> Directory.CreateDirectory(directory) |> ignore
     File.WriteAllText(full, content)
 
+let private withEnvironmentVariable name value action =
+    let previous = Environment.GetEnvironmentVariable(name)
+    Environment.SetEnvironmentVariable(name, value)
+    try action ()
+    finally Environment.SetEnvironmentVariable(name, previous)
+
+[<Test>]
+let ``forwarded environment values affect operation cache identity without being retained`` () =
+    let operation =
+        { ContaineredShellOperation.Image = Some "example/image"
+          ContaineredShellOperation.Platform = None
+          ContaineredShellOperation.Cpus = None
+          ContaineredShellOperation.Variables = Set [ "TB_SECRET_CACHE_INPUT" ]
+          ContaineredShellOperation.Envs = Map.empty
+          ContaineredShellOperation.MetaCommand = "test"
+          ContaineredShellOperation.Command = "test"
+          ContaineredShellOperation.Arguments = ""
+          ContaineredShellOperation.ErrorLevel = 0
+          ContaineredShellOperation.Stdout = None }
+
+    let firstHash, firstInput =
+        withEnvironmentVariable "TB_SECRET_CACHE_INPUT" "first-secret-value" (fun () ->
+            operationCacheHash operation, operationCacheInput operation)
+    let secondHash, secondInput =
+        withEnvironmentVariable "TB_SECRET_CACHE_INPUT" "second-secret-value" (fun () ->
+            operationCacheHash operation, operationCacheInput operation)
+
+    firstHash |> should not' (equal secondHash)
+    firstInput |> should not' (contain "first-secret-value")
+    secondInput |> should not' (contain "second-secret-value")
+
 let private writeDotnetProject root dir name references =
     let refs =
         references
@@ -288,6 +319,7 @@ target build {
         node.EnvironmentSensitivityStatus |> should equal "opted-in"
         node.Locks |> should equal [ "deployment" ]
         operation.ForwardedVariableNames |> should equal [ "CI" ]
+        operation.ForwardedVariablesFingerprint.IsSome |> should equal true
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
         operation.Container |> should equal None
@@ -303,6 +335,7 @@ target build {
         explanation |> should contain "environment sensitivity: opted-in"
         explanation |> should contain "locks: deployment"
         explanation |> should contain "forwarded variables: CI"
+        explanation |> should contain "forwarded variables fingerprint:"
         explanation |> should contain "injected environment: DEPLOYMENT_ENVIRONMENT, DEPLOYMENT_TOKEN"
         explanation |> should not' (contain "sensitive-value"))
 

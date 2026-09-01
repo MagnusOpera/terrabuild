@@ -108,7 +108,8 @@ Read `terrabuild-debug.json` first. It is deterministic in ordering and may be
 `partial` if preparation or execution stopped early. Each node records the
 evaluated inputs that affected it and its resolved operations. Sensitive values,
 injected environment values, and operation arguments are represented by hashes;
-forwarded variable names are recorded without their values. Follow
+forwarded variable names and one aggregate value fingerprint are recorded without
+their plaintext values. Follow
 `executions[].operations[].log` only when command output is needed.
 
 Use `explain` before execution when the question concerns selection, dependency,
