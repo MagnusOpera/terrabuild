@@ -42,6 +42,10 @@ type Summary = {
     Nodes: Map<string, NodeInfo>
 }
 
+type RunFailure(summary: Summary, innerException: exn) =
+    inherit TerrabuildException("Failed to build", ErrorArea.InvalidArg, innerException)
+    member _.Summary = summary
+
 type private BuiltCommand = string * string * string * Exec.Arguments * string option * int * Map<string, string> * string option
 
 type internal HostRuntime = {
@@ -563,6 +567,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             DiagnosticsTelemetry.recordTask node.Id "upload-started"
             buildProgress.TaskUploading node.Id
 
+            let status =
+                if successful then TaskStatus.Success endedAt
+                else TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
+
+            // Execution has completed even if cache or Insights publication subsequently fails.
+            nodeResults[node.Id] <- (TaskRequest.Exec, status)
+
             let summary =
                 { Cache.TargetSummary.Project = node.ProjectDir
                   Cache.TargetSummary.Target = node.Target
@@ -576,12 +587,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
             let files = cacheEntry.Complete summary
             api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
-
-            let status =
-                if successful then TaskStatus.Success endedAt
-                else TaskStatus.Failure (endedAt, $"{node.Id} failed with exit code {lastStatusCode}")
-
-            nodeResults[node.Id] <- (TaskRequest.Exec, status)
 
             match status with
             | TaskStatus.Success completionDate ->
@@ -786,6 +791,43 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let status = hub.WaitCompletion()
 
+    let buildSummary () =
+        let allNodeStatus =
+            let getDependencyStatus _ (node: GraphDef.Node) =
+                match nodeResults.TryGetValue node.Id with
+                | true, (request, st) ->
+                    { NodeInfo.Request = request
+                      NodeInfo.Status = st
+                      NodeInfo.Project = node.ProjectDir
+                      NodeInfo.Target = node.Target
+                      NodeInfo.ProjectHash = node.ProjectHash
+                      NodeInfo.TargetHash = node.TargetHash }
+                    |> Some
+                | _ -> None
+
+            graph.Nodes |> Map.choose getDependencyStatus
+
+        let nodeStatus =
+            allNodeStatus
+            |> Map.filter (fun nodeId _ -> graph.Batches |> Map.containsKey nodeId |> not)
+
+        let isSuccess =
+            graph.RootNodes
+            |> Set.forall (fun nodeId ->
+                match nodeStatus |> Map.tryFind nodeId with
+                | Some info -> info.Status.IsSuccess
+                | _ -> false)
+
+        { Summary.Commit = options.HeadCommit.Sha
+          Summary.BranchOrTag = options.BranchOrTag
+          Summary.StartedAt = startedAt
+          Summary.EndedAt = DateTime.UtcNow
+          Summary.IsSuccess = isSuccess
+          Summary.Targets = options.Targets
+          Summary.Nodes = nodeStatus }
+
+    buildProgress.BuildCompleted()
+
     match status with
     | Status.Ok -> Log.Debug("Build successful")
     | Status.UnfulfilledSubscription (subscription, signals) ->
@@ -816,51 +858,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 DiagnosticsTelemetry.recordTask nodeId "blocked")
     | Status.SubscriptionError edi ->
         Log.Fatal(edi.SourceException, "Build failed")
-        forwardInvalidArg("Failed to build", edi.SourceException)
-
-    buildProgress.BuildCompleted()
-
-    let headCommit = options.HeadCommit
-    let branchOrTag = options.BranchOrTag
-
-    let allNodeStatus =
-        let getDependencyStatus _ (node: GraphDef.Node) =
-            match nodeResults.TryGetValue node.Id with
-            | true, (request, st) ->
-                { NodeInfo.Request = request
-                  NodeInfo.Status = st
-                  NodeInfo.Project = node.ProjectDir
-                  NodeInfo.Target = node.Target
-                  NodeInfo.ProjectHash = node.ProjectHash
-                  NodeInfo.TargetHash = node.TargetHash }
-                |> Some
-            | _ -> None
-
-        graph.Nodes |> Map.choose getDependencyStatus
-
-    let nodeStatus =
-        allNodeStatus
-        |> Map.filter (fun nodeId _ -> graph.Batches |> Map.containsKey nodeId |> not)
+        raise (RunFailure(buildSummary (), edi.SourceException))
 
     if nodeResults.Count = 0 then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date"
         |> Terminal.writeLine
 
-    let isSuccess =
-        graph.RootNodes
-        |> Set.forall (fun nodeId ->
-            match nodeStatus |> Map.tryFind nodeId with
-            | Some info -> info.Status.IsSuccess
-            | _ -> false)
-
-    let buildInfo =
-        { Summary.Commit = headCommit.Sha
-          Summary.BranchOrTag = branchOrTag
-          Summary.StartedAt = startedAt
-          Summary.EndedAt = DateTime.UtcNow
-          Summary.IsSuccess = isSuccess
-          Summary.Targets = options.Targets
-          Summary.Nodes = nodeStatus }
+    let buildInfo = buildSummary ()
 
     apiBuild.Complete(buildInfo.IsSuccess)
     buildInfo

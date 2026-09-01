@@ -884,7 +884,8 @@ let ``run finalizes Insights as failed when artifact publication throws`` () =
         let cache = FakeCache(workspace)
         let api = FakeApiClient(failAddArtifact = true)
 
-        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+        let failure =
+            Assert.Throws<Runner.RunFailure>(Action(fun () ->
             Runner.run
                 (baseOptions workspace)
                 (cache :> Cache.ICache)
@@ -892,7 +893,12 @@ let ``run finalizes Insights as failed when artifact publication throws`` () =
                 graph
                 graph
             |> ignore))
-        |> ignore
+            |> Option.ofObj
+            |> Option.get
+
+        failure.Summary.IsSuccess |> should equal true
+        failure.Summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec
+        failure.Summary.Nodes[node.Id].Status.IsSuccess |> should equal true
 
         api.Lifecycle |> should equal [ "start"; "upload-graph"; "complete" ]
         api.Completions |> should equal [ false ])
@@ -911,7 +917,7 @@ let ``run disposes cache staging when output preparation throws`` () =
               GraphDef.Graph.Phases = Map.empty }
         let cache = FakeCache(workspace, onStoreOutputs = fun () -> failwith "staging failed")
 
-        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+        Assert.Throws<Runner.RunFailure>(Action(fun () ->
             Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph |> ignore))
         |> ignore
 
@@ -935,7 +941,7 @@ let ``run disposes every batch entry when member preparation throws`` () =
               GraphDef.Graph.Phases = Map.empty }
         let cache = FakeCache(workspace, onStoreOutputs = fun () -> failwith "staging failed")
 
-        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+        Assert.Throws<Runner.RunFailure>(Action(fun () ->
             Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph |> ignore))
         |> ignore
 

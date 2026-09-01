@@ -497,7 +497,12 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 let startedAt = DateTime.UtcNow
                 let summary =
                     try Runner.run options cache api fullGraph graph
-                    with exn ->
+                    with
+                    | :? Runner.RunFailure as failure ->
+                        let error = failure.InnerException |> Option.ofObj |> Option.map (fun inner -> inner.Message) |> Option.defaultValue failure.Message
+                        writeFinal (Some failure.Summary) "failure" "partial" (Some error)
+                        raise failure
+                    | exn ->
                         writeFinal None "failure" "partial" (Some exn.Message)
                         reraise()
                 let duration = DateTime.UtcNow - startedAt
@@ -505,13 +510,18 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 if options.Debug then
                     Log.Debug("Phase 'runner' duration: {DurationMs}ms", Math.Round(duration.TotalMilliseconds, 2))
 
-                Log.Debug("====[ Report ]========================================================")
-                tryWriteRunResultFile runOptions.RunResultFile graph summary
-
-                if log || not summary.IsSuccess then
-                    Logs.dumpLogs runId options cache graph summary
-
+                // Commit the canonical execution outcome before optional report renderers run.
                 writeFinal (Some summary) (if summary.IsSuccess then "success" else "failure") "complete" None
+
+                Log.Debug("====[ Report ]========================================================")
+                try
+                    tryWriteRunResultFile runOptions.RunResultFile graph summary
+
+                    if log || not summary.IsSuccess then
+                        Logs.dumpLogs runId options cache graph summary
+                with exn ->
+                    writeFinal (Some summary) "failure" "complete" (Some $"Reporting failed: {exn.Message}")
+                    reraise()
 
                 if summary.IsSuccess then 0 else 5
 
