@@ -126,6 +126,16 @@ let ``named target locks serialize competing leases and survive release`` () =
         File.Exists(TargetLock.lockFilePath profile "nuget-tools") |> should equal true)
 
 [<Test>]
+let ``exclusive file locks retry only operating-system contention errors`` () =
+    [ 11; 13; 32; 33; 35 ]
+    |> List.iter (fun error ->
+        ExclusiveFileLock.isContentionError(IOException("contention", error))
+        |> should equal true)
+
+    ExclusiveFileLock.isContentionError(IOException("disk failure", 5))
+    |> should equal false
+
+[<Test>]
 let ``clearing target locks removes idle sentinels without disrupting active leases`` () =
     withTempWorkspace (fun root ->
         let profile = Path.Combine(root, "profile")

@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fail file-lock acquisition on filesystem errors while continuing to wait for genuine contention.
 - Emit terminal build progress only after scheduler outcomes are finalized.
 - Retry abandoned container cleanup after daemon errors and timeouts.
 - Keep builds usable through remote cache read and publication failures.

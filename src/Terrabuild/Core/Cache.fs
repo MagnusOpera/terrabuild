@@ -1,7 +1,6 @@
 module Cache
 open System
 open System.IO
-open System.Threading
 open Collections
 open Errors
 open Serilog
@@ -129,13 +128,7 @@ let private acquireProfileGate profile =
     let path = FS.combinePath profile "locks/profile.lock"
     path |> FS.parentDirectory |> Option.iter IO.createDirectory
 
-    let rec acquire () =
-        try new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
-        with :? IOException ->
-            Thread.Sleep(25)
-            acquire ()
-
-    acquire ()
+    ExclusiveFileLock.acquire "Terrabuild profile gate" path
 
 let internal acquireProfileUsage () =
     let profile = createTerrabuildProfile()
@@ -207,14 +200,7 @@ let private withEntryLock entryDir action =
     IO.createDirectory parent
     let lockFile = $"{entryDir}.lock"
 
-    let rec acquire () =
-        try
-            new FileStream(lockFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
-        with :? IOException ->
-            Thread.Sleep(25)
-            acquire ()
-
-    use lease = acquire ()
+    use lease = ExclusiveFileLock.acquire "cache entry lock" lockFile
     action ()
 
 let private createStagingDirectory entryDir =

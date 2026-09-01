@@ -2,8 +2,6 @@ module TargetLock
 
 open System
 open System.IO
-open System.Threading
-open Serilog
 
 type private Lease(streams: FileStream list) =
     interface IDisposable with
@@ -26,19 +24,7 @@ let private acquireFile (name: string) (path: string) =
     |> FS.parentDirectory
     |> Option.iter IO.createDirectory
 
-    let mutable stream = None
-    let mutable waiting = false
-
-    while stream.IsNone do
-        try
-            stream <- Some(new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
-        with :? IOException ->
-            if not waiting then
-                Log.Debug("Waiting for target lock '{TargetLock}'", name)
-                waiting <- true
-            Thread.Sleep(25)
-
-    stream.Value
+    ExclusiveFileLock.acquire $"target lock '{name}'" path
 
 let internal acquireAt profileDir (names: Set<string>) =
     let mutable leases: FileStream list = []
