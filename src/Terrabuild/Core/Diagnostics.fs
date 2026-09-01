@@ -797,7 +797,7 @@ let build (context: Context) =
     let projects = telemetry.Projects |> List.map (fun project -> { project with DurationMs = roundMs project.DurationMs })
     let endedAt = DateTime.UtcNow
     {
-        Report.SchemaVersion = 5
+        Report.SchemaVersion = 6
         Run = {
             RunReport.Status = context.Status
             Completeness = context.Completeness

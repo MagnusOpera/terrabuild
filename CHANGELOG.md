@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Version diagnostic reports when their result vocabulary changes.
 - Fail graph preparation when target actions cannot be completely evaluated.
 - Distinguish logical cache reuse from physical execution for restored batch members.
 - Clean failed and process-abandoned cache staging directories safely.
