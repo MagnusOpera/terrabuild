@@ -214,7 +214,9 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
 
         member _.StoreOutputs sourceDir entries =
             onStoreOutputs()
-            IO.copyFiles outputsDir sourceDir entries
+            match IO.copyFiles outputsDir sourceDir entries with
+            | Some _ -> Cache.OutputState.Stored
+            | None -> Cache.OutputState.Empty
         member _.StoreLogs entries =
             for entry in entries do
                 File.Copy(entry, Path.Combine(logsDir, IO.getFilename entry), true)
@@ -681,7 +683,7 @@ let ``managed output restore completes while named target lock is held`` () =
                 { Cache.TargetSummary.Project = node.ProjectDir
                   Cache.TargetSummary.Target = node.Target
                   Cache.TargetSummary.Operations = []
-                  Cache.TargetSummary.HasOutputs = true
+                  Cache.TargetSummary.Outputs = Cache.OutputState.Stored
                   Cache.TargetSummary.IsSuccessful = true
                   Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
                   Cache.TargetSummary.EndedAt = DateTime.UtcNow
@@ -938,7 +940,7 @@ let ``run restores the exact cached output set for lazy dependencies`` () =
             ({ Cache.TargetSummary.Project = node.ProjectDir
                Cache.TargetSummary.Target = node.Target
                Cache.TargetSummary.Operations = []
-               Cache.TargetSummary.HasOutputs = true
+               Cache.TargetSummary.Outputs = Cache.OutputState.Stored
                Cache.TargetSummary.IsSuccessful = true
                Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
                Cache.TargetSummary.EndedAt = DateTime.UtcNow

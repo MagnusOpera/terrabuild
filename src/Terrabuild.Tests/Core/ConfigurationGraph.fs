@@ -138,7 +138,7 @@ let private buildTargetSummary isSuccessful =
     { Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
-      Cache.TargetSummary.HasOutputs = false
+      Cache.TargetSummary.Outputs = Cache.OutputState.Empty
       Cache.TargetSummary.IsSuccessful = isSuccessful
       Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
       Cache.TargetSummary.EndedAt = DateTime.UtcNow
@@ -1339,7 +1339,7 @@ target build { @shell echo { args = "build" } }
         let options = { baseOptions workspace (Set [ "build" ]) with Force = false; LocalOnly = true }
         let uncached = runPipeline options
         let node = uncached.ResolvedGraph.Nodes["workspace/path#src/a:build"]
-        let cachedSummary = { buildTargetSummary true with HasOutputs = true; Cache = ArtifactMode.Managed }
+        let cachedSummary = { buildTargetSummary true with Outputs = Cache.OutputState.Stored; Cache = ArtifactMode.Managed }
         let cache = SummaryCache(Map [ GraphDef.buildCacheKey node, cachedSummary ], canRestore = false) :> Cache.ICache
 
         let stages = runPipelineWithCache cache options

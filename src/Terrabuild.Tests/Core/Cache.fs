@@ -47,11 +47,13 @@ let private withHomeDir root action =
     finally
         Environment.SetEnvironmentVariable("HOME", previousHome)
 
-let private summary outputsDir =
+let private summary (outputsDir: string option) =
     { Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
-      Cache.TargetSummary.HasOutputs = outputsDir |> Option.isSome
+      Cache.TargetSummary.Outputs =
+        if outputsDir.IsSome then Cache.OutputState.Stored
+        else Cache.OutputState.Empty
       Cache.TargetSummary.IsSuccessful = true
       Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddSeconds(-1.0)
       Cache.TargetSummary.EndedAt = DateTime.UtcNow
@@ -99,7 +101,7 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
         ])
 
 [<Test>]
-let ``cache completion omits summary outputs marker when outputs are not materialized`` () =
+let ``cache completion records an empty output snapshot when outputs are not materialized`` () =
     withTempDir (fun root ->
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
@@ -112,9 +114,8 @@ let ``cache completion omits summary outputs marker when outputs are not materia
             |> File.ReadAllText
             |> JsonDocument.Parse
 
-        writtenSummary.RootElement.EnumerateObject()
-        |> Seq.exists (fun property -> property.Name = "outputs")
-        |> should equal false)
+        writtenSummary.RootElement.GetProperty("outputs").GetString()
+        |> should equal "empty")
 
 [<Test>]
 let ``remote summary downloads become durable local entries`` () =
@@ -227,6 +228,26 @@ let ``restore replaces the complete declared output set`` () =
             File.ReadAllText(Path.Combine(generated, "cached.txt")) |> should equal "cached"
             File.ReadAllText(Path.Combine(generated, "new.txt")) |> should equal "new"
             File.Exists(Path.Combine(generated, "stale.txt")) |> should equal false
+        ))
+
+[<Test>]
+let ``restore removes stale declared files for an empty cached output set`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let project = Path.Combine(root, "project")
+            let generated = Path.Combine(project, "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            let stale = Path.Combine(generated, "stale.txt")
+            File.WriteAllText(stale, "stale")
+
+            let id = "project-hash/build/restore-empty"
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            cache.GetEntry false id
+            |> fun entry -> entry.Complete(summary None) |> ignore
+
+            cache.Restore false id (Set [ "generated/**" ]) project |> should not' (equal None)
+
+            File.Exists(stale) |> should equal false
         ))
 
 [<Test>]

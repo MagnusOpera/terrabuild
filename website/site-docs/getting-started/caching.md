@@ -50,7 +50,7 @@ Choose an artifact mode according to who owns the reusable result, not only acco
 | `~managed` | Summary, logs, and declared outputs locally and in encrypted Insights storage when connected | Developers and CI should be able to restore the same files. | Compiled assemblies, web bundles, or distributable archives. |
 | `~external` | Execution summary and logs, but no restorable artifact files | Another system owns the artifact and Terrabuild only needs to know that publication succeeded. | A Docker image in a registry or a package published to NuGet or npm. |
 
-The target's `outputs` patterns define the files stored for `~workspace` and `~managed`. When a successful summary says that outputs exist but the corresponding archive is unavailable, Terrabuild executes the target again instead of reporting a restore that cannot be completed.
+The target's `outputs` patterns define the files stored for `~workspace` and `~managed`. A cached output state distinguishes targets that do not manage files, managed snapshots that are intentionally empty, and snapshots with stored files. Restoring an empty snapshot removes stale files matching the declared outputs. When a successful summary says that stored outputs exist but the corresponding archive is unavailable, Terrabuild executes the target again instead of reporting a restore that cannot be completed.
 
 `artifacts` and `build` answer different questions. Artifact mode controls whether a result can be retained and restored. Build mode controls when execution is required and whether dependency execution propagates to dependents. For example, `artifacts = ~external` normally reuses a successful publication summary, while `build = ~always` deliberately executes again despite that summary.
 

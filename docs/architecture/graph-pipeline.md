@@ -151,6 +151,7 @@ Synthetic batch scheduler nodes are represented under `batches` and `executions`
 - Successful restore roots are skipped unless a dependent requires them.
 - External cache hits reuse only the execution summary; Terrabuild never restores externally managed artifacts, even when an executing target depends on them.
 - Missing target references are permissive inside dependency expansion: `target.name` and `target.^name` add only targets that exist in the relevant project scope.
+- Cached outputs use explicit not-managed, empty, and stored states; restoring an empty managed snapshot removes stale declared files.
 - Circular target dependency chains are invalid and reported during graph construction.
 - Environment-sensitive predefined inputs are invalid unless the consuming target explicitly sets `environment_sensitive = true`.
 - Failures in a prerequisite phase leave downstream phase dependencies unsatisfied, so downstream operations do not run.

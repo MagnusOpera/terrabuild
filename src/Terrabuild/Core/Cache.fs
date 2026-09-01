@@ -25,11 +25,17 @@ type OperationSummary = {
 }
 
 [<RequireQualifiedAccess>]
+type OutputState =
+    | NotManaged
+    | Empty
+    | Stored
+
+[<RequireQualifiedAccess>]
 type TargetSummary = {
     Project: string
     Target: string
     Operations: OperationSummary list list
-    HasOutputs: bool
+    Outputs: OutputState
     IsSuccessful: bool
     StartedAt: DateTime
     EndedAt: DateTime
@@ -42,7 +48,7 @@ type private StoredTargetSummary = {
     Project: string
     Target: string
     Operations: OperationSummary list list
-    Outputs: string option
+    Outputs: OutputState
     IsSuccessful: bool
     StartedAt: DateTime
     EndedAt: DateTime
@@ -66,7 +72,7 @@ type PruneSummary = {
 
 type IEntry =
     abstract NextLogFile: unit -> string
-    abstract StoreOutputs: sourceDir:string -> entries:string list -> string option
+    abstract StoreOutputs: sourceDir:string -> entries:string list -> OutputState
     abstract StoreLogs: entries:string list -> unit
     abstract Complete: summary:TargetSummary -> string list
 
@@ -159,8 +165,7 @@ let private replaceDirectory entryDir stagingDir =
 let private publishDirectory entryDir stagingDir =
     withEntryLock entryDir (fun () -> replaceDirectory entryDir stagingDir)
 
-let private restoreOutputsTransaction entryDir outputs projectDirectory =
-    let cachedOutputs = FS.combinePath entryDir "outputs"
+let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
     let projectDirectory = Path.GetFullPath(projectDirectory)
     let parent =
         projectDirectory
@@ -169,7 +174,10 @@ let private restoreOutputsTransaction entryDir outputs projectDirectory =
     let transactionDir = FS.combinePath parent $".terrabuild-restore-{Guid.NewGuid():N}"
     let stagedDir = FS.combinePath transactionDir "staged"
     let backupDir = FS.combinePath transactionDir "backup"
-    let cachedFiles = IO.enumerateFiles cachedOutputs
+    let cachedFiles =
+        cachedOutputs
+        |> Option.map IO.enumerateFiles
+        |> Option.defaultValue []
     let currentFiles = (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys |> List.ofSeq
 
     let moveFiles targetDir baseDir files =
@@ -182,7 +190,9 @@ let private restoreOutputsTransaction entryDir outputs projectDirectory =
             File.Move(file, target, true)
 
     try
-        IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore
+        IO.createDirectory stagedDir
+        cachedOutputs
+        |> Option.iter (fun cachedOutputs -> IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore)
         IO.copyFiles backupDir projectDirectory currentFiles |> ignore
 
         try
@@ -284,8 +294,10 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                     stepGroup
                     |> List.map (fun step -> { step with Log = IO.getFilename step.Log }))
               StoredTargetSummary.Outputs =
-                if summary.HasOutputs && hasMaterializedOutputs () then Some "outputs"
-                else None
+                match summary.Outputs with
+                | OutputState.Stored when hasMaterializedOutputs () -> OutputState.Stored
+                | OutputState.Stored -> OutputState.Empty
+                | state -> state
               StoredTargetSummary.IsSuccessful = summary.IsSuccessful
               StoredTargetSummary.StartedAt = summary.StartedAt
               StoredTargetSummary.EndedAt = summary.EndedAt
@@ -307,7 +319,9 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             nextLogFile()
 
         member _.StoreOutputs sourceDir entries =
-            IO.copyFiles outputsDir sourceDir entries
+            match IO.copyFiles outputsDir sourceDir entries with
+            | Some _ -> OutputState.Stored
+            | None -> OutputState.Empty
 
         member _.StoreLogs entries =
             for entry in entries do
@@ -388,7 +402,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                     |> List.map (fun stepGroup ->
                         stepGroup
                         |> List.map (fun stepLog -> { stepLog with Log = FS.combinePath logsDir stepLog.Log }))
-                  TargetSummary.HasOutputs = stored.Outputs.IsSome
+                  TargetSummary.Outputs = stored.Outputs
                   TargetSummary.IsSuccessful = stored.IsSuccessful
                   TargetSummary.StartedAt = stored.StartedAt
                   TargetSummary.EndedAt = stored.EndedAt
@@ -419,8 +433,8 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 | None -> None
                 | Some summary ->
                     let outputsReady =
-                        match includeOutputs, summary.HasOutputs with
-                        | true, true -> tryDownload stagingOutputs id "outputs"
+                        match includeOutputs, summary.Outputs with
+                        | true, OutputState.Stored -> tryDownload stagingOutputs id "outputs"
                         | _ -> true
 
                     if outputsReady then
@@ -455,9 +469,10 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
 
         member _.CanRestore useRemote id summary =
-            if not summary.HasOutputs then
-                true
-            else
+            match summary.Outputs with
+            | OutputState.NotManaged
+            | OutputState.Empty -> true
+            | OutputState.Stored ->
                 let entryDir = FS.combinePath (createCache()) id
                 if Directory.Exists(FS.combinePath entryDir "outputs") then true
                 elif useRemote then storage.Exists $"{id}/outputs"
@@ -472,14 +487,16 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 withEntryLock entryDir (fun () ->
                     let available =
                         match tryLoadCompleteEntry entryDir with
-                        | Some (origin, summary) when not summary.HasOutputs || Directory.Exists(FS.combinePath entryDir "outputs") ->
+                        | Some (origin, summary) when summary.Outputs <> OutputState.Stored || Directory.Exists(FS.combinePath entryDir "outputs") ->
                             Some (origin, summary)
                         | _ when useRemote -> downloadEntry id true entryDir
                         | _ -> None
 
                     match available with
-                    | Some (_, summary) when summary.HasOutputs ->
-                        restoreOutputsTransaction entryDir outputs projectDirectory
+                    | Some (_, summary) when summary.Outputs = OutputState.Stored ->
+                        restoreOutputsTransaction (Some (FS.combinePath entryDir "outputs")) outputs projectDirectory
+                    | Some (_, summary) when summary.Outputs = OutputState.Empty ->
+                        restoreOutputsTransaction None outputs projectDirectory
                     | _ -> ()
                     available)
 

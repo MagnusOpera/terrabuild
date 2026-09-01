@@ -531,14 +531,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 Log.Error(exn, "{NodeId}: Execution failed with exception", node.Id)
                 reraise()
 
-        let hasOutputs =
+        let outputState =
             match node.Artifacts with
             | GraphDef.ArtifactMode.Workspace
             | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
                 let afterFiles = IO.createSnapshot node.Outputs projectDirectory
                 let newFiles = afterFiles - IO.Snapshot.Empty
-                cacheEntry.StoreOutputs projectDirectory newFiles |> Option.isSome
-            | _ -> false
+                cacheEntry.StoreOutputs projectDirectory newFiles
+            | _ -> Cache.OutputState.NotManaged
 
         let endedAt = DateTime.UtcNow
         DiagnosticsTelemetry.recordTask node.Id "execution-ended"
@@ -551,7 +551,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 { Cache.TargetSummary.Project = node.ProjectDir
                   Cache.TargetSummary.Target = node.Target
                   Cache.TargetSummary.Operations = [ stepLogs ]
-                  Cache.TargetSummary.HasOutputs = hasOutputs
+                  Cache.TargetSummary.Outputs = outputState
                   Cache.TargetSummary.IsSuccessful = successful
                   Cache.TargetSummary.StartedAt = startedAt
                   Cache.TargetSummary.EndedAt = endedAt
@@ -636,19 +636,19 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                     cacheEntry.StoreLogs logs
 
-                    let hasOutputs =
+                    let outputState =
                         match node.Artifacts with
                         | GraphDef.ArtifactMode.Workspace
                         | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
                             let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                            cacheEntry.StoreOutputs node.ProjectDir newFiles |> Option.isSome
-                        | _ -> false
+                            cacheEntry.StoreOutputs node.ProjectDir newFiles
+                        | _ -> Cache.OutputState.NotManaged
 
                     let summary =
                         { Cache.TargetSummary.Project = node.ProjectDir
                           Cache.TargetSummary.Target = node.Target
                           Cache.TargetSummary.Operations = [ stepLogs ]
-                          Cache.TargetSummary.HasOutputs = hasOutputs
+                          Cache.TargetSummary.Outputs = outputState
                           Cache.TargetSummary.IsSuccessful = successful
                           Cache.TargetSummary.StartedAt = startedAt
                           Cache.TargetSummary.EndedAt = endedAt
