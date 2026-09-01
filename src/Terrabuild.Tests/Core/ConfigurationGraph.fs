@@ -121,6 +121,7 @@ let private withTempWorkspace action =
 
 type private NoopEntry() =
     interface Cache.IEntry with
+        member _.Dispose() = ()
         member _.NextLogFile() = raiseBugError "Not expected in this test"
         member _.StoreOutputs _ _ = raiseBugError "Not expected in this test"
         member _.StoreLogs _ = raiseBugError "Not expected in this test"
@@ -132,7 +133,7 @@ type private NoopCache() =
         member _.CanRestore _useRemote _id _summary = false
         member _.TryGetSummary _useRemote _id = None
         member _.Restore _useRemote _id _outputs _projectDirectory = None
-        member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
+        member _.GetEntry _useRemote _id = new NoopEntry() :> Cache.IEntry
 
 let private buildTargetSummary isSuccessful =
     { Cache.TargetSummary.Project = "."
@@ -163,7 +164,7 @@ type private SummaryCache(summaries: Map<string, Cache.TargetSummary>, ?canResto
         member _.Restore _useRemote id _outputs _projectDirectory =
             summaries |> Map.tryFind id
 
-        member _.GetEntry _useRemote _id = NoopEntry() :> Cache.IEntry
+        member _.GetEntry _useRemote _id = new NoopEntry() :> Cache.IEntry
 
 let private successCache summaryIds =
     summaryIds

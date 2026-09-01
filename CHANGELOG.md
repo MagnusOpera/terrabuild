@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Dispose synthetic batch cache entries after their logs are copied to member results.
 - Restore explicitly empty cached output sets by removing stale declared files.
 - Invalidate cached targets when declared forwarded environment values change without retaining their secret values.
 - Rebuild targets when remotely cached output files disappear before restoration.

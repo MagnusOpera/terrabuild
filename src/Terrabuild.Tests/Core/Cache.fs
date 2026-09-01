@@ -73,7 +73,7 @@ let ``cache completion returns logs when outputs do not exist`` () =
     withTempDir (fun root ->
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
-        let entry = Cache.NewEntry(entryDir, true, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+        let entry = new Cache.NewEntry(entryDir, true, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
 
         let files = entry.Complete(summary None)
 
@@ -85,7 +85,7 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
     withTempDir (fun root ->
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
-        let entry = Cache.NewEntry(entryDir, true, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+        let entry = new Cache.NewEntry(entryDir, true, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
         let sourceDir = Path.Combine(root, "source")
         Directory.CreateDirectory(sourceDir) |> ignore
         let artifact = Path.Combine(sourceDir, "artifact.txt")
@@ -105,7 +105,7 @@ let ``cache completion records an empty output snapshot when outputs are not mat
     withTempDir (fun root ->
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
-        let entry = Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+        let entry = new Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
 
         entry.Complete(summary (Some "outputs")) |> ignore
 
@@ -191,7 +191,7 @@ let ``new entries publish atomically over completed entries`` () =
         let storage = FakeStorage()
         let entryDir = createLocalCacheEntry root "project-hash/build/target-hash" (summary None)
         let oldSummary = Path.Combine(entryDir, "logs", "summary.json") |> File.ReadAllText
-        let entry = Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
+        let entry = new Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", storage, None) :> Cache.IEntry
 
         Path.Combine(entryDir, "logs", "summary.json") |> File.ReadAllText |> should equal oldSummary
 
@@ -202,6 +202,20 @@ let ``new entries publish atomically over completed entries`` () =
             |> File.ReadAllText
             |> JsonDocument.Parse
         published.RootElement.GetProperty("target").GetString() |> should equal "replacement")
+
+[<Test>]
+let ``disposing an incomplete entry removes its staging directory`` () =
+    withTempDir (fun root ->
+        let entryDir = Path.Combine(root, "entry")
+        let entry = new Cache.NewEntry(entryDir, false, "project-hash/build/target-hash", FakeStorage(), None) :> Cache.IEntry
+        let logFile = entry.NextLogFile()
+        File.WriteAllText(logFile, "scratch")
+
+        entry.Dispose()
+
+        Directory.EnumerateDirectories(root, ".entry.tmp-*")
+        |> Seq.isEmpty
+        |> should equal true)
 
 [<Test>]
 let ``restore replaces the complete declared output set`` () =

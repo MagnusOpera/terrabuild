@@ -526,6 +526,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let successful, lastStatusCode, stepLogs =
             try execCommands node cacheEntry options projectDirectory options.HomeDir options.TmpDir
             with exn ->
+                cacheEntry.Dispose()
                 nodeResults[node.Id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}"))
                 DiagnosticsTelemetry.recordTask node.Id "execution-failed"
                 Log.Error(exn, "{NodeId}: Execution failed with exception", node.Id)
@@ -544,6 +545,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         DiagnosticsTelemetry.recordTask node.Id "execution-ended"
 
         hub.SubscribeBackground $"Upload {node.Id}" [] (fun () ->
+            use _cacheEntry = cacheEntry
             DiagnosticsTelemetry.recordTask node.Id "upload-started"
             buildProgress.TaskUploading node.Id
 
@@ -606,11 +608,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             |> Map.ofSeq
 
         let batchCacheEntryId = GraphDef.buildCacheKey batchNode
-        let batchCacheEntry = cache.GetEntry false batchCacheEntryId
+        use batchCacheEntry = cache.GetEntry false batchCacheEntryId
 
         let successful, lastStatusCode, stepLogs =
             try execCommands batchNode batchCacheEntry options batchNode.ProjectDir options.HomeDir options.TmpDir
             with exn ->
+                cacheEntries
+                |> Map.iter (fun _ entry -> entry |> Option.iter (fun entry -> entry.Dispose()))
                 cacheEntries
                 |> Map.iter (fun nodeId _ -> nodeResults[nodeId] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, $"{exn}")))
                 DiagnosticsTelemetry.recordTask batchNode.Id "batch-failed"
@@ -672,6 +676,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     nodeResults[nodeId] <- (TaskRequest.Restore, status)
                     api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
                 | _, Some (cacheEntry, summary) ->
+                    use _cacheEntry = cacheEntry
                     nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                     let files = cacheEntry.Complete summary

@@ -208,6 +208,7 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
         Directory.CreateDirectory(outputsDir) |> ignore
 
     interface Cache.IEntry with
+        member _.Dispose() = ()
         member _.NextLogFile() =
             logIndex <- logIndex + 1
             Path.Combine(logsDir, $"step{logIndex}.log")
@@ -273,7 +274,7 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: 
             match entries.TryGetValue(id) with
             | true, entry -> entry :> Cache.IEntry
             | _ ->
-                let entry = FakeEntry(root, id, completed, onStoreOutputs)
+                let entry = new FakeEntry(root, id, completed, onStoreOutputs)
                 entries[id] <- entry
                 entry :> Cache.IEntry
 

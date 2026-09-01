@@ -71,6 +71,7 @@ type PruneSummary = {
 
 
 type IEntry =
+    inherit IDisposable
     abstract NextLogFile: unit -> string
     abstract StoreOutputs: sourceDir:string -> entries:string list -> OutputState
     abstract StoreLogs: entries:string list -> unit
@@ -365,6 +366,9 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             publishDirectory entryDir stagingDir
             files
 
+        member _.Dispose() =
+            if Directory.Exists stagingDir then IO.deleteAny stagingDir
+
 
 type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
     let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()
@@ -505,4 +509,4 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         member _.GetEntry useRemote id : IEntry =
             cachedSummaries.TryRemove(id) |> ignore
             let entryDir = FS.combinePath (createCache()) id
-            NewEntry(entryDir, useRemote, id, storage, masterKey)
+            new NewEntry(entryDir, useRemote, id, storage, masterKey)
