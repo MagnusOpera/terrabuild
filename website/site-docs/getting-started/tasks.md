@@ -33,7 +33,7 @@ Scheduling tells Terrabuild **when** a task may proceed. Once ready, the task re
 |--------|-------------|
 | `Build` | Execute the target commands |
 | `Restore` | Reuse a successful cache hit. Terrabuild restores declared files for workspace or managed artifacts; an external artifact needs only its successful summary. |
-| `Summary` | Report a previous failed cached run without executing commands or restoring outputs |
+| `Summary` | Report a previous failed cached run without executing commands or restoring outputs. Run results preserve this as a distinct summary request. |
 
 The task graph treats each outcome as completion, but only a successful build or cache hit can satisfy dependent work. External artifacts remain in their registry or service and are never copied into the workspace. If a task fails, its dependents do not run.
 

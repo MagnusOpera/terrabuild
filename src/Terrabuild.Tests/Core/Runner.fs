@@ -1035,6 +1035,33 @@ let ``runner waits for every prerequisite phase dependency`` () =
         summary.IsSuccess |> should equal true)
 
 [<Test>]
+let ``runner reports cached failures as summaries rather than restores`` () =
+    withTempWorkspace (fun workspace ->
+        let node = buildNode "cached-failure" workspace "build" GraphDef.RunAction.Summary []
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+              GraphDef.Graph.RootNodes = Set [ node.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
+        let cachedFailure =
+            { Cache.TargetSummary.Project = node.ProjectDir
+              Cache.TargetSummary.Target = node.Target
+              Cache.TargetSummary.Operations = []
+              Cache.TargetSummary.Outputs = Cache.OutputState.Empty
+              Cache.TargetSummary.IsSuccessful = false
+              Cache.TargetSummary.StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+              Cache.TargetSummary.EndedAt = DateTime.UtcNow
+              Cache.TargetSummary.Duration = TimeSpan.FromSeconds(1.0)
+              Cache.TargetSummary.Cache = node.Artifacts }
+        let cache = FakeCache(workspace)
+        cache.SetSummary(GraphDef.buildCacheKey node, cachedFailure)
+
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph
+
+        summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Summary
+        summary.Nodes[node.Id].Status.IsSuccess |> should equal false)
+
+[<Test>]
 let ``runner does not execute a downstream phase after prerequisite failure`` () =
     withTempWorkspace (fun workspace ->
         let downstreamMarker = Path.Combine(workspace, "application-ran")

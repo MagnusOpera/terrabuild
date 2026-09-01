@@ -454,8 +454,8 @@ let private nodeReports
             let outcome =
                 match actualResult |> Option.map _.Request, actionName, scheduled with
                 | Some Runner.TaskRequest.Exec, _, _ -> Some "execute"
-                | Some Runner.TaskRequest.Restore, Some "summary", _ -> Some "summary"
                 | Some Runner.TaskRequest.Restore, _, _ -> Some "restore"
+                | Some Runner.TaskRequest.Summary, _, _ -> Some "summary"
                 | None, Some "exec", Some true -> Some "execute"
                 | None, Some "restore", Some true -> Some "restore"
                 | None, Some "summary", Some true -> Some "summary"

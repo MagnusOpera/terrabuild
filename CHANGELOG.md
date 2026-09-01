@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Report cached failure summaries as summaries instead of restores.
 - Keep expanded forwarded environment secrets out of container arguments and cached summaries.
 - Recover interrupted output restores before configuration and project hashing begin.
 - Recover interrupted cache output restores from a durable transaction journal.

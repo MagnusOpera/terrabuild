@@ -13,6 +13,7 @@ open Errors
 type TaskRequest =
     | Exec
     | Restore
+    | Summary
 
 [<RequireQualifiedAccess>]
 type TaskStatus =
@@ -456,7 +457,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             | _ ->
                 raiseBugError $"Unable to download build output for {cacheEntryId} for node {node.Id}"
 
-        nodeResults[node.Id] <- (TaskRequest.Restore, status)
+        nodeResults[node.Id] <- (TaskRequest.Summary, status)
 
         match status with
         | TaskStatus.Success completionDate ->
@@ -838,7 +839,9 @@ let loadSummary (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: G
                     if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                     else TaskStatus.Failure (summary.EndedAt, "logs")
 
-                { NodeInfo.Request = TaskRequest.Restore
+                { NodeInfo.Request =
+                    if summary.IsSuccessful then TaskRequest.Restore
+                    else TaskRequest.Summary
                   NodeInfo.Status = status
                   NodeInfo.Project = node.ProjectDir
                   NodeInfo.Target = node.Target
