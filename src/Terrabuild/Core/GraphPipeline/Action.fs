@@ -113,6 +113,7 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     | Status.UnfulfilledSubscription (subscription, signals) ->
         let unraisedSignals = signals |> String.join ","
         Log.Fatal("NodeStateEvaluator '{Subscription}' has pending operations on '{UnraisedSignals}'", subscription, unraisedSignals)
+        raiseInvalidArg $"Unable to compute action for '{subscription}'; pending dependencies: {unraisedSignals}."
     | Status.SubscriptionError edi ->
         forwardInvalidArg("Failed to compute actions", edi.SourceException)
 

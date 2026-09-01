@@ -149,6 +149,7 @@ Planned actions remain available for explaining scheduler decisions, while final
 
 ## Edge cases
 
+- Action evaluation fails closed if any scheduler subscription remains unfulfilled; a partially evaluated action graph is never passed to cascading or execution.
 - Explicitly selected lazy roots execute when their action is `Exec`; laziness controls dependency realization and rebuild propagation, not explicit selection.
 - Lazy dependencies behind a restored or summarized node are not realized unless another executing node requires them directly.
 - Failed cached selected roots remain runner roots as `Summary`, so failures are reported correctly.

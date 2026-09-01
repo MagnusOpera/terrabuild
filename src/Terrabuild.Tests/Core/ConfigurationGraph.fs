@@ -1663,3 +1663,42 @@ target dist {
         let options, config = Configuration.read (baseOptions workspace (Set [ "build" ]))
         let nodeGraph = GraphPipeline.Node.build options config
         assertKnownErrorContains "Circular target dependency detected after applying phases" (fun () -> GraphPipeline.Phase.build nodeGraph |> ignore))
+
+[<Test>]
+let ``Action evaluation fails closed when dependencies cannot be fulfilled`` () =
+    withTempWorkspace (fun workspace ->
+        let buildNode id dependency : GraphDef.Node =
+            { GraphDef.Node.Id = id
+              ProjectId = id
+              ProjectName = Some id
+              ProjectDir = workspace
+              Target = "build"
+              Phase = None
+              Locks = Set.empty
+              Dependencies = Set [ dependency ]
+              PhaseDependencies = Set.empty
+              Outputs = Set.empty
+              ProjectHash = $"project-{id}"
+              TargetHash = $"target-{id}"
+              ClusterHash = None
+              Operations = []
+              EvaluationInputs = []
+              EnvironmentSensitive = None
+              Artifacts = ArtifactMode.None
+              Build = BuildMode.Auto
+              Batch = BatchMode.Never
+              Action = RunAction.Ignore
+              Required = true }
+
+        let graph : GraphDef.Graph =
+            { Nodes = Map [ "a", buildNode "a" "b"; "b", buildNode "b" "a" ]
+              RootNodes = Set [ "a" ]
+              Batches = Map.empty
+              Phases = Map.empty }
+
+        assertKnownErrorContains "Unable to compute action" (fun () ->
+            GraphPipeline.Action.build
+                (baseOptions workspace (Set [ "build" ]))
+                (NoopCache() :> Cache.ICache)
+                graph
+            |> ignore))
