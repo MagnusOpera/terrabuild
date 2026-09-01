@@ -132,11 +132,15 @@ let ``clearing target locks removes idle sentinels without disrupting active lea
         let active = TargetLock.acquireAt profile (Set [ "active" ])
         use idle = TargetLock.acquireAt profile (Set [ "idle" ])
         idle.Dispose()
+        let restoreLock = Path.Combine(profile, "locks", "restores", "idle.lock")
+        restoreLock |> FS.parentDirectory |> Option.iter IO.createDirectory
+        File.WriteAllText(restoreLock, "")
 
         TargetLock.clearAt profile
 
         File.Exists(TargetLock.lockFilePath profile "active") |> should equal true
         File.Exists(TargetLock.lockFilePath profile "idle") |> should equal false
+        File.Exists(restoreLock) |> should equal false
 
         active.Dispose()
         TargetLock.clearAt profile

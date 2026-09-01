@@ -71,7 +71,7 @@ Another thread, batch, or Terrabuild process currently owns the same machine-glo
 
 Use `explain` to check the inherited lock names. A debug run records lock-wait time separately from execution time. If unrelated work shares a name, give the resources distinct lock names or override an inherited workspace lock in the project. Do not remove the lock merely to hide contention when the commands can still collide.
 
-`terrabuild clear --all` removes idle lock files but leaves locks owned by active processes intact.
+`terrabuild clear --all` removes idle target and cache-restore lock files but leaves locks owned by active processes intact. If a process dies while replacing cached outputs, the next restore rolls the journaled transaction back before trying again.
 
 ## Environment-sensitive input was rejected
 

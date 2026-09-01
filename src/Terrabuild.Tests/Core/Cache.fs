@@ -293,6 +293,59 @@ let ``failed restore rolls the workspace back`` () =
         ))
 
 [<Test>]
+let ``restore recovery rolls back a transaction interrupted while applying`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let project = Path.Combine(root, "project") |> Path.GetFullPath
+            let generated = Path.Combine(project, "generated")
+            let projectHash = (Hash.sha256 project).Substring(0, 12).ToLowerInvariant()
+            let transactionDir = Path.Combine(root, $".terrabuild-restore-{projectHash}-interrupted")
+            let backup = Path.Combine(transactionDir, "backup", "generated")
+            let staged = Path.Combine(transactionDir, "staged", "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(backup) |> ignore
+            Directory.CreateDirectory(staged) |> ignore
+            File.WriteAllText(Path.Combine(generated, "cached.txt"), "partially restored")
+            File.WriteAllText(Path.Combine(generated, "extra.txt"), "new cached output")
+            File.WriteAllText(Path.Combine(backup, "cached.txt"), "original")
+            File.WriteAllText(Path.Combine(staged, "remaining.txt"), "not applied")
+            {| ProjectDirectory = project; Outputs = [ "generated/**" ] |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(transactionDir, "transaction.json"))
+            File.WriteAllText(Path.Combine(transactionDir, "state"), "applying")
+
+            Cache.recoverOutputTransactions project
+
+            File.ReadAllText(Path.Combine(generated, "cached.txt")) |> should equal "original"
+            File.Exists(Path.Combine(generated, "extra.txt")) |> should equal false
+            Directory.Exists(transactionDir) |> should equal false
+        ))
+
+[<Test>]
+let ``restore recovery keeps a transaction committed before process death`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let project = Path.Combine(root, "project") |> Path.GetFullPath
+            let generated = Path.Combine(project, "generated")
+            let projectHash = (Hash.sha256 project).Substring(0, 12).ToLowerInvariant()
+            let transactionDir = Path.Combine(root, $".terrabuild-restore-{projectHash}-committed")
+            let backup = Path.Combine(transactionDir, "backup", "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(backup) |> ignore
+            File.WriteAllText(Path.Combine(generated, "cached.txt"), "restored")
+            File.WriteAllText(Path.Combine(backup, "cached.txt"), "original")
+            {| ProjectDirectory = project; Outputs = [ "generated/**" ] |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(transactionDir, "transaction.json"))
+            File.WriteAllText(Path.Combine(transactionDir, "state"), "committed")
+
+            Cache.recoverOutputTransactions project
+
+            File.ReadAllText(Path.Combine(generated, "cached.txt")) |> should equal "restored"
+            Directory.Exists(transactionDir) |> should equal false
+        ))
+
+[<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
     withTempDir (fun root ->
         let staleEntry = createLocalCacheEntry root "project-hash/build/stale-target" (summary None)

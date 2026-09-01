@@ -55,9 +55,9 @@ let acquire names =
     acquireAt (Cache.createTerrabuildProfile()) names
 
 let internal clearAt profileDir =
-    let lockDir = FS.combinePath profileDir "locks/targets"
+    let lockDir = FS.combinePath profileDir "locks"
     if Directory.Exists(lockDir) then
-        for path in Directory.EnumerateFiles(lockDir, "*.lock", SearchOption.TopDirectoryOnly) do
+        for path in Directory.EnumerateFiles(lockDir, "*.lock", SearchOption.AllDirectories) do
             try
                 use _lease = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Delete)
                 File.Delete(path)

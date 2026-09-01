@@ -166,47 +166,126 @@ let private replaceDirectory entryDir stagingDir =
 let private publishDirectory entryDir stagingDir =
     withEntryLock entryDir (fun () -> replaceDirectory entryDir stagingDir)
 
+type private RestoreTransaction = {
+    ProjectDirectory: string
+    Outputs: string list
+}
+
+let private restoreMetadataFilename = "transaction.json"
+let private restoreStateFilename = "state"
+let private restorePrepared = "prepared"
+let private restoreApplying = "applying"
+let private restoreCommitted = "committed"
+
+let private moveFiles targetDir baseDir files =
+    for file in files do
+        let relative = FS.relativePath baseDir file
+        let target = FS.combinePath targetDir relative
+        target
+        |> FS.parentDirectory
+        |> Option.iter IO.createDirectory
+        File.Move(file, target, true)
+
+let private writeRestoreFile transactionDir filename contents =
+    let destination = FS.combinePath transactionDir filename
+    let temporary = $"{destination}.{Guid.NewGuid():N}.tmp"
+    IO.writeTextFile temporary contents
+    File.Move(temporary, destination, true)
+
+let private writeRestoreState transactionDir state =
+    writeRestoreFile transactionDir restoreStateFilename state
+
+let private rollbackRestore transactionDir (transaction: RestoreTransaction) =
+    let backupDir = FS.combinePath transactionDir "backup"
+    (IO.createSnapshot (Set transaction.Outputs) transaction.ProjectDirectory).TimestampedFiles.Keys
+    |> Seq.iter File.Delete
+    if Directory.Exists backupDir then
+        IO.copyFiles transaction.ProjectDirectory backupDir (IO.enumerateFiles backupDir) |> ignore
+
+let private restoreTransactionPrefix projectDirectory =
+    let projectHash = (Hash.sha256 projectDirectory).Substring(0, 12).ToLowerInvariant()
+    $".terrabuild-restore-{projectHash}-"
+
+let private recoverOutputTransactionsUnlocked projectDirectory parent =
+    let pattern = $"{restoreTransactionPrefix projectDirectory}*"
+    for transactionDir in Directory.EnumerateDirectories(parent, pattern) do
+        let metadataFile = FS.combinePath transactionDir restoreMetadataFilename
+        if File.Exists metadataFile then
+            let transaction = metadataFile |> IO.readTextFile |> Json.Deserialize<RestoreTransaction>
+            if Path.GetFullPath(transaction.ProjectDirectory) = projectDirectory then
+                let stateFile = FS.combinePath transactionDir restoreStateFilename
+                let state =
+                    if File.Exists stateFile then IO.readTextFile stateFile
+                    else restorePrepared
+                match state with
+                | state when state = restoreApplying -> rollbackRestore transactionDir transaction
+                | state when state = restorePrepared || state = restoreCommitted -> ()
+                | state -> raiseBugError $"Unknown cache restore transaction state '{state}' in '{transactionDir}'"
+                IO.deleteAny transactionDir
+        else
+            IO.deleteAny transactionDir
+
+let private restoreLockEntry projectDirectory =
+    let profile = createTerrabuildProfile()
+    let projectHash = (Hash.sha256 projectDirectory).ToLowerInvariant()
+    FS.combinePath profile $"locks/restores/{projectHash}"
+
+let internal recoverOutputTransactions projectDirectory =
+    let projectDirectory = Path.GetFullPath(projectDirectory)
+    let parent =
+        projectDirectory
+        |> FS.parentDirectory
+        |> Option.defaultWith (fun () -> raiseBugError $"Project directory '{projectDirectory}' has no parent")
+    withEntryLock (restoreLockEntry projectDirectory) (fun () ->
+        recoverOutputTransactionsUnlocked projectDirectory parent)
+
 let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
     let projectDirectory = Path.GetFullPath(projectDirectory)
     let parent =
         projectDirectory
         |> FS.parentDirectory
         |> Option.defaultWith (fun () -> raiseBugError $"Project directory '{projectDirectory}' has no parent")
-    let transactionDir = FS.combinePath parent $".terrabuild-restore-{Guid.NewGuid():N}"
-    let stagedDir = FS.combinePath transactionDir "staged"
-    let backupDir = FS.combinePath transactionDir "backup"
-    let cachedFiles =
-        cachedOutputs
-        |> Option.map IO.enumerateFiles
-        |> Option.defaultValue []
-    let currentFiles = (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys |> List.ofSeq
 
-    let moveFiles targetDir baseDir files =
-        for file in files do
-            let relative = FS.relativePath baseDir file
-            let target = FS.combinePath targetDir relative
-            target
-            |> FS.parentDirectory
-            |> Option.iter IO.createDirectory
-            File.Move(file, target, true)
+    withEntryLock (restoreLockEntry projectDirectory) (fun () ->
+        recoverOutputTransactionsUnlocked projectDirectory parent
 
-    try
-        IO.createDirectory stagedDir
-        cachedOutputs
-        |> Option.iter (fun cachedOutputs -> IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore)
-        IO.copyFiles backupDir projectDirectory currentFiles |> ignore
+        let transactionDir = FS.combinePath parent $"{restoreTransactionPrefix projectDirectory}{Guid.NewGuid():N}"
+        let stagedDir = FS.combinePath transactionDir "staged"
+        let backupDir = FS.combinePath transactionDir "backup"
+        let cachedFiles =
+            cachedOutputs
+            |> Option.map IO.enumerateFiles
+            |> Option.defaultValue []
+        let currentFiles = (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys |> List.ofSeq
+        let transaction = {
+            ProjectDirectory = projectDirectory
+            Outputs = outputs |> Set.toList
+        }
+        let mutable cleanup = false
 
         try
-            currentFiles |> List.iter File.Delete
-            IO.enumerateFiles stagedDir |> moveFiles projectDirectory stagedDir
-        with _ ->
-            (IO.createSnapshot outputs projectDirectory).TimestampedFiles.Keys
-            |> Seq.iter File.Delete
-            if Directory.Exists backupDir then
-                IO.enumerateFiles backupDir |> moveFiles projectDirectory backupDir
-            reraise()
-    finally
-        if Directory.Exists transactionDir then IO.deleteAny transactionDir
+            IO.createDirectory stagedDir
+            IO.createDirectory backupDir
+            transaction
+            |> Json.Serialize
+            |> writeRestoreFile transactionDir restoreMetadataFilename
+            cachedOutputs
+            |> Option.iter (fun cachedOutputs -> IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore)
+            IO.copyFiles backupDir projectDirectory currentFiles |> ignore
+            writeRestoreState transactionDir restorePrepared
+
+            try
+                writeRestoreState transactionDir restoreApplying
+                currentFiles |> List.iter File.Delete
+                IO.enumerateFiles stagedDir |> moveFiles projectDirectory stagedDir
+                writeRestoreState transactionDir restoreCommitted
+                cleanup <- true
+            with _ ->
+                rollbackRestore transactionDir transaction
+                cleanup <- true
+                reraise()
+        finally
+            if cleanup && Directory.Exists transactionDir then IO.deleteAny transactionDir)
 
 let clearCache () =
     IO.deleteAny (createCache())
