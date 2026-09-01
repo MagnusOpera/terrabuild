@@ -31,9 +31,12 @@ the cache key, evaluated input names, and resolved operation metadata. Values
 that could contain secrets remain hashed.
 
 For a completed debug run, the action remains the scheduler's original decision
-while the outcome reflects what actually happened. For example, if cached outputs
-disappear between planning and restoration, the action remains `restore` but the
-outcome becomes `execute (restore-missed)`.
+while the outcome describes the logical disposition of that node. For example, if
+cached outputs disappear between planning and restoration, the action remains
+`restore` but the outcome becomes `execute (restore-missed)`. A cached member folded
+into a native batch remains `restore (batch-cache-reuse)` because its existing
+artifact is reused rather than republished; `batchId` links it to the physical batch
+command shown under `batches` and `executions`.
 
 An explicit root that resolves to `exec` but is absent from the final schedule is
 an internal consistency error. `explain` reports it as a Terrabuild bug instead

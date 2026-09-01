@@ -466,6 +466,10 @@ let private nodeReports
                 match actualResult, actionName, scheduled with
                 | Some { Status = Runner.TaskStatus.Blocked _ }, _, _ -> Some "dependency-failed"
                 | Some { Request = Runner.TaskRequest.Exec }, Some "restore", _ -> Some "restore-missed"
+                | Some { Request = Runner.TaskRequest.Restore }, _, _ when memberToBatch |> Map.containsKey nodeId ->
+                    Some "batch-cache-reuse"
+                | None, Some "restore", Some true when memberToBatch |> Map.containsKey nodeId ->
+                    Some "batch-cache-reuse"
                 | _, _, Some true when finalRoot -> selectionKind |> Option.orElse (Some "scheduled-root")
                 | _, _, Some true when memberToBatch |> Map.containsKey nodeId -> Some "batch-member"
                 | _, _, Some true -> requirement |> Option.map _.Reason |> Option.orElse (Some "required")

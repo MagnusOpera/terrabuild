@@ -569,7 +569,22 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         let cache = FakeCache(workspace)
         let api = FakeApiClient()
-        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        let options = baseOptions workspace
+        let summary = Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        let report =
+            Diagnostics.build {
+                Diagnostics.Context.Options = options
+                Configuration = None
+                FullGraph = Some graph
+                SelectedGraph = Some graph
+                ResolvedGraph = Some graph
+                FinalGraph = Some graph
+                Cache = Some (cache :> Cache.ICache)
+                Summary = Some summary
+                Status = if summary.IsSuccess then "success" else "failure"
+                Completeness = "complete"
+                Error = None
+            }
 
         cache.Completed |> should equal [ GraphDef.buildCacheKey execMember ]
         cache.Opened |> should equal [ GraphDef.buildCacheKey execMember; GraphDef.buildCacheKey batchNode ]
@@ -619,7 +634,13 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 
         summary.Nodes[execMember.Id].Status.IsSuccess |> should equal expectedSuccess
         summary.Nodes[restoreMember.Id].Status.IsSuccess |> should equal expectedSuccess
-        summary.Nodes |> Map.containsKey batchNode.Id |> should equal false)
+        summary.Nodes |> Map.containsKey batchNode.Id |> should equal false
+
+        let restoreReport = report.Nodes |> List.find (fun node -> node.Id = restoreMember.Id)
+        restoreReport.Outcome |> should equal (Some "restore")
+        restoreReport.OutcomeReason |> should equal (Some "batch-cache-reuse")
+        restoreReport.BatchId |> should equal (Some batchNode.Id)
+        report.Batches |> List.map _.Id |> should contain batchNode.Id)
 
 [<Test>]
 let ``batch output staging completes while named target lock is held`` () =

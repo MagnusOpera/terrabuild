@@ -20,7 +20,7 @@ Terrabuild creates a batch cluster only when:
 
 The extension turns each cluster into a tool-specific batch command. Check the extension documentation before enabling batching because the supported actions and grouping rules differ by tool.
 
-A batch may include a target that could have restored from cache when another member must execute. This trade can help when one native batch costs less than a mixture of execution and artifact restoration. Measure both modes for the workspace before relying on that assumption.
+A batch may include a target that could have restored from cache when another member must execute. This trade can help when one native batch costs less than a mixture of execution and artifact restoration. The member remains a logical cache reuse: Terrabuild records `restore (batch-cache-reuse)`, links it to the physical command through `batchId`, and does not publish a replacement artifact for that member. The batch result still determines whether every member succeeds. Measure both modes for the workspace before relying on that assumption.
 
 Choose a `batch` mode on the target:
 
