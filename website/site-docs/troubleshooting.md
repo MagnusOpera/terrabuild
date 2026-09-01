@@ -85,7 +85,7 @@ Run `explain` with the same options to see each target and input. Remove acciden
 
 ## Troubleshoot with Codex or Claude Code
 
-Terrabuild provides a portable [Terrabuild skill](https://github.com/MagnusOpera/Terrabuild/blob/main/docs/guides/SKILL.md) for AI coding agents. It helps an agent choose between `terrabuild explain` and a debug run, investigate cache and rebuild decisions, find failed operations, interpret partial diagnostics, and identify performance bottlenecks without treating an uncached build as a normal measurement.
+Terrabuild provides a portable [Terrabuild skill](https://github.com/MagnusOpera/Terrabuild/blob/main/docs/guides/SKILL.md) for AI coding agents. It helps an agent choose target scheduling and artifact policies, select between `terrabuild explain` and a debug run, investigate cache, phase, batch, lock, recovery, and reporting decisions, interpret partial diagnostics, and measure performance without treating an uncached build as a normal workload.
 
 The skill is guidance, not an executable plugin. Review it before installation and keep the downloaded copy updated when Terrabuild's diagnostic format or commands change.
 
