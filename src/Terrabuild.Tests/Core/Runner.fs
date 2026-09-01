@@ -1081,4 +1081,8 @@ let ``runner does not execute a downstream phase after prerequisite failure`` ()
         let summary = Runner.run (baseOptions workspace) (FakeCache(workspace) :> Cache.ICache) None graph graph
 
         File.Exists downstreamMarker |> should equal false
-        summary.IsSuccess |> should equal false)
+        summary.IsSuccess |> should equal false
+        match summary.Nodes[app.Id].Status with
+        | Runner.TaskStatus.Blocked (_, dependencies) -> dependencies |> should equal [ tool.Id ]
+        | status -> failwith $"Expected the downstream task to be blocked, got {status}"
+        summary.Nodes[app.Id].Request |> should equal Runner.TaskRequest.Exec)

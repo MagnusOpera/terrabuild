@@ -40,6 +40,8 @@ A successful cache hit normally reuses earlier work. Workspace and managed artif
 
 Also check the final scheduling outcome. A lazy dependency is not realized behind a dependent that restores or reports a cached failure. An explicitly selected lazy target still executes when its own cache entry is missing.
 
+An outcome of `blocked` means the task did not run because at least one required dependency failed or was itself unable to run. The result message lists the direct blocking node IDs. This is different from `failure`, which means Terrabuild attempted that task and its command, restoration, or summary failed.
+
 Use `--force` only when the same declared inputs must execute again. Use `--retry` when the existing cache entry records failure and should be replaced.
 
 ## Expected outputs were not restored

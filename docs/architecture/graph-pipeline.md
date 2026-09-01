@@ -145,7 +145,7 @@ The report's action reasons are `forced-cli`, `configured-always`, `dependency-e
 
 Synthetic batch scheduler nodes are represented under `batches` and `executions`, not as logical results. Performance data records batches once, ranks slow phases and tasks, and derives a dependency-aware critical chain.
 
-Planned actions remain available for explaining scheduler decisions, while final outcomes come from runner results. Runner requests distinguish `Exec`, `Restore`, and cached-failure `Summary`; a summary is never mislabeled as a file restoration. A cache restore that loses its outputs and falls back to execution is reported as `execute` with reason `restore-missed`. Batch execution timing continues through synchronous member output staging and all member cache/API publications; the batch is not reported complete before finalization finishes.
+Planned actions remain available for explaining scheduler decisions, while final outcomes come from runner results. Runner requests distinguish `Exec`, `Restore`, and cached-failure `Summary`; a summary is never mislabeled as a file restoration. Task status also distinguishes attempted failures from dependency-blocked tasks, and records the direct blockers instead of leaking an internal scheduler placeholder into reports. A cache restore that loses its outputs and falls back to execution is reported as `execute` with reason `restore-missed`. Batch execution timing continues through synchronous member output staging and all member cache/API publications; the batch is not reported complete before finalization finishes.
 
 ## Edge cases
 

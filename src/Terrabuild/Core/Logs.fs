@@ -41,6 +41,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 match nodeInfo.Status with
                 | Runner.TaskStatus.Success completionDate -> completionDate
                 | Runner.TaskStatus.Failure (completionDate, _) -> completionDate
+                | Runner.TaskStatus.Blocked (completionDate, _) -> completionDate
             | _ -> DateTime.MaxValue)
         |> List.ofSeq
 
@@ -133,6 +134,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 | Runner.TaskRequest.Summary, Runner.TaskStatus.Failure _ -> Iconography.restore_ko
                 | Runner.TaskRequest.Exec, Runner.TaskStatus.Success _ -> Iconography.build_ok
                 | Runner.TaskRequest.Exec, Runner.TaskStatus.Failure _ -> Iconography.build_ko
+                | _, Runner.TaskStatus.Blocked _ -> Iconography.task_pending
             | _ -> Iconography.task_status
 
         let dumpMarkdown (reportId: string, groupedNodes: GraphDef.Node list, representative: GraphDef.Node) =

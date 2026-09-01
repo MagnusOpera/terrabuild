@@ -452,18 +452,20 @@ let private nodeReports
             let scheduled = finalGraph |> Option.map (fun _ -> finalRoot || (finalNode |> Option.exists _.Required))
             let actualResult = summary |> Option.bind (fun summary -> summary.Nodes |> Map.tryFind nodeId)
             let outcome =
-                match actualResult |> Option.map _.Request, actionName, scheduled with
-                | Some Runner.TaskRequest.Exec, _, _ -> Some "execute"
-                | Some Runner.TaskRequest.Restore, _, _ -> Some "restore"
-                | Some Runner.TaskRequest.Summary, _, _ -> Some "summary"
+                match actualResult, actionName, scheduled with
+                | Some { Status = Runner.TaskStatus.Blocked _ }, _, _ -> Some "blocked"
+                | Some { Request = Runner.TaskRequest.Exec }, _, _ -> Some "execute"
+                | Some { Request = Runner.TaskRequest.Restore }, _, _ -> Some "restore"
+                | Some { Request = Runner.TaskRequest.Summary }, _, _ -> Some "summary"
                 | None, Some "exec", Some true -> Some "execute"
                 | None, Some "restore", Some true -> Some "restore"
                 | None, Some "summary", Some true -> Some "summary"
                 | None, Some _, Some false -> Some "skip"
                 | _ -> None
             let outcomeReason =
-                match actualResult |> Option.map _.Request, actionName, scheduled with
-                | Some Runner.TaskRequest.Exec, Some "restore", _ -> Some "restore-missed"
+                match actualResult, actionName, scheduled with
+                | Some { Status = Runner.TaskStatus.Blocked _ }, _, _ -> Some "dependency-failed"
+                | Some { Request = Runner.TaskRequest.Exec }, Some "restore", _ -> Some "restore-missed"
                 | _, _, Some true when finalRoot -> selectionKind |> Option.orElse (Some "scheduled-root")
                 | _, _, Some true when memberToBatch |> Map.containsKey nodeId -> Some "batch-member"
                 | _, _, Some true -> requirement |> Option.map _.Reason |> Option.orElse (Some "required")
@@ -587,6 +589,9 @@ let private results (summary: Runner.Summary option) =
                 match info.Status with
                 | Runner.TaskStatus.Success _ -> "success", None
                 | Runner.TaskStatus.Failure (_, message) -> "failure", Some message
+                | Runner.TaskStatus.Blocked (_, dependencies) ->
+                    let blockers = dependencies |> String.join ", "
+                    "blocked", Some $"Blocked by: {blockers}"
             {
                 ResultReport.Id = nodeId
                 Request = (string info.Request).ToLowerInvariant()

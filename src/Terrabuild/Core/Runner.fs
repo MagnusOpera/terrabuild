@@ -19,6 +19,7 @@ type TaskRequest =
 type TaskStatus =
     | Success of completionDate:DateTime
     | Failure of completionDate:DateTime * message:string
+    | Blocked of completionDate:DateTime * dependencies:string list
 
 [<RequireQualifiedAccess>]
 type NodeInfo = {
@@ -436,6 +437,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     let execId (nodeId: string) =
         memberToBatch |> Map.tryFind nodeId |> Option.defaultValue nodeId
 
+    let requestFor (node: GraphDef.Node) =
+        match node.Action with
+        | GraphDef.RunAction.Restore -> TaskRequest.Restore
+        | GraphDef.RunAction.Summary -> TaskRequest.Summary
+        | GraphDef.RunAction.Exec
+        | GraphDef.RunAction.Ignore -> TaskRequest.Exec
+
     // ----------------------------
     // actions
     // ----------------------------
@@ -727,9 +735,6 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let targetNode = graph.Nodes[id]
             DiagnosticsTelemetry.recordTask id "scheduled"
 
-            // placeholder MUST be keyed by exec id
-            nodeResults[id] <- (TaskRequest.Exec, TaskStatus.Failure (DateTime.UtcNow, "Task execution not yet completed"))
-
             let membersOpt = graph.Batches |> Map.tryFind id
 
             let schedDependencies =
@@ -770,16 +775,40 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     |> Seq.iter (fun nodeId -> scheduleNode graph.Nodes[nodeId])
 
     let status = hub.WaitCompletion()
-    buildProgress.BuildCompleted()
 
     match status with
     | Status.Ok -> Log.Debug("Build successful")
     | Status.UnfulfilledSubscription (subscription, signals) ->
         let unraisedSignals = signals |> String.join ","
-        Log.Fatal("Task '{Subscription}' has pending operations on '{UnraisedSignals}'", subscription, unraisedSignals)
+        Log.Debug("Task '{Subscription}' was blocked by '{UnraisedSignals}'", subscription, unraisedSignals)
+
+        graph.Nodes
+        |> Map.iter (fun nodeId node ->
+            let executionId = execId nodeId
+            let isBatchNode = graph.Batches |> Map.containsKey nodeId
+            let wasScheduled = scheduledExec.ContainsKey executionId
+            let hasResult = nodeResults.ContainsKey nodeId
+
+            if not isBatchNode && wasScheduled && not hasResult then
+                let executionNode = graph.Nodes[executionId]
+                let blockers =
+                    executionNode.Dependencies
+                    |> Seq.filter (fun dependencyId -> graph.Nodes[dependencyId].Required)
+                    |> Seq.filter (fun dependencyId ->
+                        match nodeResults.TryGetValue dependencyId with
+                        | true, (_, status) -> not status.IsSuccess
+                        | _ -> true)
+                    |> Seq.sort
+                    |> List.ofSeq
+
+                nodeResults[nodeId] <-
+                    (requestFor node, TaskStatus.Blocked (DateTime.UtcNow, blockers))
+                DiagnosticsTelemetry.recordTask nodeId "blocked")
     | Status.SubscriptionError edi ->
         Log.Fatal(edi.SourceException, "Build failed")
         forwardInvalidArg("Failed to build", edi.SourceException)
+
+    buildProgress.BuildCompleted()
 
     let headCommit = options.HeadCommit
     let branchOrTag = options.BranchOrTag
