@@ -377,6 +377,7 @@ let private isWithinDirectory root path =
 
 let internal recoverWorkspaceOutputTransactions workspaceDirectory =
     let workspaceDirectory = Path.GetFullPath(workspaceDirectory)
+    let mutable requiresFallbackScan = false
 
     // A transaction for the workspace root is its sibling, not its child.
     recoverOutputTransactions workspaceDirectory
@@ -391,30 +392,36 @@ let internal recoverWorkspaceOutputTransactions workspaceDirectory =
                     recoverOutputTransactions projectDirectory
                     IO.deleteAny indexFile
             with exn ->
-                Log.Warning(exn, "Discarding unreadable restore transaction index {IndexFile}", indexFile)
-                IO.deleteAny indexFile
+                Log.Warning(exn, "Retaining unreadable restore transaction index {IndexFile} and scanning the workspace for recovery", indexFile)
+                requiresFallbackScan <- true
 
     let legacyMarker =
         let workspaceHash = (Hash.sha256 workspaceDirectory).ToLowerInvariant()
         FS.combinePath (createTerrabuildProfile()) $"transactions/legacy-scans/{workspaceHash}.done"
 
-    if Directory.Exists workspaceDirectory && not (File.Exists legacyMarker) then
-        let projectDirectories =
+    let needsLegacyScan = not (File.Exists legacyMarker)
+    if Directory.Exists workspaceDirectory && (needsLegacyScan || requiresFallbackScan) then
+        let transactions =
             Directory.EnumerateDirectories(workspaceDirectory, ".terrabuild-restore-*", SearchOption.AllDirectories)
             |> Seq.choose (fun transactionDir ->
                 let metadataFile = FS.combinePath transactionDir restoreMetadataFilename
                 if File.Exists metadataFile then
                     let transaction = metadataFile |> IO.readTextFile |> Json.Deserialize<RestoreTransaction>
                     let projectDirectory = Path.GetFullPath(transaction.ProjectDirectory)
-                    if isWithinDirectory workspaceDirectory projectDirectory then Some projectDirectory
+                    if isWithinDirectory workspaceDirectory projectDirectory then Some (transactionDir, projectDirectory)
                     else None
                 else
                     None)
             |> Set.ofSeq
 
-        projectDirectories |> Set.iter recoverOutputTransactions
-        legacyMarker |> FS.parentDirectory |> Option.iter IO.createDirectory
-        writeRestoreFile (FS.parentDirectory legacyMarker |> Option.get) (IO.getFilename legacyMarker) "complete"
+        transactions
+        |> Set.iter (fun (transactionDir, projectDirectory) ->
+            recoverOutputTransactions projectDirectory
+            IO.deleteAny (restoreIndexPath transactionDir))
+
+        if needsLegacyScan then
+            legacyMarker |> FS.parentDirectory |> Option.iter IO.createDirectory
+            writeRestoreFile (FS.parentDirectory legacyMarker |> Option.get) (IO.getFilename legacyMarker) "complete"
 
 let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
     let projectDirectory = Path.GetFullPath(projectDirectory)

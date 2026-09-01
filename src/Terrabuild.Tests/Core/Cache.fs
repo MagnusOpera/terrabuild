@@ -462,6 +462,42 @@ let ``workspace recovery uses the global index after its legacy migration scan``
         ))
 
 [<Test>]
+let ``workspace recovery scans conservatively when a restore index is unreadable`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let workspace = Path.Combine(root, "workspace")
+            let project = Path.Combine(workspace, "apps", "api") |> Path.GetFullPath
+            Directory.CreateDirectory(project) |> ignore
+
+            // Establish the migration marker so only the unreadable index triggers a scan.
+            Cache.recoverWorkspaceOutputTransactions workspace
+
+            let generated = Path.Combine(project, "generated")
+            let projectHash = (Hash.sha256 project).Substring(0, 12).ToLowerInvariant()
+            let transactionDir = Path.Combine(workspace, "apps", $".terrabuild-restore-{projectHash}-corrupt-index")
+            let backup = Path.Combine(transactionDir, "backup", "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(backup) |> ignore
+            File.WriteAllText(Path.Combine(generated, "value.txt"), "partial")
+            File.WriteAllText(Path.Combine(backup, "value.txt"), "original")
+            {| ProjectDirectory = project; Outputs = [ "generated/**" ] |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(transactionDir, "transaction.json"))
+            File.WriteAllText(Path.Combine(transactionDir, "state"), "applying")
+
+            let indexDir = Path.Combine(root, ".terrabuild", "transactions", "restores")
+            Directory.CreateDirectory(indexDir) |> ignore
+            let indexFile = Path.Combine(indexDir, $"{(Hash.sha256 transactionDir).ToLowerInvariant()}.json")
+            File.WriteAllText(indexFile, "not-json")
+
+            Cache.recoverWorkspaceOutputTransactions workspace
+
+            File.ReadAllText(Path.Combine(generated, "value.txt")) |> should equal "original"
+            Directory.Exists(transactionDir) |> should equal false
+            File.Exists(indexFile) |> should equal false
+        ))
+
+[<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
     withTempDir (fun root ->
         let staleEntry = createLocalCacheEntry root "project-hash/build/stale-target" (summary None)
