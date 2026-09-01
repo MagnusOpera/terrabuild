@@ -629,6 +629,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             if successful then TaskStatus.Success endedAt
             else TaskStatus.Failure (endedAt, $"{batchNode.Id} failed with exit code {lastStatusCode}")
 
+        DiagnosticsTelemetry.recordTask batchNode.Id "finalization-started"
+
         // Snapshot outputs and stage logs while the batch still owns its target locks.
         let preparedEntries =
             cacheEntries
@@ -664,47 +666,53 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     raiseBugError $"No cache entry created for executing batch member {node.Id}")
 
         // Complete cache publication asynchronously after member data is safely staged.
+        let mutable pendingFinalizations = preparedEntries.Count
+        let completeBatchFinalization () =
+            if Threading.Interlocked.Decrement(&pendingFinalizations) = 0 then
+                DiagnosticsTelemetry.recordTask batchNode.Id "finalization-ended"
+                match status with
+                | TaskStatus.Success _ ->
+                    Log.Debug("{NodeId} is successful", batchNode.Id)
+                    if not flattenBatchProgress then
+                        buildProgress.TaskCompleted batchNode.Id false true
+                | _ ->
+                    Log.Debug("{NodeId} has failed", batchNode.Id)
+                    if not flattenBatchProgress then
+                        buildProgress.TaskCompleted batchNode.Id false false
+
         preparedEntries
         |> Map.iter (fun nodeId preparedEntry ->
             hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
                 DiagnosticsTelemetry.recordTask nodeId "upload-started"
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskUploading node.Id
+                try
+                    match node.Action, preparedEntry with
+                    | GraphDef.RunAction.Restore, _ ->
+                        nodeResults[nodeId] <- (TaskRequest.Restore, status)
+                        api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                    | _, Some (cacheEntry, summary) ->
+                        use _cacheEntry = cacheEntry
+                        nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
-                match node.Action, preparedEntry with
-                | GraphDef.RunAction.Restore, _ ->
-                    nodeResults[nodeId] <- (TaskRequest.Restore, status)
-                    api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                | _, Some (cacheEntry, summary) ->
-                    use _cacheEntry = cacheEntry
-                    nodeResults[nodeId] <- (TaskRequest.Exec, status)
+                        let files = cacheEntry.Complete summary
+                        api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
+                    | _, None ->
+                        raiseBugError $"No cache entry created for executing batch member {node.Id}"
 
-                    let files = cacheEntry.Complete summary
-                    api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
-                | _, None ->
-                    raiseBugError $"No cache entry created for executing batch member {node.Id}"
-
-                match status with
-                | TaskStatus.Success completionDate ->
-                    Log.Debug("{NodeId} is successful", nodeId)
-                    buildProgress.TaskCompleted nodeId false true
-                    hub.GetSignal<DateTime>(nodeId).Set completionDate
-                | _ ->
-                    Log.Debug("{NodeId} has failed", nodeId)
-                    buildProgress.TaskCompleted nodeId false false
-                DiagnosticsTelemetry.recordTask nodeId "upload-ended"
+                    match status with
+                    | TaskStatus.Success completionDate ->
+                        Log.Debug("{NodeId} is successful", nodeId)
+                        buildProgress.TaskCompleted nodeId false true
+                        hub.GetSignal<DateTime>(nodeId).Set completionDate
+                    | _ ->
+                        Log.Debug("{NodeId} has failed", nodeId)
+                        buildProgress.TaskCompleted nodeId false false
+                finally
+                    DiagnosticsTelemetry.recordTask nodeId "upload-ended"
+                    completeBatchFinalization ()
             )
         )
-
-        match status with
-        | TaskStatus.Success _ ->
-            Log.Debug("{NodeId} is successful", batchNode.Id)
-            if not flattenBatchProgress then
-                buildProgress.TaskCompleted batchNode.Id false true
-        | _ ->
-            Log.Debug("{NodeId} has failed", batchNode.Id)
-            if not flattenBatchProgress then
-                buildProgress.TaskCompleted batchNode.Id false false
 
     // ----------------------------
     // scheduling

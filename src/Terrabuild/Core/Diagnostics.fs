@@ -415,6 +415,7 @@ let private nodeReports
     (selectedGraph: GraphDef.Graph option)
     (resolvedGraph: GraphDef.Graph option)
     (finalGraph: GraphDef.Graph option)
+    (summary: Runner.Summary option)
     (telemetry: DiagnosticsTelemetry.Snapshot) =
     match fullGraph with
     | None -> []
@@ -440,29 +441,40 @@ let private nodeReports
             let finalNode = finalGraph |> Option.bind (fun graph -> graph.Nodes |> Map.tryFind nodeId)
             let effectiveNode = finalNode |> Option.orElse resolvedNode |> Option.defaultValue sourceNode
             let action = actionMap |> Map.tryFind nodeId
+            let actionName =
+                action
+                |> Option.map _.Action
+                |> Option.orElseWith (fun () ->
+                    finalNode
+                    |> Option.map (fun node -> (string node.Action).ToLowerInvariant()))
             let requirement = requirementMap |> Map.tryFind nodeId
             let finalRoot = finalGraph |> Option.exists (fun graph -> graph.RootNodes |> Set.contains nodeId)
             let scheduled = finalGraph |> Option.map (fun _ -> finalRoot || (finalNode |> Option.exists _.Required))
+            let actualResult = summary |> Option.bind (fun summary -> summary.Nodes |> Map.tryFind nodeId)
             let outcome =
-                match action |> Option.map _.Action, scheduled with
-                | Some "exec", Some true -> Some "execute"
-                | Some "restore", Some true -> Some "restore"
-                | Some "summary", Some true -> Some "summary"
-                | Some _, Some false -> Some "skip"
+                match actualResult |> Option.map _.Request, actionName, scheduled with
+                | Some Runner.TaskRequest.Exec, _, _ -> Some "execute"
+                | Some Runner.TaskRequest.Restore, Some "summary", _ -> Some "summary"
+                | Some Runner.TaskRequest.Restore, _, _ -> Some "restore"
+                | None, Some "exec", Some true -> Some "execute"
+                | None, Some "restore", Some true -> Some "restore"
+                | None, Some "summary", Some true -> Some "summary"
+                | None, Some _, Some false -> Some "skip"
                 | _ -> None
             let outcomeReason =
-                match scheduled with
-                | Some true when finalRoot -> selectionKind |> Option.orElse (Some "scheduled-root")
-                | Some true when memberToBatch |> Map.containsKey nodeId -> Some "batch-member"
-                | Some true -> requirement |> Option.map _.Reason |> Option.orElse (Some "required")
-                | Some false ->
-                    match action |> Option.map _.Action with
+                match actualResult |> Option.map _.Request, actionName, scheduled with
+                | Some Runner.TaskRequest.Exec, Some "restore", _ -> Some "restore-missed"
+                | _, _, Some true when finalRoot -> selectionKind |> Option.orElse (Some "scheduled-root")
+                | _, _, Some true when memberToBatch |> Map.containsKey nodeId -> Some "batch-member"
+                | _, _, Some true -> requirement |> Option.map _.Reason |> Option.orElse (Some "required")
+                | _, _, Some false ->
+                    match actionName with
                     | Some "restore" -> Some "cache-hit-not-required"
                     | Some "summary" -> Some "cached-failure-not-required"
                     | Some "ignore" -> Some "ignored"
                     | Some _ -> requirement |> Option.map _.Reason |> Option.orElse (Some "not-required")
                     | None -> None
-                | None -> None
+                | _, _, None -> None
             let targetFingerprint =
                 resolvedNode
                 |> Option.map (fun node ->
@@ -529,7 +541,7 @@ let private nodeReports
                 Build = (string effectiveNode.Build).ToLowerInvariant()
                 BatchMode = (string effectiveNode.Batch).ToLowerInvariant()
                 BatchId = memberToBatch |> Map.tryFind nodeId
-                Action = action |> Option.map (fun item -> item.Action)
+                Action = actionName
                 ActionReason = action |> Option.map (fun item -> item.Reason)
                 ActionDependencies = action |> Option.map (fun item -> item.Dependencies) |> Option.defaultValue []
                 Cache = action |> Option.bind (fun item -> item.Cache)
@@ -632,6 +644,7 @@ let private executionReports
             |> List.ofSeq
         let kind =
             if graph |> Option.exists (fun graph -> graph.Batches |> Map.containsKey taskId) then "batch"
+            elif events |> List.exists (fun event -> event.Event.StartsWith("execution")) then "execution"
             elif events |> List.exists (fun event -> event.Event.StartsWith("restore")) then "restore"
             elif events |> List.exists (fun event -> event.Event.StartsWith("summary")) then "summary"
             else "execution"
@@ -796,7 +809,7 @@ let build (context: Context) =
             DurationMs = roundMs (endedAt - context.Options.StartedAt).TotalMilliseconds
         }
         Projects = projectFingerprints context.Options context.Configuration
-        Nodes = nodeReports context.Options context.Configuration context.FullGraph context.SelectedGraph context.ResolvedGraph context.FinalGraph telemetry
+        Nodes = nodeReports context.Options context.Configuration context.FullGraph context.SelectedGraph context.ResolvedGraph context.FinalGraph context.Summary telemetry
         Batches = batchReports context.FinalGraph
         Results = results context.Summary
         Executions = executions

@@ -618,6 +618,7 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
 let ``batch output staging completes while named target lock is held`` () =
     withTempWorkspace (fun workspace ->
         withEnvironmentVariable "HOME" workspace (fun () ->
+            DiagnosticsTelemetry.reset true
             let projectDir = Path.Combine(workspace, "project")
             Directory.CreateDirectory(projectDir) |> ignore
             let output = Path.Combine(projectDir, "generated.txt")
@@ -650,7 +651,13 @@ let ``batch output staging completes while named target lock is held`` () =
 
             summary.IsSuccess |> should equal true
             observedLease |> should equal true
-            cache.Completed |> should equal [ GraphDef.buildCacheKey memberNode ]))
+            cache.Completed |> should equal [ GraphDef.buildCacheKey memberNode ]
+            let batchEvents =
+                DiagnosticsTelemetry.snapshot().TaskEvents
+                |> List.filter (fun event -> event.TaskId = batchNode.Id)
+                |> List.map _.Event
+            batchEvents |> should contain "finalization-started"
+            batchEvents |> should contain "finalization-ended"))
 
 [<Test>]
 let ``managed output restore completes while named target lock is held`` () =
@@ -700,6 +707,7 @@ let ``managed output restore completes while named target lock is held`` () =
 [<Test>]
 let ``missing cached outputs fall back to target execution`` () =
     withTempWorkspace (fun workspace ->
+        DiagnosticsTelemetry.reset true
         let marker = Path.Combine(workspace, "rebuilt.txt")
         let node =
             { buildNode "restore-miss" workspace "build" GraphDef.RunAction.Restore [ buildOperation "/usr/bin/touch" marker None ] with
@@ -712,11 +720,30 @@ let ``missing cached outputs fall back to target execution`` () =
               GraphDef.Graph.Phases = Map.empty }
         let cache = FakeCache(workspace)
 
-        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph
+        let options = baseOptions workspace
+        let summary = Runner.run options (cache :> Cache.ICache) None graph graph
+        let report =
+            Diagnostics.build {
+                Diagnostics.Context.Options = options
+                Configuration = None
+                FullGraph = Some graph
+                SelectedGraph = Some graph
+                ResolvedGraph = Some graph
+                FinalGraph = Some graph
+                Cache = Some (cache :> Cache.ICache)
+                Summary = Some summary
+                Status = "success"
+                Completeness = "complete"
+                Error = None
+            }
 
         File.Exists(marker) |> should equal true
         summary.IsSuccess |> should equal true
-        summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec)
+        summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec
+        let nodeReport = report.Nodes |> List.exactlyOne
+        nodeReport.Outcome |> should equal (Some "execute")
+        nodeReport.OutcomeReason |> should equal (Some "restore-missed")
+        (report.Executions |> List.exactlyOne).Kind |> should equal "execution")
 
 [<Test>]
 let ``named target lock waits are reported separately from execution`` () =

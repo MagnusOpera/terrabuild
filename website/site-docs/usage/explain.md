@@ -30,6 +30,11 @@ with its reason. It also includes requirement, dependency, and cache evidence,
 the cache key, evaluated input names, and resolved operation metadata. Values
 that could contain secrets remain hashed.
 
+For a completed debug run, the action remains the scheduler's original decision
+while the outcome reflects what actually happened. For example, if cached outputs
+disappear between planning and restoration, the action remains `restore` but the
+outcome becomes `execute (restore-missed)`.
+
 An explicit root that resolves to `exec` but is absent from the final schedule is
 an internal consistency error. `explain` reports it as a Terrabuild bug instead
 of presenting a contradictory `exec` and `not-required` combination.

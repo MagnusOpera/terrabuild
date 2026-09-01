@@ -743,7 +743,9 @@
         "scheduled",
         "ready",
         "batch-started",
-        "batch-ended"
+        "batch-ended",
+        "finalization-started",
+        "finalization-ended"
       ],
       "operations": [
         {

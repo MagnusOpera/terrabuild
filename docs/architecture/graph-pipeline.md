@@ -145,6 +145,8 @@ The report's action reasons are `forced-cli`, `configured-always`, `dependency-e
 
 Synthetic batch scheduler nodes are represented under `batches` and `executions`, not as logical results. Performance data records batches once, ranks slow phases and tasks, and derives a dependency-aware critical chain.
 
+Planned actions remain available for explaining scheduler decisions, while final outcomes come from runner results. A cache restore that loses its outputs and falls back to execution is therefore reported as `execute` with reason `restore-missed`. Batch execution timing continues through synchronous member output staging and all member cache/API publications; the batch is not reported complete before finalization finishes.
+
 ## Edge cases
 
 - Explicitly selected lazy roots execute when their action is `Exec`; laziness controls dependency realization and rebuild propagation, not explicit selection.
