@@ -137,7 +137,7 @@ Executing nodes acquire their named locks in deterministic order before commands
 
 Every command holds a process lease in the global profile. Cache clearing acquires the profile gate and fails safely when any process lease is still active; stale leases from terminated processes are reclaimed. This prevents clearing directories or lock inodes out from under an executing graph.
 
-Container executions keep an exclusively leased record in the global profile. Cancellation removes the daemon-owned Docker or Podman container before terminating its local CLI process. If Terrabuild is killed abruptly, the next invocation reaps unlocked records before configuration recovery or hashing, preventing an orphan from continuing to mutate mounted workspace or cache files.
+Container executions keep an exclusively leased record in the global profile. Cancellation removes the daemon-owned Docker or Podman container before terminating its local CLI process. If Terrabuild is killed abruptly, the next invocation reaps unlocked records before configuration recovery or hashing, preventing an orphan from continuing to mutate mounted workspace or cache files. A cleanup record is deleted only after the engine confirms removal or reports that the container is already absent; daemon errors and timeouts retain it for a later invocation.
 
 Local cache publication keeps the previous completed entry as a sibling backup until the replacement directory is visible. The next locked lookup restores that backup if publication was interrupted, or removes it if the replacement was already committed.
 

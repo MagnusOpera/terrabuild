@@ -416,6 +416,24 @@ let ``container records are shared across processes and reaped only after lease 
         File.Exists(record) |> should equal false)
 
 [<Test>]
+let ``failed abandoned container cleanup retains its record for a later process`` () =
+    withTempWorkspace (fun workspace ->
+        let profile = Path.Combine(workspace, ".terrabuild")
+        let records = Path.Combine(profile, "containers")
+        Directory.CreateDirectory(records) |> ignore
+        let record = Path.Combine(records, "terrabuild-retry-container.json")
+        {| Engine = "docker"; Name = "terrabuild-retry-container" |}
+        |> Json.Serialize
+        |> IO.writeTextFile record
+
+        let failingRemove _ _ = failwith "daemon unavailable"
+        Exec.reapContainerRecordsAt profile failingRemove |> should equal 0
+        File.Exists(record) |> should equal true
+
+        Exec.reapContainerRecordsAt profile (fun _ _ -> ()) |> should equal 1
+        File.Exists(record) |> should equal false)
+
+[<Test>]
 let ``buildCommands omits docker user mapping on macos`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")

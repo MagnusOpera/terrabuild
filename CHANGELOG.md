@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Retry abandoned container cleanup after daemon errors and timeouts.
 - Keep builds usable through remote cache read and publication failures.
 - Recover interrupted workspace restores conservatively when their transaction index is unreadable.
 - Exclude Git repository metadata from workspace project discovery by default.

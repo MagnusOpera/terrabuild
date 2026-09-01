@@ -108,13 +108,27 @@ type private ContainerRecord = {
 }
 
 type private ContainerRecordLease(stream: FileStream, path: string) =
+    let mutable disposed = false
+    let mutable deleteOnDispose = true
+
+    let dispose () =
+        Microsoft.FSharp.Core.Operators.lock stream (fun () ->
+            if not disposed then
+                disposed <- true
+                stream.Dispose()
+                if deleteOnDispose then
+                    try File.Delete(path)
+                    with
+                    | :? FileNotFoundException
+                    | :? DirectoryNotFoundException -> ())
+
+    member _.Abandon() =
+        Microsoft.FSharp.Core.Operators.lock stream (fun () ->
+            deleteOnDispose <- false
+            dispose ())
+
     interface IDisposable with
-        member _.Dispose() =
-            stream.Dispose()
-            try File.Delete(path)
-            with
-            | :? FileNotFoundException
-            | :? DirectoryNotFoundException -> ()
+        member _.Dispose() = dispose ()
 
 [<RequireQualifiedAccess>]
 type Arguments =
@@ -159,20 +173,34 @@ let internal reapContainerRecordsAt profile remove =
             | exn -> Log.Warning(exn, "Failed to reap abandoned container record {ContainerRecord}", path)
     reaped
 
+let private abandonContainerRecord (lease: IDisposable) =
+    match lease with
+    | :? ContainerRecordLease as containerLease -> containerLease.Abandon()
+    | _ -> lease.Dispose()
+
+let private containerIsAbsent (diagnostic: string) =
+    diagnostic.Contains("no such container", StringComparison.OrdinalIgnoreCase)
+    || diagnostic.Contains("no container with name or ID", StringComparison.OrdinalIgnoreCase)
+
 let private forceRemoveContainer engine name =
     let psi = ProcessStartInfo(FileName = engine, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true)
     psi.ArgumentList.Add("rm")
     psi.ArgumentList.Add("-f")
     psi.ArgumentList.Add(name)
     use proc = new Process(StartInfo = psi)
-    if proc.Start() then
-        let stdout = proc.StandardOutput.ReadToEndAsync()
-        let stderr = proc.StandardError.ReadToEndAsync()
-        if not (proc.WaitForExit(10000)) then
-            proc.Kill(true)
-            proc.WaitForExit()
-        stdout.GetAwaiter().GetResult() |> ignore
-        stderr.GetAwaiter().GetResult() |> ignore
+    if not (proc.Start()) then failwithf "Failed to start %s while removing container '%s'" engine name
+    let stdout = proc.StandardOutput.ReadToEndAsync()
+    let stderr = proc.StandardError.ReadToEndAsync()
+    let exited = proc.WaitForExit(10000)
+    if not exited then
+        proc.Kill(true)
+        proc.WaitForExit()
+    let stdout = stdout.GetAwaiter().GetResult()
+    let stderr = stderr.GetAwaiter().GetResult()
+    if not exited then
+        raise (TimeoutException($"{engine} timed out while removing container '{name}'"))
+    if proc.ExitCode <> 0 && not (containerIsAbsent $"{stdout}\n{stderr}") then
+        failwithf "%s failed to remove container '%s' (exit %d): %s" engine name proc.ExitCode stderr
 
 let reapContainers () =
     let profile = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
@@ -263,11 +291,20 @@ let private createProcess workingDir command arguments envs redirect =
 let cleanup () =
     // Stop daemon-owned containers before killing their local CLI processes.
     for KeyValue(processId, (engine, name, lease)) in containers do
-        try forceRemoveContainer engine name
-        with _ -> ()
+        let removed =
+            try
+                forceRemoveContainer engine name
+                true
+            with exn ->
+                Log.Warning(exn, "Failed to remove container {ContainerName} with {ContainerEngine}; retaining its cleanup record", name, engine)
+                false
         match containers.TryRemove(processId) with
-        | true, (_, _, trackedLease) -> trackedLease.Dispose()
-        | _ -> lease.Dispose()
+        | true, (_, _, trackedLease) ->
+            if removed then trackedLease.Dispose()
+            else abandonContainerRecord trackedLease
+        | _ ->
+            if removed then lease.Dispose()
+            else abandonContainerRecord lease
 
     // As a fallback, ensure tracked children are killed
     for proc in children do
