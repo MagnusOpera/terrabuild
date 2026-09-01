@@ -543,13 +543,17 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 reraise()
 
         let outputState =
-            match node.Artifacts with
-            | GraphDef.ArtifactMode.Workspace
-            | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
-                let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-                let newFiles = afterFiles - IO.Snapshot.Empty
-                cacheEntry.StoreOutputs projectDirectory newFiles
-            | _ -> Cache.OutputState.NotManaged
+            try
+                match node.Artifacts with
+                | GraphDef.ArtifactMode.Workspace
+                | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
+                    let afterFiles = IO.createSnapshot node.Outputs projectDirectory
+                    let newFiles = afterFiles - IO.Snapshot.Empty
+                    cacheEntry.StoreOutputs projectDirectory newFiles
+                | _ -> Cache.OutputState.NotManaged
+            with _ ->
+                cacheEntry.Dispose()
+                reraise()
 
         let endedAt = DateTime.UtcNow
         DiagnosticsTelemetry.recordTask node.Id "execution-ended"
@@ -643,37 +647,43 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         // Snapshot outputs and stage logs while the batch still owns its target locks.
         let preparedEntries =
-            cacheEntries
-            |> Map.map (fun nodeId cacheEntry ->
-                let node = graph.Nodes[nodeId]
-                match node.Action, cacheEntry with
-                | GraphDef.RunAction.Restore, _ -> None
-                | _, Some cacheEntry ->
-                    let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
-                    cacheEntry.StoreLogs logs
+            try
+                cacheEntries
+                |> Map.map (fun nodeId cacheEntry ->
+                    let node = graph.Nodes[nodeId]
+                    match node.Action, cacheEntry with
+                    | GraphDef.RunAction.Restore, _ -> None
+                    | _, Some cacheEntry ->
+                        let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
+                        cacheEntry.StoreLogs logs
 
-                    let outputState =
-                        match node.Artifacts with
-                        | GraphDef.ArtifactMode.Workspace
-                        | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
-                            let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
-                            cacheEntry.StoreOutputs node.ProjectDir newFiles
-                        | _ -> Cache.OutputState.NotManaged
+                        let outputState =
+                            match node.Artifacts with
+                            | GraphDef.ArtifactMode.Workspace
+                            | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
+                                let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                                cacheEntry.StoreOutputs node.ProjectDir newFiles
+                            | _ -> Cache.OutputState.NotManaged
 
-                    let summary =
-                        { Cache.TargetSummary.Project = node.ProjectDir
-                          Cache.TargetSummary.Target = node.Target
-                          Cache.TargetSummary.Operations = [ stepLogs ]
-                          Cache.TargetSummary.Outputs = outputState
-                          Cache.TargetSummary.IsSuccessful = successful
-                          Cache.TargetSummary.StartedAt = startedAt
-                          Cache.TargetSummary.EndedAt = endedAt
-                          Cache.TargetSummary.Duration = duration
-                          Cache.TargetSummary.Cache = node.Artifacts }
+                        let summary =
+                            { Cache.TargetSummary.Project = node.ProjectDir
+                              Cache.TargetSummary.Target = node.Target
+                              Cache.TargetSummary.Operations = [ stepLogs ]
+                              Cache.TargetSummary.Outputs = outputState
+                              Cache.TargetSummary.IsSuccessful = successful
+                              Cache.TargetSummary.StartedAt = startedAt
+                              Cache.TargetSummary.EndedAt = endedAt
+                              Cache.TargetSummary.Duration = duration
+                              Cache.TargetSummary.Cache = node.Artifacts }
 
-                    Some (cacheEntry, summary)
-                | _, None ->
-                    raiseBugError $"No cache entry created for executing batch member {node.Id}")
+                        Some (cacheEntry, summary)
+                    | _, None ->
+                        raiseBugError $"No cache entry created for executing batch member {node.Id}")
+            with _ ->
+                cacheEntries
+                |> Map.iter (fun _ entry -> entry |> Option.iter (fun entry -> entry.Dispose()))
+                DiagnosticsTelemetry.recordTask batchNode.Id "finalization-failed"
+                reraise()
 
         // Complete cache publication asynchronously after member data is safely staged.
         let mutable pendingFinalizations = preparedEntries.Count

@@ -201,7 +201,7 @@ let private buildOperation command arguments image =
       GraphDef.ContaineredShellOperation.ErrorLevel = 0
       GraphDef.ContaineredShellOperation.Stdout = None }
 
-type private FakeEntry(root: string, id: string, completed: ResizeArray<string>, onStoreOutputs: unit -> unit) =
+type private FakeEntry(root: string, id: string, completed: ResizeArray<string>, disposed: ResizeArray<string>, onStoreOutputs: unit -> unit) =
     let entryRoot = Path.Combine(root, id.Replace("/", "_"))
     let logsDir = Path.Combine(entryRoot, "logs")
     let outputsDir = Path.Combine(entryRoot, "outputs")
@@ -212,7 +212,7 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
         Directory.CreateDirectory(outputsDir) |> ignore
 
     interface Cache.IEntry with
-        member _.Dispose() = ()
+        member _.Dispose() = disposed.Add(id)
         member _.NextLogFile() =
             logIndex <- logIndex + 1
             Path.Combine(logsDir, $"step{logIndex}.log")
@@ -232,6 +232,7 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
 
 type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: unit -> unit) =
     let completed = ResizeArray<string>()
+    let disposed = ResizeArray<string>()
     let entries = Dictionary<string, FakeEntry>()
     let opened = ResizeArray<string>()
     let summaries = Dictionary<string, Cache.TargetSummary>()
@@ -240,6 +241,7 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: 
     let onRestore = defaultArg onRestore ignore
 
     member _.Completed = completed |> Seq.toList
+    member _.Disposed = disposed |> Seq.toList
     member _.Opened = opened |> Seq.toList
     member _.SetSummary(id, summary) = summaries[id] <- summary
     member _.SetRestoreOutputs(id, directory) = restoreOutputs[id] <- directory
@@ -278,7 +280,7 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: 
             match entries.TryGetValue(id) with
             | true, entry -> entry :> Cache.IEntry
             | _ ->
-                let entry = new FakeEntry(root, id, completed, onStoreOutputs)
+                let entry = new FakeEntry(root, id, completed, disposed, onStoreOutputs)
                 entries[id] <- entry
                 entry :> Cache.IEntry
 
@@ -873,6 +875,51 @@ let ``run finalizes Insights as failed when artifact publication throws`` () =
 
         api.Lifecycle |> should equal [ "start"; "upload-graph"; "complete" ]
         api.Completions |> should equal [ false ])
+
+[<Test>]
+let ``run disposes cache staging when output preparation throws`` () =
+    withTempWorkspace (fun workspace ->
+        let output = Path.Combine(workspace, "generated.txt")
+        let node =
+            { buildNode "failed-staging" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/touch" output None ] with
+                Outputs = Set [ "generated.txt" ] }
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+              GraphDef.Graph.RootNodes = Set [ node.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace, onStoreOutputs = fun () -> failwith "staging failed")
+
+        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+            Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph |> ignore))
+        |> ignore
+
+        cache.Disposed |> should contain (GraphDef.buildCacheKey node))
+
+[<Test>]
+let ``run disposes every batch entry when member preparation throws`` () =
+    withTempWorkspace (fun workspace ->
+        let output = Path.Combine(workspace, "generated.txt")
+        let first =
+            { buildNode "first-member" workspace "build" GraphDef.RunAction.Exec [] with
+                Outputs = Set [ "generated.txt" ] }
+        let second =
+            { buildNode "second-member" workspace "build" GraphDef.RunAction.Exec [] with
+                Outputs = Set [ "generated.txt" ] }
+        let batch = buildNode "batch-build" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/touch" output None ]
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ first.Id, first; second.Id, second; batch.Id, batch ]
+              GraphDef.Graph.RootNodes = Set [ first.Id; second.Id ]
+              GraphDef.Graph.Batches = Map [ batch.Id, Set [ first.Id; second.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace, onStoreOutputs = fun () -> failwith "staging failed")
+
+        Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
+            Runner.run (baseOptions workspace) (cache :> Cache.ICache) None graph graph |> ignore))
+        |> ignore
+
+        cache.Disposed |> Set.ofList
+        |> should equal (Set [ GraphDef.buildCacheKey first; GraphDef.buildCacheKey second; GraphDef.buildCacheKey batch ]))
 
 [<Test>]
 let ``run normalizes equivalent repository identities in uploaded graph hash`` () =

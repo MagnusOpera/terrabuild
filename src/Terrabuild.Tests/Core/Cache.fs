@@ -414,6 +414,42 @@ let ``prune cache skips entries without touching home or tmp`` () =
         File.Exists(Path.Combine(tmpRoot, "keep.txt")) |> should equal true)
 
 [<Test>]
+let ``prune cache removes stale abandoned staging directories`` () =
+    withTempDir (fun root ->
+        let cacheRoot = Path.Combine(root, ".terrabuild", "cache")
+        let staging = Path.Combine(cacheRoot, "project-hash", "build", ".target-hash.tmp-abandoned")
+        Directory.CreateDirectory(staging) |> ignore
+        File.WriteAllText(Path.Combine(staging, ".lease"), "")
+        Directory.SetLastWriteTimeUtc(staging, DateTime.UtcNow.AddDays(-10.0))
+
+        let result = Cache.pruneCacheEntries cacheRoot (DateTime.UtcNow.AddDays(-7.0))
+
+        result.Scanned |> should equal 1
+        result.Pruned |> should equal 1
+        Directory.Exists(staging) |> should equal false)
+
+[<Test>]
+let ``prune cache preserves staging directories with active leases`` () =
+    withTempDir (fun root ->
+        let cacheRoot = Path.Combine(root, ".terrabuild", "cache")
+        let staging = Path.Combine(cacheRoot, "project-hash", "build", ".target-hash.tmp-active")
+        Directory.CreateDirectory(staging) |> ignore
+        let leaseFile = Path.Combine(staging, ".lease")
+
+        do
+            use _lease = new FileStream(leaseFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+            Directory.SetLastWriteTimeUtc(staging, DateTime.UtcNow.AddDays(-10.0))
+
+            let result = Cache.pruneCacheEntries cacheRoot (DateTime.UtcNow.AddDays(-7.0))
+
+            result.Pruned |> should equal 0
+            result.Skipped |> should equal 1
+            Directory.Exists(staging) |> should equal true
+
+        Cache.pruneCacheEntries cacheRoot (DateTime.UtcNow.AddDays(-7.0)) |> ignore
+        Directory.Exists(staging) |> should equal false)
+
+[<Test>]
 let ``try get summary only refreshes origin timestamp for local cache entries`` () =
     withTempDir (fun root ->
         withHomeDir root (fun () ->

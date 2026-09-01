@@ -88,6 +88,7 @@ type ICache =
 let private summaryFilename = "summary.json"
 
 let private originFilename = "origin"
+let private stagingLeaseFilename = ".lease"
 
 let createTerrabuildProfile() =
     let tbDir = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
@@ -150,6 +151,15 @@ let private createStagingDirectory entryDir =
     let stagingDir = FS.combinePath parent $".{name}.tmp-{Guid.NewGuid():N}"
     IO.createDirectory stagingDir
     stagingDir
+
+let private acquireStagingLease stagingDir =
+    let leaseFile = FS.combinePath stagingDir stagingLeaseFilename
+    new FileStream(leaseFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+
+let private isStagingDirectory entryDir =
+    let name = IO.getFilename entryDir
+    name.StartsWith(".", StringComparison.Ordinal)
+    && name.Contains(".tmp-", StringComparison.Ordinal)
 
 let private replaceDirectory entryDir stagingDir =
     let backupDir = $"{entryDir}.old-{Guid.NewGuid():N}"
@@ -348,7 +358,29 @@ let pruneCacheEntries cacheDir cutoff =
                     Scanned = summary.Scanned + 1 }
 
             if File.Exists originFile |> not then
-                { summary with Skipped = summary.Skipped + 1 }
+                let staleStaging =
+                    isStagingDirectory entryDir
+                    && Directory.GetLastWriteTimeUtc(entryDir) <= cutoff
+
+                if not staleStaging then
+                    { summary with Skipped = summary.Skipped + 1 }
+                else
+                    try
+                        let leaseAvailable =
+                            try
+                                use _lease = acquireStagingLease entryDir
+                                true
+                            with :? IOException ->
+                                false
+
+                        if leaseAvailable && Directory.Exists entryDir then
+                            Directory.Delete(entryDir, true)
+                            { summary with Pruned = summary.Pruned + 1 }
+                        else
+                            { summary with Skipped = summary.Skipped + 1 }
+                    with exn ->
+                        Log.Warning(exn, "Failed to prune cache staging directory {EntryDir}", entryDir)
+                        { summary with Skipped = summary.Skipped + 1 }
             else
                 let lastAccessedAt = File.GetLastWriteTimeUtc(originFile)
                 if lastAccessedAt > cutoff then
@@ -380,10 +412,22 @@ let pruneCache days =
 
 type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.IStorage, masterKey: byte[] option) =
     let stagingDir = createStagingDirectory entryDir
+    let stagingLease =
+        try acquireStagingLease stagingDir
+        with _ ->
+            IO.deleteAny stagingDir
+            reraise()
     let logsDir = FS.combinePath stagingDir "logs"
     let outputsDir = FS.combinePath stagingDir "outputs"
     let mutable logNum = 1
     let mutable completed = false
+    let mutable leaseReleased = false
+
+    let releaseStagingLease () =
+        if not leaseReleased then
+            leaseReleased <- true
+            stagingLease.Dispose()
+            IO.deleteAny (FS.combinePath stagingDir stagingLeaseFilename)
 
     let hasMaterializedOutputs () =
         Directory.Exists outputsDir &&
@@ -471,10 +515,12 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                     []
 
             stagingDir |> setOrigin Origin.Local
+            releaseStagingLease ()
             publishDirectory entryDir stagingDir
             files
 
         member _.Dispose() =
+            releaseStagingLease ()
             if Directory.Exists stagingDir then IO.deleteAny stagingDir
 
 
@@ -535,6 +581,17 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
     let downloadEntry id includeOutputs entryDir =
         let stagingDir = createStagingDirectory entryDir
+        let stagingLease =
+            try acquireStagingLease stagingDir
+            with _ ->
+                IO.deleteAny stagingDir
+                reraise()
+        let mutable leaseReleased = false
+        let releaseStagingLease () =
+            if not leaseReleased then
+                leaseReleased <- true
+                stagingLease.Dispose()
+                IO.deleteAny (FS.combinePath stagingDir stagingLeaseFilename)
         let stagingLogs = FS.combinePath stagingDir "logs"
         let stagingOutputs = FS.combinePath stagingDir "outputs"
         try
@@ -551,11 +608,13 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
                     if outputsReady then
                         stagingDir |> setOrigin Origin.Remote
+                        releaseStagingLease ()
                         replaceDirectory entryDir stagingDir
                         tryLoadSummary entryDir |> Option.map (fun loaded -> Origin.Remote, loaded)
                     else
                         None
         finally
+            releaseStagingLease ()
             if Directory.Exists stagingDir then IO.deleteAny stagingDir
 
     let getSummaryOnly useRemote id =

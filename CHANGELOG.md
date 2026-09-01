@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Clean failed and process-abandoned cache staging directories safely.
 - Report tasks prevented by failed dependencies as blocked instead of failed executions.
 - Report cached failure summaries as summaries instead of restores.
 - Keep expanded forwarded environment secrets out of container arguments and cached summaries.
