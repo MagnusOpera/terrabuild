@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Exclude Git repository metadata from workspace project discovery by default.
 - Validate smoke-test reports against the current diagnostic schema.
 - Recover interrupted restores through an indexed startup path instead of repeated workspace scans.
 - Reap daemon-owned containers after cancellation or abrupt Terrabuild termination.

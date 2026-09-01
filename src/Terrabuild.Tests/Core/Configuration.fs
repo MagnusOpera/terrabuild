@@ -308,6 +308,19 @@ let ``Parallel project scan preserves ignore workspace and project boundaries`` 
         found |> Set.ofSeq |> should equal (Set [ "apps/one"; "apps/two"; "parent" ]))
 
 [<Test>]
+let ``Default workspace scan excludes repository metadata`` () =
+    withTempWorkspace (fun root ->
+        writeFile root "apps/one/PROJECT" ""
+        writeFile root ".git/objects/PROJECT" ""
+
+        let found = System.Collections.Concurrent.ConcurrentBag<string>()
+        let scanFolder = Configuration.scanFolders root Configuration.default_ignores
+        Configuration.scanProjectDirectories 2 root scanFolder (fun dir ->
+            found.Add(FS.relativePath root dir))
+
+        found |> Set.ofSeq |> should equal (Set [ "apps/one" ]))
+
+[<Test>]
 let ``Extension script path must stay inside workspace``() =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-tests-{Guid.NewGuid():N}")
     let workspace = Path.Combine(root, "workspace")

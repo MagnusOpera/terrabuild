@@ -63,6 +63,7 @@ The following arguments are supported:
   Default value includes common build and dependency directories:
   ```
   [
+      ".git"
       "node_modules"
       ".pnpm-store"
       ".terrabuild"
@@ -72,7 +73,7 @@ The following arguments are supported:
   ]
   ```
   
-  These defaults ensure that common build artifacts and dependency directories are automatically excluded from project discovery.
+  These defaults ensure that repository metadata, common build artifacts, and dependency directories are automatically excluded from project discovery.
 * `deny` - (Optional) List of glob paths denied to FScript filesystem external functions.
 
   Example:

@@ -165,6 +165,7 @@ let (|Bool|Number|String|) (value: string) =
         | _ -> String value
 
 let default_ignores = Set [
+    ".git"
     "node_modules"
     ".pnpm-store"
     ".terrabuild"
