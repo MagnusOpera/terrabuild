@@ -120,8 +120,12 @@ let private getOrigin entryDir =
 
 let private touchOrigin entryDir =
     let originFile = FS.combinePath entryDir originFilename
-    if File.Exists originFile then
-        File.SetLastWriteTimeUtc(originFile, DateTime.UtcNow)
+    try
+        if File.Exists originFile then
+            File.SetLastWriteTimeUtc(originFile, DateTime.UtcNow)
+    with
+    | :? FileNotFoundException
+    | :? DirectoryNotFoundException -> ()
 
 let private withEntryLock entryDir action =
     let parent =
@@ -173,8 +177,30 @@ let private replaceDirectory entryDir stagingDir =
         if hadPrevious && Directory.Exists backupDir then Directory.Move(backupDir, entryDir)
         reraise()
 
+let private recoverReplacedDirectory entryDir =
+    let parent =
+        entryDir
+        |> FS.parentDirectory
+        |> Option.defaultWith (fun () -> raiseBugError $"Cache entry '{entryDir}' has no parent directory")
+
+    if Directory.Exists parent then
+        let backups =
+            Directory.EnumerateDirectories(parent, $"{IO.getFilename entryDir}.old-*")
+            |> Seq.sortByDescending Directory.GetLastWriteTimeUtc
+            |> List.ofSeq
+
+        match Directory.Exists entryDir, backups with
+        | false, newest :: older ->
+            Directory.Move(newest, entryDir)
+            older |> List.iter IO.deleteAny
+        | true, backups ->
+            backups |> List.iter IO.deleteAny
+        | false, [] -> ()
+
 let private publishDirectory entryDir stagingDir =
-    withEntryLock entryDir (fun () -> replaceDirectory entryDir stagingDir)
+    withEntryLock entryDir (fun () ->
+        recoverReplacedDirectory entryDir
+        replaceDirectory entryDir stagingDir)
 
 type private RestoreTransaction = {
     ProjectDirectory: string
@@ -627,6 +653,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         | false, _ ->
             let originSummary =
                 withEntryLock entryDir (fun () ->
+                    recoverReplacedDirectory entryDir
                     match tryLoadCompleteEntry entryDir with
                     | Some originSummary ->
                         touchOrigin entryDir
@@ -656,6 +683,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             let entryDir = FS.combinePath (createCache()) id
             let originSummary =
                 withEntryLock entryDir (fun () ->
+                    recoverReplacedDirectory entryDir
                     let available =
                         match tryLoadCompleteEntry entryDir with
                         | Some (origin, summary) when summary.Outputs <> OutputState.Stored || Directory.Exists(FS.combinePath entryDir "outputs") ->

@@ -204,6 +204,38 @@ let ``new entries publish atomically over completed entries`` () =
         published.RootElement.GetProperty("target").GetString() |> should equal "replacement")
 
 [<Test>]
+let ``cache lookup recovers an entry interrupted after its previous version was moved`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let id = "project-hash/build/interrupted-publication"
+            let entryDir = createLocalCacheEntry root id (summary None)
+            let backupDir = $"{entryDir}.old-interrupted"
+            Directory.Move(entryDir, backupDir)
+
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            cache.TryGetSummaryOnly false id |> should not' (equal None)
+
+            Directory.Exists(entryDir) |> should equal true
+            Directory.Exists(backupDir) |> should equal false
+        ))
+
+[<Test>]
+let ``cache lookup removes a stale publication backup after the new entry is visible`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let id = "project-hash/build/completed-publication"
+            let entryDir = createLocalCacheEntry root id (summary None)
+            let backupDir = $"{entryDir}.old-interrupted"
+            Directory.CreateDirectory(backupDir) |> ignore
+
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            cache.TryGetSummaryOnly false id |> should not' (equal None)
+
+            Directory.Exists(entryDir) |> should equal true
+            Directory.Exists(backupDir) |> should equal false
+        ))
+
+[<Test>]
 let ``disposing an incomplete entry removes its staging directory`` () =
     withTempDir (fun root ->
         let entryDir = Path.Combine(root, "entry")

@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Recover the previous local cache entry after an interrupted publication.
 - Preserve completed execution results when publication or report rendering fails.
 - Version diagnostic reports when their result vocabulary changes.
 - Fail graph preparation when target actions cannot be completely evaluated.
