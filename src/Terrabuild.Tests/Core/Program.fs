@@ -105,6 +105,25 @@ let ``preparation failures finalize the latest diagnostic snapshot`` () =
     |> should equal (Some ("failure", "partial", Some "analysis failed"))
 
 [<Test>]
+let ``atomic text replacement leaves a complete destination and no staging file`` () =
+    withTempDir (fun root ->
+        let destination = Path.Combine(root, "terrabuild-debug.json")
+        File.WriteAllText(destination, "old")
+
+        IO.writeTextFileAtomic destination "new diagnostic"
+
+        File.ReadAllText(destination) |> should equal "new diagnostic"
+        Directory.EnumerateFiles(root, ".terrabuild-debug.json.*.tmp")
+        |> Seq.isEmpty
+        |> should equal true)
+
+[<Test>]
+let ``diagnostic write failures do not escape`` () =
+    let invalidContext = Unchecked.defaultof<Diagnostics.Context>
+
+    Assert.DoesNotThrow(Action(fun () -> Diagnostics.tryWrite "/missing-parent/terrabuild-debug.json" invalidContext))
+
+[<Test>]
 let ``explanation sensitivity summary reports no selected violations`` () =
     Diagnostics.renderEnvironmentSensitivitySummary []
     |> should equal "Environment sensitivity: no selected targets need attention."

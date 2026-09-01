@@ -16,6 +16,18 @@ let readTextFile filename =
 let writeTextFile filename (content: string) =
     File.WriteAllText(filename, content)
 
+let writeTextFileAtomic filename (content: string) =
+    let directory =
+        match Path.GetDirectoryName(Path.GetFullPath(filename)) with
+        | NonNull value -> value
+        | Null -> Errors.raiseBugError $"Unable to resolve destination directory for '{filename}'"
+    let temporary = Path.Combine(directory, $".{Path.GetFileName(filename)}.{Guid.NewGuid():N}.tmp")
+    try
+        File.WriteAllText(temporary, content)
+        File.Move(temporary, filename, true)
+    finally
+        if File.Exists(temporary) then File.Delete(temporary)
+
 let appendTextFile filename (content: string) =
     File.AppendAllText(filename, content)
 
@@ -110,4 +122,3 @@ let createSnapshot outputs projectDirectory =
         |> Seq.map (fun output -> output, System.IO.File.GetLastWriteTimeUtc output)
         |> Map
     { TimestampedFiles = files }
-

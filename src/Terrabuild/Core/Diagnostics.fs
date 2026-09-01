@@ -7,6 +7,7 @@ open System.Text
 open System.Text.Json.Serialization
 open Collections
 open Errors
+open Serilog
 
 type FileFingerprint = {
     Path: string
@@ -845,4 +846,9 @@ let build (context: Context) =
 let write filename context =
     build context
     |> Json.Serialize
-    |> IO.writeTextFile filename
+    |> IO.writeTextFileAtomic filename
+
+let tryWrite filename context =
+    try write filename context
+    with exn ->
+        Log.Error(exn, "Failed to write diagnostic report {DiagnosticFile}; preserving the build outcome", filename)

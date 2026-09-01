@@ -367,7 +367,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let writeDiagnostic fullGraph selectedGraph resolvedGraph finalGraph summary status completeness error =
             if options.Debug then
-                Diagnostics.write (logFile "json") {
+                Diagnostics.tryWrite (logFile "json") {
                     Diagnostics.Context.Options = options
                     Configuration = Some config
                     FullGraph = fullGraph
@@ -480,7 +480,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
 
         let writeFinal summary status completeness error =
             if options.Debug then
-                Diagnostics.write (logFile "json") {
+                Diagnostics.tryWrite (logFile "json") {
                     Diagnostics.Context.Options = options
                     Configuration = Some config
                     FullGraph = Some fullGraph
