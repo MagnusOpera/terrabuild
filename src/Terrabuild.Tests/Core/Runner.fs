@@ -395,6 +395,27 @@ let ``buildCommands preserves spaced paths and uses unique readable container na
         containerName first = containerName second |> should equal false)
 
 [<Test>]
+let ``container records are shared across processes and reaped only after lease release`` () =
+    withTempWorkspace (fun workspace ->
+        let profile = Path.Combine(workspace, ".terrabuild")
+        let removed = ResizeArray<string * string>()
+        let remove engine name = removed.Add(engine, name)
+
+        let lease = Exec.registerContainerRecordAt profile "docker" "terrabuild-test-container"
+        Exec.reapContainerRecordsAt profile remove |> should equal 0
+        removed.Count |> should equal 0
+
+        lease.Dispose()
+        let record = Path.Combine(profile, "containers", "terrabuild-test-container.json")
+        {| Engine = "docker"; Name = "terrabuild-test-container" |}
+        |> Json.Serialize
+        |> IO.writeTextFile record
+
+        Exec.reapContainerRecordsAt profile remove |> should equal 1
+        removed |> Seq.toList |> should equal [ "docker", "terrabuild-test-container" ]
+        File.Exists(record) |> should equal false)
+
+[<Test>]
 let ``buildCommands omits docker user mapping on macos`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "dotnet" "restore App.csproj" (Some "mcr.microsoft.com/dotnet/sdk:8.0")

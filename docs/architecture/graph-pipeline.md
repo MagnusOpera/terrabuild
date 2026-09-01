@@ -137,6 +137,8 @@ Executing nodes acquire their named locks in deterministic order before commands
 
 Every command holds a process lease in the global profile. Cache clearing acquires the profile gate and fails safely when any process lease is still active; stale leases from terminated processes are reclaimed. This prevents clearing directories or lock inodes out from under an executing graph.
 
+Container executions keep an exclusively leased record in the global profile. Cancellation removes the daemon-owned Docker or Podman container before terminating its local CLI process. If Terrabuild is killed abruptly, the next invocation reaps unlocked records before configuration recovery or hashing, preventing an orphan from continuing to mutate mounted workspace or cache files.
+
 Local cache publication keeps the previous completed entry as a sibling backup until the replacement directory is visible. The next locked lookup restores that backup if publication was interrupted, or removes it if the replacement was already committed.
 
 Remote cache publication writes logs and outputs to an immutable generation, verifies their digests when downloading, and publishes the generation manifest last. Readers therefore observe either the previous complete generation or the new complete generation, never a mixture. Missing, corrupt, or unreadable remote blobs are cache misses and cause execution instead of aborting the build. Legacy fixed-path blobs remain readable when no manifest exists.

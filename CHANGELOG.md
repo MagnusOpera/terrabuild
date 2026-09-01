@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Reap daemon-owned containers after cancellation or abrupt Terrabuild termination.
 - Refuse cache clearing while another Terrabuild process is using the profile.
 - Publish remote cache artifacts as verified atomic generations.
 - Recover the previous local cache entry after an interrupted publication.

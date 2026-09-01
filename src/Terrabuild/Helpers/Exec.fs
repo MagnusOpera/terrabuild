@@ -99,11 +99,95 @@ module Native =
 // Track all children
 // ----------------------
 let private children = ConcurrentBag<Process>()
+let private containers = ConcurrentDictionary<int, string * string * IDisposable>()
+
+[<RequireQualifiedAccess>]
+type private ContainerRecord = {
+    Engine: string
+    Name: string
+}
+
+type private ContainerRecordLease(stream: FileStream, path: string) =
+    interface IDisposable with
+        member _.Dispose() =
+            stream.Dispose()
+            try File.Delete(path)
+            with
+            | :? FileNotFoundException
+            | :? DirectoryNotFoundException -> ()
 
 [<RequireQualifiedAccess>]
 type Arguments =
     | Raw of string
     | List of string list
+
+let private containerRecordsDirectory profile = FS.combinePath profile "containers"
+
+let internal registerContainerRecordAt profile engine name =
+    let directory = containerRecordsDirectory profile
+    IO.createDirectory directory
+    let path = FS.combinePath directory $"{name}.json"
+    let stream = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None)
+    try
+        use writer = new StreamWriter(stream, Encoding.UTF8, 1024, true)
+        { ContainerRecord.Engine = engine; ContainerRecord.Name = name }
+        |> Json.Serialize
+        |> writer.Write
+        writer.Flush()
+        stream.Flush(true)
+        new ContainerRecordLease(stream, path) :> IDisposable
+    with _ ->
+        stream.Dispose()
+        IO.deleteAny path
+        reraise()
+
+let internal reapContainerRecordsAt profile remove =
+    let directory = containerRecordsDirectory profile
+    let mutable reaped = 0
+    if Directory.Exists directory then
+        for path in Directory.EnumerateFiles(directory, "*.json") do
+            try
+                use stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                use reader = new StreamReader(stream, Encoding.UTF8, true, 1024, true)
+                let record = reader.ReadToEnd() |> Json.Deserialize<ContainerRecord>
+                remove record.Engine record.Name
+                stream.Dispose()
+                File.Delete(path)
+                reaped <- reaped + 1
+            with
+            | :? IOException -> ()
+            | exn -> Log.Warning(exn, "Failed to reap abandoned container record {ContainerRecord}", path)
+    reaped
+
+let private forceRemoveContainer engine name =
+    let psi = ProcessStartInfo(FileName = engine, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true)
+    psi.ArgumentList.Add("rm")
+    psi.ArgumentList.Add("-f")
+    psi.ArgumentList.Add(name)
+    use proc = new Process(StartInfo = psi)
+    if proc.Start() then
+        let stdout = proc.StandardOutput.ReadToEndAsync()
+        let stderr = proc.StandardError.ReadToEndAsync()
+        if not (proc.WaitForExit(10000)) then
+            proc.Kill(true)
+            proc.WaitForExit()
+        stdout.GetAwaiter().GetResult() |> ignore
+        stderr.GetAwaiter().GetResult() |> ignore
+
+let reapContainers () =
+    let profile = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
+    reapContainerRecordsAt profile forceRemoveContainer
+    |> ignore
+
+let private tryContainerIdentity command arguments =
+    match command, arguments with
+    | ("docker" | "podman"), Arguments.List args ->
+        args
+        |> List.windowed 2
+        |> List.tryPick (function
+            | [ "--name"; name ] -> Some (command, name)
+            | _ -> None)
+    | _ -> None
 
 let renderArguments = function
     | Arguments.Raw args -> args
@@ -131,12 +215,37 @@ let private createProcess workingDir command arguments envs redirect =
 
     envs |> Map.iter (fun key value -> psi.EnvironmentVariables[key] <- value)
 
+    let containerRecord =
+        tryContainerIdentity command arguments
+        |> Option.map (fun (engine, name) ->
+            let profile = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
+            engine, name, registerContainerRecordAt profile engine name)
+
     let proc = new Process(StartInfo = psi)
 
-    if not (proc.Start()) then
-        failwithf "Failed to start process: %s" command
+    try
+        if not (proc.Start()) then
+            failwithf "Failed to start process: %s" command
+    with _ ->
+        containerRecord |> Option.iter (fun (_, _, lease) -> lease.Dispose())
+        reraise()
 
     children.Add proc
+
+    containerRecord
+    |> Option.iter (fun (engine, name, lease) ->
+        containers[proc.Id] <- (engine, name, lease)
+        let release () =
+            try
+                if proc.ExitCode <> 0 then forceRemoveContainer engine name
+                match containers.TryRemove(proc.Id) with
+                | true, (_, _, lease) -> lease.Dispose()
+                | _ -> ()
+            with exn ->
+                Log.Warning(exn, "Failed to remove exited container {ContainerName} with {ContainerEngine}", name, engine)
+        proc.EnableRaisingEvents <- true
+        proc.Exited.Add(fun _ -> release ())
+        if proc.HasExited then release ())
 
     if isWindowsHost () then
         Native.Windows.assign proc
@@ -152,6 +261,14 @@ let private createProcess workingDir command arguments envs redirect =
 // Cleanup hooks
 // ----------------------
 let cleanup () =
+    // Stop daemon-owned containers before killing their local CLI processes.
+    for KeyValue(processId, (engine, name, lease)) in containers do
+        try forceRemoveContainer engine name
+        with _ -> ()
+        match containers.TryRemove(processId) with
+        | true, (_, _, trackedLease) -> trackedLease.Dispose()
+        | _ -> lease.Dispose()
+
     // As a fallback, ensure tracked children are killed
     for proc in children do
         try

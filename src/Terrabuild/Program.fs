@@ -283,6 +283,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         if result.Contains(TerrabuildArgs.Clear) then Cache.acquireProfileClearLease()
         else Cache.acquireProfileUsage()
     Cache.createDirectories()
+    Exec.reapContainers()
 
     let debug = result.Contains(TerrabuildArgs.Debug)
     let log = result.Contains(TerrabuildArgs.Log)
