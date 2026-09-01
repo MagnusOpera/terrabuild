@@ -425,6 +425,43 @@ let ``workspace recovery repairs nested projects before graph preparation`` () =
         ))
 
 [<Test>]
+let ``workspace recovery uses the global index after its legacy migration scan`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let workspace = Path.Combine(root, "workspace")
+            let project = Path.Combine(workspace, "apps", "api") |> Path.GetFullPath
+            Directory.CreateDirectory(project) |> ignore
+
+            // Establish the one-time migration marker before creating an indexed interrupted restore.
+            Cache.recoverWorkspaceOutputTransactions workspace
+
+            let generated = Path.Combine(project, "generated")
+            let projectHash = (Hash.sha256 project).Substring(0, 12).ToLowerInvariant()
+            let transactionDir = Path.Combine(workspace, "apps", $".terrabuild-restore-{projectHash}-indexed")
+            let backup = Path.Combine(transactionDir, "backup", "generated")
+            Directory.CreateDirectory(generated) |> ignore
+            Directory.CreateDirectory(backup) |> ignore
+            File.WriteAllText(Path.Combine(generated, "value.txt"), "partial")
+            File.WriteAllText(Path.Combine(backup, "value.txt"), "original")
+            {| ProjectDirectory = project; Outputs = [ "generated/**" ] |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(transactionDir, "transaction.json"))
+            File.WriteAllText(Path.Combine(transactionDir, "state"), "applying")
+
+            let indexDir = Path.Combine(root, ".terrabuild", "transactions", "restores")
+            Directory.CreateDirectory(indexDir) |> ignore
+            {| TransactionDirectory = transactionDir; ProjectDirectory = project |}
+            |> Json.Serialize
+            |> IO.writeTextFile (Path.Combine(indexDir, "interrupted.json"))
+
+            Cache.recoverWorkspaceOutputTransactions workspace
+
+            File.ReadAllText(Path.Combine(generated, "value.txt")) |> should equal "original"
+            Directory.Exists(transactionDir) |> should equal false
+            Directory.EnumerateFiles(indexDir) |> Seq.isEmpty |> should equal true
+        ))
+
+[<Test>]
 let ``prune cache deletes stale entries and preserves fresh siblings`` () =
     withTempDir (fun root ->
         let staleEntry = createLocalCacheEntry root "project-hash/build/stale-target" (summary None)

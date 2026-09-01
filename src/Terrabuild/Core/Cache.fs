@@ -279,11 +279,23 @@ type private RestoreTransaction = {
     Outputs: string list
 }
 
+[<RequireQualifiedAccess>]
+type private RestoreTransactionIndex = {
+    TransactionDirectory: string
+    ProjectDirectory: string
+}
+
 let private restoreMetadataFilename = "transaction.json"
 let private restoreStateFilename = "state"
 let private restorePrepared = "prepared"
 let private restoreApplying = "applying"
 let private restoreCommitted = "committed"
+
+let private restoreIndexDirectory () = FS.combinePath (createTerrabuildProfile()) "transactions/restores"
+
+let private restoreIndexPath transactionDir =
+    let id = (Hash.sha256 transactionDir).ToLowerInvariant()
+    FS.combinePath (restoreIndexDirectory()) $"{id}.json"
 
 let private moveFiles targetDir baseDir files =
     for file in files do
@@ -299,6 +311,15 @@ let private writeRestoreFile transactionDir filename contents =
     let temporary = $"{destination}.{Guid.NewGuid():N}.tmp"
     IO.writeTextFile temporary contents
     File.Move(temporary, destination, true)
+
+let private registerRestoreTransaction transactionDir projectDirectory =
+    let directory = restoreIndexDirectory()
+    IO.createDirectory directory
+    let index : RestoreTransactionIndex =
+        { RestoreTransactionIndex.TransactionDirectory = transactionDir
+          RestoreTransactionIndex.ProjectDirectory = projectDirectory }
+    index |> Json.Serialize |> writeRestoreFile directory (IO.getFilename (restoreIndexPath transactionDir))
+    restoreIndexPath transactionDir
 
 let private writeRestoreState transactionDir state =
     writeRestoreFile transactionDir restoreStateFilename state
@@ -360,7 +381,24 @@ let internal recoverWorkspaceOutputTransactions workspaceDirectory =
     // A transaction for the workspace root is its sibling, not its child.
     recoverOutputTransactions workspaceDirectory
 
-    if Directory.Exists workspaceDirectory then
+    let indexDirectory = restoreIndexDirectory()
+    if Directory.Exists indexDirectory then
+        for indexFile in Directory.EnumerateFiles(indexDirectory, "*.json") do
+            try
+                let index = indexFile |> IO.readTextFile |> Json.Deserialize<RestoreTransactionIndex>
+                let projectDirectory = Path.GetFullPath(index.ProjectDirectory)
+                if isWithinDirectory workspaceDirectory projectDirectory then
+                    recoverOutputTransactions projectDirectory
+                    IO.deleteAny indexFile
+            with exn ->
+                Log.Warning(exn, "Discarding unreadable restore transaction index {IndexFile}", indexFile)
+                IO.deleteAny indexFile
+
+    let legacyMarker =
+        let workspaceHash = (Hash.sha256 workspaceDirectory).ToLowerInvariant()
+        FS.combinePath (createTerrabuildProfile()) $"transactions/legacy-scans/{workspaceHash}.done"
+
+    if Directory.Exists workspaceDirectory && not (File.Exists legacyMarker) then
         let projectDirectories =
             Directory.EnumerateDirectories(workspaceDirectory, ".terrabuild-restore-*", SearchOption.AllDirectories)
             |> Seq.choose (fun transactionDir ->
@@ -375,6 +413,8 @@ let internal recoverWorkspaceOutputTransactions workspaceDirectory =
             |> Set.ofSeq
 
         projectDirectories |> Set.iter recoverOutputTransactions
+        legacyMarker |> FS.parentDirectory |> Option.iter IO.createDirectory
+        writeRestoreFile (FS.parentDirectory legacyMarker |> Option.get) (IO.getFilename legacyMarker) "complete"
 
 let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
     let projectDirectory = Path.GetFullPath(projectDirectory)
@@ -399,6 +439,7 @@ let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
             Outputs = outputs |> Set.toList
         }
         let mutable cleanup = false
+        let mutable indexFile: string option = None
 
         try
             IO.createDirectory stagedDir
@@ -410,6 +451,8 @@ let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
             |> Option.iter (fun cachedOutputs -> IO.copyFiles stagedDir cachedOutputs cachedFiles |> ignore)
             IO.copyFiles backupDir projectDirectory currentFiles |> ignore
             writeRestoreState transactionDir restorePrepared
+            // From this point forward the transaction may mutate workspace files and must be globally discoverable.
+            indexFile <- Some (registerRestoreTransaction transactionDir projectDirectory)
 
             try
                 writeRestoreState transactionDir restoreApplying
@@ -422,7 +465,8 @@ let private restoreOutputsTransaction cachedOutputs outputs projectDirectory =
                 cleanup <- true
                 reraise()
         finally
-            if cleanup && Directory.Exists transactionDir then IO.deleteAny transactionDir)
+            if cleanup && Directory.Exists transactionDir then IO.deleteAny transactionDir
+            if cleanup then indexFile |> Option.iter IO.deleteAny)
 
 let clearCache () =
     IO.deleteAny (createCache())

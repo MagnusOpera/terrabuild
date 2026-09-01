@@ -75,6 +75,8 @@ Use `explain` to check the inherited lock names. A debug run records lock-wait t
 
 `terrabuild clear --all` refuses to run while another Terrabuild process is active, then removes idle target, cache-restore, and abandoned process lease files. If a process dies while replacing cached outputs, the next restore rolls the journaled transaction back before trying again.
 
+Restore recovery uses a small global transaction index, so normal startup does not scan the whole workspace. The first run after upgrading performs one compatibility scan for restore journals left by older versions; its marker is operational metadata and is intentionally retained by `terrabuild clear --all`.
+
 ## Environment-sensitive input was rejected
 
 Targets are environment-neutral by default. Terrabuild rejects a neutral target that directly or transitively consumes sensitive predefined inputs such as environment, branch, tag, or CI state.
