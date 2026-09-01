@@ -10,7 +10,7 @@ Every `terrabuild run` command creates an immutable task graph. A node can execu
 Configuration uses an HCL-inspired language. A root `WORKSPACE` file holds shared target policy. Each buildable or deployable unit has a `PROJECT` file with its commands, dependencies, and outputs.
 
 :::info
-Terrabuild runs locally and in CI. The local cache requires no account. [Insights](https://insights.magnusopera.io) is optional and adds encrypted cache sharing and build metadata across machines. The source is available on [GitHub](https://github.com/magnusopera/terrabuild).
+Terrabuild runs locally and in CI. The local cache requires no account. [Insights](https://insights.magnusopera.io) is optional to configure and adds encrypted cache sharing and build metadata across machines; once connected, its reporting lifecycle is part of the run rather than a best-effort background task. The source is available on [GitHub](https://github.com/magnusopera/terrabuild).
 :::
 
 ## Build and deploy with targets

@@ -39,7 +39,9 @@ Terrabuild maintains a local cache under `~/.terrabuild/cache`. This cache:
 
 When connected to [Insights](https://insights.magnusopera.io), Terrabuild can upload encrypted managed artifacts. Another developer machine or CI runner can restore them when it computes the same key and has access to the workspace.
 
-Remote cache access is an optimization, not a prerequisite for execution. If Insights or its artifact storage is temporarily unavailable, reads become cache misses and Terrabuild executes the target locally. If an upload fails after execution, the completed local cache entry remains usable; that generation simply is not shared with other machines.
+Remote artifact reuse is an optimization, not a prerequisite for execution. If an artifact object is missing, corrupt, unreadable, or cannot be transferred, the lookup becomes a cache miss and Terrabuild executes the target locally. If an artifact upload fails after execution, the completed local cache entry remains usable; that generation simply is not shared with other machines.
+
+This artifact policy is separate from the Insights connection lifecycle. Insights is optional to configure, but once a run prints `Connected to Insights`, its build, graph, artifact-metadata, and completion reporting are mandatory. Reporting failures fail the command rather than leaving an apparently successful but incomplete Insights run. See [Insights](/docs/getting-started/insights#what-insights-adds).
 
 ## Artifact modes
 

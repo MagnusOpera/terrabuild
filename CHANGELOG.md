@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Document that Insights reporting is mandatory once a run connects while remote artifact transfer remains a cache concern.
 - Replace debug diagnostics atomically without allowing diagnostic I/O to mask build failures.
 - Fail file-lock acquisition on filesystem errors while continuing to wait for genuine contention.
 - Emit terminal build progress only after scheduler outcomes are finalized.

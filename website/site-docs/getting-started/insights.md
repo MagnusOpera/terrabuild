@@ -7,6 +7,13 @@ prev: /docs/getting-started/caching
 
 [Insights](https://insights.magnusopera.io) is the optional managed service for Terrabuild. Terrabuild works without an account and always provides a local cache; connecting a workspace adds build history, graph snapshots, and encrypted cache sharing across developers and CI.
 
+“Optional” means that a workspace chooses whether to connect; it does not make reporting best-effort after connection. The policy is binary:
+
+- Without matching workspace credentials, Terrabuild does not create an Insights client and the run remains local.
+- Once Terrabuild connects, starting the build, uploading its graph and artifact metadata, and completing its report are part of the run. A failure in that lifecycle fails the Terrabuild command instead of silently producing an incomplete Insights record.
+
+Remote artifact contents have a narrower cache policy. A missing, corrupt, or unreadable cached blob is a cache miss, and a failed artifact transfer does not discard the completed local cache entry. That fallback concerns reusable artifact data; it does not turn Insights build reporting into an optional background operation.
+
 ## What Insights adds
 
 When a connected `terrabuild run` starts, Terrabuild reports:
