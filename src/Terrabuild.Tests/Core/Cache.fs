@@ -14,6 +14,7 @@ type private FakeStorage() =
     member _.Uploads = uploads |> Seq.toList
     member _.Downloads = downloads
     member _.Delete id = blobs.Remove(id) |> ignore
+    member _.Corrupt id = blobs[id] <- [| 0uy; 1uy; 2uy |]
 
     interface Contracts.IStorage with
         member _.Exists id = blobs.ContainsKey(id)
@@ -78,7 +79,10 @@ let ``cache completion returns logs when outputs do not exist`` () =
         let files = entry.Complete(summary None)
 
         files |> should equal [ "logs" ]
-        storage.Uploads |> should equal [ "project-hash/build/target-hash/logs" ])
+        storage.Uploads.Length |> should equal 2
+        storage.Uploads.Head.StartsWith("project-hash/build/target-hash/generations/") |> should equal true
+        storage.Uploads.Head.EndsWith("/logs") |> should equal true
+        storage.Uploads.Tail |> should equal [ "project-hash/build/target-hash/manifest" ])
 
 [<Test>]
 let ``cache completion returns logical names and uploads full storage ids`` () =
@@ -95,10 +99,11 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
         let files = entry.Complete(summary (Some "outputs"))
 
         files |> should equal [ "outputs"; "logs" ]
-        storage.Uploads |> should equal [
-            "project-hash/build/target-hash/outputs"
-            "project-hash/build/target-hash/logs"
-        ])
+        storage.Uploads.Length |> should equal 3
+        storage.Uploads[0].StartsWith("project-hash/build/target-hash/generations/") |> should equal true
+        storage.Uploads[0].EndsWith("/outputs") |> should equal true
+        storage.Uploads[1].EndsWith("/logs") |> should equal true
+        storage.Uploads[2] |> should equal "project-hash/build/target-hash/manifest")
 
 [<Test>]
 let ``cache completion records an empty output snapshot when outputs are not materialized`` () =
@@ -130,11 +135,11 @@ let ``remote summary downloads become durable local entries`` () =
 
             let downloaded = Cache.Cache(storage, None) :> Cache.ICache
             downloaded.TryGetSummaryOnly true id |> should not' (equal None)
-            storage.Downloads |> should equal 1
+            storage.Downloads |> should equal 2
 
             let offline = Cache.Cache(storage, None) :> Cache.ICache
             offline.TryGetSummaryOnly false id |> should not' (equal None)
-            storage.Downloads |> should equal 1
+            storage.Downloads |> should equal 2
         ))
 
 [<Test>]
@@ -176,13 +181,30 @@ let ``remote summary is not restorable when its output blob is missing`` () =
             let entry = producer.GetEntry true id
             entry.StoreOutputs source [ output ] |> ignore
             entry.Complete(summary (Some "outputs")) |> ignore
-            storage.Delete $"{id}/outputs"
+            let outputBlob = storage.Uploads |> List.find (fun path -> path.EndsWith("/outputs"))
+            storage.Delete outputBlob
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let consumer = Cache.Cache(storage, None) :> Cache.ICache
             let _, downloadedSummary = consumer.TryGetSummaryOnly true id |> Option.get
 
             consumer.CanRestore true id downloadedSummary |> should equal false
+        ))
+
+[<Test>]
+let ``corrupt remote generations are treated as cache misses`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/corrupt-generation"
+            let producer = Cache.Cache(storage, None) :> Cache.ICache
+            producer.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
+            let logsBlob = storage.Uploads |> List.find (fun path -> path.EndsWith("/logs"))
+            storage.Corrupt logsBlob
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+
+            let consumer = Cache.Cache(storage, None) :> Cache.ICache
+            consumer.TryGetSummaryOnly true id |> should equal None
         ))
 
 [<Test>]

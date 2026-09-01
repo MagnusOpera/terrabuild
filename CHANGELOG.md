@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Publish remote cache artifacts as verified atomic generations.
 - Recover the previous local cache entry after an interrupted publication.
 - Preserve completed execution results when publication or report rendering fails.
 - Version diagnostic reports when their result vocabulary changes.
