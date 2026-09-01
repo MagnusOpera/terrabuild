@@ -343,7 +343,7 @@ let ``buildCommands formats docker container requests through docker path on lin
             cmd |> should equal "docker"
             image |> should equal operation.Image
             errorLevel |> should equal 0
-            envs |> should equal operation.Envs
+            envs |> should equal (Map [ "FROM_ENV_MAP", "set-by-terrabuild"; "TB_SAMPLE", "/terrabuild-home/cache" ])
             stdout |> should equal None
             args |> should contain "--entrypoint dotnet"
             args |> should contain "--platform=linux/amd64"
@@ -355,7 +355,8 @@ let ``buildCommands formats docker container requests through docker path on lin
             args |> should contain "-e HOME=/terrabuild-home"
             args |> should contain "-e TERRABUILD_HOME=/terrabuild-home"
             args |> should contain "-e TMPDIR=/terrabuild-tmp"
-            args |> should contain "-e TB_SAMPLE=/terrabuild-home/cache"
+            args |> should contain "-e TB_SAMPLE"
+            args |> should not' (contain "/terrabuild-home/cache")
             args |> should contain "-e FROM_ENV_MAP"
             args |> should contain "mcr.microsoft.com/dotnet/sdk:8.0"
             args |> should contain "build App.csproj"))

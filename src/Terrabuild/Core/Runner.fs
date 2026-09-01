@@ -120,18 +120,19 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
           "TMPDIR", containerTmp ]
         |> List.collect (fun (key, value) -> [ "-e"; $"{key}={value}" ])
 
-    let passthroughEnvs =
+    let forwardedEnvs =
         Environment.matchingEnvVars operation.Variables
-        |> Seq.map (fun (KeyValue(key, value)) ->
-            let expandedValue = value |> expandTerrabuildHome containerHome
-            if value = expandedValue then [ "-e"; key ]
-            else [ "-e"; $"{key}={expandedValue}" ])
-        |> Seq.collect id
+        |> Map.map (fun _ value -> value |> expandTerrabuildHome containerHome)
+
+    let passthroughArgs =
+        forwardedEnvs.Keys
+        |> Seq.collect (fun key -> [ "-e"; key ])
         |> List.ofSeq
 
     [ yield! fixedEnvs
-      yield! passthroughEnvs
-      yield! (operation.Envs.Keys |> Seq.collect (fun key -> [ "-e"; key ])) ]
+      yield! passthroughArgs
+      yield! (operation.Envs.Keys |> Seq.collect (fun key -> [ "-e"; key ])) ],
+    forwardedEnvs |> Map.addMap operation.Envs
 
 let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
     operation.MetaCommand, projectDirectory, operation.Command, Exec.Arguments.Raw operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
@@ -201,7 +202,7 @@ let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node
     let platform = formatPlatform operation
     let cpus = formatCpus operation
     let image = operation.Image.Value
-    let envs = formatContainerEnvs operation containerHome
+    let envArgs, processEnvs = formatContainerEnvs operation containerHome
     let policy = buildContainerPolicy runtime engineRequestPath operation homeDir tmpDir wsDir
     let nodeSlug = node.Id |> String.slugify |> String.cut 35
     let nonce = Guid.NewGuid().ToString("N").Substring(0, 12)
@@ -219,11 +220,11 @@ let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node
             yield! platform |> Option.toList
             "--entrypoint"
             operation.Command
-            yield! envs
+            yield! envArgs
             image
             yield! operation.Arguments |> String.splitShellArgs ]
 
-    operation.MetaCommand, options.Workspace, policy.EngineCommand, Exec.Arguments.List runArgs, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
+    operation.MetaCommand, options.Workspace, policy.EngineCommand, Exec.Arguments.List runArgs, operation.Image, operation.ErrorLevel, processEnvs, operation.Stdout
 
 let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir

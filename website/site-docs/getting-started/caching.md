@@ -23,7 +23,7 @@ Dependency fingerprints form a [Merkle tree](https://en.wikipedia.org/wiki/Merkl
 
 The same declared inputs produce the same key. A branch name or commit does not affect the key unless the target consumes a corresponding [predefined variable](/docs/expression/predefined-variables/) and opts in with `environment_sensitive = true`.
 
-A key cannot include an input Terrabuild does not know about. Files excluded by `ignores`, undeclared host environment variables, current time, network responses, and external service state require deliberate configuration or a non-cacheable target. Use `includes`, extension `variables`, and environment-sensitive inputs to describe values that affect output. Terrabuild hashes the names and values matched by extension `variables` into one fingerprint; it never stores or reports their plaintext values.
+A key cannot include an input Terrabuild does not know about. Files excluded by `ignores`, undeclared host environment variables, current time, network responses, and external service state require deliberate configuration or a non-cacheable target. Use `includes`, extension `variables`, and environment-sensitive inputs to describe values that affect output. Terrabuild hashes the names and values matched by extension `variables` into one fingerprint. Their plaintext values are passed through the container engine's process environment—even when `$TERRABUILD_HOME` must be expanded—and are never rendered, stored, or reported.
 
 ## Local and remote cache
 

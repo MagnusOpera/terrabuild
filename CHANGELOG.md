@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep expanded forwarded environment secrets out of container arguments and cached summaries.
 - Recover interrupted output restores before configuration and project hashing begin.
 - Recover interrupted cache output restores from a durable transaction journal.
 - Report realized restore fallbacks and include batch staging and publication in finalization timing.
