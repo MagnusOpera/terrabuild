@@ -646,13 +646,17 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                     let manifestFile = FS.combinePath stagingDir remoteManifestFilename
                     try
                         let generation = Guid.NewGuid().ToString("N")
-                        let generationRoot = $"{id}/generations/{generation}"
+                        // Insights authorizes one artifact filename below the
+                        // project/target/hash identity. Keep generations flat so
+                        // atomic cache publication works with that storage contract.
+                        let outputsFilename = $"outputs-{generation}"
+                        let logsFilename = $"logs-{generation}"
                         let outputs =
                             if Directory.Exists outputsDir then
-                                Some (uploadBlob outputsDir $"{generationRoot}/outputs")
+                                Some (uploadBlob outputsDir $"{id}/{outputsFilename}")
                             else
                                 None
-                        let logs = uploadBlob logsDir $"{generationRoot}/logs"
+                        let logs = uploadBlob logsDir $"{id}/{logsFilename}"
                         let manifest : RemoteManifest =
                             { RemoteManifest.Version = 1
                               RemoteManifest.Generation = generation
@@ -660,8 +664,9 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                               RemoteManifest.Outputs = outputs }
                         manifest |> Json.Serialize |> IO.writeTextFile manifestFile
                         storage.Upload $"{id}/manifest" manifestFile
-                        [ if outputs.IsSome then yield "outputs"
-                          yield "logs" ]
+                        [ if outputs.IsSome then yield outputsFilename
+                          yield logsFilename
+                          yield "manifest" ]
                     with exn ->
                         IO.deleteAny manifestFile
                         Log.Warning(exn, "Remote cache publication failed for {CacheEntryId}; retaining the completed local entry", id)

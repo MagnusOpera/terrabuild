@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Restore remote cache publication through Insights while retaining atomic cache generations.
 - Expand the Terrabuild agent skill with current target-policy, cache, phase, batching, locking, recovery, reporting, and Insights guidance.
 
 ## [0.200.0-next]

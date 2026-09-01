@@ -86,14 +86,16 @@ let ``cache completion returns logs when outputs do not exist`` () =
 
         let files = entry.Complete(summary None)
 
-        files |> should equal [ "logs" ]
+        files.Length |> should equal 2
+        files.Head.StartsWith("logs-") |> should equal true
+        files.Tail |> should equal [ "manifest" ]
         storage.Uploads.Length |> should equal 2
-        storage.Uploads.Head.StartsWith("project-hash/build/target-hash/generations/") |> should equal true
-        storage.Uploads.Head.EndsWith("/logs") |> should equal true
+        storage.Uploads.Head.StartsWith("project-hash/build/target-hash/logs-") |> should equal true
+        storage.Uploads.Head.Split('/').Length |> should equal 4
         storage.Uploads.Tail |> should equal [ "project-hash/build/target-hash/manifest" ])
 
 [<Test>]
-let ``cache completion returns logical names and uploads full storage ids`` () =
+let ``cache completion reports flat generation filenames for Insights`` () =
     withTempDir (fun root ->
         let storage = FakeStorage()
         let entryDir = Path.Combine(root, "entry")
@@ -106,11 +108,15 @@ let ``cache completion returns logical names and uploads full storage ids`` () =
 
         let files = entry.Complete(summary (Some "outputs"))
 
-        files |> should equal [ "outputs"; "logs" ]
+        files.Length |> should equal 3
+        files[0].StartsWith("outputs-") |> should equal true
+        files[1].StartsWith("logs-") |> should equal true
+        files[2] |> should equal "manifest"
         storage.Uploads.Length |> should equal 3
-        storage.Uploads[0].StartsWith("project-hash/build/target-hash/generations/") |> should equal true
-        storage.Uploads[0].EndsWith("/outputs") |> should equal true
-        storage.Uploads[1].EndsWith("/logs") |> should equal true
+        storage.Uploads[0].StartsWith("project-hash/build/target-hash/outputs-") |> should equal true
+        storage.Uploads[0].Split('/').Length |> should equal 4
+        storage.Uploads[1].StartsWith("project-hash/build/target-hash/logs-") |> should equal true
+        storage.Uploads[1].Split('/').Length |> should equal 4
         storage.Uploads[2] |> should equal "project-hash/build/target-hash/manifest")
 
 [<Test>]
@@ -189,7 +195,7 @@ let ``remote summary is not restorable when its output blob is missing`` () =
             let entry = producer.GetEntry true id
             entry.StoreOutputs source [ output ] |> ignore
             entry.Complete(summary (Some "outputs")) |> ignore
-            let outputBlob = storage.Uploads |> List.find (fun path -> path.EndsWith("/outputs"))
+            let outputBlob = storage.Uploads |> List.find (fun path -> (path.Split('/')[3]).StartsWith("outputs-"))
             storage.Delete outputBlob
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
@@ -207,7 +213,7 @@ let ``corrupt remote generations are treated as cache misses`` () =
             let id = "project-hash/build/corrupt-generation"
             let producer = Cache.Cache(storage, None) :> Cache.ICache
             producer.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
-            let logsBlob = storage.Uploads |> List.find (fun path -> path.EndsWith("/logs"))
+            let logsBlob = storage.Uploads |> List.find (fun path -> (path.Split('/')[3]).StartsWith("logs-"))
             storage.Corrupt logsBlob
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
