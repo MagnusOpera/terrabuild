@@ -504,6 +504,33 @@ let ``prune cache preserves staging directories with active leases`` () =
         Directory.Exists(staging) |> should equal false)
 
 [<Test>]
+let ``profile clear refuses to race an active Terrabuild process`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            use _usage = Cache.acquireProfileUsage()
+
+            let failure =
+                Assert.Throws<Errors.TerrabuildException>(Action(fun () -> Cache.acquireProfileClearLease() |> ignore))
+                |> Option.ofObj
+                |> Option.get
+
+            failure.Message |> should contain "other Terrabuild process"
+        ))
+
+[<Test>]
+let ``profile clear removes abandoned process leases`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let stale = Path.Combine(root, ".terrabuild", "locks", "runs", "abandoned.lease")
+            Directory.CreateDirectory(Path.GetDirectoryName(stale) |> nonNull) |> ignore
+            File.WriteAllText(stale, "")
+
+            use _clear = Cache.acquireProfileClearLease()
+
+            File.Exists(stale) |> should equal false
+        ))
+
+[<Test>]
 let ``try get summary only refreshes origin timestamp for local cache entries`` () =
     withTempDir (fun root ->
         withHomeDir root (fun () ->

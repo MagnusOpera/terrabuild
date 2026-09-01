@@ -263,7 +263,6 @@ let cleanup() =
 
 Console.CancelKeyPress.Add(fun _ -> cleanup())
 AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> cleanup())
-Cache.createDirectories()
 
 
 let rec findWorkspace dir =
@@ -280,6 +279,11 @@ let internal runWithFailureDiagnostic writeDiagnostic action =
         reraise()
 
 let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
+    use _profileLease =
+        if result.Contains(TerrabuildArgs.Clear) then Cache.acquireProfileClearLease()
+        else Cache.acquireProfileUsage()
+    Cache.createDirectories()
+
     let debug = result.Contains(TerrabuildArgs.Debug)
     let log = result.Contains(TerrabuildArgs.Log)
     let runId = Guid.NewGuid()

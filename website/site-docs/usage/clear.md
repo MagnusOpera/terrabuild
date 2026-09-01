@@ -4,6 +4,8 @@ title: clear
 
 `terrabuild clear` removes local Terrabuild cache data.
 
+Clearing is profile-wide and refuses to start while another Terrabuild process is active. This protects running commands from losing cache, toolchain, temporary, restore-journal, or lock state midway through execution. Retry the clear after those commands finish; abandoned process leases are removed automatically.
+
 ```text
 USAGE: terrabuild clear [--help] [--cache] [--home] [--temporary] [--all]
 ```

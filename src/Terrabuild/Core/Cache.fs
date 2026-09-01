@@ -111,10 +111,61 @@ let private originFilename = "origin"
 let private stagingLeaseFilename = ".lease"
 let private remoteManifestFilename = "remote.json"
 
+type private ProfileUsageLease(stream: FileStream, path: string) =
+    interface IDisposable with
+        member _.Dispose() =
+            stream.Dispose()
+            try File.Delete(path)
+            with
+            | :? FileNotFoundException
+            | :? DirectoryNotFoundException -> ()
+
 let createTerrabuildProfile() =
     let tbDir = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
     IO.createDirectory tbDir
     tbDir
+
+let private acquireProfileGate profile =
+    let path = FS.combinePath profile "locks/profile.lock"
+    path |> FS.parentDirectory |> Option.iter IO.createDirectory
+
+    let rec acquire () =
+        try new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)
+        with :? IOException ->
+            Thread.Sleep(25)
+            acquire ()
+
+    acquire ()
+
+let internal acquireProfileUsage () =
+    let profile = createTerrabuildProfile()
+    use _gate = acquireProfileGate profile
+    let path = FS.combinePath profile $"locks/runs/{Guid.NewGuid():N}.lease"
+    path |> FS.parentDirectory |> Option.iter IO.createDirectory
+    let stream = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None)
+    new ProfileUsageLease(stream, path) :> IDisposable
+
+let internal acquireProfileClearLease () =
+    let profile = createTerrabuildProfile()
+    let gate = acquireProfileGate profile
+    try
+        let leasesDir = FS.combinePath profile "locks/runs"
+        let active = ResizeArray<string>()
+        if Directory.Exists leasesDir then
+            for path in Directory.EnumerateFiles(leasesDir, "*.lease") do
+                try
+                    use stale = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                    stale.Dispose()
+                    File.Delete(path)
+                with :? IOException ->
+                    active.Add(path)
+
+        if active.Count > 0 then
+            raiseInvalidArg $"Cannot clear Terrabuild data while {active.Count} other Terrabuild process(es) are active."
+        gate :> IDisposable
+    with _ ->
+        gate.Dispose()
+        reraise()
 
 let createCache() =
     let cacheDir = FS.combinePath (createTerrabuildProfile()) "cache"
