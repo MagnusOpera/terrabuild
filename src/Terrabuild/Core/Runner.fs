@@ -826,39 +826,42 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
           Summary.Targets = options.Targets
           Summary.Nodes = nodeStatus }
 
-    buildProgress.BuildCompleted()
+    try
+        match status with
+        | Status.Ok -> Log.Debug("Build successful")
+        | Status.UnfulfilledSubscription (subscription, signals) ->
+            let unraisedSignals = signals |> String.join ","
+            Log.Debug("Task '{Subscription}' was blocked by '{UnraisedSignals}'", subscription, unraisedSignals)
 
-    match status with
-    | Status.Ok -> Log.Debug("Build successful")
-    | Status.UnfulfilledSubscription (subscription, signals) ->
-        let unraisedSignals = signals |> String.join ","
-        Log.Debug("Task '{Subscription}' was blocked by '{UnraisedSignals}'", subscription, unraisedSignals)
+            graph.Nodes
+            |> Map.iter (fun nodeId node ->
+                let executionId = execId nodeId
+                let isBatchNode = graph.Batches |> Map.containsKey nodeId
+                let wasScheduled = scheduledExec.ContainsKey executionId
+                let hasResult = nodeResults.ContainsKey nodeId
 
-        graph.Nodes
-        |> Map.iter (fun nodeId node ->
-            let executionId = execId nodeId
-            let isBatchNode = graph.Batches |> Map.containsKey nodeId
-            let wasScheduled = scheduledExec.ContainsKey executionId
-            let hasResult = nodeResults.ContainsKey nodeId
+                if not isBatchNode && wasScheduled && not hasResult then
+                    let executionNode = graph.Nodes[executionId]
+                    let blockers =
+                        executionNode.Dependencies
+                        |> Seq.filter (fun dependencyId -> graph.Nodes[dependencyId].Required)
+                        |> Seq.filter (fun dependencyId ->
+                            match nodeResults.TryGetValue dependencyId with
+                            | true, (_, status) -> not status.IsSuccess
+                            | _ -> true)
+                        |> Seq.sort
+                        |> List.ofSeq
 
-            if not isBatchNode && wasScheduled && not hasResult then
-                let executionNode = graph.Nodes[executionId]
-                let blockers =
-                    executionNode.Dependencies
-                    |> Seq.filter (fun dependencyId -> graph.Nodes[dependencyId].Required)
-                    |> Seq.filter (fun dependencyId ->
-                        match nodeResults.TryGetValue dependencyId with
-                        | true, (_, status) -> not status.IsSuccess
-                        | _ -> true)
-                    |> Seq.sort
-                    |> List.ofSeq
-
-                nodeResults[nodeId] <-
-                    (requestFor node, TaskStatus.Blocked (DateTime.UtcNow, blockers))
-                DiagnosticsTelemetry.recordTask nodeId "blocked")
-    | Status.SubscriptionError edi ->
-        Log.Fatal(edi.SourceException, "Build failed")
-        raise (RunFailure(buildSummary (), edi.SourceException))
+                    nodeResults[nodeId] <-
+                        (requestFor node, TaskStatus.Blocked (DateTime.UtcNow, blockers))
+                    DiagnosticsTelemetry.recordTask nodeId "blocked")
+        | Status.SubscriptionError edi ->
+            Log.Fatal(edi.SourceException, "Build failed")
+            raise (RunFailure(buildSummary (), edi.SourceException))
+    finally
+        // The notification is terminal: all queued task updates and synthesized blocked
+        // outcomes must exist before the renderer is stopped, including exceptional runs.
+        buildProgress.BuildCompleted()
 
     if nodeResults.Count = 0 then
         $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Everything's up to date"
