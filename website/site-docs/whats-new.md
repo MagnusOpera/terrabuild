@@ -6,15 +6,12 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.200.1-next
+## 0.200.1
 
-### 0.200.1-next
+### 0.200.1
 
 - Restore remote cache publication through Insights while retaining atomic cache generations.
 - Expand the Terrabuild agent skill with current target-policy, cache, phase, batching, locking, recovery, reporting, and Insights guidance.
-
-### 0.200.0-next
-
 - Document that Insights reporting is mandatory once a run connects while remote artifact transfer remains a cache concern.
 - Replace debug diagnostics atomically without allowing diagnostic I/O to mask build failures.
 - Fail file-lock acquisition on filesystem errors while continuing to wait for genuine contention.
@@ -82,4 +79,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Keep phase barriers from rebuilding downstream targets that already have valid cached artifacts.
 - Recompute target cache keys when evaluated output patterns change.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.0-next...0.200.1-next
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.2...0.200.1
