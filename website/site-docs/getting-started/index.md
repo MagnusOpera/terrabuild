@@ -1,16 +1,24 @@
 ---
-title: Getting started
+title: Start here
+description: Evaluate Terrabuild, install it, and run a complete delivery example.
 ---
 
-Start with the playground. It has application projects, shared libraries, container builds, and a Terraform deployment project.
+Terrabuild models software delivery as a dependency graph. Before writing
+configuration, decide whether that model addresses the difficult part of your
+repository.
 
-Follow this path:
+1. Read [Why Terrabuild?](./why-terrabuild) for the product boundary and common use cases.
+2. [Install Terrabuild](./install) on a developer machine or CI runner.
+3. Follow the [quick start](./quick-start) to build a polyglot workspace and inspect a deployment.
 
-1. [Install Terrabuild](./install) and clone the playground.
-2. [Run the quick start](./quick-start) to build the application artifacts and inspect the cache.
-3. [Inspect a deployment](./deployment) without applying infrastructure changes.
-4. Read [Key concepts](./key-concepts) when you need the exact difference between a project, target, task, and graph node.
-5. Use [Target policies](./target-policies) to choose dependency, phase, cache, batch, environment, and lock behavior.
-6. Use [Scaffolding](./scaffolding) to add configuration to your own repository.
+The playground includes .NET and web applications, shared libraries, container
+images, and a Terraform project. It is designed to show the complete graph, not
+only compilation.
 
-The remaining pages explain graph construction, task outcomes, caching, Insights, and batch execution. Use [Troubleshooting](/docs/troubleshooting) and `terrabuild explain` when a run does something you did not expect.
+After the quick start:
+
+- [Deployment](./deployment) explains environments, plans, artifacts, and side effects.
+- [Target policies](./target-policies) helps choose cache and scheduling behavior.
+- [Scaffolding](./scaffolding) creates a starting configuration for an existing monorepo.
+- [Terrabuild Insights](../insights/index.md) adds a shared delivery record and engineering signals.
+- [Troubleshooting](/docs/troubleshooting) and `terrabuild explain` help investigate unexpected selection or execution.

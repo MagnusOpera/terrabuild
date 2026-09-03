@@ -59,20 +59,45 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Getting Started',
+      label: 'Start here',
       link: {type: 'doc', id: 'getting-started/index'},
       items: [
+        'getting-started/why-terrabuild',
         'getting-started/install',
         'getting-started/quick-start',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Delivery model',
+      items: [
         'getting-started/deployment',
         'getting-started/key-concepts',
-        'getting-started/scaffolding',
         'getting-started/graph',
         'getting-started/tasks',
         'getting-started/target-policies',
         'getting-started/caching',
-        'getting-started/insights',
         'getting-started/batch',
+        'usage/impact',
+        'usage/explain',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Insights',
+      link: {type: 'doc', id: 'insights/index'},
+      items: [
+        'insights/delivery-record',
+        'insights/environments-and-releases',
+        'insights/pulse',
+        'getting-started/insights',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Adopt Terrabuild',
+      items: [
+        'getting-started/scaffolding',
         'getting-started/glossary',
       ],
     },
@@ -159,8 +184,6 @@ const sidebars: SidebarsConfig = {
       link: {type: 'doc', id: 'usage/index'},
       items: [
         'usage/run',
-        'usage/explain',
-        'usage/impact',
         'usage/logs',
         'usage/serve',
         'usage/scaffold',
@@ -180,7 +203,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'link',
-      label: 'Insights',
+      label: 'Open Insights ↗',
       href: 'https://insights.magnusopera.io',
     },
     {

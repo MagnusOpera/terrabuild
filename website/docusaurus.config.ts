@@ -19,7 +19,7 @@ const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
 
 const config: Config = {
   title: 'Terrabuild',
-  tagline: 'Build and deployment orchestration for monorepos.',
+  tagline: 'Desired-state software delivery for polyglot monorepos.',
   favicon: 'favicon.ico',
 
   url: 'https://terrabuild.io',
@@ -146,6 +146,11 @@ const config: Config = {
               },
             ]
           : []),
+        {
+          href: '/docs/next/insights',
+          label: 'Insights',
+          position: 'left',
+        },
         {
           href: 'https://github.com/MagnusOpera/Terrabuild',
           label: 'GitHub',
