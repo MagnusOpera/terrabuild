@@ -1,80 +1,80 @@
 ---
-title: Install
-
-prev: /docs/getting-started
-
+title: Install Terrabuild
+description: Install the Terrabuild CLI locally or in CI.
 ---
 
-## Download and install
+Install Terrabuild on a developer machine first. The `terrabuild` command should
+then be available on your `PATH`.
 
-Terrabuild can be installed in several ways:
-* Brew
-* Download from GitHub Release
-* Install using GitHub Actions
-* Install as a .net tool
+## Homebrew on macOS or Linux
 
-After installation, Terrabuild is available in your **PATH**. You can then invoke the command `terrabuild`.
-
-### Brew (macOS/Linux)
-
-Brew is a package manager for macOS and Linux. See [brew.sh](https://brew.sh) for details.
-
-To install Terrabuild, run:
-```
+```bash
 brew install magnusopera/tap/terrabuild
 ```
 
-To upgrade Terrabuild, run:
-```
+Upgrade it later with:
+
+```bash
 brew upgrade magnusopera/tap/terrabuild
 ```
 
-#### GitHub release
+## .NET global tool
 
-Download Terrabuild from [GitHub Releases](https://github.com/magnusopera/terrabuild/releases).
+If the .NET CLI is already installed:
 
-Select the archive for your platform:
-* macOS (darwin-arm64)
-* Linux (linux-x64 / linux-arm64)
-* Windows (windows-x64)
-* Universal .NET tool
+```bash
+dotnet tool install --global Terrabuild
+```
 
-#### GitHub Actions
+Upgrade it with:
 
-You can install Terrabuild in your GitHub Actions Workflow using binaries available on GitHub Release:
+```bash
+dotnet tool update --global Terrabuild
+```
+
+## Download a release
+
+Download an archive from
+[GitHub Releases](https://github.com/magnusopera/terrabuild/releases) for:
+
+- macOS on Apple silicon;
+- Linux on x64 or ARM64;
+- Windows on x64 or ARM64;
+- the platform-independent .NET tool.
+
+Extract the executable into a directory on your `PATH`.
+
+## GitHub Actions
+
+CI needs the same Terrabuild version used by developers. One installation
+option is the GitHub release action:
+
 ```yaml
 - name: Install Terrabuild
   uses: jaxxstorm/action-install-gh-release
   with:
     repo: magnusopera/terrabuild
-    # tag: 0.185.18
+    tag: 0.200.1
     platform: linux
 ```
 
-#### Dotnet / NuGet
+Pin the version used by the repository instead of silently selecting a new
+release during every workflow.
 
-If the .NET CLI is installed, you can install Terrabuild as a global tool:
-```
-dotnet tool install --global Terrabuild
-```
+## Check the installation
 
-To upgrade:
-```
-dotnet tool update --global Terrabuild
+```bash
+terrabuild --version
+terrabuild --help
 ```
 
-## Configuration
+Terrabuild needs a `WORKSPACE` file before it can run repository targets. The
+[playground](./quick-start.md) already contains a complete configuration, so it
+is the easiest next step.
 
-Terrabuild uses two configuration files:
-* `WORKSPACE` contains [shared configuration](/docs/workspace) at the repository root.
-* `PROJECT` contains [project configuration](/docs/project) at the root of each buildable or deployable unit.
+For your own repository, [scaffolding](./scaffolding.md) can create an initial
+`WORKSPACE` and `PROJECT` files.
 
-For an existing monorepo, the [scaffold command](/docs/getting-started/scaffolding) can generate a useful starting point.
-
-## Optional: enable shared caching
-
-Local caching works immediately and does not require an account. To share encrypted artifacts and build metadata across developers and CI, continue with [Insights](./insights).
-
-## Try it
-
-The [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground) is a ready-to-run workspace. Continue with the [Quick Start](/docs/getting-started/quick-start) to build it.
+Local execution and caching require no account. Connect
+[Insights](./insights.md) later if you want a shared delivery record and
+encrypted artifact reuse across machines.

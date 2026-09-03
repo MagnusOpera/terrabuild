@@ -1,246 +1,175 @@
 ---
 title: Quick start
-
-prev: /docs/getting-started/install
-
+description: See selection, dependency ordering, and reuse in a small delivery workspace.
 ---
 
-This guide uses the [Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground), a small monorepo with .NET and web applications, shared libraries, container images, and a Terraform deployment project.
+This guide uses the
+[Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground),
+a small monorepo with shared libraries, .NET and web applications, container
+images, and a Terraform deployment project.
 
-You need Terrabuild installed and Docker running.
+You need [Terrabuild installed](./install.md), Git, and Docker running.
 
-Clone the repository to follow along.
+```bash
+git clone https://github.com/MagnusOpera/terrabuild-playground.git
+cd terrabuild-playground
+```
 
-The playground repository defines the following projects and dependencies. Arrows point from a task to the task it requires:
+## What is in the workspace?
+
+The playground has two application paths. Each application depends on a library
+and can produce a container image. The infrastructure project depends on both
+applications.
 
 ```mermaid
 flowchart LR
-  subgraph api["API delivery"]
-    direction LR
-    webapiDist["webapi<br/><b>dist</b>"] -->|requires| webapiBuild["webapi<br/><b>build</b>"] -->|requires| cslibBuild["cslib<br/><b>build</b>"]
-  end
+  cslib["C# library"] --> api["API"]
+  tslib["TypeScript library"] --> web["web application"]
+  api --> apiImage["API image"]
+  web --> webImage["web image"]
+  apiImage --> infrastructure["infrastructure"]
+  webImage --> infrastructure
 
-  subgraph app["Web delivery"]
-    direction LR
-    webappDist["webapp<br/><b>dist</b>"] -->|requires| webappBuild["webapp<br/><b>build</b>"] -->|requires| tslibBuild["tslib<br/><b>build</b>"]
-  end
-
-  class webapiDist,webappDist tb-primary
-  class webapiBuild,webappBuild tb-secondary
-  class cslibBuild,tslibBuild tb-muted
+  class cslib,tslib tb-muted
+  class api,web,apiImage,webImage tb-secondary
+  class infrastructure tb-primary
 ```
 
-## Run the first build
+Terrabuild discovers this model from the repository's `WORKSPACE` and `PROJECT`
+files.
 
-To build the entire workspace, run:
+## 1. Preview the first outcome
+
+Ask Terrabuild what it would do to produce the distributable applications:
+
+```bash
+terrabuild explain dist
+```
+
+`explain` resolves the delivery graph without executing commands. You should see
+the application `dist` targets and the library and application work they require.
+
+The detailed output includes cache and scheduling information. For now, focus
+on two questions:
+
+- Which projects were selected?
+- Which prerequisite appears before each application?
+
+## 2. Build the distributable applications
+
+Run the outcome you just inspected:
 
 ```bash
 terrabuild run dist
 ```
 
-This command:
+Terrabuild builds the required libraries and applications, then creates the
+application images. Independent branches can run concurrently.
 
-1. Discovers all projects in the workspace
-2. Builds the dependency graph
-3. Checks the cache for each selected task
-4. Builds only what is required
-5. Executes tasks in parallel where possible
+Your underlying tools still perform each operation. Terrabuild is coordinating
+their order and collecting the results.
 
-After the first build, modify a file in one project and run the command again. Terrabuild rebuilds the affected tasks and restores reusable work from cache.
+## 3. Run it again
 
-## Read the configuration
+Without changing the repository, run the same command:
 
-Here is the current playground configuration, with the shared policy first and then each application or library project:
-
-```hcl {filename="WORKSPACE"}
-# build project dependencies first
-target build {
-    depends_on = [ target.^build ]
-    build = ~auto
-    artifacts = ~managed
-    batch = ~partition
-    environment_sensitive = false
-}
-
-# test the current project after building it
-target test {
-    depends_on = [ target.build ]
-}
-
-# build distributable artifacts after the current project and its dependencies
-target dist {
-    depends_on = [ target.build target.^build ]
-}
-
-# deployment targets
-target plan {
-    depends_on = [ target.^dist ]
-    artifacts = ~workspace
-    environment_sensitive = true
-}
-
-target deploy {
-    depends_on = [ target.plan ]
-    build = ~always
-    artifacts = ~none
-}
-
-locals {
-    dotnet = {
-        config: terrabuild.configuration == "local" ? "Debug" : "Release"
-    }
-    runtimes = {
-        dotnet: terrabuild.arch == "amd64" ? "linux-x64" : "linux-arm64"
-        docker: terrabuild.arch == "amd64" ? [ "linux/amd64" ] : [ "linux/arm64" ]
-    }
-    docker_tags = {
-        dotnet_sdk: "9.0"
-        dotnet_runtime: "9.0"
-        nodejs: "22.16.0-alpine3.22"
-        nginx: "1.28.0-alpine"
-    }
-}
-
-extension @dotnet {
-    image = "mcr.microsoft.com/dotnet/sdk:${local.docker_tags.dotnet_sdk}"
-    defaults {
-        runtime = local.runtimes.dotnet
-        configuration = local.dotnet.config
-    }
-}
-
-extension @docker {
-    defaults {
-        platforms = local.runtimes.docker
-        image = "ghcr.io/magnusopera/${terrabuild.project}"
-    }
-}
-
-extension @npm {
-    image = "node:${local.docker_tags.nodejs}"
-}
+```bash
+terrabuild run dist
 ```
 
-The attributes are policies rather than boilerplate:
+The declared inputs still match the previous result, so Terrabuild can reuse
+the completed work. Some results restore files from the local cache; externally
+owned results, such as container images, can reuse their successful record.
 
-- `build` follows upstream projects, reuses matching managed outputs, and batches only dependency-connected compatible components.
-- `plan` intentionally varies by deployment environment and keeps its Terraform plan file in the local workspace cache.
-- `deploy` is a side effect, so it always executes and retains no reusable result.
-- The `dist` commands below finish with Docker builds. Docker owns those images, so their inferred artifact mode is external and Terrabuild reuses only their execution summaries.
+This is desired-state delivery in its simplest form: the requested outcome is
+already satisfied, so there is no reason to repeat every command.
 
-The [Target policies](./target-policies) guide explains when to choose different values.
+## 4. Change one project
 
-```hcl {filename="src/apps/webapi/PROJECT"}
-project webapi {
-    labels = [ "app" ]
-    @dotnet { }
-}
+Edit a tracked source file in either library, then inspect or run `dist` again:
 
-target build {
-    @dotnet restore { dependencies = true }
-    @dotnet build { dependencies = true }
-}
-
-target dist {
-    @dotnet restore { dependencies = true }
-    @dotnet publish { single = true build = true restore = true }
-    @docker build {
-        build_args = {
-            dotnet_version: local.docker_tags.dotnet_runtime
-            platform: local.runtimes.dotnet
-            configuration: local.dotnet.config
-        }
-    }
-}
+```bash
+terrabuild explain dist
+terrabuild run dist
 ```
 
-```hcl {filename="src/apps/webapp/PROJECT"}
-project webapp {
-    labels = [ "app" ]
-    ignores = [ "vite.config.js" "tsconfig.node.tsbuildinfo" "tsconfig.tsbuildinfo" ]
-    @npm { }
-}
+The change follows the project dependencies into the affected application.
+Work on the other application path can remain satisfied.
 
-target build {
-    @npm build { }
-}
+Undo the source edit when you are finished with the experiment.
 
-target dist {
-    @docker build {
-        build_args = { nginx_version: local.docker_tags.nginx }
-    }
-}
+## 5. Follow the path to an environment
 
-target serve {
-    @npm dev { }
-}
-```
-
-```hcl {filename="src/deploy/PROJECT"}
-project infrastructure {
-    labels = [ "deploy" ]
-    depends_on = [ project.webapi project.webapp ]
-    environments = [ "staging" "production" ]
-    @terraform { }
-}
-
-target plan {
-    @terraform init { }
-    @terraform plan {
-        variables = { webapi_version: project.webapi.version
-                      webapp_version: project.webapp.version
-                      target_environment: terrabuild.environment }
-    }
-}
-
-target deploy {
-    @terraform init { }
-    @terraform apply { }
-}
-```
-
-```hcl {filename="src/libs/cslib/PROJECT"}
-project {
-    labels = [ "lib" "dotnet" ]
-    @dotnet { }
-}
-
-target build {
-    @dotnet restore { dependencies = true }
-    @dotnet build { dependencies = true }
-}
-```
-
-```hcl {filename="src/libs/tslib/PROJECT"}
-project {
-    labels = [ "lib" ]
-    @npm { }
-}
-
-target build {
-    @npm build { }
-}
-```
-
-## Inspect the deployment graph
-
-The playground also connects its application artifacts to Terraform. Inspect that path without executing Terraform:
+The infrastructure project connects both application distributions to a
+Terraform plan and deployment. Inspect that path without changing infrastructure:
 
 ```bash
 terrabuild explain deploy --environment staging
 ```
 
-The graph includes the application `dist` targets required by `plan`, followed by the Terraform `plan` and `deploy` targets. Inspect the action reason, artifact mode, environment-sensitive inputs, and final scheduling outcome for each node. Continue with [Deployment](./deployment) before adapting this pattern to infrastructure of your own.
+The result should include:
 
-## Continue from here
+1. the application distributions required by infrastructure;
+2. the Terraform plan for `staging`;
+3. the final deployment target.
 
-- [Deployment](./deployment): Connect build artifacts to an environment-specific deployment
-- [Key concepts](/docs/getting-started/key-concepts): Distinguish projects, targets, tasks, and dependencies
-- [Graph](/docs/getting-started/graph): Understand the build graph structure
-- [Tasks](/docs/getting-started/tasks): See how tasks execute
-- [Target policies](./target-policies): Choose scheduling, caching, batching, environment, and lock behavior
-- [Caching](/docs/getting-started/caching): See which inputs form a cache key
+The deployment is shown, but `explain` does not execute it.
 
-### Enable remote caching
+## The configuration behind the result
 
-[Connect the workspace to Insights](./insights) when developer machines and CI should share encrypted artifacts. See [Caching](/docs/getting-started/caching) for cache keys and artifact modes.
+The workspace describes the relationships you just observed:
+
+```hcl {filename="WORKSPACE"}
+target build {
+  depends_on = [ target.^build ]
+}
+
+target dist {
+  depends_on = [ target.build target.^build ]
+}
+
+target plan {
+  depends_on = [ target.^dist ]
+  environment_sensitive = true
+}
+
+target deploy {
+  depends_on = [ target.plan ]
+  build = ~always
+  artifacts = ~none
+}
+```
+
+Read this from the requested outcome backwards:
+
+- `deploy` requires `plan`;
+- `plan` requires distributions from upstream application projects;
+- `dist` requires builds from the current and upstream projects;
+- `build` follows the project dependency graph.
+
+`deploy` is marked as an action that must run whenever selected. A prior
+deployment is historical evidence, not proof that an environment still matches.
+
+Each `PROJECT` file then supplies the commands for its unit. For example, an
+application can attach .NET and Docker commands to the shared targets, while
+the infrastructure project attaches Terraform commands.
+
+You do not need to understand every target attribute yet. The
+[deployment guide](./deployment.md) explains the few policies that matter when
+crossing into an environment; [Target policies](./target-policies.md) is the
+complete decision guide.
+
+## What you have seen
+
+The playground demonstrates the main Terrabuild model:
+
+- ask for an outcome rather than scripting every step;
+- follow changes through project and target dependencies;
+- run independent work concurrently;
+- reuse results that already satisfy the graph;
+- extend the same graph from source into an environment;
+- inspect a delivery before executing it.
+
+Continue with [Model a deployment](./deployment.md), or use
+[Scaffolding](./scaffolding.md) to create an initial model for your own
+repository.

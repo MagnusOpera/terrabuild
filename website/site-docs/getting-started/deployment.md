@@ -1,52 +1,28 @@
 ---
-title: Deployment
-prev: /docs/getting-started/quick-start
-next: /docs/getting-started/key-concepts
+title: Model a deployment
+description: Extend a delivery graph from application artifacts into an environment.
 ---
 
-Terrabuild does not have a separate deployment mode. A deployment is a target with commands and dependencies, so the same graph can order application builds, image publication, infrastructure planning, and deployment.
+Terrabuild does not switch into a separate deployment mode. Deployment is the
+right-hand side of the same graph that builds and packages the applications.
 
-## Connect deployment to build outputs
+```mermaid
+flowchart LR
+  api["API · dist"] --> plan["infrastructure · plan"]
+  web["web · dist"] --> plan
+  plan --> deploy["infrastructure · deploy"]
 
-The workspace policy below makes `plan` depend on distributable artifacts from upstream projects. The `deploy` target always runs because applying infrastructure is a side effect, not a reusable build result.
-
-```hcl {filename="WORKSPACE"}
-target build {
-  depends_on = [ target.^build ]
-}
-
-target dist {
-  depends_on = [ target.build target.^build ]
-}
-
-target plan {
-  environment_sensitive = true
-  artifacts = ~managed
-  depends_on = [ target.^dist ]
-}
-
-target deploy {
-  build = ~always
-  artifacts = ~none
-  depends_on = [ target.plan ]
-}
-
-extension @terraform {
-  image = "hashicorp/terraform:1.8.4"
-}
+  class api,web tb-secondary
+  class plan tb-decision
+  class deploy tb-primary
 ```
 
-The policies reflect the ownership and lifetime of each result:
+This gives Terrabuild enough context to answer a useful question: before this
+environment can change, which application results must exist?
 
-- `target.^dist` selects distributable outputs from the deployment project's upstream applications.
-- `environment_sensitive = true` permits the plan to consume the selected environment and includes that consumed value in its cache identity.
-- `artifacts = ~managed` preserves the declared Terraform plan file so an authorized developer or CI runner can restore it through Insights.
-- `build = ~always` makes every selected deployment perform the side effect even when its declared inputs match an earlier run.
-- `artifacts = ~none` prevents a previous application from becoming a reusable result for a new deployment request.
+## Connect infrastructure to applications
 
-These settings are deliberate, not a required template. Use `artifacts = ~workspace` when a plan must remain on one machine, and keep the inferred/default artifact mode when the extension already expresses the intended ownership. See [Target policies](./target-policies) for the decision guide.
-
-The deployment project names the application projects as dependencies. That relationship gives `target.^dist` its upstream project set.
+The infrastructure project names the applications whose outputs it deploys:
 
 ```hcl {filename="src/deploy/PROJECT"}
 project infrastructure {
@@ -54,7 +30,38 @@ project infrastructure {
   environments = [ "staging" "production" ]
   @terraform { }
 }
+```
 
+That project relationship connects application changes to infrastructure. The
+workspace then connects the named outcomes:
+
+```hcl {filename="WORKSPACE"}
+target dist {
+  depends_on = [ target.build target.^build ]
+}
+
+target plan {
+  depends_on = [ target.^dist ]
+  environment_sensitive = true
+  artifacts = ~workspace
+}
+
+target deploy {
+  depends_on = [ target.plan ]
+  build = ~always
+  artifacts = ~none
+}
+```
+
+Read the declarations from the requested outcome backwards:
+
+- `deploy` requires the current project's `plan`;
+- `plan` requires `dist` from upstream application projects;
+- `dist` requires the relevant builds.
+
+The Terraform commands remain in the infrastructure `PROJECT`:
+
+```hcl {filename="src/deploy/PROJECT"}
 target plan {
   @terraform init { }
   @terraform plan {
@@ -72,36 +79,68 @@ target deploy {
 }
 ```
 
-`terrabuild.environment` affects the Terraform plan, so `plan` opts into environment-sensitive inputs. When `--environment` is present, the project accepts only `staging` and `production`; another value excludes it from selection. Require an explicit environment in the deployment workflow rather than running this target without the flag.
+Terraform still reads and changes infrastructure. Terrabuild makes sure the
+application artifacts and plan are ready before Terraform applies them.
 
-## Inspect before running
+## Inspect before executing
 
-`explain` resolves the graph and operations without executing them:
+Resolve the complete path without running any command:
 
 ```bash
 terrabuild explain deploy --environment staging
 ```
 
-Check that the output includes the expected application `dist` targets, the infrastructure `plan`, and the final `deploy` target. It also reports whether each prerequisite would build or restore from cache.
+Confirm that the expected application distributions, staging plan, and final
+deployment are present. This is a safe way to review a new dependency model or
+CI selection.
 
-## Create the plan
+## Plan, then deploy
 
-Run the plan after configuring the Terraform backend and credentials:
+After configuring the Terraform backend and credentials, create a plan:
 
 ```bash
 terrabuild run plan --environment staging
 ```
 
-The built-in Terraform extension writes `terrabuild.planfile`. With the managed policy above, Terrabuild stores it locally and uploads it to encrypted Insights storage when connected. A workspace-only policy would keep the same restoration behavior local to one machine.
-
-## Apply the deployment
-
-The next command executes Terraform and can change infrastructure:
+Then apply the deployment:
 
 ```bash
 terrabuild run deploy --environment staging
 ```
 
-Terrabuild rebuilds or restores the required application artifacts first, then builds or restores the Terraform plan. It runs `deploy` only after those prerequisites succeed.
+The second command resolves the same prerequisites. Valid application outputs
+can be reused; missing or changed outputs run again. The deployment waits until
+every required result succeeds.
 
-Use separate credentials and backend state for each environment. Terrabuild orders the commands, but Terraform and the configured provider remain responsible for the infrastructure change.
+## Why the policies differ
+
+A plan is a repeatable file tied to its inputs and selected environment. The
+example keeps it in this machine's workspace cache with `~workspace`. Use
+`~managed` when authorized machines should share the encrypted plan through
+Insights.
+
+A deployment is different: its value is the external action itself. Therefore:
+
+- `build = ~always` executes it whenever selected;
+- `artifacts = ~none` prevents a prior deployment record from satisfying a new request.
+
+Terrabuild does not inspect the live cloud environment and claim that it still
+matches an earlier deployment. Terraform and its provider remain responsible
+for external state.
+
+These are the only policies you need for this example. The
+[Target policies](./target-policies.md) deep dive covers other build modes,
+artifact ownership, batching, sensitive inputs, and locks.
+
+## CI still owns control of the environment
+
+Terrabuild owns selection and dependency order. CI should continue to own:
+
+- repository triggers;
+- credentials and protected secrets;
+- approvals;
+- concurrency rules;
+- access to staging and production.
+
+This keeps delivery relationships in the repository while preserving the
+security boundary of the CI system.

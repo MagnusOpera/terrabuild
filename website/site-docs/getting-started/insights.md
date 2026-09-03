@@ -4,7 +4,11 @@ description: Connect Terrabuild to the hosted delivery record and encrypted shar
 ---
 
 [Terrabuild Insights](../insights/index.md) is the optional hosted delivery record for
-Terrabuild. A connected workspace gains:
+Terrabuild.
+
+## What Insights adds
+
+A connected workspace gains:
 
 - execution and delivery-group history across developer machines and CI;
 - interactive task graphs and execution context;

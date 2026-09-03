@@ -15,7 +15,7 @@ const publishedVersions = existsSync(versionsPath)
 const hasPublishedVersions =
   Array.isArray(publishedVersions) && publishedVersions.length > 0;
 const showVersionDropdown = hasPublishedVersions;
-const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
+const lastVersion = 'current';
 
 const config: Config = {
   title: 'Terrabuild',
@@ -147,7 +147,7 @@ const config: Config = {
             ]
           : []),
         {
-          href: '/docs/next/insights',
+          href: '/docs/insights',
           label: 'Insights',
           position: 'left',
         },

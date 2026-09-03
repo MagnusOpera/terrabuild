@@ -1,24 +1,35 @@
 ---
-title: Start here
-description: Evaluate Terrabuild, install it, and run a complete delivery example.
+title: Get started
+description: Learn the model, install Terrabuild, and run a complete delivery example.
 ---
 
-Terrabuild models software delivery as a dependency graph. Before writing
-configuration, decide whether that model addresses the difficult part of your
-repository.
+You can understand Terrabuild and run a representative example without first
+learning its graph internals or every configuration option.
 
-1. Read [Why Terrabuild?](./why-terrabuild) for the product boundary and common use cases.
-2. [Install Terrabuild](./install) on a developer machine or CI runner.
-3. Follow the [quick start](./quick-start) to build a polyglot workspace and inspect a deployment.
+## 1. Understand the model
 
-The playground includes .NET and web applications, shared libraries, container
-images, and a Terraform project. It is designed to show the complete graph, not
-only compilation.
+[How Terrabuild works](./how-it-works.md) explains desired-state delivery using
+projects, outcomes, dependencies, and reusable results. It deliberately avoids
+the scheduler and cache implementation details.
 
-After the quick start:
+## 2. Run the playground
 
-- [Deployment](./deployment) explains environments, plans, artifacts, and side effects.
-- [Target policies](./target-policies) helps choose cache and scheduling behavior.
-- [Scaffolding](./scaffolding) creates a starting configuration for an existing monorepo.
-- [Terrabuild Insights](../insights/index.md) adds a shared delivery record and engineering signals.
-- [Troubleshooting](/docs/troubleshooting) and `terrabuild explain` help investigate unexpected selection or execution.
+[Install Terrabuild](./install.md), then follow the
+[quick start](./quick-start.md). The playground contains shared libraries,
+applications, container images, and Terraform, so one small repository can show
+the path from a source change to an environment.
+
+## 3. Bring the model to your repository
+
+[Scaffold an existing monorepo](./scaffolding.md) to generate an initial
+`WORKSPACE` and `PROJECT` files. Review the result and begin with one useful
+outcome, usually `build`, before adding packaging or deployment.
+
+## 4. Add delivery and history when useful
+
+- [Model a deployment](./deployment.md) when application artifacts should feed an environment-specific plan or deployment.
+- [Connect Insights](./insights.md) when developer machines and CI should share encrypted artifacts and a delivery record.
+
+The **Deep dive** section is there when you need to tune reuse, understand an
+unexpected selection, introduce phases or batching, or inspect the complete
+graph model.

@@ -1,55 +1,66 @@
 ---
-title: Scaffolding
-
-prev: /docs/getting-started/key-concepts
-
+title: Scaffold a monorepo
+description: Generate an initial Terrabuild model for an existing repository.
 ---
 
-Configuring a monorepo can be quite intimidating and tedious at first. This is why Terrabuild ships with the **scaffold** command to get you started.
-
-Terrabuild can generate WORKSPACE and PROJECT files for the following languages:
-* msbuild proj (.net, F#, C#, dacpac, ...)
-* npm
-* make
-* docker
-* terraform
+The scaffold command discovers common project types and writes a starting
+Terrabuild configuration:
 
 ```bash
-terrabuild scaffold --workspace <path-to-repository> [--force]
+terrabuild scaffold --workspace <path-to-repository>
 ```
 
-By default, the `scaffold` command does not overwrite files. If you need to generate them again, use the `--force` flag.
+It recognizes .NET project files, npm packages, Makefiles, Dockerfiles, and
+Terraform projects.
 
-:::info
-  `scaffold` command does not explore a directory deeper if a known project type is found.
-  If you miss some projects, check you have Makefile or Dockerfile files in the way.
-:::
+By default, scaffolding does not replace an existing `WORKSPACE` or `PROJECT`
+file. Add `--force` only when you intend to regenerate those files.
 
-Upon completion, you will have several new files in your repository:
-* WORKSPACE file at the root: this file defines the global configuration
-* several PROJECT files in detected projects: this file defines the project configuration
+## What it creates
 
-Here is a sample output:
-```
- ✔ PROJECT tests/scaffold/projects/dotnet-app
- ✔ PROJECT tests/scaffold/projects/make-app
- ✔ PROJECT tests/scaffold/projects/npm-app
- ✔ PROJECT tests/scaffold/libraries/dotnet-lib
- ✔ PROJECT tests/scaffold/deployments/terraform-deploy
+After discovery, the repository contains:
+
+- one `WORKSPACE` file at the monorepo root for shared targets and extension defaults;
+- one `PROJECT` file in each detected buildable or deployable unit.
+
+Typical output looks like this:
+
+```text
+ ✔ PROJECT src/apps/api
+ ✔ PROJECT src/apps/web
+ ✔ PROJECT src/libs/shared
+ ✔ PROJECT src/deploy
  ✔ WORKSPACE
 ```
 
-## Build the generated workspace
+## Review the model before running it
 
-Scaffolding detects common project types and gives you a starting point. Review the generated [WORKSPACE](/docs/workspace) and [PROJECT](/docs/project) files before building because repository-specific targets, outputs, or extension settings may still need adjustment.
+Scaffolding establishes a useful baseline; it cannot infer every repository
+rule. Review:
 
-You can try building your workspace using:
-```
+1. **Project boundaries.** Confirm each `PROJECT` represents a meaningful unit.
+2. **Project dependencies.** Add relationships that are not visible from native project files.
+3. **Outputs.** Confirm generated files and directories are described correctly.
+4. **Targets.** Remove irrelevant generated targets and add repository-specific commands.
+5. **Deployment.** Treat plans, applies, and cleanup as deliberate environment-sensitive or side-effecting work.
+
+Discovery stops descending below a recognized project root. If an expected
+project is absent, check whether a parent Makefile, Dockerfile, package, or
+project file caused that directory to become a boundary.
+
+## Start with one outcome
+
+Run or inspect a familiar target before modeling the entire delivery lifecycle:
+
+```bash
 cd <path-to-repository>
+terrabuild explain build
 terrabuild run build
 ```
 
-If the first build fails, use the generated configuration and the [troubleshooting guide](/docs/troubleshooting) to identify the missing project-specific settings.
+Once builds and project dependencies are correct, add distribution and
+deployment paths. See [How Terrabuild works](./how-it-works.md) for the model and
+[Model a deployment](./deployment.md) for the source-to-environment path.
 
-- [workspace](/docs/workspace)
-- [project](/docs/project)
+Use the [Workspace reference](../workspace/index.md) and
+[Project reference](../project/index.md) when you need the complete file syntax.

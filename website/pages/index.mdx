@@ -22,11 +22,11 @@ import Link from '@docusaurus/Link';
           from source to environment, reuses results that already satisfy the graph, and runs the rest.
         </p>
         <div className="tb-home-actions">
-          <Link className="button button--primary button--lg tb-home-button" to="/docs/next/getting-started/why-terrabuild">
+          <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/why-terrabuild">
             <span className="tb-home-button-label">See how it fits</span>
             <span className="tb-home-button-arrow" aria-hidden="true">→</span>
           </Link>
-          <Link className="tb-home-secondary" to="/docs/next/getting-started/quick-start">
+          <Link className="tb-home-secondary" to="/docs/getting-started/quick-start">
             <span>Run the quick start</span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.25 3.75h7v7M12 4 4 12" /></svg>
           </Link>
@@ -120,7 +120,7 @@ import Link from '@docusaurus/Link';
           <span className="tb-section-label">SEVERAL APPLICATIONS, SEVERAL ENVIRONMENTS</span>
           <h3>A monorepo is not one release train.</h3>
           <p>The Magnus Opera workspace can move <code>studio</code> into a pull-request preview while <code>catalog</code> remains in staging. Each application follows its own path through the same dependency graph.</p>
-          <Link className="tb-extension-link" to="/docs/next/getting-started/deployment"><span>Model deployment</span><span aria-hidden="true">→</span></Link>
+          <Link className="tb-extension-link" to="/docs/getting-started/deployment"><span>Model deployment</span><span aria-hidden="true">→</span></Link>
         </div>
         <div className="tb-streams-map" role="img" aria-label="Studio moves from preview to staging and production while Catalog remains in staging">
           <div className="tb-stream-row"><strong>studio</strong><span className="tb-env tb-env-preview">preview-1842</span><i></i><span className="tb-env">staging</span><i></i><span className="tb-env tb-env-production">production</span></div>
@@ -143,7 +143,7 @@ import Link from '@docusaurus/Link';
           <div><strong>Managed artifacts</strong><span>Share encrypted cache entries and outputs across machines.</span></div>
         </div>
         <div className="tb-home-actions">
-          <Link className="button button--primary button--lg tb-home-button" to="/docs/next/insights"><span className="tb-home-button-label">Explore Insights</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
+          <Link className="button button--primary button--lg tb-home-button" to="/docs/insights"><span className="tb-home-button-label">Explore Insights</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
           <a className="tb-home-secondary" href="https://insights.magnusopera.io/" target="_blank" rel="noreferrer"><span>Open Insights</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.25 3.75h7v7M12 4 4 12" /></svg></a>
         </div>
       </div>
@@ -175,14 +175,14 @@ import Link from '@docusaurus/Link';
           <h3>Start with the included extensions.</h3>
           <p>Use commands for common toolchains. A custom <a href="https://fscript.magnusopera.io/" target="_blank" rel="noreferrer">FScript</a> extension can define actions, defaults, project discovery, and batching rules for anything else.</p>
           <div className="tb-extension-tags" aria-label="Built-in extension examples"><span>dotnet</span><span>npm</span><span>docker</span><span>terraform</span><span>+ custom</span></div>
-          <Link className="tb-extension-link" to="/docs/next/extensions"><span>Explore extensions</span><span aria-hidden="true">→</span></Link>
+          <Link className="tb-extension-link" to="/docs/extensions"><span>Explore extensions</span><span aria-hidden="true">→</span></Link>
         </article>
         <article className="tb-extension-card tb-extension-container">
           <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg></span><span className="tb-extension-card-index">CONTAINERS</span></div>
           <h3>Pin the execution environment.</h3>
           <p>Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker and Podman.</p>
           <div className="tb-extension-code" aria-label="Example containerized Terraform extension"><div><span>extension</span> <strong>terraform</strong> {'{'}</div><div className="tb-code-indent">image <i>=</i> <em>"hashicorp/terraform:1.8.4"</em></div><div className="tb-code-indent">platform <i>=</i> <em>"linux/arm64"</em></div><div>{'}'}</div></div>
-          <Link className="tb-extension-link" to="/docs/next/extensibility/container"><span>Containerize an extension</span><span aria-hidden="true">→</span></Link>
+          <Link className="tb-extension-link" to="/docs/extensibility/container"><span>Containerize an extension</span><span aria-hidden="true">→</span></Link>
         </article>
       </div>
     </div>
@@ -191,7 +191,7 @@ import Link from '@docusaurus/Link';
   <section className="tb-home-cta">
     <div className="container tb-home-cta-inner">
       <div><span className="tb-section-label">START WITH ONE DELIVERY PATH</span><h2>Map the first change to its environment.</h2></div>
-      <Link className="button button--primary button--lg tb-home-button" to="/docs/next/getting-started/quick-start"><span className="tb-home-button-label">Read the quick start</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
+      <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start"><span className="tb-home-button-label">Read the quick start</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
     </div>
   </section>
 </main>
