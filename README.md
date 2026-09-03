@@ -39,9 +39,9 @@ usable with its local cache when Insights is not connected.
 
 # Learn more
 - [Documentation](https://terrabuild.io/docs/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=docs)
-- [Why Terrabuild](https://terrabuild.io/docs/getting-started/why-terrabuild/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=positioning)
+- [Why Terrabuild](https://terrabuild.io/docs/next/getting-started/why-terrabuild/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=positioning)
 - [Quickstart](https://terrabuild.io/docs/getting-started/quick-start/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=quickstart)
-- [Insights](https://terrabuild.io/docs/insights/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=insights)
+- [Insights](https://terrabuild.io/docs/next/insights/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=insights)
 - [Playground](https://github.com/magnusopera/terrabuild-playground)
 - [Local architecture docs](docs/README.md)
 

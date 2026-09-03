@@ -17,7 +17,7 @@ Short definitions for recurring Terrabuild terms.
 | **Dependency** | A relationship that affects build order or rebuild propagation. | [Workspace Target Block](/docs/workspace/target), [Project Block](/docs/project/project) |
 | **Extension** | A built-in or custom capability provider such as `@dotnet` or `@docker`. | [Extensibility](/docs/extensibility), [Workspace Extension Block](/docs/workspace/extension) |
 | **Hash** | The deterministic value used as the cache key for a task. | [Caching](/docs/getting-started/caching) |
-| **Insights** | The hosted delivery record for Terrabuild, including environment history, release context, engineering signals, and encrypted shared artifacts. | [Insights](/docs/insights) |
+| **Insights** | The hosted delivery record for Terrabuild, including environment history, release context, engineering signals, and encrypted shared artifacts. | [Insights](../insights/index.md) |
 | **Node** | A task represented in the build graph. | [Graph](/docs/getting-started/graph) |
 | **Project** | A buildable or deployable unit defined by a `PROJECT` file. | [Project](/docs/project) |
 | **Phase** | An optional workspace-declared ordering boundary that groups targets and can depend on earlier phases. | [Phase Block](../workspace/phase) |
