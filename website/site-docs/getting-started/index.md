@@ -1,35 +1,41 @@
 ---
-title: Get started
-description: Learn the model, install Terrabuild, and run a complete delivery example.
+title: Start here
+description: Learn Terrabuild through a small workflow, then apply it to your repository.
 ---
 
-You can understand Terrabuild and run a representative example without first
-learning its graph internals or every configuration option.
+Terrabuild brings **desired-state configuration** to build and deployment.
+You declare the result you want and what must be true for it to hold. Terrabuild
+coordinates the tools, project dependencies, and environment settings needed to
+reach that result, reusing valid work according to your policies.
 
-## 1. Understand the model
+## Learn by doing
 
-[How Terrabuild works](./how-it-works.md) explains desired-state delivery using
-projects, outcomes, dependencies, and reusable results. It deliberately avoids
-the scheduler and cache implementation details.
+Follow this path if you are new to Terrabuild:
 
-## 2. Run the playground
+| Step | What you will learn |
+| --- | --- |
+| [1. Understand the model](./how-it-works.md) | How projects, targets, and extensions fit together. |
+| [2. Install Terrabuild](./install.md) | Get the CLI working on your machine. |
+| [3. Run your first workflow](./quick-start.md) | Write two small projects, follow dependencies, and restore cached files. |
+| [4. Use your existing tools](./existing-repository.md) | Move a familiar build into Terrabuild without rewriting it. |
+| [5. Configure environments](./environments.md) | Pass settings deliberately and keep reusable outputs independent of deployment context. |
+| [6. Customize a tool](./customization.md) | Configure an included extension or write your own with FScript. |
 
-[Install Terrabuild](./install.md), then follow the
-[quick start](./quick-start.md). The playground contains shared libraries,
-applications, container images, and Terraform, so one small repository can show
-the path from a source change to an environment.
+## Grow the workflow
 
-## 3. Bring the model to your repository
+[Model a deployment](./deployment.md) connects application artifacts to an environment
+and explains the difference between reusable files and actions that change an
+environment. [Advanced scenarios](./advanced-scenarios.md) covers generated code,
+workspace toolchains, independent applications, and CI adoption.
 
-[Scaffold an existing monorepo](./scaffolding.md) to generate an initial
-`WORKSPACE` and `PROJECT` files. Review the result and begin with one useful
-outcome, usually `build`, before adding packaging or deployment.
+[Insights](../insights/index.md) adds shared artifacts and delivery history when
+you need them. You can complete the tutorials using only Terrabuild's local cache.
 
-## 4. Add delivery and history when useful
+## Find a precise answer
 
-- [Model a deployment](./deployment.md) when application artifacts should feed an environment-specific plan or deployment.
-- [Connect Insights](./insights.md) when developer machines and CI should share encrypted artifacts and a delivery record.
+Use **Concepts and policies** to understand graph selection, execution, caching,
+and batching. Use **Reference** for configuration attributes, CLI options, and
+extension actions. [Troubleshooting](../troubleshooting.md) helps explain unexpected results.
 
-The **Deep dive** section is there when you need to tune reuse, understand an
-unexpected selection, introduce phases or batching, or inspect the complete
-graph model.
+Still evaluating? [Why Terrabuild](./why-terrabuild.md) describes where it helps
+and how its responsibilities fit alongside your existing tools and CI.

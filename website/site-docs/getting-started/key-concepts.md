@@ -1,8 +1,6 @@
 ---
 title: Key concepts
 
-prev: /docs/getting-started/quick-start
-
 ---
 
 This page connects the main Terrabuild concepts without repeating the full reference.
@@ -14,7 +12,7 @@ Use it after the quick start when you want the mental model.
 
 A **workspace** is the monorepo root. It contains one `WORKSPACE` file with shared configuration such as target policies, phases, variables, and extension defaults.
 
-A **project** is a buildable or deployable unit inside that workspace. Its `PROJECT` file contains outputs, dependencies, labels, and target commands.
+A **project** is a unit of work inside that workspace: a library, application, generator, or infrastructure configuration. Its `PROJECT` file contains outputs, dependencies, labels, and target commands.
 
 ```
 workspace/
@@ -76,7 +74,7 @@ Terrabuild uses target dependency syntax to describe execution order:
 
 Target references only create dependencies when the referenced target exists in the relevant project scope. Circular target dependency chains are invalid and are reported before commands run.
 
-```hcl
+```terrabuild
 target build {
   depends_on = [ target.^build ]
 }

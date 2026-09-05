@@ -44,7 +44,7 @@ Batching is decided after Terrabuild has assigned build, restore, and summary ac
 
 ### One native build for the selected cluster
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 target build {
   depends_on = [ target.^build ]
   batch = ~single
@@ -55,7 +55,7 @@ This suits a .NET workspace where one generated solution is generally cheaper th
 
 ### Keep disconnected applications separate
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 target build {
   depends_on = [ target.^build ]
   batch = ~partition
@@ -68,7 +68,7 @@ This is a useful middle ground for large monorepos: native tools retain dependen
 
 ### Diagnose or isolate individual commands
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 target build {
   depends_on = [ target.^build ]
   batch = ~never

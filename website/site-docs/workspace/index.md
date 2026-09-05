@@ -12,4 +12,4 @@ The file defines configuration that applies to all projects in the workspace, in
 * Workspace-level variables
 * Cache configuration
 
-This section describes the syntax and configuration options for the `WORKSPACE` file. The WORKSPACE file uses an HCL-inspired syntax similar to the PROJECT file.
+This section describes the syntax and configuration options for the `WORKSPACE` file. The WORKSPACE file uses the same Terrabuild configuration language as PROJECT, with workspace-specific blocks and attributes.

@@ -19,7 +19,7 @@ The node shape tells you how the project is identified in its `PROJECT` file:
 
 For example, Terrabuild's UI declares an explicit name:
 
-```hcl title="src/Terrabuild.UI/PROJECT"
+```terrabuild title="src/Terrabuild.UI/PROJECT"
 project terrabuild_ui {
     @pnpm { }
 }
@@ -27,7 +27,7 @@ project terrabuild_ui {
 
 It appears as the pill-shaped `terrabuild_ui` node. Most of Terrabuild's libraries are anonymous:
 
-```hcl title="src/Terrabuild.Common/PROJECT"
+```terrabuild title="src/Terrabuild.Common/PROJECT"
 project {
     @dotnet { }
 }
@@ -56,7 +56,7 @@ Selecting or dragging a node turns its directly connected edges blue and makes t
 
 Terrabuild's own named application project demonstrates a project dependency:
 
-```hcl title="src/Terrabuild/PROJECT"
+```terrabuild title="src/Terrabuild/PROJECT"
 project terrabuild {
     labels = [ "app", "dotnet" ]
     depends_on = [ project.terrabuild_ui ]

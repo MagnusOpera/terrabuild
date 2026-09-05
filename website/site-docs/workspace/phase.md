@@ -11,7 +11,7 @@ Phases are declared only in `WORKSPACE`. Targets in either `WORKSPACE` or `PROJE
 
 ## Example
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 phase toolchains {}
 
 phase application {
@@ -25,7 +25,7 @@ target build {
 
 A project can assign a different target to the prerequisite phase:
 
-```hcl {filename="tools/pnpm/PROJECT"}
+```terrabuild title="tools/pnpm/PROJECT"
 project pnpm {
   @shell {}
 }
@@ -84,7 +84,7 @@ Phases affect scheduling but do not become artifact-cache inputs. Assigning a ph
 
 A workspace target can provide a default phase for every matching project target:
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 target build {
   phase = phase.application
 }
@@ -92,7 +92,7 @@ target build {
 
 A project target can inherit that phase, select another declared phase, or explicitly opt out:
 
-```hcl {filename="PROJECT"}
+```terrabuild title="PROJECT"
 target build {
   phase = nothing
   @shell echo { args = "unphased build" }

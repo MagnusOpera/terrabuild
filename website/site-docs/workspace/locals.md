@@ -60,7 +60,7 @@ extension @npm {
 - Identifiers must stay unique across all `locals` blocks.
 - Workspace locals are visible from project files.
 
-```hcl
+```terrabuild
 locals {
   app_name = "api"
 }

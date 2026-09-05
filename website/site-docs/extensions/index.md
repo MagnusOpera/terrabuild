@@ -7,7 +7,7 @@ Terrabuild ships built-in extensions for common toolchains such as .NET, npm, pn
 
 Built-in extension identifiers start with `@`.
 
-```hcl
+```terrabuild
 project {
   @npm { }
 }

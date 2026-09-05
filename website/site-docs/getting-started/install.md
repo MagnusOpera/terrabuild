@@ -46,31 +46,28 @@ Extract the executable into a directory on your `PATH`.
 
 ## GitHub Actions
 
-CI needs the same Terrabuild version used by developers. One installation
-option is the GitHub release action:
+CI needs the same Terrabuild version used by developers. On a runner with a
+compatible .NET SDK already installed:
 
 ```yaml
 - name: Install Terrabuild
-  uses: jaxxstorm/action-install-gh-release
-  with:
-    repo: magnusopera/terrabuild
-    tag: 0.200.1
-    platform: linux
+  run: dotnet tool install --global Terrabuild --version 0.200.1
 ```
 
-Pin the version used by the repository instead of silently selecting a new
-release during every workflow.
+Use the version chosen by your repository and ensure the .NET global tools
+directory is on `PATH`. Install the native tools used by your targets too, or
+provide them through [extension containers](../extensibility/container.md).
 
 ## Check the installation
 
 ```bash
-terrabuild --version
+terrabuild version
 terrabuild --help
 ```
 
 Terrabuild needs a `WORKSPACE` file before it can run repository targets. The
-[playground](./quick-start.md) already contains a complete configuration, so it
-is the easiest next step.
+[first workflow tutorial](./quick-start.md) walks you through creating one,
+along with two small projects. It needs Git and a POSIX shell.
 
 For your own repository, [scaffolding](./scaffolding.md) can create an initial
 `WORKSPACE` and `PROJECT` files.

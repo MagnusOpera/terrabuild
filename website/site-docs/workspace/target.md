@@ -21,7 +21,7 @@ Circular target dependency chains are invalid. Terrabuild detects them during gr
 
 Typical pattern:
 
-```hcl
+```terrabuild
 target build {
   depends_on = [ target.^build ]
 }
@@ -52,7 +52,7 @@ flowchart TB
 ```
 
 ## Example usage
-```hcl
+```terrabuild
 target build {
     phase = phase.application
     depends_on = [ target.^build ]

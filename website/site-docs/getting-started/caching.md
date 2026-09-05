@@ -19,6 +19,18 @@ For each task in the build graph, Terrabuild computes a unique cache key (hash) 
 
 Dependency fingerprints form a [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree). A changed tracked input produces a different key for the affected task and its dependents.
 
+## Reuse and file restoration
+
+A successful cache hit and a file restore are separate steps. If every requested
+root is already satisfied, Terrabuild can report that everything is up to date
+without executing or restoring tasks. When a consumer executes, its required
+cached prerequisites are restored before it starts.
+
+This means deleting generated files and repeating a fully cached build request
+is not a reliable restoration test. The [first workflow tutorial](./quick-start.md#5-reuse-the-result)
+uses an always-running consumer to demonstrate restoration. Use `--force` when
+you deliberately want the selected work to execute again.
+
 ## What a cache key covers
 
 The same declared inputs produce the same key. A branch name or commit does not affect the key unless the target consumes a corresponding [predefined variable](/docs/expression/predefined-variables/) and opts in with `environment_sensitive = true`.
@@ -64,7 +76,7 @@ See [Target policies](./target-policies) for the complete decision model and the
 
 ### Share ordinary build outputs
 
-```hcl
+```terrabuild
 target build {
   build = ~auto
   artifacts = ~managed
@@ -76,7 +88,7 @@ Use this for deterministic files that should move between developer machines and
 
 ### Keep generated files local
 
-```hcl
+```terrabuild
 target generate {
   build = ~lazy
   artifacts = ~workspace
@@ -88,7 +100,7 @@ Use this when regeneration is expensive but the files are machine-specific, sens
 
 ### Track an externally managed artifact
 
-```hcl
+```terrabuild
 target image {
   build = ~auto
   artifacts = ~external
@@ -100,7 +112,7 @@ Use this when a Docker registry, package feed, or external service retains the a
 
 ### Never reuse a side effect
 
-```hcl
+```terrabuild
 target deploy {
   build = ~always
   artifacts = ~none

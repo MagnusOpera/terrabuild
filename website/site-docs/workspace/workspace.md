@@ -23,7 +23,7 @@ In short: if a setting should be shared, put it in `WORKSPACE`.
 
 ## Minimal example
 
-```hcl
+```terrabuild
 workspace {
   engine = ~docker
   configuration = "local"
@@ -41,7 +41,7 @@ target test {
 
 ## Example usage
 
-```hcl
+```terrabuild
 workspace {
     id = "af628998-bd53-4063-b054-f0b87965edd4"
     ignores = [ "src/project-1" ]

@@ -22,7 +22,7 @@ In short: if a setting is specific to one project, place it in `PROJECT`.
 
 ## Minimal example
 
-```hcl
+```terrabuild
 project {
   labels = [ "app" ]
   @dotnet { }
@@ -35,7 +35,7 @@ target build {
 
 ## Example usage
 
-```hcl
+```terrabuild
 project api {
     outputs = [ "bin/" "obj/" "**/*.binlog" ]
     depends_on = [ project.core ]

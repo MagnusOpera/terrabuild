@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Highlight Terrabuild configuration examples using their own language syntax.
+- Rework documentation around desired-state build and deployment with progressive tutorials, environment configuration, FScript customization, and advanced scenarios.
+
 ## [0.200.1]
 
 - Restore remote cache publication through Insights while retaining atomic cache generations.

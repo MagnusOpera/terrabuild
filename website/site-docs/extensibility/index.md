@@ -5,7 +5,11 @@ title: Extensibility
 
 Terrabuild extensions are FScript programs that translate target actions into shell operations. They let a workspace add a tool-specific vocabulary without compiling or modifying Terrabuild.
 
-:::tip Learn FScript first
+For a guided first example, start with [Customize your tools](../getting-started/customization.md).
+It builds on the two-project tutorial and explains a complete extension line by line.
+This section is the reference for extending that example.
+
+:::tip Learn more FScript
 FScript is a lightweight language with F#/ML-style functions, records, unions, options, collections, and pattern matching.
 
 - [Start the FScript tutorial](https://fscript.magnusopera.io/manual/0.78.1/learn/quickstart)

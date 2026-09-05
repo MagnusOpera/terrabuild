@@ -8,7 +8,9 @@ Terrabuild reads two configuration files:
 - `WORKSPACE` sits at the repository root and defines shared configuration.
 - `PROJECT` sits at the root of a project and defines project-specific configuration.
 
-Both use the same HCL-inspired syntax, but they accept different blocks and attributes.
+Both use Terrabuild's configuration language, with different allowed blocks and
+attributes. The language has its own syntax, expressions, and dependency semantics;
+it is not HCL. FScript is the separate language used to implement extensions.
 
 - A comment starts with `#` and ends at the newline.
 - A block defines a structure such as `project`, `target`, or `extension`.
@@ -19,7 +21,7 @@ Both use the same HCL-inspired syntax, but they accept different blocks and attr
 
 `WORKSPACE` is required at the repository root. It defines target dependencies, optional phases, variables, and extension defaults.
 
-``` {filename="WORKSPACE"}
+``` title="WORKSPACE"
 # Build upstream project dependencies first.
 target build {
   depends_on = [ target.^build ]
@@ -68,7 +70,7 @@ Each project requires a `PROJECT` file. It defines project metadata, target comm
 
 In `PROJECT`, `includes` and `outputs` are merged with inferred/default values for that project. `ignores` remains an explicit project-level set.
 
-``` {filename="PROJECT"}
+``` title="PROJECT"
 
 # Project files and outputs.
 project {
@@ -97,7 +99,7 @@ target publish {
 
 Some extensions discover project dependencies, tracked files, and outputs through an initializer block.
 
-``` {filename="PROJECT"}
+``` title="PROJECT"
 # Let the .NET extension discover project metadata.
 project {
     # Labels can filter a run.
@@ -119,7 +121,7 @@ target publish {
 
 This example shows which values originate in `WORKSPACE` and which values a `PROJECT` file adds.
 
-``` {filename="WORKSPACE"}
+``` title="WORKSPACE"
 # Workspace-level variable - can be overridden via command line or environment
 variable config {
   description = "Build configuration"
@@ -158,7 +160,7 @@ target build {
 }
 ```
 
-``` {filename="src/apps/api/PROJECT"}
+``` title="src/apps/api/PROJECT"
 # Project-level local - can use workspace variables and locals
 locals {
   app_name = "api"

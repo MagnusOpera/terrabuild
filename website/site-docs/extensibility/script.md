@@ -14,7 +14,7 @@ Legacy compiled F# scripts such as `.fsx` are not supported.
 
 Create a script inside the workspace:
 
-```fsharp {filename="tools/extensions/npm-ci.fss"}
+```fsharp title="tools/extensions/npm-ci.fss"
 type ShellOperation =
   { Command: string
     Arguments: string
@@ -50,7 +50,7 @@ type ExportFlag =
 
 Register it in the workspace:
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 extension npm_ci {
   script = "tools/extensions/npm-ci.fss"
 }
@@ -58,7 +58,7 @@ extension npm_ci {
 
 Then call the exported function as an action:
 
-```hcl {filename="PROJECT"}
+```terrabuild title="PROJECT"
 target install {
   npm_ci install { args = "--ignore-scripts" }
 }
@@ -175,7 +175,7 @@ Returning `Batchable = false` keeps the action as an individual operation. Terra
 
 A local script path is resolved from the directory containing the `WORKSPACE` or `PROJECT` file that declares it and must remain inside the workspace:
 
-```hcl
+```terrabuild
 extension my_extension {
   script = "tools/extensions/my-extension.fss"
 }
@@ -183,7 +183,7 @@ extension my_extension {
 
 Remote scripts must use HTTPS:
 
-```hcl
+```terrabuild
 extension my_extension {
   script = "https://example.org/terrabuild/my-extension.fss"
 }

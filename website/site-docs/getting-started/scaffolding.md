@@ -59,7 +59,7 @@ terrabuild run build
 ```
 
 Once builds and project dependencies are correct, add distribution and
-deployment paths. See [How Terrabuild works](./how-it-works.md) for the model and
+deployment paths. See [Adopt your existing tools](./existing-repository.md) for a progressive walkthrough and
 [Model a deployment](./deployment.md) for the source-to-environment path.
 
 Use the [Workspace reference](../workspace/index.md) and

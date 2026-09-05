@@ -5,7 +5,7 @@ title: Container
 
 An extension can run actions in a container when `image` is specified. Terrabuild uses the workspace engine (`docker` or `podman`) to launch it:
 
-```hcl
+```terrabuild
 extension @terraform {
     image = "hashicorp/terraform:1.8.4"
     platform = "linux/arm64"

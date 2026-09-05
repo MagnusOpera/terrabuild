@@ -40,7 +40,7 @@ Sign in to [Insights](https://insights.magnusopera.io), create a workspace, and
 open **Integrations → Terrabuild**. Insights provides the workspace block to add
 to the repository.
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 workspace {
   id = "<workspace-id>"
 }
@@ -81,7 +81,7 @@ Terrabuild profile for that workspace.
 Reporting works for every connected run. To share a target's declared files,
 set its artifact policy to `~managed`:
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 target build {
   artifacts = ~managed
   depends_on = [ target.^build ]

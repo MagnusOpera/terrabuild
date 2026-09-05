@@ -21,7 +21,7 @@ For example, this project inherits the workspace `image`, `variables`, `defaults
 
 ## Example
 
-```hcl
+```terrabuild
 extension @docker {
   platform = "linux/amd64"
   env {

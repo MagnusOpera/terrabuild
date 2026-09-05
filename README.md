@@ -1,4 +1,4 @@
-<a href="https://terrabuild.io?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=top-logo" title="Terrabuild - Desired-state software delivery for monorepos">
+<a href="https://terrabuild.io?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=top-logo" title="Terrabuild - Desired-state configuration for build and deployment">
     <img src="https://terrabuild.io/images/logo-name.svg" height="50" />
 </a>
 
@@ -10,25 +10,34 @@
 
 # What is Terrabuild?
 
-Terrabuild brings desired-state configuration to software delivery in polyglot
-monorepos. You declare the outcome—built, tested, packaged, planned, or
-deployed—and the relationships that make it valid.
+Terrabuild applies **desired-state configuration (DSC) to build and deployment**.
+Start with the outcome you want: applications built,
+tests passed, packages produced, or an environment deployed. You declare the
+relationships and policies that make that outcome valid; Terrabuild determines
+the work needed to reach it.
 
-Terrabuild resolves that intent into one dependency graph, recognizes results
-that already satisfy it, and runs the remaining work in dependency order. Your
-existing tools still compile, test, package, and deploy. The same declaration
-runs on a developer machine and in CI.
+Coordination is how Terrabuild realizes that intent. It connects tools, projects,
+and environment settings through one dependency model that runs locally and in CI.
 
-- Declare delivery outcomes and dependencies with concise HCL-like files.
-- Build and test independent projects concurrently while respecting their dependencies.
-- Connect application artifacts to environment-specific plans and deployments.
-- Reuse deterministic outputs locally or through the optional Insights service.
-- Inspect a run before executing it and compare delivery impact with an earlier commit.
-- Keep existing .NET, Node.js, Docker, Terraform, and other project configuration.
+Your existing tools do the work. Terrabuild determines their prerequisites,
+runs independent work concurrently, and reuses matching results according to
+explicit input, output, and execution policies.
+
+- Describe shared rules in `WORKSPACE` and project commands in `PROJECT` files.
+- Start with included integrations for .NET, Node.js, Docker, Go, and more.
+- Configure tool arguments, container images, and environment-specific settings.
+- Add or replace integrations under custom names using FScript extensions.
+- Keep common builds reusable while plans and deployments consume their environment context.
+- Inspect the selected workflow with `terrabuild explain` before executing it.
+
+[Start with two small projects](https://terrabuild.io/docs/next/getting-started/quick-start),
+then [adopt your existing tools](https://terrabuild.io/docs/next/getting-started/existing-repository)
+and [coordinate environments](https://terrabuild.io/docs/next/getting-started/environments).
+The first tutorial requires only Terrabuild, Git, and a POSIX shell.
 
 # Terrabuild and Insights
 
-Terrabuild converges the delivery graph toward the requested state.
+Terrabuild executes the requested workflow.
 [Insights](https://insights.magnusopera.io) records the states that were reached,
 how they changed, and what each environment received.
 
@@ -40,7 +49,7 @@ usable with its local cache when Insights is not connected.
 # Learn more
 - [Documentation](https://terrabuild.io/docs/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=docs)
 - [Why Terrabuild](https://terrabuild.io/docs/next/getting-started/why-terrabuild/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=positioning)
-- [Quickstart](https://terrabuild.io/docs/getting-started/quick-start/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=quickstart)
+- [Quickstart](https://terrabuild.io/docs/next/getting-started/quick-start/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=quickstart)
 - [Insights](https://terrabuild.io/docs/next/insights/?utm_campaign=magnusopera-terrabuild-github-repo&utm_source=github.com&utm_medium=insights)
 - [Playground](https://github.com/magnusopera/terrabuild-playground)
 - [Local architecture docs](docs/README.md)

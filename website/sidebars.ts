@@ -68,18 +68,22 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Try Terrabuild',
+      label: 'Learn by doing',
       items: [
         'getting-started/install',
         'getting-started/quick-start',
+        'getting-started/existing-repository',
         'getting-started/scaffolding',
+        'getting-started/environments',
+        'getting-started/customization',
       ],
     },
     {
       type: 'category',
-      label: 'Deliver software',
+      label: 'Coordinate delivery',
       items: [
         'getting-started/deployment',
+        'getting-started/advanced-scenarios',
       ],
     },
     {
@@ -95,7 +99,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Deep dive',
+      label: 'Concepts and policies',
       collapsed: true,
       items: [
         'getting-started/key-concepts',

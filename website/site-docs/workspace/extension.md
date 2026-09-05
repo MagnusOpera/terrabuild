@@ -12,7 +12,7 @@ remove inherited entries.
 
 ## Example
 
-```hcl
+```terrabuild
 extension @dotnet {
   image = "mcr.microsoft.com/dotnet/sdk:8.0"
   platform = "linux/arm64"

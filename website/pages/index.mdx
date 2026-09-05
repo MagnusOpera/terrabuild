@@ -1,6 +1,6 @@
 ---
 title: Terrabuild
-description: Desired-state software delivery for polyglot monorepos, from source change to deployed environment.
+description: Desired-state configuration for build and deployment. Declare outcomes; Terrabuild coordinates your tools and environments to reach them.
 ---
 
 import Link from '@docusaurus/Link';
@@ -11,29 +11,30 @@ import Link from '@docusaurus/Link';
       <div className="tb-home-copy">
         <div className="tb-home-eyebrow">
           <span className="tb-home-eyebrow-dot" aria-hidden="true"></span>
-          <span className="tb-home-eyebrow-label">For polyglot monorepos</span>
+          <span className="tb-home-eyebrow-label">Desired-state configuration for software delivery</span>
         </div>
         <h1 className="tb-home-title">
-          Desired-state delivery.<br />
-          <span>From source to environment.</span>
+          Declare your<br />
+          <span>desired state.</span>
         </h1>
         <p className="tb-home-lede">
-          Declare the outcome—built, tested, packaged, planned, or deployed. Terrabuild follows dependencies
-          from source to environment, reuses results that already satisfy the graph, and runs the rest.
+          Terrabuild applies desired-state configuration to build and deployment.
+          Declare what should be built, tested, packaged, or deployed. Terrabuild coordinates your tools
+          and environment settings, reuses valid results, and runs the work needed to reach that outcome.
         </p>
         <div className="tb-home-actions">
-          <Link className="button button--primary button--lg tb-home-button" to="/docs/next/getting-started/why-terrabuild">
-            <span className="tb-home-button-label">See how it fits</span>
+          <Link className="button button--primary button--lg tb-home-button" to="/docs/next/getting-started/quick-start">
+            <span className="tb-home-button-label">Build your first workflow</span>
             <span className="tb-home-button-arrow" aria-hidden="true">→</span>
           </Link>
-          <Link className="tb-home-secondary" to="/docs/getting-started/quick-start">
-            <span>Run the quick start</span>
+          <Link className="tb-home-secondary" to="/docs/next/getting-started/how-it-works">
+            <span>Understand the model</span>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.25 3.75h7v7M12 4 4 12" /></svg>
           </Link>
         </div>
         <div className="tb-home-proof" aria-label="Terrabuild highlights">
           <span><i aria-hidden="true">✓</i> The same declaration locally and in CI</span>
-          <span><i aria-hidden="true">✓</i> Your tools stay in place</span>
+          <span><i aria-hidden="true">✓</i> Included tools + custom FScript</span>
           <span><i aria-hidden="true">✓</i> Local cache included</span>
         </div>
       </div>
@@ -93,34 +94,34 @@ import Link from '@docusaurus/Link';
   <section className="tb-home-value">
     <div className="container">
       <div className="tb-section-intro">
-        <span className="tb-section-label">DESIRED-STATE DELIVERY</span>
-        <h2>Declare the outcome. Let the graph determine the work.</h2>
-        <p>The requested targets describe where delivery should arrive. Dependencies and target policies describe what must be true on the way there.</p>
+        <span className="tb-section-label">DESIRED STATE, FROM SOURCE TO ENVIRONMENT</span>
+        <h2>Describe what should be true. Let the graph determine the work.</h2>
+        <p>A frontend needs a generated client. An image needs the application. A deployment needs the image and its environment settings. Put those relationships in one place.</p>
       </div>
       <div className="tb-value-grid">
         <article>
           <div className="tb-value-card-top"><div className="tb-value-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4c3 0 3-6 6-6M7 12h4c3 0 3 6 6 6"/></svg></div><span className="tb-value-label">ONE MODEL</span></div>
-          <h3>State the result, not the job sequence</h3>
-          <p>Request a target and environment. Terrabuild expands their prerequisites, orders the work, and runs independent branches concurrently.</p>
+          <h3>Connect work across tools</h3>
+          <p>Use included integrations for .NET, Node.js, Docker, Go, and more. Add your own FScript actions. Terrabuild orders their prerequisites and runs independent work concurrently.</p>
         </article>
         <article>
           <div className="tb-value-card-top"><div className="tb-value-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="m4 12 8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg></div><span className="tb-value-label">POLICY</span></div>
-          <h3>Recognize what is already satisfied</h3>
-          <p>Inputs and artifact policies identify reusable results. Deployments remain explicit side effects, so an old cache entry never stands in for a current action.</p>
+          <h3>Reuse the work already done</h3>
+          <p>Declare inputs and outputs so matching results can be reused. Give deployments an explicit always-run policy when each request must change external state.</p>
         </article>
         <article>
-          <div className="tb-value-card-top"><div className="tb-value-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h6"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="19" r="2"/></svg></div><span className="tb-value-label">SCOPE</span></div>
-          <h3>Converge only the affected graph</h3>
-          <p>A shared-library change follows dependency edges into affected applications. Unrelated delivery streams remain satisfied and stay out of the run.</p>
+          <div className="tb-value-card-top"><div className="tb-value-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h10M4 19h6"/><circle cx="18" cy="12" r="2"/><circle cx="14" cy="19" r="2"/></svg></div><span className="tb-value-label">ENVIRONMENTS</span></div>
+          <h3>Make environment differences explicit</h3>
+          <p>Keep common builds reusable while plans and deployments consume staging or production settings. Configure project selection, tool arguments, and execution containers where they belong.</p>
         </article>
       </div>
 
       <div className="tb-streams">
         <div className="tb-streams-copy">
           <span className="tb-section-label">SEVERAL APPLICATIONS, SEVERAL ENVIRONMENTS</span>
-          <h3>A monorepo is not one release train.</h3>
-          <p>The Magnus Opera workspace can move <code>studio</code> into a pull-request preview while <code>catalog</code> remains in staging. Each application follows its own path through the same dependency graph.</p>
-          <Link className="tb-extension-link" to="/docs/getting-started/deployment"><span>Model deployment</span><span aria-hidden="true">→</span></Link>
+          <h3>Let each application follow its own delivery path.</h3>
+          <p>For example, select <code>studio</code> for a preview deployment while <code>catalog</code> stays in staging. Each application can have its own infrastructure dependencies and environment settings.</p>
+          <Link className="tb-extension-link" to="/docs/next/getting-started/deployment"><span>Model deployment</span><span aria-hidden="true">→</span></Link>
         </div>
         <div className="tb-streams-map" role="img" aria-label="Studio moves from preview to staging and production while Catalog remains in staging">
           <div className="tb-stream-row"><strong>studio</strong><span className="tb-env tb-env-preview">preview-1842</span><i></i><span className="tb-env">staging</span><i></i><span className="tb-env tb-env-production">production</span></div>
@@ -130,12 +131,37 @@ import Link from '@docusaurus/Link';
     </div>
   </section>
 
+  <section className="tb-home-extensions">
+    <div className="container">
+      <div className="tb-extensions-heading">
+        <div><span className="tb-section-label">EXTENSIONS</span><h2>Your tools do the work. Terrabuild coordinates them.</h2></div>
+        <p>Use the included extensions for common build and deployment tools. Add another tool with an FScript file, without changing or recompiling Terrabuild.</p>
+      </div>
+      <div className="tb-extensions-grid">
+        <article className="tb-extension-card tb-extension-ecosystem">
+          <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 6l-4 12"/></svg></span><span className="tb-extension-card-index">EXTENSIONS</span></div>
+          <h3>Start with the included extensions.</h3>
+          <p>Use commands for common toolchains. A custom <a href="https://fscript.magnusopera.io/" target="_blank" rel="noreferrer">FScript</a> extension can define actions, defaults, project discovery, and batching rules for anything else.</p>
+          <div className="tb-extension-tags" aria-label="Built-in extension examples"><span>dotnet</span><span>npm</span><span>docker</span><span>go</span><span>+ custom</span></div>
+          <Link className="tb-extension-link" to="/docs/next/getting-started/customization"><span>Configure or write an extension</span><span aria-hidden="true">→</span></Link>
+        </article>
+        <article className="tb-extension-card tb-extension-container">
+          <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg></span><span className="tb-extension-card-index">CONTAINERS</span></div>
+          <h3>Pin the execution environment.</h3>
+          <p>Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker and Podman.</p>
+          <div className="tb-extension-code" aria-label="Example containerized .NET extension"><div><span>extension</span> <strong>@dotnet</strong> {'{'}</div><div className="tb-code-indent">image <i>=</i> <em>"mcr.microsoft.com/dotnet/sdk:9.0"</em></div><div className="tb-code-indent">platform <i>=</i> <em>"linux/arm64"</em></div><div>{'}'}</div></div>
+          <Link className="tb-extension-link" to="/docs/next/extensibility/container"><span>Containerize an extension</span><span aria-hidden="true">→</span></Link>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section className="tb-home-insights">
     <div className="container tb-insights-layout">
       <div className="tb-insights-copy">
         <span className="tb-section-label">INSIGHTS</span>
-        <h2>Terrabuild converges delivery.<br />Insights records what was reached.</h2>
-        <p>Terrabuild resolves the requested state now. Insights explains what ran, what reached each environment, what changed between releases, and how delivery is evolving.</p>
+        <h2>See what ran.<br />Follow what reached each environment.</h2>
+        <p>Start with local execution and caching, without an account. Connect Insights when you want shared encrypted artifacts, execution history, and a record of changes delivered to each environment.</p>
         <div className="tb-insights-capabilities">
           <div><strong>Execution history</strong><span>Inspect every run as a dependency graph.</span></div>
           <div><strong>Environments and releases</strong><span>Follow promotions, rollbacks, divergence, and release notes.</span></div>
@@ -163,35 +189,10 @@ import Link from '@docusaurus/Link';
     </div>
   </section>
 
-  <section className="tb-home-extensions">
-    <div className="container">
-      <div className="tb-extensions-heading">
-        <div><span className="tb-section-label">EXTENSIONS</span><h2>Your tools do the work. Terrabuild coordinates them.</h2></div>
-        <p>Use the included extensions for common build and deployment tools. Add another tool with an FScript file, without changing or recompiling Terrabuild.</p>
-      </div>
-      <div className="tb-extensions-grid">
-        <article className="tb-extension-card tb-extension-ecosystem">
-          <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 6l-4 12"/></svg></span><span className="tb-extension-card-index">EXTENSIONS</span></div>
-          <h3>Start with the included extensions.</h3>
-          <p>Use commands for common toolchains. A custom <a href="https://fscript.magnusopera.io/" target="_blank" rel="noreferrer">FScript</a> extension can define actions, defaults, project discovery, and batching rules for anything else.</p>
-          <div className="tb-extension-tags" aria-label="Built-in extension examples"><span>dotnet</span><span>npm</span><span>docker</span><span>terraform</span><span>+ custom</span></div>
-          <Link className="tb-extension-link" to="/docs/extensions"><span>Explore extensions</span><span aria-hidden="true">→</span></Link>
-        </article>
-        <article className="tb-extension-card tb-extension-container">
-          <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg></span><span className="tb-extension-card-index">CONTAINERS</span></div>
-          <h3>Pin the execution environment.</h3>
-          <p>Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker and Podman.</p>
-          <div className="tb-extension-code" aria-label="Example containerized Terraform extension"><div><span>extension</span> <strong>terraform</strong> {'{'}</div><div className="tb-code-indent">image <i>=</i> <em>"hashicorp/terraform:1.8.4"</em></div><div className="tb-code-indent">platform <i>=</i> <em>"linux/arm64"</em></div><div>{'}'}</div></div>
-          <Link className="tb-extension-link" to="/docs/extensibility/container"><span>Containerize an extension</span><span aria-hidden="true">→</span></Link>
-        </article>
-      </div>
-    </div>
-  </section>
-
   <section className="tb-home-cta">
     <div className="container tb-home-cta-inner">
-      <div><span className="tb-section-label">START WITH ONE DELIVERY PATH</span><h2>Map the first change to its environment.</h2></div>
-      <Link className="button button--primary button--lg tb-home-button" to="/docs/getting-started/quick-start"><span className="tb-home-button-label">Read the quick start</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
+      <div><span className="tb-section-label">LEARN BY DOING</span><h2>Two projects. Your first coordinated workflow.</h2></div>
+      <Link className="button button--primary button--lg tb-home-button" to="/docs/next/getting-started/quick-start"><span className="tb-home-button-label">Start the tutorial</span><span className="tb-home-button-arrow" aria-hidden="true">→</span></Link>
     </div>
   </section>
 </main>

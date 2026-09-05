@@ -29,7 +29,7 @@ You do not need to set every attribute. Terrabuild infers outputs and artifact b
 
 This workspace policy describes application builds that follow the project dependency graph, run after local toolchains, share managed outputs, and batch only dependency-connected groups:
 
-```hcl {filename="WORKSPACE"}
+```terrabuild title="WORKSPACE"
 phase toolchains { }
 
 phase application {
@@ -61,7 +61,7 @@ These values are an example policy, not universal defaults. A small workspace ma
 
 Use `depends_on` for a concrete data or execution requirement:
 
-```hcl
+```terrabuild
 target build {
   depends_on = [ target.^build ]
 }
@@ -91,7 +91,7 @@ Ordinary dependency execution propagates to dependents unless the dependency is 
 
 `outputs` identifies the files and directories Terrabuild may preserve and replace during restoration. If it is omitted, Terrabuild combines outputs declared by the project and the commands used by the target. Override it when those inferred patterns are incomplete or too broad.
 
-```hcl
+```terrabuild
 target dist {
   outputs = [ "dist/**" ]
 }
@@ -126,7 +126,7 @@ Targets are environment-neutral by default. A neutral target fails before execut
 
 Set `environment_sensitive = true` only when that contextual value intentionally changes the output:
 
-```hcl
+```terrabuild
 target plan {
   environment_sensitive = true
 }
@@ -138,7 +138,7 @@ The consumed sensitive value hashes then participate in the cache key. This is a
 
 Independent graph nodes normally execute concurrently. Add a named lock when they mutate the same resource outside their project directories:
 
-```hcl
+```terrabuild
 target generate {
   lock = "nuget-tools"
 }
@@ -152,7 +152,7 @@ A workspace target supplies the default lock for matching project targets. A pro
 
 ### Externally managed image
 
-```hcl
+```terrabuild
 target image {
   build = ~auto
   artifacts = ~external
@@ -164,7 +164,7 @@ Terrabuild can reuse the successful Docker build summary, but the image remains 
 
 ### Side-effecting deployment
 
-```hcl
+```terrabuild
 target deploy {
   build = ~always
   artifacts = ~none
@@ -177,7 +177,7 @@ Every selected deployment executes after its plan, retains no reusable result, a
 
 ### Shared generator or toolchain
 
-```hcl
+```terrabuild
 target generate {
   phase = phase.toolchains
   build = ~lazy

@@ -1,74 +1,90 @@
 ---
 linkTitle: Introduction
 title: Introduction
-description: Understand what Terrabuild does before configuring it.
+description: Learn desired-state configuration applied to build and deployment.
 ---
 
-Terrabuild brings desired-state thinking to software delivery.
+Terrabuild applies **desired-state configuration (DSC) to build and deployment**.
+Describe the result you want and the conditions that make it valid. Terrabuild
+determines the work needed to reach it.
 
-You declare the outcome you want—built, tested, packaged, planned, or deployed.
-Terrabuild follows dependencies from source to environment, reuses results that
-already satisfy the graph, and runs the remaining work.
+For software delivery, that result might be an application built and tested, an
+image packaged, or a chosen version deployed to staging. You declare the
+prerequisites, inputs, and policies that make the result valid. Terrabuild resolves
+those declarations into a graph, reuses matching results where permitted, and
+executes the remaining work.
 
-Your existing tools stay in place. .NET still compiles the application, pnpm
-still builds the frontend, Docker still creates the image, and Terraform still
-changes the infrastructure. Terrabuild connects their work into one delivery
-model that runs locally and in CI.
+**Coordination is how it gets there.** Terrabuild connects your tools, projects,
+and environment settings. Compilers, package managers, and infrastructure tools
+still perform their own work; Terrabuild brings their outcomes into one model.
+
+For example, a frontend may need a generated API client before it can build. A
+container image may need that frontend and a backend. A deployment may need both
+the image and settings for staging. Terrabuild coordinates those relationships
+on a developer machine and in CI.
+
+## Describe the work, request the outcome
 
 ```bash
-terrabuild run deploy --environment staging
+terrabuild run build test
+terrabuild explain deploy --environment staging
 ```
 
-From that request, Terrabuild can determine which applications are involved,
-which prerequisites must run, which outputs can be restored, and what must
-complete before staging can change.
-
-## The idea in one picture
+`build`, `test`, and `deploy` are target names defined by the repository.
+`run` executes the required work; `explain` shows the resolved plan without
+executing its operations.
 
 ```mermaid
 flowchart LR
-  change["source change"] --> build["build and test"]
-  build --> package["package application"]
-  package --> plan["plan staging"]
+  client["generate client"] --> web["build frontend"]
+  web --> image["package image"]
+  api["build backend"] --> image
+  image --> plan["plan staging"]
+  settings["staging settings"] --> plan
   plan --> deploy["deploy staging"]
-
-  class change tb-muted
-  class build,package tb-secondary
-  class plan tb-decision
-  class deploy tb-primary
 ```
 
-You request the destination on the right. Terrabuild resolves the prerequisites
-to its left. If a prerequisite already has a valid result, Terrabuild reuses it
-instead of repeating the command.
+You declare the dependencies once. Terrabuild follows them, runs independent work
+concurrently, and reuses matching results according to each target's policy.
+Operations that change external state, such as deploying, can be configured to
+run on every request.
 
-This is the central model. Graph construction, cache keys, batching, phases,
-and artifact modes refine how it works; you do not need them to understand the
-product or complete the quick start.
+## Batteries included, with room to customize
 
-## Where to begin
+Included extensions connect tools such as .NET, npm, pnpm, Docker, and Go.
+They provide actions and, where supported, discover project metadata from native
+project files. Configure their arguments, container images, and environment
+values to suit your repository.
 
-If Terrabuild is new to you:
+For a different tool or a different integration, write an **FScript extension**.
+It translates your target actions into commands and can also supply project
+defaults and batching behavior. No Terrabuild rebuild is required.
 
-1. Read [How Terrabuild works](getting-started/how-it-works.md).
-2. [Install Terrabuild](getting-started/install.md).
-3. Follow the [quick start](getting-started/quick-start.md) in the playground.
-4. Read [Model a deployment](getting-started/deployment.md) when you are ready to connect applications to an environment.
+## Make environment differences explicit
 
-If you are evaluating whether it fits your repository, start with
-[Why Terrabuild?](getting-started/why-terrabuild.md).
+A compilation may be reusable in staging and production, while an infrastructure
+plan must use the selected environment. Terrabuild lets you model that boundary
+with variables, project selection, extension settings, and environment-sensitive
+targets. The same graph can then serve several environments without duplicating
+the whole workflow.
 
-## Terrabuild and Insights
+Terrabuild runs when invoked; it does not continuously reconcile live systems.
+Your infrastructure tools own external state, and CI owns triggers, credentials,
+and approvals.
 
-Terrabuild converges the requested delivery graph. [Insights](insights/index.md)
-keeps the delivery record: what ran, which changes reached each environment,
-how releases differ, and how delivery evolves over time. Insights also provides
-encrypted artifact sharing between authorized developer machines and CI.
+## Start small, then expand
 
-Terrabuild works locally without an Insights account.
+Begin with [Start here](getting-started/index.md), or go straight to
+[your first coordinated workflow](getting-started/quick-start.md). The tutorial
+uses two small shell scripts so you can learn the model before introducing a
+full toolchain.
 
-## When you need more detail
+Then [adopt your existing tools](getting-started/existing-repository.md),
+[configure environments](getting-started/environments.md), and
+[add custom actions](getting-started/customization.md). The
+[advanced scenarios](getting-started/advanced-scenarios.md) show how those pieces
+combine in larger repositories.
 
-The **Deep dive** section explains tasks, graph construction, caching, target
-policy, batching, phases, and diagnostic commands. The **Reference** sections
-document every configuration block, expression, command, and extension.
+[Insights](insights/index.md) is the optional service for shared encrypted
+artifacts, execution graphs, and environment and release history. Local execution
+and caching work without an account.

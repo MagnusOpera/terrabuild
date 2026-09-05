@@ -1,175 +1,239 @@
 ---
-title: Quick start
-description: See selection, dependency ordering, and reuse in a small delivery workspace.
+title: Your first coordinated workflow
+description: Create two projects, run them in dependency order, and reuse their outputs.
 ---
 
-This guide uses the
-[Terrabuild Playground](https://github.com/MagnusOpera/terrabuild-playground),
-a small monorepo with shared libraries, .NET and web applications, container
-images, and a Terraform deployment project.
+This tutorial makes desired-state configuration concrete: you request a built
+package, declare what it needs, and let Terrabuild determine the work.
 
-You need [Terrabuild installed](./install.md), Git, and Docker running.
+You will create a tiny workspace with two projects: one prepares
+a message, and the other packages it. The tools are deliberately simple so you
+can see what Terrabuild contributes: dependencies, execution order, and reusable
+results. The same configuration model works with compilers, package managers,
+and deployment tools.
+
+You need [Terrabuild](./install.md), Git, and a POSIX shell (`sh`, available on
+macOS and Linux). The commands below use Bash-compatible syntax. No container
+engine or Insights account is needed.
+
+## 1. Create a workspace
+
+In a new directory, run:
 
 ```bash
-git clone https://github.com/MagnusOpera/terrabuild-playground.git
-cd terrabuild-playground
+mkdir terrabuild-tutorial
+cd terrabuild-tutorial
+git init
+mkdir message package
 ```
 
-## What is in the workspace?
+Create these files using the names shown above each example.
 
-The playground has two application paths. Each application depends on a library
-and can produce a container image. The infrastructure project depends on both
-applications.
+```terrabuild title="WORKSPACE"
+workspace { }
+
+target build {
+  depends_on = [ target.^build ]
+  artifacts = ~workspace
+}
+```
+
+`WORKSPACE` holds shared rules. Here, every `build` target waits for `build`
+in its dependency projects. `artifacts = ~workspace` tells Terrabuild to keep
+outputs in its local cache.
+
+```text title=".gitignore"
+**/dist/
+```
+
+Generated files belong in `dist/`; they are outputs, not source inputs.
+
+## 2. Define the producer
+
+```text title="message/message.txt"
+Hello from Terrabuild!
+```
+
+```sh title="message/build.sh"
+set -eu
+mkdir -p dist
+cp message.txt dist/message.txt
+```
+
+```terrabuild title="message/PROJECT"
+project message {
+  outputs = [ "dist/**" ]
+}
+
+target build {
+  @shell sh { args = "build.sh" }
+}
+```
+
+A `PROJECT` file describes one unit of work. The `project` block names it and
+declares its outputs. The `target` block supplies the command for `build`.
+
+`@shell` is an included extension. Here it invokes `sh build.sh` in the project
+directory. Terrabuild supplies the coordination; the shell script produces the file.
+
+## 3. Define the consumer
+
+```sh title="package/build.sh"
+set -eu
+mkdir -p dist
+cat ../message/dist/message.txt > dist/package.txt
+printf 'Packaged successfully.\n' >> dist/package.txt
+```
+
+```terrabuild title="package/PROJECT"
+project package {
+  depends_on = [ project.message ]
+  outputs = [ "dist/**" ]
+}
+
+target build {
+  @shell sh { args = "build.sh" }
+}
+```
+
+The two dependency declarations work together:
+
+- `project.message` says that the package consumes the message project.
+- `target.^build` in `WORKSPACE` says which work it needs from that project.
 
 ```mermaid
 flowchart LR
-  cslib["C# library"] --> api["API"]
-  tslib["TypeScript library"] --> web["web application"]
-  api --> apiImage["API image"]
-  web --> webImage["web image"]
-  apiImage --> infrastructure["infrastructure"]
-  webImage --> infrastructure
-
-  class cslib,tslib tb-muted
-  class api,web,apiImage,webImage tb-secondary
-  class infrastructure tb-primary
+  message["message:build"] --> package["package:build"]
 ```
 
-Terrabuild discovers this model from the repository's `WORKSPACE` and `PROJECT`
-files.
+The arrow means “must finish before.” A project relationship alone does not
+specify which command should run first; the target relationship supplies that rule.
 
-## 1. Preview the first outcome
+Your directory should now look like this:
 
-Ask Terrabuild what it would do to produce the distributable applications:
+```text
+terrabuild-tutorial/
+├── .gitignore
+├── WORKSPACE
+├── message/
+│   ├── PROJECT
+│   ├── build.sh
+│   └── message.txt
+└── package/
+    ├── PROJECT
+    └── build.sh
+```
+
+Record the starting files so the tutorial has a Git history:
 
 ```bash
-terrabuild explain dist
+git add .
+git commit -m "Add tutorial workspace"
 ```
 
-`explain` resolves the delivery graph without executing commands. You should see
-the application `dist` targets and the library and application work they require.
+## 4. Inspect, then run
 
-The detailed output includes cache and scheduling information. For now, focus
-on two questions:
-
-- Which projects were selected?
-- Which prerequisite appears before each application?
-
-## 2. Build the distributable applications
-
-Run the outcome you just inspected:
+From the workspace root:
 
 ```bash
-terrabuild run dist
+terrabuild explain build --project package
 ```
 
-Terrabuild builds the required libraries and applications, then creates the
-application images. Independent branches can run concurrently.
+Look for `package:build` and its prerequisite `message:build`. Selecting a
+project does not remove the prerequisites it needs. `explain` resolves the
+configuration and extension operations without executing those operations.
 
-Your underlying tools still perform each operation. Terrabuild is coordinating
-their order and collecting the results.
-
-## 3. Run it again
-
-Without changing the repository, run the same command:
+Now run the same selection:
 
 ```bash
-terrabuild run dist
+terrabuild run build --project package
+cat package/dist/package.txt
 ```
 
-The declared inputs still match the previous result, so Terrabuild can reuse
-the completed work. Some results restore files from the local cache; externally
-owned results, such as container images, can reuse their successful record.
+Expected file contents:
 
-This is desired-state delivery in its simplest form: the requested outcome is
-already satisfied, so there is no reason to repeat every command.
+```text
+Hello from Terrabuild!
+Packaged successfully.
+```
 
-## 4. Change one project
+Terrabuild runs `message:build` before `package:build`. With several independent
+projects, it can execute independent branches concurrently.
 
-Edit a tracked source file in either library, then inspect or run `dist` again:
+## 5. Reuse the result
+
+Run the same command again:
 
 ```bash
-terrabuild explain dist
-terrabuild run dist
+terrabuild run build --project package
 ```
 
-The change follows the project dependencies into the affected application.
-Work on the other application path can remain satisfied.
+The inputs have not changed, so Terrabuild can reuse both successful results
+and report that everything is up to date.
 
-Undo the source edit when you are finished with the experiment.
+To see file restoration, add an action that consumes the built package and runs
+on every request. Declare the selectable target and its policy in `WORKSPACE`:
 
-## 5. Follow the path to an environment
-
-The infrastructure project connects both application distributions to a
-Terraform plan and deployment. Inspect that path without changing infrastructure:
-
-```bash
-terrabuild explain deploy --environment staging
-```
-
-The result should include:
-
-1. the application distributions required by infrastructure;
-2. the Terraform plan for `staging`;
-3. the final deployment target.
-
-The deployment is shown, but `explain` does not execute it.
-
-## The configuration behind the result
-
-The workspace describes the relationships you just observed:
-
-```hcl {filename="WORKSPACE"}
-target build {
-  depends_on = [ target.^build ]
-}
-
-target dist {
-  depends_on = [ target.build target.^build ]
-}
-
-target plan {
-  depends_on = [ target.^dist ]
-  environment_sensitive = true
-}
-
-target deploy {
-  depends_on = [ target.plan ]
+```terrabuild title="WORKSPACE"
+target inspect {
+  depends_on = [ target.build ]
   build = ~always
   artifacts = ~none
 }
 ```
 
-Read this from the requested outcome backwards:
+Append its command to `package/PROJECT`:
 
-- `deploy` requires `plan`;
-- `plan` requires distributions from upstream application projects;
-- `dist` requires builds from the current and upstream projects;
-- `build` follows the project dependency graph.
+```terrabuild title="package/PROJECT"
+target inspect {
+  @shell cat { args = "dist/package.txt" }
+}
+```
 
-`deploy` is marked as an action that must run whenever selected. A prior
-deployment is historical evidence, not proof that an environment still matches.
+Run it once to establish the result with the updated configuration:
 
-Each `PROJECT` file then supplies the commands for its unit. For example, an
-application can attach .NET and Docker commands to the shared targets, while
-the infrastructure project attaches Terraform commands.
+```bash
+terrabuild run inspect --project package
+```
 
-You do not need to understand every target attribute yet. The
-[deployment guide](./deployment.md) explains the few policies that matter when
-crossing into an environment; [Target policies](./target-policies.md) is the
-complete decision guide.
+Then remove only the generated directories and request that consumer again:
 
-## What you have seen
+```bash
+rm -r message/dist package/dist
+terrabuild run inspect --project package
+cat package/dist/package.txt
+```
 
-The playground demonstrates the main Terrabuild model:
+The file contains the same package contents. Terrabuild restores the prerequisite
+files before the consumer reads them. A fully cached `build` request can finish
+without executing or restoring tasks; the always-running consumer makes the
+need for those files explicit.
 
-- ask for an outcome rather than scripting every step;
-- follow changes through project and target dependencies;
-- run independent work concurrently;
-- reuse results that already satisfy the graph;
-- extend the same graph from source into an environment;
-- inspect a delivery before executing it.
+Restoration works because you declared both an artifact policy and output paths.
+The generic `@shell` extension does not assume arbitrary commands are cacheable;
+the workspace policy explicitly makes these repeatable builds cacheable. The
+`inspect` target overrides that policy with an action that runs every time.
 
-Continue with [Model a deployment](./deployment.md), or use
-[Scaffolding](./scaffolding.md) to create an initial model for your own
-repository.
+## 6. Change the producer
+
+```bash
+printf 'Hello from a changed input!\n' > message/message.txt
+terrabuild explain build --project package
+terrabuild run build --project package
+cat package/dist/package.txt
+```
+
+The message input changes, so its result changes. The package depends on that
+result and must run again. Its output now contains the new greeting followed by
+`Packaged successfully.`
+
+You have described a dependency once and used it for both ordering and change
+propagation. You did not need a separate script that manually runs the projects
+in sequence.
+
+## Take it further
+
+- [Adopt Terrabuild in an existing repository](./existing-repository.md): use your native tools and add projects progressively.
+- [Configure environments](./environments.md): keep reusable work separate from context-specific work.
+- [Customize your tools](./customization.md): replace this shell invocation with a small FScript extension.
+- [Explore advanced scenarios](./advanced-scenarios.md): combine generated code, toolchains, deployments, and CI.

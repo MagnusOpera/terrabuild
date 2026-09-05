@@ -3,30 +3,30 @@ title: Why Terrabuild
 description: Decide whether Terrabuild fits your monorepo and delivery workflow.
 ---
 
-Terrabuild brings desired-state configuration (DSC) to software delivery in
-polyglot monorepos. It gives builds, tests, packages, infrastructure plans,
-deployments, and cleanup one dependency model.
+Terrabuild applies **desired-state configuration to build and deployment**.
+You request outcomes, declare their prerequisites, and let Terrabuild determine
+the necessary work. Builds, tests, generated code, packages, deployments, and
+cleanup share this model.
 
-Terrabuild does not compile code or replace Terraform. Your existing tools still
-do that work. Terrabuild selects the required operations, orders them, runs safe
-work concurrently, and reuses results whose inputs have not changed.
+Terrabuild coordinates software delivery across tools, projects, and environments,
+using its own configuration language and FScript extension model.
 
-## DSC, applied to delivery
+## Desired-state configuration, applied to delivery
 
-In desired-state configuration, you declare the result that should hold and let
-the engine determine the work required to reach it. Terrabuild applies that
-principle to a repository and its delivery paths.
+In desired-state configuration (DSC), you describe the result that should hold.
+The engine determines how to reach it from the available state. In Terrabuild:
 
-The requested targets and environment state the outcome. Project dependencies,
-target dependencies, inputs, artifacts, and policies define what makes that
-outcome valid. Terrabuild expands the graph, treats matching reusable results as
-already satisfied, and executes the remaining nodes in dependency order.
+| Part of the model | Example |
+| --- | --- |
+| Desired outcome | Deploy the API to staging. |
+| Prerequisites | Build and test the API, produce its image, then prepare its infrastructure plan. |
+| Reusable results | A successful build or image publication whose declared inputs still match. |
+| Context | Staging settings and the state read by the infrastructure tool. |
+| Required actions | Execute missing or changed work, and actions explicitly configured to run every time. |
 
-This is not continuous reconciliation of live infrastructure. Terrabuild does
-not inspect a cloud environment and assume it can prove the deployed state.
-Targets that change external systems are explicit side effects: when selected,
-they run. Terraform, deployment APIs, and other domain tools remain responsible
-for reading and changing the systems they own.
+This explains why Terrabuild is more than a build tool. Its role is to coordinate
+whatever tools and environment settings the desired outcome requires. Included
+extensions provide common integrations; FScript lets you define your own.
 
 ## The problem it addresses
 
@@ -68,7 +68,7 @@ Terrabuild is most useful when a repository has several of these characteristics
 - more than one language or package manager is present;
 - applications are packaged as containers or published artifacts;
 - preview, staging, and production environments have related but distinct flows;
-- a source change should deploy only the applications it affects;
+- application delivery paths need independent selection and shared prerequisites;
 - local development and CI should follow the same dependency rules;
 - infrastructure plans and deployments must wait for specific application results;
 - the team wants to keep its existing project files and command-line tools.
@@ -87,11 +87,23 @@ that difference explicitly.
 | Build or test | Reuse when inputs match | The result is deterministic. |
 | Generated source | Preserve declared files | Downstream projects consume them. |
 | Published image | Reuse its successful summary | The registry owns the artifact. |
-| Infrastructure plan | Include the selected environment | A staging plan is not a production plan. |
+| Infrastructure plan | Include the selected environment; refresh when live state matters | A source cache key cannot detect cloud drift. |
 | Deployment or cleanup | Always execute; retain no reusable result | The operation changes external state. |
 
 This lets a single graph cross the boundary between repeatable computation and
 intentional side effects without treating them as the same thing.
+
+## How this relates to infrastructure state
+
+Terrabuild resolves the requested graph on each invocation. Its reusable results
+are evidence about declared work and inputs; they are not a live inventory of a
+cloud environment. The underlying tools remain responsible for reading and
+changing the systems they own.
+
+For example, an infrastructure plan can observe external changes outside the
+repository. Configure it to refresh when that matters, and configure the apply
+with `build = ~always` and `artifacts = ~none` when every selection must execute
+that action. See [Model a deployment](./deployment.md) for the full example.
 
 ## Terrabuild and CI
 
@@ -125,4 +137,4 @@ received.
 
 Continue with the [quick start](./quick-start) to run a complete example, or
 read [Deployment](./deployment) to see how application artifacts connect to an
-environment-specific Terraform plan.
+environment-specific infrastructure plan.

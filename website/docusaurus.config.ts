@@ -19,7 +19,7 @@ const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
 
 const config: Config = {
   title: 'Terrabuild',
-  tagline: 'Desired-state software delivery for polyglot monorepos.',
+  tagline: 'Desired-state configuration for build and deployment.',
   favicon: 'favicon.ico',
 
   url: 'https://terrabuild.io',
