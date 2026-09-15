@@ -98,7 +98,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'images/build-summary.png',
+    image: 'images/terrabuild-social.png',
     mermaid: {
       theme: {
         light: 'base',

@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Use a branded Terrabuild image for social link previews.
 - Highlight Terrabuild configuration examples using their own language syntax.
 - Rework documentation around desired-state build and deployment with progressive tutorials, environment configuration, FScript customization, and advanced scenarios.
 
