@@ -4,9 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.200.2-next]
+
+
 - Use a branded Terrabuild image for social link previews.
 - Highlight Terrabuild configuration examples using their own language syntax.
 - Rework documentation around desired-state build and deployment with progressive tutorials, environment configuration, FScript customization, and advanced scenarios.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.1-next...0.200.2-next
 
 ## [0.200.1]
 
