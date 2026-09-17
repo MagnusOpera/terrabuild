@@ -27,7 +27,7 @@ module private Http =
             Log.Warning("SSL certificate validation disabled (TERRABUILD_INSECURE_SSL=true)")
         req
 
-    let private request<'req, 'resp when 'req : not struct> method headers (path: string) (request: 'req): 'resp =
+    let private request<'req, 'resp when 'req : not struct> cacheRead method headers (path: string) (request: 'req): 'resp =
         let url = Uri($"{apiUrl}{path}").ToString()
         let body =
             match request |> box with
@@ -42,24 +42,31 @@ module private Http =
 
         with
         | exn ->
-            Log.Fatal(exn, "API error: {method} {url} with content {body}", method, url, body)
+            let rec statusCode (error: Exception) =
+                match error with
+                | :? WebException as webError ->
+                    match webError.Response with
+                    | :? HttpWebResponse as response -> Some response.StatusCode
+                    | _ -> None
+                | _ when not (isNull error.InnerException) -> statusCode (error.InnerException |> nonNull)
+                | _ -> None
 
-            let errorCode =
-                match exn.InnerException with
-                | :? WebException as innerEx ->
-                    match innerEx.Response with
-                    | :? HttpWebResponse as hwr -> hwr.StatusCode.ToString()
-                    | _ -> exn.Message
-                | _ -> exn.Message
-
-            match errorCode with
-            | "401" -> forwardAuthError($"Unauthorized access", exn)
-            | "403" -> forwardAuthError($"Forbidden access", exn)
-            | _ -> forwardExternalError($"Api failed with error {errorCode}.", exn)
+            match statusCode exn with
+            | Some HttpStatusCode.NotFound when cacheRead ->
+                raise (ArtifactUnavailableException(path))
+            | status ->
+                Log.Error(exn, "API error: {method} {url}", method, url)
+                match status with
+                | Some HttpStatusCode.Unauthorized -> forwardAuthError("Unauthorized access", exn)
+                | Some HttpStatusCode.Forbidden -> forwardAuthError("Forbidden access", exn)
+                | _ -> forwardExternalError($"Api failed with error {exn.Message}.", exn)
 
 
-    let get<'req, 'resp when 'req: not struct> = request<'req, 'resp> HttpMethod.Get
-    let post<'req, 'resp when 'req: not struct> = request<'req, 'resp> HttpMethod.Post
+    let get<'req, 'resp when 'req: not struct> = request<'req, 'resp> false HttpMethod.Get
+    let post<'req, 'resp when 'req: not struct> = request<'req, 'resp> false HttpMethod.Post
+    let getArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Get
+    let useArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Post
+
 
 
 module private Auth =
@@ -199,7 +206,7 @@ module internal Build =
     let useArtifact headers buildId projectHash hash: Unit =
         { UseArtifactInput.ProjectHash = projectHash
           UseArtifactInput.TargetHash = hash }
-        |> Http.post<UseArtifactInput, Unit> headers $"/builds/{buildId}/use-artifact"
+        |> Http.useArtifact<UseArtifactInput, Unit> headers $"/builds/{buildId}/use-artifact"
 
     let completeBuild headers buildId success: Unit =
         { CompleteBuildInput.Success = success }
@@ -250,7 +257,8 @@ module internal Artifact =
     let getArtifact headers (path: string) (operation: string): ArtifactLocationOutput =
         let path = Uri.EscapeDataString(path)
         let operation = Uri.EscapeDataString(operation)
-        Http.get<Unit, ArtifactLocationOutput> headers $"/artifacts?path={path}&operation={operation}" ()
+        let request = if operation = "put" then Http.get<Unit, ArtifactLocationOutput> else Http.getArtifact<Unit, ArtifactLocationOutput>
+        request headers $"/artifacts?path={path}&operation={operation}" ()
 
 
 type Client(workspaceId: string, token: string, options: ConfigOptions.Options) =

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Rebuild cached targets when Insights reports an unfinished or missing artifact instead of aborting the build.
+
 ## [0.200.2]
 
 - Use a branded Terrabuild image for social link previews.

@@ -25,12 +25,16 @@ type internal RemoteStorage(
         override _.Name = "Remote Artifact Storage"
 
         override _.Exists id =
-            let uri, storage = location id "head"
-            storage.Exists id uri
+            try
+                let uri, storage = location id "head"
+                storage.Exists id uri
+            with :? Contracts.ArtifactUnavailableException -> false
 
         override _.TryDownload id =
-            let uri, storage = location id "get"
-            storage.TryDownload id uri
+            try
+                let uri, storage = location id "get"
+                storage.TryDownload id uri
+            with :? Contracts.ArtifactUnavailableException -> None
 
         override _.Upload id summaryFile =
             let uri, storage = location id "put"

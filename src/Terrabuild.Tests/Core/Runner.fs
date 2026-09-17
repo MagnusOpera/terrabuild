@@ -294,7 +294,7 @@ type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: 
                 entries[id] <- entry
                 entry :> Cache.IEntry
 
-type private FakeApiClient(?failAddArtifact: bool) =
+type private FakeApiClient(?failAddArtifact: bool, ?useArtifactError: exn) =
     let addCalls = ResizeArray<string * string option * string * string * string * string list * bool * DateTime * DateTime>()
     let useCalls = ResizeArray<string * string>()
     let graphUploads = ResizeArray<string * BuildGraphNode list>()
@@ -336,6 +336,7 @@ type private FakeApiClient(?failAddArtifact: bool) =
 
         member _.UseArtifact projectHash targetHash =
             useCalls.Add(projectHash, targetHash)
+            useArtifactError |> Option.iter raise
 
 [<Test>]
 let ``buildCommands formats docker container requests through docker path on linux`` () =
@@ -692,6 +693,24 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         report.Batches |> List.map _.Id |> should contain batchNode.Id)
 
 [<Test>]
+let ``batch republishes a reused member rejected by Insights`` () =
+    withTempWorkspace (fun workspace ->
+        let memberNode = buildNode "member" workspace "build" GraphDef.RunAction.Restore []
+        let batchNode = buildNode "batch" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/usr/bin/true" "" None ]
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ memberNode.Id, memberNode; batchNode.Id, batchNode ]
+              GraphDef.Graph.RootNodes = Set [ memberNode.Id ]
+              GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ]
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace)
+        let api = FakeApiClient(useArtifactError = Contracts.ArtifactUnavailableException("pending"))
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        summary.IsSuccess |> should equal true
+        summary.Nodes[memberNode.Id].Request |> should equal Runner.TaskRequest.Exec
+        api.AddCalls.Length |> should equal 1
+        api.UseCalls.Length |> should equal 1)
+
+[<Test>]
 let ``batch output staging completes while named target lock is held`` () =
     withTempWorkspace (fun workspace ->
         withEnvironmentVariable "HOME" workspace (fun () ->
@@ -821,6 +840,47 @@ let ``missing cached outputs fall back to target execution`` () =
         nodeReport.Outcome |> should equal (Some "execute")
         nodeReport.OutcomeReason |> should equal (Some "restore-missed")
         (report.Executions |> List.exactlyOne).Kind |> should equal "execution")
+
+[<TestCase(true)>]
+[<TestCase(false)>]
+let ``unavailable Insights artifacts rebuild but other API failures propagate`` unavailable =
+    withTempWorkspace (fun workspace ->
+        let marker = Path.Combine(workspace, "rebuilt.txt")
+        let node =
+            { buildNode "rejected-restore" workspace "build" GraphDef.RunAction.Restore [ buildOperation "/usr/bin/touch" marker None ] with
+                Outputs = Set [ "rebuilt.txt" ]
+                Artifacts = GraphDef.ArtifactMode.Managed }
+        let graph =
+            { GraphDef.Graph.Nodes = Map [ node.Id, node ]
+              GraphDef.Graph.RootNodes = Set [ node.Id ]
+              GraphDef.Graph.Batches = Map.empty
+              GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace)
+        cache.SetSummary(GraphDef.buildCacheKey node,
+            { Cache.TargetSummary.Project = workspace
+              Target = "build"
+              Operations = []
+              Outputs = Cache.OutputState.Stored
+              IsSuccessful = true
+              StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+              EndedAt = DateTime.UtcNow
+              Duration = TimeSpan.FromMinutes(1.0)
+              Cache = node.Artifacts })
+        let error: exn =
+            if unavailable then Contracts.ArtifactUnavailableException("cached-target")
+            else Errors.TerrabuildException("Forbidden", Errors.ErrorArea.Auth)
+        let api = FakeApiClient(useArtifactError = error)
+        let run () = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        if unavailable then
+            let summary = run ()
+            summary.IsSuccess |> should equal true
+            summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec
+            File.Exists(marker) |> should equal true
+            api.AddCalls.Length |> should equal 1
+        else
+            Assert.Throws<Runner.RunFailure>(Action(fun () -> run () |> ignore)) |> ignore
+            File.Exists(marker) |> should equal false
+            api.AddCalls |> should be Empty)
 
 [<Test>]
 let ``named target lock waits are reported separately from execution`` () =

@@ -452,6 +452,14 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
     // actions
     // ----------------------------
 
+    let tryUseArtifact (node: GraphDef.Node) =
+        try
+            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+            true
+        with :? Contracts.ArtifactUnavailableException ->
+            Log.Warning("{NodeId}: Insights no longer has a finalized cache artifact", node.Id)
+            false
+
     let summaryNode (node: GraphDef.Node) =
         DiagnosticsTelemetry.recordTask node.Id "summary-started"
         Log.Debug("{NodeId}: downloading Node Summary", node.Id)
@@ -463,7 +471,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         let status =
             match cache.TryGetSummaryOnly useRemote cacheEntryId with
             | Some (_, summary) ->
-                api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+                tryUseArtifact node |> ignore
                 if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                 else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
             | _ ->
@@ -504,8 +512,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             summary
 
         match restoredSummary with
-        | Some summary ->
-            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+        | Some summary when tryUseArtifact node ->
             let status =
                 if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                 else TaskStatus.Failure (summary.EndedAt, $"Restored node {node.Id} with a build in failure state")
@@ -517,9 +524,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 buildProgress.TaskCompleted node.Id true true
             | _ ->
                 buildProgress.TaskCompleted node.Id true false
-        | None ->
+        | _ ->
             Log.Warning(
-                "{NodeId}: cached outputs for {CacheEntryId} disappeared before restoration; executing the target instead",
+                "{NodeId}: cached artifact {CacheEntryId} is unavailable; executing the target instead",
                 node.Id,
                 cacheEntryId)
             DiagnosticsTelemetry.recordTask node.Id "restore-missed"
@@ -616,7 +623,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
                 let cacheEntry =
                     match node.Action with
-                    | GraphDef.RunAction.Restore ->
+                    | GraphDef.RunAction.Restore when tryUseArtifact node ->
                         None
                     | _ ->
                         let useRemote = GraphDef.isRemoteCacheable options node
@@ -656,9 +663,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 cacheEntries
                 |> Map.map (fun nodeId cacheEntry ->
                     let node = graph.Nodes[nodeId]
-                    match node.Action, cacheEntry with
-                    | GraphDef.RunAction.Restore, _ -> None
-                    | _, Some cacheEntry ->
+                    match cacheEntry with
+                    | None -> None
+                    | Some cacheEntry ->
                         let logs = stepLogs |> List.map (fun stepLog -> stepLog.Log)
                         cacheEntry.StoreLogs logs
 
@@ -681,9 +688,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                               Cache.TargetSummary.Duration = duration
                               Cache.TargetSummary.Cache = node.Artifacts }
 
-                        Some (cacheEntry, summary)
-                    | _, None ->
-                        raiseBugError $"No cache entry created for executing batch member {node.Id}")
+                        Some (cacheEntry, summary))
             with _ ->
                 cacheEntries
                 |> Map.iter (fun _ entry -> entry |> Option.iter (fun entry -> entry.Dispose()))
@@ -712,18 +717,15 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskUploading node.Id
                 try
-                    match node.Action, preparedEntry with
-                    | GraphDef.RunAction.Restore, _ ->
+                    match preparedEntry with
+                    | None ->
                         nodeResults[nodeId] <- (TaskRequest.Restore, status)
-                        api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
-                    | _, Some (cacheEntry, summary) ->
+                    | Some (cacheEntry, summary) ->
                         use _cacheEntry = cacheEntry
                         nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                         let files = cacheEntry.Complete summary
                         api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
-                    | _, None ->
-                        raiseBugError $"No cache entry created for executing batch member {node.Id}"
 
                     match status with
                     | TaskStatus.Success completionDate ->

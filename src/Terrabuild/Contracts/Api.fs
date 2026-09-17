@@ -27,6 +27,9 @@ type CommitGraph = {
     Nodes: BuildGraphNode list
 }
 
+type ArtifactUnavailableException(path: string) =
+    inherit Exception($"Insights has no finalized artifact for {path}.")
+
 type IApiClient =
     abstract StartBuild: Unit -> Unit
     abstract UploadBuildGraph: graphHash:string -> environment:string -> nodes:BuildGraphNode list -> Unit

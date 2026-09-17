@@ -17,7 +17,7 @@ type private ArtifactLocationOutput =
       Provider: string option }
 
 
-type private FakeApiClient(provider: string option) =
+type private FakeApiClient(provider: string option, ?locationError: exn) =
     let calls = ResizeArray<string * string>()
 
     member _.Calls = calls |> Seq.toList
@@ -31,6 +31,7 @@ type private FakeApiClient(provider: string option) =
 
         member _.GetArtifact path operation =
             calls.Add(path, operation)
+            locationError |> Option.iter raise
             Uri($"https://storage.example/{path}"), provider
 
         member _.GetCommitGraph repository commit _environment =
@@ -198,3 +199,18 @@ let ``Cloudflare backend maps not found responses`` () =
 
     storage.Exists "artifact" location |> should equal false
     storage.TryDownload "artifact" location |> should equal None
+
+[<Test>]
+let ``unfinished artifact locations are cache misses for reads only`` () =
+    let api = FakeApiClient(Some "r2", locationError = ArtifactUnavailableException("pending"))
+    let storage = Storages.Factory.RemoteStorage(api) :> IStorage
+    storage.Exists "pending" |> should equal false
+    storage.TryDownload "pending" |> should equal None
+    Assert.Throws<ArtifactUnavailableException>(Action(fun () -> storage.Upload "pending" "file")) |> ignore
+
+[<Test>]
+let ``artifact location authorization failures are not cache misses`` () =
+    let api = FakeApiClient(Some "r2", locationError = TerrabuildException("Forbidden", ErrorArea.Auth))
+    let storage = Storages.Factory.RemoteStorage(api) :> IStorage
+    Assert.Throws<TerrabuildException>(Action(fun () -> storage.Exists "artifact" |> ignore)) |> ignore
+    Assert.Throws<TerrabuildException>(Action(fun () -> storage.TryDownload "artifact" |> ignore)) |> ignore
