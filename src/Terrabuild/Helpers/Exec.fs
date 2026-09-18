@@ -178,9 +178,13 @@ let private abandonContainerRecord (lease: IDisposable) =
     | :? ContainerRecordLease as containerLease -> containerLease.Abandon()
     | _ -> lease.Dispose()
 
-let private containerIsAbsent (diagnostic: string) =
+let internal containerIsAbsent engine (diagnostic: string) =
     diagnostic.Contains("no such container", StringComparison.OrdinalIgnoreCase)
     || diagnostic.Contains("no container with name or ID", StringComparison.OrdinalIgnoreCase)
+    || (engine = "container"
+        && diagnostic.Contains("notFound:", StringComparison.Ordinal)
+        && diagnostic.Contains("container with ID ", StringComparison.Ordinal)
+        && diagnostic.Contains(" not found", StringComparison.Ordinal))
 
 let private forceRemoveContainer engine name =
     let psi = ProcessStartInfo(FileName = engine, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true)
@@ -199,7 +203,7 @@ let private forceRemoveContainer engine name =
     let stderr = stderr.GetAwaiter().GetResult()
     if not exited then
         raise (TimeoutException($"{engine} timed out while removing container '{name}'"))
-    if proc.ExitCode <> 0 && not (containerIsAbsent $"{stdout}\n{stderr}") then
+    if proc.ExitCode <> 0 && not (containerIsAbsent engine $"{stdout}\n{stderr}") then
         failwithf "%s failed to remove container '%s' (exit %d): %s" engine name proc.ExitCode stderr
 
 let reapContainers () =
@@ -207,9 +211,9 @@ let reapContainers () =
     reapContainerRecordsAt profile forceRemoveContainer
     |> ignore
 
-let private tryContainerIdentity command arguments =
+let internal tryContainerIdentity command arguments =
     match command, arguments with
-    | ("docker" | "podman"), Arguments.List args ->
+    | ("docker" | "podman" | "container"), Arguments.List ("run" :: args) ->
         args
         |> List.windowed 2
         |> List.tryPick (function

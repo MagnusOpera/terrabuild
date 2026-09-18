@@ -1092,6 +1092,7 @@ let read (options: ConfigOptions.Options) =
         | None -> options.Engine
         | Some "docker" -> ConfigOptions.Engine.Docker
         | Some "podman" -> ConfigOptions.Engine.Podman
+        | Some "apple" -> ConfigOptions.Engine.Apple
         | Some "host" -> ConfigOptions.Engine.Host
         | Some x -> raiseInvalidArg $"Invalid engine option '{x}'"
 

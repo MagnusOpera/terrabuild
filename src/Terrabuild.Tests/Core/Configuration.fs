@@ -749,3 +749,22 @@ target build {
 """
 
         Assert.That(Action(fun () -> Configuration.read (baseOptions root (Set [ "build" ])) |> ignore), Throws.TypeOf<TerrabuildException>()))
+
+[<TestCase(true)>]
+[<TestCase(false)>]
+let ``apple engine selection is exposed to expressions and workspace overrides cli`` workspaceOverride =
+    withTempWorkspace (fun root ->
+        let engineSetting = if workspaceOverride then "engine = ~apple" else ""
+        let workspaceText = "workspace { " + engineSetting + " }\ntarget build {\n  build = terrabuild.engine == ~apple ? ~always : ~lazy\n}"
+        writeFile root "WORKSPACE" workspaceText
+        writeFile root "app/PROJECT" """
+project app { @shell {} }
+target build { @shell echo { arguments = "app" } }
+"""
+        let options =
+            { baseOptions root (Set [ "build" ]) with
+                Engine = if workspaceOverride then ConfigOptions.Engine.Docker else ConfigOptions.Engine.Apple }
+        let effective, config = Configuration.read options
+        effective.Engine |> should equal ConfigOptions.Engine.Apple
+        config.Projects["workspace/path#app"].Targets["build"].Build
+        |> should equal (Some GraphDef.BuildMode.Always))

@@ -174,6 +174,7 @@ let private buildConfig
                 match engine |> normalizeEngineOption with
                 | None | Some "docker" -> ConfigOptions.Engine.Docker
                 | Some "podman" -> ConfigOptions.Engine.Podman
+                | Some "apple" -> ConfigOptions.Engine.Apple
                 | Some "host" -> ConfigOptions.Engine.Host
                 | _ -> failwith $"Invalid engine option {engine}"
               ConfigOptions.Options.HeadCommit = sourceControl.HeadCommit

@@ -22,6 +22,7 @@ const engineOptions = [
   { value: "default", label: "Default" },
   { value: "docker", label: "Docker" },
   { value: "podman", label: "Podman" },
+  { value: "apple", label: "Apple" },
   { value: "host", label: "Host" },
 ];
 

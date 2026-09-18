@@ -511,3 +511,11 @@ let ``buildImpactResult marks missing base nodes as changed and skips unnamed no
 
     impactResult.Impacts.Count |> should equal 1
     impactResult.Impacts["root:build"] |> should equal "changed"
+
+[<Test>]
+let ``CLI accepts apple engine for run and explain`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let run = parser.ParseCommandLine([| "run"; "build"; "--engine"; "apple" |], raiseOnUsage = true)
+    run.GetResult(TerrabuildArgs.Run).GetResult(RunArgs.Engine) |> should equal CLI.Engine.Apple
+    let explain = parser.ParseCommandLine([| "explain"; "build"; "--engine"; "apple" |], raiseOnUsage = true)
+    explain.GetResult(TerrabuildArgs.Explain).GetResult(ExplainArgs.Engine) |> should equal CLI.Engine.Apple

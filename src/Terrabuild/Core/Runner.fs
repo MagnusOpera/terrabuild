@@ -87,6 +87,7 @@ type private ApiBuildLifecycle(api: Contracts.IApiClient option) =
 type private EngineRequestPath =
     | Docker
     | Podman
+    | Apple
     | Host
 
 module private Native =
@@ -197,10 +198,22 @@ let private buildPodmanPolicy (runtime: HostRuntime) (operation: GraphDef.Contai
       ExtraArgs = extraArgs
       MountArgs = mountArgs }
 
+let private buildApplePolicy (runtime: HostRuntime) homeDir tmpDir wsDir =
+    if runtime.Platform <> Environment.HostPlatform.MacOS then
+        raiseInvalidArg "The apple engine requires macOS on Apple silicon."
+
+    { EngineCommand = "container"
+      ExtraArgs = []
+      MountArgs =
+        [ yield! formatDockerMount homeDir containerHome
+          yield! formatDockerMount tmpDir containerTmp
+          yield! formatDockerMount wsDir "/terrabuild" ] }
+
 let private buildContainerPolicy runtime engineRequestPath operation homeDir tmpDir wsDir =
     match engineRequestPath with
     | EngineRequestPath.Docker -> buildDockerPolicy runtime operation homeDir tmpDir wsDir
     | EngineRequestPath.Podman -> buildPodmanPolicy runtime operation homeDir tmpDir wsDir
+    | EngineRequestPath.Apple -> buildApplePolicy runtime homeDir tmpDir wsDir
     | EngineRequestPath.Host -> invalidArg "engineRequestPath" "Host engine does not support container policy"
 
 let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node) (operation: GraphDef.ContaineredShellOperation) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir : BuiltCommand =
@@ -245,6 +258,8 @@ and internal buildCommandsForRuntime (runtime: HostRuntime) (node: GraphDef.Node
             buildContainerCommand runtime EngineRequestPath.Docker node operation options projectDirectory homeDir tmpDir
         | ConfigOptions.Engine.Podman, Some _ ->
             buildContainerCommand runtime EngineRequestPath.Podman node operation options projectDirectory homeDir tmpDir
+        | ConfigOptions.Engine.Apple, Some _ ->
+            buildContainerCommand runtime EngineRequestPath.Apple node operation options projectDirectory homeDir tmpDir
         | _ ->
             buildHostCommand operation projectDirectory)
 
@@ -351,7 +366,26 @@ let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode:
       | None ->
           (targetNode.Id, $"{targetNode.Target} {targetNode.ProjectDir}") ]
 
+let private checkAppleRuntime workspace =
+    if not (OperatingSystem.IsMacOSVersionAtLeast(26))
+       || RuntimeInformation.OSArchitecture <> Architecture.Arm64 then
+        raiseInvalidArg "The apple engine requires macOS 26 or later on Apple silicon."
+    try
+        match Exec.execCaptureOutput workspace "container" "list --quiet" Map.empty with
+        | Exec.Success _ -> ()
+        | Exec.Error (message, _) ->
+            raiseInvalidArg $"Apple Container is unavailable. Run 'container system start' and retry. {message.Trim()}"
+    with
+    | :? System.ComponentModel.Win32Exception as ex ->
+        forwardExternalError("Unable to start Apple Container. Install it with 'brew install container' and ensure 'container' is on PATH.", ex)
+
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (uploadGraph: GraphDef.Graph) (graph: GraphDef.Graph) =
+    if options.Engine = ConfigOptions.Engine.Apple && not options.DryRun
+       && (graph.Nodes.Values |> Seq.exists (fun node ->
+            node.Action = GraphDef.RunAction.Exec
+            && (node.Operations |> List.exists (fun operation -> operation.Image.IsSome)))) then
+        checkAppleRuntime options.Workspace
+
     let startedAt = DateTime.UtcNow
     let graphEnvironment = options.Environment |> Option.defaultValue ""
     let repository =

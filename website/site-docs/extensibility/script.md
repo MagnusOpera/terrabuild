@@ -195,5 +195,5 @@ Imports in local scripts are resolved to workspace files. Imports in remote scri
 
 - [Protocol Types](./types) lists every context and result shape.
 - [Host Functions](./functions) lists the functions Terrabuild exposes to scripts.
-- [Container](./container) explains how an extension runs its returned operations in Docker or Podman.
+- [Container](./container) explains how an extension runs its returned operations in Docker, Podman, or Apple Container.
 - The normative protocol is maintained in [`docs/architecture/fscript-extension-protocol.md`](https://github.com/MagnusOpera/terrabuild/blob/main/docs/architecture/fscript-extension-protocol.md).
