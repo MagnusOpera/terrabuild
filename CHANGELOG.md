@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.200.3]
+
 - Rebuild cached targets when Insights reports an unfinished or missing artifact instead of aborting the build.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.2...0.200.3
 
 ## [0.200.2]
 
