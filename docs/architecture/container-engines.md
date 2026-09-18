@@ -1,10 +1,11 @@
 # Container Engines
 
-Terrabuild supports three execution paths in `Runner.fs`:
+Terrabuild supports four execution paths in `Runner.fs`:
 
 - host execution
 - Docker-backed container execution
 - Podman-backed container execution
+- Apple Container-backed execution through the `container` CLI
 
 This document describes the current container runtime arguments used by each engine.
 
@@ -20,7 +21,7 @@ This document describes the current container runtime arguments used by each eng
 For containerized operations, Terrabuild always starts from:
 
 ```text
-run --rm --name <target-hash>
+run --rm --name terrabuild-<node-slug>-<nonce>
 ```
 
 Then it adds:
@@ -104,6 +105,29 @@ Terrabuild runs the command directly on the host when the effective engine is `h
 - command is the operation command
 - arguments are the operation arguments
 
-Operations without an `image` always use this path, even when the selected engine is Docker or Podman.
+Operations without an `image` always use this path, even when the selected engine is Docker, Podman, or Apple Container.
 
 No container-specific arguments are added in this path.
+
+## Apple Container arguments and lifecycle
+
+The `apple` engine invokes `container run` on Apple silicon with macOS 26 or later.
+It uses the shared command shape, CPU/platform options, environment forwarding and
+three bind mounts described above. Mounts use `-v source:target`. No host namespace,
+Linux user mapping, or Docker socket options are added.
+
+Before a run that executes Apple container operations, Terrabuild checks the host
+and calls `container list --quiet` to verify the runtime is available. Dry runs and
+runs containing only host operations or cached results do not require the service.
+The service must be installed and started separately. Container 1.4.1 is the tested
+baseline.
+
+Named Apple containers participate in the same cleanup records as Docker and
+Podman. Cancellation, failed processes and abandoned records use `container rm -f`;
+already-removed containers count as successful cleanup. Only Terrabuild's recorded
+containers are removed; the shared service remains running.
+
+Apple uses its own image store. Engine selection does not translate Docker build
+commands. Host networking and automatic port publication are not provided.
+`make smoke-test-apple` exercises this backend explicitly; the existing smoke suite
+and repository self-build retain their Docker configuration.

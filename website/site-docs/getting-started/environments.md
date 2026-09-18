@@ -146,7 +146,7 @@ extension @terraform {
 Choose the tool version and platform supported by your repository. This example
 forwards Azure credential variables to Terraform; adapt the variable list for
 your provider. The extension configuration makes those selected values part of
-the target's input fingerprint. Container execution requires Docker or Podman.
+the target's input fingerprint. Container execution requires Docker, Podman, or Apple Container.
 
 Use [extension specialization](../project/extension.md) for project-specific
 images or additional settings. Scalar settings can replace inherited values;

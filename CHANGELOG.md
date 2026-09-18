@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Run containerized builds with Apple Container on Apple silicon Macs using the apple engine.
+
 ## [0.200.3]
 
 - Rebuild cached targets when Insights reports an unfinished or missing artifact instead of aborting the build.

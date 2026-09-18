@@ -1,0 +1,15 @@
+workspace {}
+
+target build {}
+target fail {}
+target wait {}
+
+extension @shell {
+    image = "docker.io/library/alpine:3.23"
+    platform = "linux/arm64"
+    cpus = 1
+    variables = [ "TB_APPLE_SAMPLE" ]
+    env {
+        TB_APPLE_EXPLICIT = "explicit value"
+    }
+}
