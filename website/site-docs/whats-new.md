@@ -6,7 +6,11 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.200.2
+## 0.200.3
+
+### 0.200.3
+
+- Rebuild cached targets when Insights reports an unfinished or missing artifact instead of aborting the build.
 
 ### 0.200.2
 
@@ -85,4 +89,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Keep phase barriers from rebuilding downstream targets that already have valid cached artifacts.
 - Recompute target cache keys when evaluated output patterns change.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.2...0.200.2
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.199.2...0.200.3
