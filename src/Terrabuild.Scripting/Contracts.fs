@@ -53,7 +53,6 @@ module ScriptingContracts =
         Command: string
         Arguments: string
         ErrorLevel: int
-        Stdout: string option
     }
 
     type ShellOperations = ShellOperation list

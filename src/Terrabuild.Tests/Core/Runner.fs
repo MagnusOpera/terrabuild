@@ -208,8 +208,7 @@ let private buildOperation command arguments image =
       GraphDef.ContaineredShellOperation.MetaCommand = "test"
       GraphDef.ContaineredShellOperation.Command = command
       GraphDef.ContaineredShellOperation.Arguments = arguments
-      GraphDef.ContaineredShellOperation.ErrorLevel = 0
-      GraphDef.ContaineredShellOperation.Stdout = None }
+      GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
 type private FakeEntry(root: string, id: string, completed: ResizeArray<string>, disposed: ResizeArray<string>, onStoreOutputs: unit -> unit) =
     let entryRoot = Path.Combine(root, id.Replace("/", "_"))
@@ -349,7 +348,7 @@ let ``buildCommands formats docker container requests through docker path on lin
             let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
             commands.Length |> should equal 1
 
-            let metaCommand, workDir, cmd, args, image, errorLevel, envs, stdout = commands[0]
+            let metaCommand, workDir, cmd, args, image, errorLevel, envs = commands[0]
             let args = Exec.renderArguments args
             metaCommand |> should equal "test"
             workDir |> should equal workspace
@@ -357,7 +356,6 @@ let ``buildCommands formats docker container requests through docker path on lin
             image |> should equal operation.Image
             errorLevel |> should equal 0
             envs |> should equal (Map [ "FROM_ENV_MAP", "set-by-terrabuild"; "TB_SAMPLE", "/terrabuild-home/cache" ])
-            stdout |> should equal None
             args |> should contain "--entrypoint dotnet"
             args |> should contain "--platform=linux/amd64"
             args |> should contain "--cpus=2"
@@ -384,7 +382,7 @@ let ``buildCommands preserves spaced paths and uses unique readable container na
         let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Docker }
 
         let getArgs () =
-            let _, _, _, arguments, _, _, _, _ =
+            let _, _, _, arguments, _, _, _ =
                 Runner.buildCommandsForRuntime linuxRuntime node options node.ProjectDir workspace workspace
                 |> List.exactlyOne
             match arguments with
@@ -454,7 +452,7 @@ let ``buildCommands omits docker user mapping on macos`` () =
         let commands = Runner.buildCommandsForRuntime macRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
 
-        let _, _, cmd, args, _, _, _, _ = commands[0]
+        let _, _, cmd, args, _, _, _ = commands[0]
         let args = Exec.renderArguments args
         cmd |> should equal "docker"
         args |> should not' (contain "--user 501:20"))
@@ -469,7 +467,7 @@ let ``buildCommands formats podman container requests through podman path on lin
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
 
-        let _, workDir, cmd, args, _, _, _, _ = commands[0]
+        let _, workDir, cmd, args, _, _, _ = commands[0]
         let args = Exec.renderArguments args
         workDir |> should equal workspace
         cmd |> should equal "podman"
@@ -543,7 +541,7 @@ let ``buildCommands mounts docker socket only for docker client commands`` () =
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
 
-        let _, _, _, args, _, _, _, _ = commands[0]
+        let _, _, _, args, _, _, _ = commands[0]
         let args = Exec.renderArguments args
         args |> should contain "-v /var/run/docker.sock:/var/run/docker.sock")
 
@@ -556,7 +554,7 @@ let ``buildCommands uses explicit host path when engine is host even with image`
         let commands = Runner.buildCommands node (baseOptions workspace) "src/App" workspace workspace
         commands.Length |> should equal 1
 
-        let _, workDir, cmd, args, image, _, _, _ = commands[0]
+        let _, workDir, cmd, args, image, _, _ = commands[0]
         let args = Exec.renderArguments args
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/env"
@@ -573,33 +571,12 @@ let ``buildCommands uses host path when operation has no image regardless of eng
         let commands = Runner.buildCommandsForRuntime linuxRuntime node options "src/App" workspace workspace
         commands.Length |> should equal 1
 
-        let _, workDir, cmd, args, image, _, _, _ = commands[0]
+        let _, workDir, cmd, args, image, _, _ = commands[0]
         let args = Exec.renderArguments args
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/true"
         args |> should equal "--flag"
         image |> should equal None)
-
-[<Test>]
-let ``execCommands writes captured stdout without stderr`` () =
-    withTempWorkspace (fun workspace ->
-        let script = Path.Combine(workspace, "emit-output.sh")
-        writeExecutableScript script "#!/bin/sh\nprintf 'first\\nsecond\\n'\nprintf 'warning\\n' >&2\n"
-
-        let operation =
-            { buildOperation script "" None with
-                Stdout = Some "captured.txt" }
-        let node = buildNode "node-capture" workspace "build" GraphDef.RunAction.Exec [ operation ]
-        let cache = FakeCache(workspace)
-        let entry = (cache :> Cache.ICache).GetEntry false (GraphDef.buildCacheKey node)
-
-        let successful, exitCode, logs =
-            Runner.execCommands node entry (baseOptions workspace) workspace workspace workspace
-
-        successful |> should equal true
-        exitCode |> should equal 0
-        File.ReadAllText(Path.Combine(workspace, "captured.txt")) |> should equal $"first{Environment.NewLine}second{Environment.NewLine}"
-        File.ReadAllText(logs.Head.Log) |> should contain "warning")
 
 [<Test>]
 let ``buildBatchSchedule flattens member labels in GitHub mode`` () =
@@ -652,8 +629,7 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
               GraphDef.ContaineredShellOperation.MetaCommand = "test"
               GraphDef.ContaineredShellOperation.Command = command
               GraphDef.ContaineredShellOperation.Arguments = ""
-              GraphDef.ContaineredShellOperation.ErrorLevel = 0
-              GraphDef.ContaineredShellOperation.Stdout = None }
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
         let execMember =
             { buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec [] with
@@ -999,8 +975,7 @@ let ``run includes repository in uploaded graph hash`` () =
               GraphDef.ContaineredShellOperation.MetaCommand = "test"
               GraphDef.ContaineredShellOperation.Command = "/usr/bin/true"
               GraphDef.ContaineredShellOperation.Arguments = ""
-              GraphDef.ContaineredShellOperation.ErrorLevel = 0
-              GraphDef.ContaineredShellOperation.Stdout = None }
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
         let memberNode = buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec []
         let batchNode = buildNode "batch-build" "." "build" GraphDef.RunAction.Exec [ operation ]
@@ -1121,8 +1096,7 @@ let ``run normalizes equivalent repository identities in uploaded graph hash`` (
               GraphDef.ContaineredShellOperation.MetaCommand = "test"
               GraphDef.ContaineredShellOperation.Command = "/usr/bin/true"
               GraphDef.ContaineredShellOperation.Arguments = ""
-              GraphDef.ContaineredShellOperation.ErrorLevel = 0
-              GraphDef.ContaineredShellOperation.Stdout = None }
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
         let memberNode = buildNode "member-exec" workspace "build" GraphDef.RunAction.Exec []
         let batchNode = buildNode "batch-build" "." "build" GraphDef.RunAction.Exec [ operation ]
@@ -1177,8 +1151,7 @@ let ``run restores the exact cached output set for lazy dependencies`` () =
               GraphDef.ContaineredShellOperation.MetaCommand = "test"
               GraphDef.ContaineredShellOperation.Command = "/usr/bin/true"
               GraphDef.ContaineredShellOperation.Arguments = ""
-              GraphDef.ContaineredShellOperation.ErrorLevel = 0
-              GraphDef.ContaineredShellOperation.Stdout = None }
+              GraphDef.ContaineredShellOperation.ErrorLevel = 0 }
 
         let buildNode =
             { buildNode "build" buildProjectDir "build" GraphDef.RunAction.Exec [ operation ]

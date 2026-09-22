@@ -39,8 +39,7 @@ let quote value = $"\"{value}\""
 let command_op arguments =
   { Command = "dotnet"
     Arguments = arguments
-    ErrorLevel = 0
-    Stdout = None }
+    ErrorLevel = 0 }
 
 let xml_escape value =
   value

@@ -69,8 +69,7 @@ let ``forwarded environment values affect operation cache identity without being
           ContaineredShellOperation.MetaCommand = "test"
           ContaineredShellOperation.Command = "test"
           ContaineredShellOperation.Arguments = ""
-          ContaineredShellOperation.ErrorLevel = 0
-          ContaineredShellOperation.Stdout = None }
+          ContaineredShellOperation.ErrorLevel = 0 }
 
     let firstHash, firstInput =
         withEnvironmentVariable "TB_SECRET_CACHE_INPUT" "first-secret-value" (fun () ->

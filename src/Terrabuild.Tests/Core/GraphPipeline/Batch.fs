@@ -40,8 +40,7 @@ let buildOperation envs =
       ContaineredShellOperation.MetaCommand = "@test build"
       ContaineredShellOperation.Command = "test"
       ContaineredShellOperation.Arguments = ""
-      ContaineredShellOperation.ErrorLevel = 0
-      ContaineredShellOperation.Stdout = None }
+      ContaineredShellOperation.ErrorLevel = 0 }
 
 [<Test>]
 let ``batch environments merge disjoint and identical values`` () =

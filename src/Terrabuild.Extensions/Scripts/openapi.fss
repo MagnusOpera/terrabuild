@@ -39,8 +39,7 @@ let format_properties properties =
   { Batchable = false
     Operations = [ { Command = "docker-entrypoint.sh"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof generate] = [Remote] }
