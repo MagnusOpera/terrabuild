@@ -84,5 +84,4 @@ let normalizeOps (ops: ShellOperations) =
 let op command arguments errorLevel =
     { ShellOperation.Command = command
       ShellOperation.Arguments = arguments
-      ShellOperation.ErrorLevel = errorLevel
-      ShellOperation.Stdout = None }
+      ShellOperation.ErrorLevel = errorLevel }

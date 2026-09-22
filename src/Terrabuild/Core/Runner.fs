@@ -46,7 +46,7 @@ type RunFailure(summary: Summary, innerException: exn) =
     inherit TerrabuildException("Failed to build", ErrorArea.InvalidArg, innerException)
     member _.Summary = summary
 
-type private BuiltCommand = string * string * string * Exec.Arguments * string option * int * Map<string, string> * string option
+type private BuiltCommand = string * string * string * Exec.Arguments * string option * int * Map<string, string>
 
 type internal HostRuntime = {
     Platform: Environment.HostPlatform
@@ -141,7 +141,7 @@ let private formatContainerEnvs (operation: GraphDef.ContaineredShellOperation) 
     forwardedEnvs |> Map.addMap operation.Envs
 
 let private buildHostCommand (operation: GraphDef.ContaineredShellOperation) projectDirectory : BuiltCommand =
-    operation.MetaCommand, projectDirectory, operation.Command, Exec.Arguments.Raw operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs, operation.Stdout
+    operation.MetaCommand, projectDirectory, operation.Command, Exec.Arguments.Raw operation.Arguments, operation.Image, operation.ErrorLevel, operation.Envs
 
 let private requiresContainerSocket (command: string) =
     let fileName = command |> Path.GetFileName
@@ -230,7 +230,7 @@ let private buildContainerCommand runtime engineRequestPath (node: GraphDef.Node
             image
             yield! operation.Arguments |> String.splitShellArgs ]
 
-    operation.MetaCommand, options.Workspace, policy.EngineCommand, Exec.Arguments.List runArgs, operation.Image, operation.ErrorLevel, processEnvs, operation.Stdout
+    operation.MetaCommand, options.Workspace, policy.EngineCommand, Exec.Arguments.List runArgs, operation.Image, operation.ErrorLevel, processEnvs
 
 let rec buildCommands (node: GraphDef.Node) (options: ConfigOptions.Options) projectDirectory homeDir tmpDir =
     buildCommandsForRuntime (detectHostRuntime ()) node options projectDirectory homeDir tmpDir
@@ -260,7 +260,7 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
 
     while cmdLineIndex < allCommands.Length && cmdLastSuccess do
         startedAt <- if cmdLineIndex > 0 then DateTime.UtcNow else cmdFirstStartedAt
-        let metaCommand, workDir, cmd, arguments, container, errorLevel, envs, stdout = allCommands[cmdLineIndex]
+        let metaCommand, workDir, cmd, arguments, container, errorLevel, envs = allCommands[cmdLineIndex]
         let args = Exec.renderArguments arguments
         cmdLineIndex <- cmdLineIndex + 1
 
@@ -268,28 +268,11 @@ let execCommands (node: GraphDef.Node) (cacheEntry: Cache.IEntry) (options: Conf
         let logFile = cacheEntry.NextLogFile()
 
         try
-            let exitCode, capturedStdout =
-                if options.Targets |> Set.contains "serve" && stdout.IsNone then
-                    Exec.execConsoleArguments workDir cmd arguments envs, None
+            let exitCode =
+                if options.Targets |> Set.contains "serve" then
+                    Exec.execConsoleArguments workDir cmd arguments envs
                 else
-                    Exec.execCaptureTimestampedOutputArguments workDir cmd arguments envs logFile stdout.IsSome
-
-            if exitCode <= errorLevel then
-                match stdout, capturedStdout with
-                | Some destination, Some output ->
-                    let destination = Path.GetFullPath(Path.Combine(projectDirectory, destination))
-                    let directory =
-                        match Path.GetDirectoryName(destination) with
-                        | NonNull value -> value
-                        | Null -> raiseBugError $"Unable to resolve stdout destination directory for '{destination}'"
-                    let temporary = Path.Combine(directory, $".{Path.GetFileName(destination)}.{Guid.NewGuid():N}.tmp")
-                    try
-                        File.WriteAllText(temporary, output)
-                        File.Move(temporary, destination, true)
-                    finally
-                        if File.Exists(temporary) then
-                            File.Delete(temporary)
-                | _ -> ()
+                    Exec.execCaptureTimestampedOutputArguments workDir cmd arguments envs logFile
 
             cmdLastEndedAt <- DateTime.UtcNow
             let endedAt = cmdLastEndedAt

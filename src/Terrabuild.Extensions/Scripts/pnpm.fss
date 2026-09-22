@@ -76,8 +76,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Installs packages with `pnpm install`, optionally honoring the lockfile and batching across workspaces.</summary>
 /// <param name="force" default="false" example="true">Adds `--force`.</param>
@@ -101,8 +100,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Runs the `build` script (`pnpm run build`) across targeted workspaces.</summary>
 /// <param name="args" default="" example="&quot;--no-color&quot;">Extra script arguments.</param>
@@ -119,8 +117,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Runs the `test` script (`pnpm run test`) across targeted workspaces.</summary>
 /// <param name="args" default="" example="&quot;--runInBand&quot;">Extra script arguments.</param>
@@ -137,8 +134,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 /// <summary>Runs an arbitrary pnpm script (`pnpm run &lt;target&gt;`).</summary>
 /// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
@@ -157,8 +153,7 @@ let batch_filters (context: Protocol.ActionContext) =
   { Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command
-                     ErrorLevel = 0
-                     Stdout = None } ] }
+                     ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
