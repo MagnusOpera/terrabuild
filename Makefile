@@ -220,6 +220,11 @@ smoke-indirect-target:
 smoke-test-phases:
 	$(call run_integration_test, tests/phases, run build --project app --force --debug --parallel 2 --log --engine docker --local-only)
 
+.PHONY: smoke-test-apple
+smoke-test-apple:
+	dotnet build -c $(config) $(dotnet_props) src/Terrabuild/Terrabuild.fsproj
+	python3 tests/apple-container/smoke.py src/Terrabuild/bin/$(config)/net10.0/terrabuild.dll
+
 smoke-test-dotnet-cache:
 	dotnet test -c $(config) $(dotnet_props) src/Terrabuild.Tests/Terrabuild.Tests.fsproj --filter "TestCategory=integration"
 

@@ -1,0 +1,16 @@
+project {
+    outputs = [ ".out" ]
+    @shell {}
+}
+
+target build {
+    @shell sh { args = "verify.sh 'argument with spaces'" }
+}
+
+target fail {
+    @shell sh { args = "-c 'exit 7'" }
+}
+
+target wait {
+    @shell sh { args = "-c 'mkdir -p .out; touch .out/started; sleep 120'" }
+}

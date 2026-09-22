@@ -148,7 +148,7 @@ import Link from '@docusaurus/Link';
         <article className="tb-extension-card tb-extension-container">
           <div className="tb-extension-card-top"><span className="tb-extension-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.4 7.7 7.6 4.4 7.6-4.4M12 12.1V21"/></svg></span><span className="tb-extension-card-index">CONTAINERS</span></div>
           <h3>Pin the execution environment.</h3>
-          <p>Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker and Podman.</p>
+          <p>Set an image on an extension to run its actions in the same container locally and in CI. Terrabuild supports Docker, Podman, and Apple Container.</p>
           <div className="tb-extension-code" aria-label="Example containerized .NET extension"><div><span>extension</span> <strong>@dotnet</strong> {'{'}</div><div className="tb-code-indent">image <i>=</i> <em>"mcr.microsoft.com/dotnet/sdk:9.0"</em></div><div className="tb-code-indent">platform <i>=</i> <em>"linux/arm64"</em></div><div>{'}'}</div></div>
           <Link className="tb-extension-link" to="/docs/next/extensibility/container"><span>Containerize an extension</span><span aria-hidden="true">→</span></Link>
         </article>

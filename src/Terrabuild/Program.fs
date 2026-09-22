@@ -344,6 +344,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
                 match runOptions.Engine with
                 | None | Some Engine.Docker -> ConfigOptions.Engine.Docker
                 | Some Engine.Podman -> ConfigOptions.Engine.Podman
+                | Some Engine.Apple -> ConfigOptions.Engine.Apple
                 | Some Engine.Host -> ConfigOptions.Engine.Host
             ConfigOptions.Options.HeadCommit = sourceControl.HeadCommit
             ConfigOptions.Options.CommitLog = sourceControl.CommitLog

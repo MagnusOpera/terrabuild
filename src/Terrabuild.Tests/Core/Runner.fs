@@ -480,6 +480,58 @@ let ``buildCommands formats podman container requests through podman path on lin
         args |> should contain "restore App.csproj")
 
 [<Test>]
+let ``apple commands preserve mounts arguments and environment without docker host flags`` () =
+    withTempWorkspace (fun root ->
+        withEnvironmentVariable "TB_SAMPLE" "$TERRABUILD_HOME/cache" (fun () ->
+            let workspace = Path.Combine(root, "workspace with spaces")
+            let operation = buildOperation "docker" "build \"Project With Spaces\"" (Some "tool:image")
+            let node = buildNode "apple-build" "src/My App" "build" GraphDef.RunAction.Exec [ operation ]
+            let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Apple }
+            let _, workDir, command, arguments, _, _, envs =
+                Runner.buildCommandsForRuntime macRuntime node options node.ProjectDir workspace workspace
+                |> List.exactlyOne
+            command |> should equal "container"
+            workDir |> should equal workspace
+            envs["TB_SAMPLE"] |> should equal "/terrabuild-home/cache"
+            envs["FROM_ENV_MAP"] |> should equal "set-by-terrabuild"
+            match arguments with
+            | Exec.Arguments.Raw _ -> Assert.Fail("Expected structured arguments")
+            | Exec.Arguments.List args ->
+                for expected in [ workspace + ":/terrabuild"; workspace + ":/terrabuild-home"
+                                  workspace + ":/terrabuild-tmp"; "/terrabuild/src/My App"
+                                  "Project With Spaces"; "--cpus=2"; "--platform=linux/amd64"
+                                  "TB_SAMPLE"; "FROM_ENV_MAP"; "HOME=/terrabuild-home" ] do
+                    args |> should contain expected
+                for unexpected in [ "--net=host"; "--pid=host"; "--ipc=host"; "--user"
+                                    "/var/run/docker.sock:/var/run/docker.sock"; "/terrabuild-home/cache" ] do
+                    args |> should not' (contain unexpected)
+                Exec.tryContainerIdentity command arguments |> Option.isSome |> should equal true))
+
+[<Test>]
+let ``apple engine rejects container execution on linux but permits imageless operations`` () =
+    withTempWorkspace (fun workspace ->
+        let operation = buildOperation "echo" "hello" (Some "tool:image")
+        let node = buildNode "apple-linux" "." "build" GraphDef.RunAction.Exec [ operation ]
+        let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Apple }
+        (fun () -> Runner.buildCommandsForRuntime linuxRuntime node options "." workspace workspace |> ignore)
+        |> should throw typeof<Errors.TerrabuildException>
+        let node = { node with Operations = [ { operation with Image = None } ] }
+        let _, _, command, _, _, _, _ =
+            Runner.buildCommandsForRuntime linuxRuntime node options "." workspace workspace |> List.exactlyOne
+        command |> should equal "echo")
+
+[<Test>]
+let ``apple cleanup recognizes absent containers without swallowing other failures`` () =
+    Exec.containerIsAbsent "container" "Error: internalError: failed to delete container (cause: notFound: container with ID terrabuild-test not found)"
+    |> should equal true
+    Exec.containerIsAbsent "container" "notFound: service not found" |> should equal false
+    Exec.containerIsAbsent "container" "permission denied" |> should equal false
+    Exec.tryContainerIdentity "container" (Exec.Arguments.List [ "run"; "--name"; "terrabuild-test"; "alpine" ])
+    |> should equal (Some ("container", "terrabuild-test"))
+    Exec.tryContainerIdentity "container" (Exec.Arguments.List [ "build"; "--name"; "unrelated" ])
+    |> should equal None
+
+[<Test>]
 let ``buildCommands mounts docker socket only for docker client commands`` () =
     withTempWorkspace (fun workspace ->
         let operation = buildOperation "docker" "version" (Some "docker:27-cli")

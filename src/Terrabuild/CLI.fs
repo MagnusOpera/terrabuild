@@ -5,6 +5,7 @@ open Argu
 type Engine =
     | Docker
     | Podman
+    | Apple
     | Host
 
 [<RequireQualifiedAccess>]
@@ -83,7 +84,7 @@ with
             | Note _ -> "Note for the build."
             | Group _ -> "Group identifier for related builds."
             | Tag _ -> "Tag for build."
-            | Engine _ -> "Container engine to use (docker, podman or host)."
+            | Engine _ -> "Container engine to use (docker, podman, apple or host)."
             | Dry_Run -> "Prepare the action but do not apply."
 
 [<RequireQualifiedAccess>]
@@ -115,7 +116,7 @@ with
             | Force -> "Explain the forced execution decision."
             | Retry -> "Explain retry behavior for failed cached tasks."
             | Local_Only -> "Use local cache only."
-            | Engine _ -> "Container engine to use (docker, podman or host)."
+            | Engine _ -> "Container engine to use (docker, podman, apple or host)."
 
 [<RequireQualifiedAccess>]
 type ImpactArgs =

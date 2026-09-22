@@ -7,6 +7,7 @@ open Contracts
 type Engine =
     | Docker
     | Podman
+    | Apple
     | Host
 
 [<RequireQualifiedAccess>]
