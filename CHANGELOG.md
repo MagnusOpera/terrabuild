@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.201.0]
+
 - Remove unused extension stdout capture and the Terraform output action.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.3...0.201.0
 
 ## [0.200.3]
 
