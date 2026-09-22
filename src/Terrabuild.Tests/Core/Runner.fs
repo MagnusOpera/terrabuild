@@ -487,7 +487,7 @@ let ``apple commands preserve mounts arguments and environment without docker ho
             let operation = buildOperation "docker" "build \"Project With Spaces\"" (Some "tool:image")
             let node = buildNode "apple-build" "src/My App" "build" GraphDef.RunAction.Exec [ operation ]
             let options = { baseOptions workspace with Engine = ConfigOptions.Engine.Apple }
-            let _, workDir, command, arguments, _, _, envs, _ =
+            let _, workDir, command, arguments, _, _, envs =
                 Runner.buildCommandsForRuntime macRuntime node options node.ProjectDir workspace workspace
                 |> List.exactlyOne
             command |> should equal "container"
@@ -516,7 +516,7 @@ let ``apple engine rejects container execution on linux but permits imageless op
         (fun () -> Runner.buildCommandsForRuntime linuxRuntime node options "." workspace workspace |> ignore)
         |> should throw typeof<Errors.TerrabuildException>
         let node = { node with Operations = [ { operation with Image = None } ] }
-        let _, _, command, _, _, _, _, _ =
+        let _, _, command, _, _, _, _ =
             Runner.buildCommandsForRuntime linuxRuntime node options "." workspace workspace |> List.exactlyOne
         command |> should equal "echo")
 

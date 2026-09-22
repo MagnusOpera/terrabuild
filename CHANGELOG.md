@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Run containerized builds with Apple Container on Apple silicon Macs using the apple engine.
+- Keep Apple Container support compatible with the latest command execution behavior.
 - Remove unused extension stdout capture and the Terraform output action.
 
 ## [0.200.3]
