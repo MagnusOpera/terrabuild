@@ -4,8 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.202.0]
+
 - Reduce configuration dependency-discovery overhead and improve scaling for dependent locals.
 - Reduce filesystem scanning, output staging, and published PubSub signal overhead.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.201.0...0.202.0
 
 ## [0.201.0]
 
