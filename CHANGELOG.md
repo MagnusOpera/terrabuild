@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.202.1]
+
 - Upgrade the embedded FScript language and runtime to 0.79.0 with improved numeric type inference.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.202.0...0.202.1
 
 ## [0.202.0]
 
