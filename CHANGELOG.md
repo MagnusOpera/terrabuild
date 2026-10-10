@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade the embedded FScript language and runtime to 0.79.0 with improved numeric type inference.
+
 ## [0.202.0]
 
 - Reduce configuration dependency-discovery overhead and improve scaling for dependent locals.
