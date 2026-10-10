@@ -12,7 +12,6 @@
             // "args": ["run", "build", "test", "--workspace", "tests/simple", "--parallel", "1", "--debug", "--log" ],
             // "args": ["run", "build", "test", "plan", "apply", "--workspace", "tests/indirect-target", "--parallel", "1", "--debug", "--log" ],
 
-            // "args": ["run", "build", "--workspace", "../../matis/matis-next", "--configuration", "local", "--retry", "--debug", "--local-only", "--log", "--dry-run" ],
             "args": ["run", "build", "test", "dist", "--configuration", "Debug", "--log", "--debug", "--parallel", "1", "--retry" ],
 
             // "args": ["run", "build", "--workspace", "tests/cluster-layers", "--force", "--debug", "-p", "1", "--dry-run" ],

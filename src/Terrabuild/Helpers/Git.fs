@@ -3,6 +3,7 @@ open Errors
 open System
 open LibGit2Sharp
 open System.IO
+open System.IO.Enumeration
 open System.Text.RegularExpressions
 
 let isRepository (dir: string) =
@@ -88,13 +89,16 @@ let enumeratedCommittedFiles (workspaceDir: string) (projectDir: string) : strin
 
     let startDir = FS.combinePath workspaceDir projectDir |> Path.GetFullPath
 
-    let isIgnored (absPath: string) =
+    let isIgnored isDirectory (absPath: string) =
         let rel = FS.relativePath repoDir absPath
         let relForGit =
-            if Directory.Exists absPath then (if rel.EndsWith "/" then rel else rel + "/") else rel
+            if isDirectory then (if rel.EndsWith "/" then rel else rel + "/") else rel
         repo.Ignore.IsPathIgnored(relForGit)
 
     let results = ResizeArray<string>()
+    let options = EnumerationOptions(IgnoreInaccessible = false, AttributesToSkip = enum<FileAttributes> 0)
+    let transform = FileSystemEnumerable<struct (string * bool)>.FindTransform(fun entry ->
+        struct (entry.ToFullPath(), entry.IsDirectory))
     let stack = Collections.Generic.Stack<string>()
     stack.Push(startDir)
 
@@ -103,13 +107,10 @@ let enumeratedCommittedFiles (workspaceDir: string) (projectDir: string) : strin
 
         if String.Equals(Path.GetFileName(dir), ".git") then
             () // never descend into .git
-        elif not (isIgnored dir) then
-            // files
-            for f in Directory.EnumerateFiles(dir) do
-                if not (isIgnored f) then
-                    results.Add(Path.GetFullPath f)
-            // subdirs
-            for d in Directory.EnumerateDirectories(dir) do
-                stack.Push d
+        elif not (isIgnored true dir) then
+            // Enumeration supplies the entry kind; do not stat each path again.
+            for struct (path, isDirectory) in FileSystemEnumerable<struct (string * bool)>(dir, transform, options) do
+                if isDirectory then stack.Push path
+                elif not (isIgnored false path) then results.Add path
 
     results |> Seq.toList

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Include="Hub.fs" />
+    <Compile Include="Performance.fs" />
   </ItemGroup>
 
   <ItemGroup>

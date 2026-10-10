@@ -1,5 +1,6 @@
 module Terrabuild.Expression.Dependencies
 open System.Collections.Generic
+open System.Collections.Concurrent
 open Terrabuild.Expression
 open FSharp.Reflection
 
@@ -56,84 +57,54 @@ let rec findProjectReferences (expr: Expr) =
 let private fsmapTy = typedefof<Map<string, _>>
 let private fsoptionTy = typedefof<option<_>>
 let private fskvpTy = typedefof<KeyValuePair<string, _>>
-let reflectionFind (o: obj) =
+// Cache type metadata, never configuration values or dependency results.
+let private readers = ConcurrentDictionary<System.Type, obj -> (obj | null) array>()
 
-    let rec reflectionFind (theObject: obj | null) =
-        seq {
-            match theObject with
-            | :? System.Collections.IEnumerable as enumerable ->
-                for so in enumerable do
-                    yield! reflectionFind so
-            | :? Expr as expr -> yield find expr
-            | NonNull theObject ->
-                let ty = theObject.GetType()
-                if ty.IsGenericType then
-                    let tyDef = ty.GetGenericTypeDefinition()
-                    if tyDef = fsmapTy then
-                        let valuesProperty = ty.GetProperty("Values")
-                        match valuesProperty with
-                        | NonNull valuesProperty ->
-                            let values = valuesProperty.GetValue(theObject)
-                            yield! reflectionFind values
-                        | _ -> ()
-                    elif tyDef = fsoptionTy then
-                        match ty.GetProperty("Value") with
-                        | NonNull valueProperty ->
-                            let value = valueProperty.GetValue(theObject, null)
-                            yield! reflectionFind value
-                        | _ -> ()
-                    elif tyDef = fskvpTy then
-                        match ty.GetProperty("Value") with
-                        | NonNull valueProperty ->
-                            let value = valueProperty.GetValue(theObject, null)
-                            yield! reflectionFind value
-                        | _ -> ()
-                elif FSharpType.IsRecord(ty, false) then
-                    let fields = FSharpType.GetRecordFields(ty) |> Array.map (fun propInfo -> propInfo.GetValue(theObject, null))
-                    for field in fields do
-                        yield! reflectionFind field
-            | _ -> ()
-        }
+let private buildReader (ty: System.Type) : obj -> (obj | null) array =
+    if ty.IsGenericType then
+        let definition = ty.GetGenericTypeDefinition()
+        let property =
+            if definition = fsmapTy then ty.GetProperty("Values")
+            elif definition = fsoptionTy || definition = fskvpTy then ty.GetProperty("Value")
+            else null
+        match property with
+        | NonNull property -> fun value -> [| property.GetValue(value, null) |]
+        | _ -> fun _ -> Array.empty
+    elif FSharpType.IsRecord(ty, false) then
+        let reader = FSharpValue.PreComputeRecordReader(ty, false)
+        fun value -> reader value |> Array.map (fun field -> (field: obj | null))
+    else fun _ -> Array.empty
 
-    o |> reflectionFind |> Seq.fold (fun acc s -> acc + s) Set.empty
+let private readerFactory = System.Func<System.Type, obj -> (obj | null) array>(buildReader)
 
-let reflectionFindProjectReferences (o: obj) =
+let private visitExpressions visit (value: obj) =
+    let pending = Stack<obj | null>()
+    pending.Push(value)
+    while pending.Count > 0 do
+        match pending.Pop() with
+        | :? string -> ()
+        | :? System.Collections.IEnumerable as enumerable ->
+            for item in enumerable do pending.Push(item)
+        | :? Expr as expr -> visit expr
+        | NonNull value ->
+            let reader = readers.GetOrAdd(value.GetType(), readerFactory)
+            for field in reader value do pending.Push(field)
+        | _ -> ()
 
-    let rec reflectionFindProjectReferences (theObject: obj | null) =
-        seq {
-            match theObject with
-            | :? System.Collections.IEnumerable as enumerable ->
-                for so in enumerable do
-                    yield! reflectionFindProjectReferences so
-            | :? Expr as expr -> yield findProjectReferences expr
-            | NonNull theObject ->
-                let ty = theObject.GetType()
-                if ty.IsGenericType then
-                    let tyDef = ty.GetGenericTypeDefinition()
-                    if tyDef = fsmapTy then
-                        let valuesProperty = ty.GetProperty("Values")
-                        match valuesProperty with
-                        | NonNull valuesProperty ->
-                            let values = valuesProperty.GetValue(theObject)
-                            yield! reflectionFindProjectReferences values
-                        | _ -> ()
-                    elif tyDef = fsoptionTy then
-                        match ty.GetProperty("Value") with
-                        | NonNull valueProperty ->
-                            let value = valueProperty.GetValue(theObject, null)
-                            yield! reflectionFindProjectReferences value
-                        | _ -> ()
-                    elif tyDef = fskvpTy then
-                        match ty.GetProperty("Value") with
-                        | NonNull valueProperty ->
-                            let value = valueProperty.GetValue(theObject, null)
-                            yield! reflectionFindProjectReferences value
-                        | _ -> ()
-                elif FSharpType.IsRecord(ty, false) then
-                    let fields = FSharpType.GetRecordFields(ty) |> Array.map (fun propInfo -> propInfo.GetValue(theObject, null))
-                    for field in fields do
-                        yield! reflectionFindProjectReferences field
-            | _ -> ()
-        }
+let reflectionFind (value: obj) =
+    let mutable dependencies = Set.empty
+    visitExpressions (fun expr -> dependencies <- dependencies + find expr) value
+    dependencies
 
-    o |> reflectionFindProjectReferences |> Seq.fold (fun acc s -> acc + s) Set.empty
+let reflectionFindProjectReferences (value: obj) =
+    let mutable projects = Set.empty
+    visitExpressions (fun expr -> projects <- projects + findProjectReferences expr) value
+    projects
+
+let reflectionFindAll (value: obj) =
+    let mutable dependencies = Set.empty
+    let mutable projects = Set.empty
+    visitExpressions (fun expr ->
+        dependencies <- dependencies + find expr
+        projects <- projects + findProjectReferences expr) value
+    dependencies, projects

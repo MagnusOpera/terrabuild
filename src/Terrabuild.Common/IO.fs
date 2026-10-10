@@ -122,3 +122,13 @@ let createSnapshot outputs projectDirectory =
         |> Seq.map (fun output -> output, System.IO.File.GetLastWriteTimeUtc output)
         |> Map
     { TimestampedFiles = files }
+
+let enumerateOutputFiles (outputs: string seq) projectDirectory =
+    let matcher = Matcher()
+    matcher.AddIncludePatterns(outputs)
+    // Match the snapshot map's distinct, ordered keys without reading unused timestamps.
+    matcher.GetResultsInFullPath(projectDirectory)
+    |> Array.ofSeq
+    |> Array.distinct
+    |> Array.sort
+    |> Array.toList

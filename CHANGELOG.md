@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Reduce configuration dependency-discovery overhead and improve scaling for dependent locals.
+- Reduce filesystem scanning, output staging, and published PubSub signal overhead.
+
 ## [0.201.0]
 
 - Remove unused extension stdout capture and the Terraform output action.

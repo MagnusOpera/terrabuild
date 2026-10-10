@@ -104,15 +104,18 @@ type private LoadedProject = {
 let scanFolders root (ignores: Set<string>) =
     let matcher = Matcher()
     matcher.AddInclude("**/*").AddExcludePatterns(ignores)
+    let rootIgnores = System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    for pattern in ignores do
+        if pattern <> "." && pattern <> ".." && pattern.IndexOfAny([| '*'; '?'; '/'; '\\' |]) < 0 then
+            rootIgnores.Add(pattern) |> ignore
 
     fun dir ->
         // exclude sub-folders with WORKSPACE
         let relativeDir = dir |> FS.relativePath root
         // Matcher is configured once and shared by the parallel directory walk.
-        if lock matcher (fun () -> matcher.Match(relativeDir).HasMatches) then
-            match FS.combinePath dir "WORKSPACE" with
-            | FS.File _ -> false
-            | _ -> true
+        if rootIgnores.Contains(relativeDir) then false
+        elif lock matcher (fun () -> matcher.Match(relativeDir).HasMatches) then
+            not (File.Exists(FS.combinePath dir "WORKSPACE"))
         else
             false
 
@@ -139,10 +142,9 @@ let internal scanProjectDirectories maxConcurrency root scanFolder loadProject =
             try
                 try
                     if errors.IsEmpty && (dir = root || scanFolder dir) then
-                        match FS.combinePath dir "PROJECT" with
-                        | FS.File _ -> loadProject dir
-                        | _ ->
-                            for subdir in IO.enumerateDirs dir do
+                        if File.Exists(FS.combinePath dir "PROJECT") then loadProject dir
+                        else
+                            for subdir in Directory.EnumerateDirectories dir do
                                 enqueueDirectory subdir
                 with exn ->
                     errors.Enqueue(ExceptionDispatchInfo.Capture exn)
@@ -493,6 +495,7 @@ let private overlayExtensions inherited declared =
 let private loadProjectDef
     (options: ConfigOptions.Options)
     (workspaceConfig: AST.Workspace.WorkspaceFile)
+    phaseNames
     (scriptDeniedPathGlobs: string list)
     evaluationContext
     extensions
@@ -511,7 +514,6 @@ let private loadProjectDef
         | _ ->
             raiseInvalidArg $"No PROJECT found in directory '{projectFile}'"
 
-    let phaseNames = workspaceConfig.Phases |> Map.keys |> Set.ofSeq
     projectConfig.Targets
     |> Map.iter (fun _ target -> target.Phase |> Option.iter (resolvePhaseReference phaseNames >> ignore))
 
@@ -629,15 +631,17 @@ let private loadProjectDef
         |> Seq.choose (fun extensionName -> extensions |> Map.tryFind extensionName)
         |> Seq.toList
         |> fun usedExtensions ->
-            (Dependencies.reflectionFind usedExtensions)
-            |> Set.union (Dependencies.reflectionFindProjectReferences usedExtensions |> Set.map (fun dep -> $"project.{dep}"))
+            let dependencies, projects = Dependencies.reflectionFindAll usedExtensions
+            dependencies |> Set.union (projects |> Set.map (fun dep -> $"project.{dep}"))
+
+    let declaredDependencies, declaredProjectReferences = Dependencies.reflectionFindAll projectConfig
 
     let dependsOn =
         // collect dependencies for all the project
         // NOTE we are keeping only project dependencies as we want to construct project graph
         projectConfig.Project.DependsOn |> Option.defaultValue Set.empty
-        |> Set.union (Dependencies.reflectionFind projectConfig)
-        |> Set.union (projectConfig |> Dependencies.reflectionFindProjectReferences |> Set.map (fun dep -> $"project.{dep}"))
+        |> Set.union declaredDependencies
+        |> Set.union (declaredProjectReferences |> Set.map (fun dep -> $"project.{dep}"))
         |> Set.union usedExtensionProjectReferences
         |> Set.choose (fun dep ->
             match dep with
@@ -744,16 +748,38 @@ let internal buildLocalPlan knownNames (locals: Map<string, Expr>) =
             localName, (expr, Dependencies.find expr))
         |> Map.ofSeq
 
-    let rec build available pending plan =
-        match pending |> Seq.tryFind (fun (KeyValue(_, (_, dependencies))) -> Set.isSubset dependencies available) with
-        | Some (KeyValue(localName, (expr, _))) ->
-            build (available |> Set.add localName) (pending |> Map.remove localName) ((localName, expr) :: plan)
-        | None when pending.IsEmpty -> Ok (plan |> List.rev)
-        | None ->
-            let (KeyValue(localName, (_, dependencies))) = pending |> Seq.head
-            Error (localName, dependencies - available)
+    let remaining = System.Collections.Generic.Dictionary<string, int>()
+    let dependents = System.Collections.Generic.Dictionary<string, ResizeArray<string>>()
+    let ready = System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal)
+    for KeyValue(name, (_, dependencies)) in pending do
+        let unresolved = dependencies - knownNames
+        remaining[name] <- unresolved.Count
+        if unresolved.IsEmpty then ready.Add(name) |> ignore
+        for dependency in unresolved do
+            match dependents.TryGetValue dependency with
+            | true, names -> names.Add(name)
+            | _ -> dependents[dependency] <- ResizeArray [ name ]
 
-    build knownNames pending []
+    let plan = ResizeArray<string * Expr>()
+    let mutable available = knownNames
+    while ready.Count > 0 do
+        let name = Seq.head ready
+        ready.Remove(name) |> ignore
+        plan.Add(name, fst pending[name])
+        available <- available.Add(name)
+        remaining.Remove(name) |> ignore
+        match dependents.TryGetValue name with
+        | true, names ->
+            for dependent in names do
+                remaining[dependent] <- remaining[dependent] - 1
+                if remaining[dependent] = 0 then ready.Add(dependent) |> ignore
+        | _ -> ()
+
+    if remaining.Count = 0 then Ok (List.ofSeq plan)
+    else
+        let (KeyValue(name, (_, dependencies))) =
+            pending |> Seq.find (fun (KeyValue(name, _)) -> remaining.ContainsKey name)
+        Error (name, dependencies - available)
 
 
 // this is the final stage: create targets and create the project
@@ -1172,6 +1198,7 @@ let read (options: ConfigOptions.Options) =
                                 loadProjectDef
                                     options
                                     workspaceConfig
+                                    phaseNames
                                     scriptDeniedPathGlobs
                                     evaluationContext
                                     extensions
@@ -1209,7 +1236,6 @@ let read (options: ConfigOptions.Options) =
                                     project.Id, project)
                                 |> Map.ofSeq
 
-                            let phaseNames = workspaceConfig.Phases |> Map.keys |> Set.ofSeq
                             let project = finalizeProject repository options.Workspace projectDir evaluationContext phaseNames loadedProject dependsOnProjects
                             if projects.TryAdd(project.Id, project) |> not then raiseBugError "Unexpected error"
 

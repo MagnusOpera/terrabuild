@@ -164,3 +164,31 @@ let ``array dependencies`` () =
     expr
     |> findArrayOfDependencies
     |> shouldEqual expected
+
+[<Test>]
+let ``combined reflection scan preserves dependency sets and observes mutations`` () =
+    let reference name =
+        Expr.Function (Function.Item, [ Expr.Variable "project"; Expr.String name ])
+    let values = ResizeArray<Expr>([ Expr.Variable "local.first"; reference "first" ])
+    let scan () =
+        let actual = reflectionFindAll values
+        actual |> shouldEqual (reflectionFind values, reflectionFindProjectReferences values)
+        actual
+    scan () |> shouldEqual (Set [ "local.first"; "project" ], Set [ "first" ])
+    values.Add(reference "second")
+    scan () |> shouldEqual (Set [ "local.first"; "project" ], Set [ "first"; "second" ])
+
+[<Test>]
+let ``reflection metadata supports parallel independent values`` () =
+    System.Threading.Tasks.Parallel.For(0, 100, fun index ->
+        let name = $"project.{index}"
+        let value =
+            { SimpleExpr = Expr.Variable name
+              OptExpr = None
+              MapOfExpr = Map.empty
+              OptMapOfExpr = None
+              OptMapOfSubBlock = Map [ "nested", { SubBlockExpr = Expr.Variable "local.shared" } ]
+              Content = "not.a.dependency" }
+        reflectionFindAll value
+        |> shouldEqual (Set [ name; "local.shared" ], Set.empty))
+    |> ignore

@@ -541,8 +541,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 match node.Artifacts with
                 | GraphDef.ArtifactMode.Workspace
                 | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
-                    let afterFiles = IO.createSnapshot node.Outputs projectDirectory
-                    let newFiles = afterFiles - IO.Snapshot.Empty
+                    let newFiles = IO.enumerateOutputFiles node.Outputs projectDirectory
                     cacheEntry.StoreOutputs projectDirectory newFiles
                 | _ -> Cache.OutputState.NotManaged
             with _ ->
@@ -656,7 +655,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                             match node.Artifacts with
                             | GraphDef.ArtifactMode.Workspace
                             | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty ->
-                                let newFiles = IO.createSnapshot node.Outputs node.ProjectDir - IO.Snapshot.Empty
+                                let newFiles = IO.enumerateOutputFiles node.Outputs node.ProjectDir
                                 cacheEntry.StoreOutputs node.ProjectDir newFiles
                             | _ -> Cache.OutputState.NotManaged
 

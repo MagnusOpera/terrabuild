@@ -289,6 +289,80 @@ let ``Local evaluation plan reports unresolved dependencies`` () =
     | Error error -> error |> should equal ("local.value", Set [ "local.missing" ])
     | Ok plan -> Assert.Fail($"Unexpected local plan: {plan}")
 
+let private legacyLocalPlan knownNames (locals: Map<string, Expr>) =
+    let pending =
+        locals
+        |> Map.toSeq
+        |> Seq.map (fun (name, expr) -> $"local.{name}", (expr, Dependencies.find expr))
+        |> Map.ofSeq
+    let rec build available pending plan =
+        match pending |> Seq.tryFind (fun (KeyValue(_, (_, dependencies))) -> Set.isSubset dependencies available) with
+        | Some (KeyValue(name, (expr, _))) ->
+            build (Set.add name available) (Map.remove name pending) ((name, expr) :: plan)
+        | None when Map.isEmpty pending -> Ok (List.rev plan)
+        | None ->
+            let (KeyValue(name, (_, dependencies))) = Seq.head pending
+            Error (name, dependencies - available)
+    build knownNames pending []
+
+[<Test>]
+let ``Local ready queue preserves legacy plans and errors`` () =
+    let random = System.Random(42)
+    for _ in 1 .. 200 do
+        let locals =
+            [ for index in 0 .. 19 ->
+                let dependencies =
+                    [ for _ in 1 .. random.Next(4) ->
+                        Expr.Variable $"local.n{random.Next(23):D2}" ]
+                $"n{index:D2}", Expr.List dependencies ]
+            |> Map.ofList
+        for knownNames in [ Set.empty; Set [ "local.n00"; "local.n21" ] ] do
+            Configuration.buildLocalPlan knownNames locals
+            |> should equal (legacyLocalPlan knownNames locals)
+
+[<Test>]
+let ``Local ready queue handles deep reverse ordered chains`` () =
+    let locals =
+        [ for index in 0 .. 4999 ->
+            let expression =
+                if index = 4999 then Expr.Nothing
+                else Expr.Variable $"local.n{index + 1:D4}"
+            $"n{index:D4}", expression ]
+        |> Map.ofList
+    match Configuration.buildLocalPlan Set.empty locals with
+    | Ok plan ->
+        plan |> List.map fst |> should equal [ for index in 4999 .. -1 .. 0 -> $"local.n{index:D4}" ]
+    | Error error -> Assert.Fail($"Unexpected local planning error: {error}")
+
+[<Test; Explicit("Configuration component benchmark")>]
+let BenchmarkLocalPlanning () =
+    let locals =
+        [ for index in 0 .. 999 ->
+            $"n{index:D4}",
+            if index = 999 then Expr.Nothing else Expr.Variable $"local.n{index + 1:D4}" ]
+        |> Map.ofList
+    let before () = legacyLocalPlan Set.empty locals
+    let after () = Configuration.buildLocalPlan Set.empty locals
+    let expected = before ()
+    let measure action =
+        let allocated = GC.GetTotalAllocatedBytes(true)
+        let timer = System.Diagnostics.Stopwatch.StartNew()
+        let actual = action ()
+        timer.Stop()
+        let bytes = GC.GetTotalAllocatedBytes(true) - allocated
+        actual |> should equal expected
+        timer.Elapsed.TotalMilliseconds, bytes
+    for _ in 1 .. 4 do before () |> ignore; after () |> ignore
+    for index in 1 .. 9 do
+        let old, current =
+            if index % 2 = 0 then
+                let current = measure after
+                measure before, current
+            else
+                let old = measure before
+                old, measure after
+        printfn "CONFIG_LOCAL_BENCH sample=%d beforeMs=%.3f afterMs=%.3f beforeBytes=%d afterBytes=%d" index (fst old) (fst current) (snd old) (snd current)
+
 [<Test>]
 let ``Parallel project scan preserves ignore workspace and project boundaries`` () =
     withTempWorkspace (fun root ->

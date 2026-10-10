@@ -27,7 +27,7 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
 
     interface ISignal with
         member _.Name = name
-        member _.IsRaised() = lock signalLock (fun () -> raised.IsSome )
+        member _.IsRaised() = Volatile.Read(&raised).IsSome
         member _.Subscribe(onCompleted: SignalCompleted) =
             if eventQueue.HasError then
                 ()
@@ -52,17 +52,18 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
 
     interface ISignal<'T> with
         member _.Value
-            with get () = lock signalLock (fun () -> 
-                match raised with
+            with get () =
+                match Volatile.Read(&raised) with
                 | Some raised -> raised
-                | _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is not raised")
+                | _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is not raised"
             and set value =
                 let notifications =
                     lock signalLock (fun () ->
                         match raised with
                         | Some _ -> Errors.raiseBugError $"Signal '{(this :> ISignal).Name}' is already raised"
                         | _ ->
-                            raised <- Some value
+                            // Publish the immutable payload before notifications can read it.
+                            Volatile.Write(&raised, Some value)
                             let notifications = ResizeArray<SignalCompleted>(subscribers.Count)
                             while subscribers.Count > 0 do
                                 notifications.Add(subscribers.Dequeue())
