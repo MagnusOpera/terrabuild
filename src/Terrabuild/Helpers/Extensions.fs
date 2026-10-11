@@ -345,14 +345,17 @@ let private loadScriptFromOriginWithIncludes
         | true, source -> Some source
         | _ -> None
 
-    loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
-        (stableOriginIdentity workspaceRoot entryOrigin)
-        workspaceRoot
-        deniedPathGlobs
-        workspaceRoot
-        entryPath
-        entrySource
-        resolveImportedSource
+    let loaded =
+        loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
+            (stableOriginIdentity workspaceRoot entryOrigin)
+            workspaceRoot
+            deniedPathGlobs
+            workspaceRoot
+            entryPath
+            entrySource
+            resolveImportedSource
+    loaded.ContractFingerprint <- sourceMap.Values |> Seq.sort |> Hash.sha256strings
+    loaded
 
 let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name: string) (script: string option) =
     let initScript () =
@@ -381,14 +384,20 @@ let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name:
                 | Some entrySource ->
                     let resolveImportedSource (path: string) =
                         sourceMap |> Map.tryFind (Path.GetFullPath(path))
-                    loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
-                        $"embedded:{normalizeRelativeScriptPath relativePath}"
-                        workspaceRoot
-                        deniedPathGlobs
-                        embeddedScriptsVirtualRoot
-                        entryPath
-                        entrySource
-                        resolveImportedSource
+                    let loaded =
+                        loadScriptFromSourceWithIncludesWithDeniedPathGlobsAndIdentity
+                            $"embedded:{normalizeRelativeScriptPath relativePath}"
+                            workspaceRoot
+                            deniedPathGlobs
+                            embeddedScriptsVirtualRoot
+                            entryPath
+                            entrySource
+                            resolveImportedSource
+                    loaded.ProvenanceOrigin <- "builtin"
+                    loaded.ContractFingerprint <-
+                        [ entrySource; sourceMap[toEmbeddedScriptVirtualPath "Scripts/_protocol.fss"]; sourceMap[toEmbeddedScriptVirtualPath "Scripts/_helpers.fss"] ]
+                        |> Hash.sha256strings
+                    loaded
                 | None ->
                     raiseSymbolError $"Embedded script is not defined for extension '{name}'"
             | _ ->

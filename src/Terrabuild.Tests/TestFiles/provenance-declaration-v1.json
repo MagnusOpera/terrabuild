@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "productionId": "fixture-production",
+  "nodeId": "app:build",
+  "transformations": [
+    {
+      "nodeId": "app:build",
+      "step": "0:custom:build",
+      "entrypoint": "build",
+      "preservation": "preserved",
+      "origin": "custom",
+      "scriptIdentity": "file:custom.fss",
+      "contractFingerprint": "contract-hash"
+    }
+  ],
+  "dependencies": [
+    {
+      "nodeId": "library:build",
+      "productionId": null
+    }
+  ],
+  "producerVersion": "fixture-version"
+}

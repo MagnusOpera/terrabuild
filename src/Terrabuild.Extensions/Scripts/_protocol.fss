@@ -27,9 +27,15 @@ type ShellOperation =
       Arguments: string
       ErrorLevel: int }
 
+type ProvenanceEffect =
+  | Preserved
+  | Broken
+  | Unaffected
+
 type CommandResult =
     { Batchable: bool
-      Operations: ShellOperation list }
+      Operations: ShellOperation list
+      PreserveProvenance: ProvenanceEffect }
 
 type ExportFlag =
   | Dispatch

@@ -17,7 +17,8 @@ let with_configuration configuration =
 /// <param name="args" default="" example="&quot;clean --info&quot;">Extra arguments for the Gradle command.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "gradle"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -33,7 +34,8 @@ let with_configuration configuration =
     |> Helpers.append_part "assemble"
     |> Helpers.append_part configuration
     |> Helpers.append_part args
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "gradle"
                      Arguments = command
                      ErrorLevel = 0 } ] }

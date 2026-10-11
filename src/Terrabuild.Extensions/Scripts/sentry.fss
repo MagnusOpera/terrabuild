@@ -14,7 +14,8 @@ let with_project project =
   let path = path |> Option.defaultValue "dist"
   let errorLevel = if context.CI then 0 else 1
 
-  { Batchable = false
+  { PreserveProvenance = Preserved
+    Batchable = false
     Operations =
       [ { Command = "sentry-cli"
           Arguments = $"sourcemaps inject {path}"

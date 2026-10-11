@@ -107,7 +107,8 @@ let with_configuration configuration =
 /// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [command_op command] }
 
 /// <summary>Executes `dotnet tool ...` commands.</summary>
@@ -117,7 +118,8 @@ let with_configuration configuration =
     ""
     |> Helpers.append_part "tool"
     |> Helpers.append_part (Helpers.with_args args)
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [command_op command] }
 
 /// <summary>Restores NuGet packages for one project or a batch solution.</summary>
@@ -126,6 +128,8 @@ let with_configuration configuration =
 /// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="args" default="" example="&quot;--force&quot;">Extra `dotnet restore` arguments.</param>
 [<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (dependencies: bool option) (args: string option) =
+  let lock_enforced = if Option.defaultValue false evaluate then false else Option.defaultValue true locked
+  let preserves = Helpers.preserves_locked_inputs context.Directory "packages.lock.json" lock_enforced args
   let locked = locked |> Helpers.map_true_default true "--locked-mode"
   let force_evaluate = evaluate |> Helpers.map_true "--force-evaluate"
   let dependencies = dependencies |> Helpers.map_false "--no-dependencies"
@@ -141,7 +145,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true
+  { PreserveProvenance = preserves
+    Batchable = true
     Operations = with_batch_solution context create_command }
 
 /// <summary>Builds the project or batch solution via `dotnet build`.</summary>
@@ -154,6 +159,7 @@ let with_configuration configuration =
 /// <param name="version" default="" example="&quot;1.2.3&quot;">Sets MSBuild `Version`.</param>
 /// <param name="args" default="" example="&quot;--no-incremental&quot;">Extra `dotnet build` arguments.</param>
 [<export>] let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (dependencies: bool option) (version: string option) (args: string option) =
+  let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let log = log |> Helpers.map_true "-bl"
   let restore = restore |> Helpers.map_false "--no-restore"
@@ -175,7 +181,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true
+  { PreserveProvenance = preservation
+    Batchable = true
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Packs the project into a NuGet package via `dotnet pack`.</summary>
@@ -186,6 +193,7 @@ let with_configuration configuration =
 /// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
 /// <param name="args" default="" example="&quot;--include-symbols&quot;">Extra `dotnet pack` arguments.</param>
 [<export>] let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (args: string option) =
+  let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let version = version |> Helpers.map_value (fun value -> $"/p:Version={value}")
   let restore = restore |> Helpers.map_false "--no-restore"
@@ -203,7 +211,8 @@ let with_configuration configuration =
     |> Helpers.append_part version
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = preservation
+    Batchable = false
     Operations = [command_op command] }
 
 /// <summary>Publishes binaries via `dotnet publish` for one project or a batch solution.</summary>
@@ -216,6 +225,7 @@ let with_configuration configuration =
 /// <param name="single" default="false" example="true">Enables self-contained publish.</param>
 /// <param name="args" default="" example="&quot;--version-suffix beta&quot;">Extra `dotnet publish` arguments.</param>
 [<export>] let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
+  let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"
   let build = build |> Helpers.map_false "--no-build"
@@ -239,7 +249,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true
+  { PreserveProvenance = preservation
+    Batchable = true
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
 /// <summary>Runs tests via `dotnet test`, optionally batched through a generated solution.</summary>
@@ -249,6 +260,7 @@ let with_configuration configuration =
 /// <param name="filter" default="" example="&quot;TestCategory!=integration&quot;">Filter expression (`--filter`).</param>
 /// <param name="args" default="" example="&quot;--blame-hang&quot;">Extra `dotnet test` arguments.</param>
 [<export>] let test (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
+  let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"
   let build = build |> Helpers.map_false "--no-build"
@@ -266,7 +278,8 @@ let with_configuration configuration =
     |> Helpers.append_part args
     |> command_op
 
-  { Batchable = true
+  { PreserveProvenance = preservation
+    Batchable = true
     Operations = with_batch_solution context create_command }
 
 // Exported functions and Terrabuild execution flags.

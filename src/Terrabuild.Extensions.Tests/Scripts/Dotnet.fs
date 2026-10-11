@@ -108,3 +108,27 @@ let ``dotnet test without restore and build flags`` () =
     result.Operations
     |> normalizeOps
     |> should equal [ op "dotnet" "test --no-restore --no-build --configuration Debug" 0 ]
+
+[<Test>]
+let ``dotnet restore returns preservation only for a local lock with locking enabled`` () =
+    let directory = Path.Combine(fixtureDir "", $"provenance-dotnet-{System.Guid.NewGuid():N}")
+    Directory.CreateDirectory directory |> ignore
+    try
+        let context = localContext "restore" directory
+        (invokeResult "@dotnet" "restore" context Map.empty).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+        File.WriteAllText(Path.Combine(directory, "packages.lock.json"), "{}")
+        (invokeResult "@dotnet" "restore" context Map.empty).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
+        (invokeResult "@dotnet" "restore" context (Map ["locked", bool false])).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+        (invokeResult "@dotnet" "restore" context (Map ["evaluate", bool true])).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+        (invokeResult "@dotnet" "restore" context (Map ["args", str "--any-override"])).PreserveProvenance |> should equal ProvenanceEffect.Broken
+        (invokeResult "@dotnet" "build" context Map.empty).PreserveProvenance |> should equal ProvenanceEffect.Broken
+    finally
+        Directory.Delete(directory, true)
+
+[<Test>]
+let ``dotnet build preserves declared inputs only when implicit restore is disabled`` () =
+    let context = localContext "build" (fixtureDir "")
+    (invokeResult "@dotnet" "build" context (Map ["restore", bool false])).PreserveProvenance
+    |> should equal ProvenanceEffect.Preserved
+    (invokeResult "@dotnet" "build" context (Map ["restore", bool false; "args", str "--any-override"])).PreserveProvenance
+    |> should equal ProvenanceEffect.Broken

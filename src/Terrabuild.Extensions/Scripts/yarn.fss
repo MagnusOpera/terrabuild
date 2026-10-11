@@ -58,7 +58,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "--"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -68,6 +69,7 @@ let dependencies_from (package: Package) =
 /// <param name="ignore_engines" default="false" example="true">Adds `--ignore-engines`.</param>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra `yarn install` arguments.</param>
 [<export>] let install (context: Protocol.ActionContext) (update: bool option) (ignore_engines: bool option) (args: string option) =
+  let preserves = Helpers.preserves_locked_inputs context.Directory "yarn.lock" (Option.defaultValue false update = false) args
   let update = update |> Helpers.map_false "--frozen-lockfile"
   let ignore_engines = ignore_engines |> Helpers.map_true "--ignore-engines"
   let args = Helpers.with_args args
@@ -79,7 +81,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part ignore_engines
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = preserves
+    Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -92,7 +95,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "build --"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -105,7 +109,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "test --"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -120,7 +125,8 @@ let dependencies_from (package: Package) =
     |> Helpers.append_part "--"
     |> Helpers.append_part (Helpers.with_args args)
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "yarn"
                      Arguments = operation
                      ErrorLevel = 0 } ] }

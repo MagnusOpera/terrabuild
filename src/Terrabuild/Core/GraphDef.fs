@@ -67,6 +67,8 @@ type Node = {
     TargetHash: string
     ClusterHash: string option
 
+    [<JsonIgnore>]
+    Provenance: Contracts.ProvenancePlan option
     Operations: ContaineredShellOperation list
     EvaluationInputs: EvaluationInput list
     EnvironmentSensitive: bool option

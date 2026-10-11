@@ -433,7 +433,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                     Terrabuild.ScriptingContracts.BatchContext.BatchCommands = batchCommands
                 }
 
-            let _, _, ops =
+            let _, _, ops, _ =
                 Resolve.resolveTargetOperations options projectConfig mergedTargetConfig batch.ClusterHash batchContext
 
             let batchTargetHash = computeBatchTargetHash batch ops
@@ -455,6 +455,7 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
                   GraphDef.Node.Target = headNode.Target
                   GraphDef.Node.Phase = batch.Phase
                   GraphDef.Node.Locks = batch.Nodes |> Seq.collect _.Locks |> Set.ofSeq
+                  Node.Provenance = None
                   GraphDef.Node.Operations = ops
                   GraphDef.Node.EvaluationInputs =
                     batch.Nodes

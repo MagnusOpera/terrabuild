@@ -1,8 +1,11 @@
+type ProvenanceEffect = Preserved | Broken | Unaffected
+
 type ShellOperation = { Command: string; Arguments: string; ErrorLevel: int }
-type CommandResult = { Batchable: bool; Operations: ShellOperation list }
+type CommandResult = { Batchable: bool; Operations: ShellOperation list; PreserveProvenance: ProvenanceEffect }
 
 [<export>] let run (context: {| Command: string |}) =
-  { Batchable = true
+  { PreserveProvenance = Broken
+    Batchable = true
     Operations = [{ Command = context.Command; Arguments = "--flag"; ErrorLevel = 0 }] }
 
 type ExportFlag =

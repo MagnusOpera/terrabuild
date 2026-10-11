@@ -23,3 +23,20 @@ let ``npm install defaults to clean-install`` () =
 [<Test>]
 let ``npm install cacheability is local`` () =
     cacheability "@npm" "install" |> should equal (Some Cacheability.Local)
+
+[<Test>]
+let ``node installs return lock declarations from their existing operations`` () =
+    let directory = System.IO.Path.Combine(fixtureDir "", $"provenance-node-{System.Guid.NewGuid():N}")
+    System.IO.Directory.CreateDirectory directory |> ignore
+    try
+        for extension, lockFile, optionName, disabledValue in ["@npm", "package-lock.json", "clean", false; "@pnpm", "pnpm-lock.yaml", "frozen", false; "@yarn", "yarn.lock", "update", true] do
+            let context = localContext "install" directory
+            (invokeResult extension "install" context Map.empty).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+            System.IO.File.WriteAllText(System.IO.Path.Combine(directory, lockFile), "lock contents")
+            (invokeResult extension "install" context Map.empty).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
+            (invokeResult extension "install" context (Map [optionName, bool disabledValue])).PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+            (invokeResult extension "install" context (Map ["args", str "--any-override"])).PreserveProvenance |> should equal ProvenanceEffect.Broken
+            (invokeResult extension "build" context Map.empty).PreserveProvenance |> should equal ProvenanceEffect.Broken
+            System.IO.File.Delete(System.IO.Path.Combine(directory, lockFile))
+    finally
+        System.IO.Directory.Delete(directory, true)

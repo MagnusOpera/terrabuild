@@ -1,3 +1,5 @@
+import "_protocol.fss" as Protocol
+
 let append_part part acc =
   match (part, acc) with
   | ("", _) -> acc
@@ -30,3 +32,15 @@ let map_value mapper value =
 
 let with_flag flag value =
   value |> Option.map (fun current -> $"{flag} {current}") |> Option.defaultValue ""
+
+// Only inspect a local lock and the existing typed locking switch. Extra arguments
+// are not analyzed and cannot establish this declaration.
+let preserves_locked_inputs (directory: string) (lock_file: string) (locking: bool) (args: string option) =
+  match args with
+  | Some _ -> Broken
+  | None ->
+      if locking then
+        match Fs.combinePath directory lock_file |> Fs.readText with
+        | Some content -> if content = "" then Broken else Preserved
+        | None -> Broken
+      else Broken

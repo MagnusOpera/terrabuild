@@ -9,7 +9,8 @@ open NUnit.Framework
 open Contracts
 
 let private buildNodeInfo project target status =
-    { Runner.NodeInfo.Request = Runner.TaskRequest.Exec
+    { Runner.NodeInfo.Provenance = None
+      Runner.NodeInfo.Request = Runner.TaskRequest.Exec
       Runner.NodeInfo.Status = status
       Runner.NodeInfo.Project = project
       Runner.NodeInfo.Target = target
@@ -45,6 +46,7 @@ let private buildGraphNode id projectName projectDir target =
       GraphDef.Node.ProjectHash = $"project-{id}"
       GraphDef.Node.TargetHash = $"target-{id}"
       GraphDef.Node.ClusterHash = None
+      GraphDef.Node.Provenance = None
       GraphDef.Node.Operations = []
       GraphDef.Node.EvaluationInputs = []
       GraphDef.Node.EnvironmentSensitive = None
@@ -78,8 +80,8 @@ type private RecordingImpactApiClient() =
         member _.StartBuild() = ()
         member _.UploadBuildGraph _graphHash _environment _nodes = ()
         member _.CompleteBuild _success = ()
-        member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt = ()
-        member _.UseArtifact _projectHash _hash = ()
+        member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt _provenance = ()
+        member _.UseArtifact _projectHash _hash _productionId = ()
         member _.GetArtifact _path _operation = Uri("https://example.invalid/artifact"), None
         member _.GetCommitGraph repository commit environment =
             lastLookup <- Some (repository, commit, environment)
@@ -447,6 +449,9 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectHash = "project-lib"
                 TargetHash = "hash-lib-base"
                 Dependencies = []
+                PhaseDependencies = []
+                Transformations = []
+                TargetHashResolved = Some false
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"
@@ -462,6 +467,9 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 ProjectHash = "project-app"
                 TargetHash = "hash-app"
                 Dependencies = [ "lib-build" ]
+                PhaseDependencies = []
+                Transformations = []
+                TargetHashResolved = Some false
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"

@@ -132,6 +132,7 @@ type SlowTaskReport = {
 }
 
 type ResultReport = {
+    Provenance: Contracts.ProvenanceDeclaration option
     Id: string
     Request: string
     Status: string
@@ -598,7 +599,8 @@ let private results (summary: Runner.Summary option) =
                     let blockers = dependencies |> String.join ", "
                     "blocked", Some $"Blocked by: {blockers}"
             {
-                ResultReport.Id = nodeId
+                ResultReport.Provenance = info.Provenance
+                Id = nodeId
                 Request = (string info.Request).ToLowerInvariant()
                 Status = status
                 Message = message

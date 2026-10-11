@@ -21,6 +21,7 @@ let private buildNode id dependencies phase action artifacts build required =
       Node.ProjectHash = id
       Node.TargetHash = id
       Node.ClusterHash = None
+      GraphDef.Node.Provenance = None
       Node.Operations = []
       Node.EvaluationInputs = []
       Node.EnvironmentSensitive = None

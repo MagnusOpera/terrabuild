@@ -36,7 +36,8 @@ let format_properties properties =
     |> Helpers.append_part properties
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "docker-entrypoint.sh"
                      Arguments = command
                      ErrorLevel = 0 } ] }

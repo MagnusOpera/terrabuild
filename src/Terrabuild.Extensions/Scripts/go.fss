@@ -103,7 +103,8 @@ let project_operations (context: Protocol.ActionContext) action arguments =
     ""
     |> Helpers.append_part context.Command
     |> Helpers.append_part (Helpers.with_args args)
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [command_op command] }
 
 /// <summary>Installs packages with `go install`.</summary>
@@ -123,7 +124,8 @@ let project_operations (context: Protocol.ActionContext) action arguments =
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { Batchable = batchable
+  { PreserveProvenance = Broken
+    Batchable = batchable
     Operations = operations }
 
 /// <summary>Builds packages with `go build`, writing binaries to `bin/` by default.</summary>
@@ -145,7 +147,8 @@ let project_operations (context: Protocol.ActionContext) action arguments =
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { Batchable = batchable
+  { PreserveProvenance = Broken
+    Batchable = batchable
     Operations = operations }
 
 /// <summary>Runs package tests with `go test`.</summary>
@@ -164,7 +167,8 @@ let project_operations (context: Protocol.ActionContext) action arguments =
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { Batchable = batchable
+  { PreserveProvenance = Broken
+    Batchable = batchable
     Operations = operations }
 
 // Exported functions and Terrabuild execution flags.

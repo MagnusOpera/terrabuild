@@ -18,7 +18,8 @@ let with_profile profile =
 /// <param name="args" default="" example="&quot;check --locked&quot;">Extra arguments for the subcommand.</param>
 [<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -33,7 +34,8 @@ let with_profile profile =
     |> Helpers.append_part "build"
     |> Helpers.append_part (with_profile profile)
     |> Helpers.append_part (Helpers.with_args args)
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -47,7 +49,8 @@ let with_profile profile =
     |> Helpers.append_part "test"
     |> Helpers.append_part (with_profile profile)
     |> Helpers.append_part (Helpers.with_args args)
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "cargo"
                      Arguments = command
                      ErrorLevel = 0 } ] }

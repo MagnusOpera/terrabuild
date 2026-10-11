@@ -20,6 +20,7 @@ let buildNode id clusterHash action deps group req =
       Node.ProjectHash = ""
       Node.TargetHash = ""
       Node.ClusterHash = clusterHash
+      GraphDef.Node.Provenance = None
       Node.Operations = []
       Node.EvaluationInputs = []
       Node.EnvironmentSensitive = None

@@ -66,6 +66,7 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.ProjectHash = projectHash
       GraphDef.Node.TargetHash = targetHash
       GraphDef.Node.ClusterHash = Some "cluster"
+      GraphDef.Node.Provenance = None
       GraphDef.Node.Operations = []
       GraphDef.Node.EvaluationInputs = []
       GraphDef.Node.EnvironmentSensitive = None
@@ -76,7 +77,8 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.Required = true }
 
 let private buildSummaryInfo () =
-    { Runner.NodeInfo.Request = Runner.TaskRequest.Exec
+    { Runner.NodeInfo.Provenance = None
+      Runner.NodeInfo.Request = Runner.TaskRequest.Exec
       Runner.NodeInfo.Status = Runner.TaskStatus.Success DateTime.UtcNow
       Runner.NodeInfo.Project = "."
       Runner.NodeInfo.Target = "build"
@@ -95,7 +97,8 @@ let private buildStep (logFile: string) =
       OperationSummary.ExitCode = 0 }
 
 let private buildTargetSummary (logFile: string) =
-    { TargetSummary.Project = "."
+    { TargetSummary.Provenance = None
+      TargetSummary.Project = "."
       TargetSummary.Target = "build"
       TargetSummary.Operations = [ [ buildStep logFile ] ]
       TargetSummary.Outputs = OutputState.Empty
@@ -107,7 +110,8 @@ let private buildTargetSummary (logFile: string) =
 
 let private buildFailedTargetSummary (logFile: string) =
     let failedStep = { buildStep logFile with OperationSummary.ExitCode = 1 }
-    { TargetSummary.Project = "."
+    { TargetSummary.Provenance = None
+      TargetSummary.Project = "."
       TargetSummary.Target = "build"
       TargetSummary.Operations = [ [ failedStep ] ]
       TargetSummary.Outputs = OutputState.Empty

@@ -23,6 +23,7 @@ type TaskStatus =
 
 [<RequireQualifiedAccess>]
 type NodeInfo = {
+    Provenance: Contracts.ProvenanceDeclaration option
     Request: TaskRequest
     Status: TaskStatus
     Project: string
@@ -336,6 +337,9 @@ let buildBatchSchedule flattenBatchProgress (graph: GraphDef.Graph) (targetNode:
 
 let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.IApiClient option) (uploadGraph: GraphDef.Graph) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
+    // The full graph contains unresolved nodes; overlay resolved logical members for artifact identities.
+    let uploadGraph =
+        { uploadGraph with Nodes = uploadGraph.Nodes |> Map.map (fun id node -> graph.Nodes |> Map.tryFind id |> Option.defaultValue node) }
     let graphEnvironment = options.Environment |> Option.defaultValue ""
     let repository =
         options.Repository
@@ -366,6 +370,9 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Contracts.BuildGraphNode.ProjectHash = node.ProjectHash
                   Contracts.BuildGraphNode.TargetHash = node.TargetHash
                   Contracts.BuildGraphNode.Dependencies = node.Dependencies |> Seq.sort |> List.ofSeq
+                  Contracts.BuildGraphNode.PhaseDependencies = node.PhaseDependencies |> Set.toList
+                  Contracts.BuildGraphNode.TargetHashResolved = Some node.Provenance.IsSome
+                  Contracts.BuildGraphNode.Transformations = node.Provenance |> Option.map _.Transformations |> Option.defaultValue []
                   Contracts.BuildGraphNode.Artifacts = string node.Artifacts
                   Contracts.BuildGraphNode.Build = string node.Build
                   Contracts.BuildGraphNode.Batch = string node.Batch
@@ -397,6 +404,36 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         api.UploadBuildGraph graphHash graphEnvironment graphNodes)
 
     let nodeResults = Concurrent.ConcurrentDictionary<string, TaskRequest * TaskStatus>()
+    let productionDeclarations = Concurrent.ConcurrentDictionary<string, Contracts.ProvenanceDeclaration>()
+    let carryProduction (node: GraphDef.Node) =
+        let logicalNode = uploadGraph.Nodes |> Map.tryFind node.Id |> Option.defaultValue node
+        let inputs =
+            logicalNode.Dependencies - logicalNode.PhaseDependencies
+            |> Set.toList
+            |> List.map (fun id ->
+                let production =
+                    match productionDeclarations.TryGetValue id with
+                    | true, production -> Some production
+                    | _ ->
+                        match graph.Nodes |> Map.tryFind id with
+                        | Some dependency when dependency.Action = GraphDef.RunAction.Ignore ->
+                            let cached = cache.TryGetSummaryOnly (GraphDef.isRemoteCacheable options dependency) (GraphDef.buildCacheKey dependency)
+                            let production = cached |> Option.bind (fun (_, summary) -> if summary.IsSuccessful then summary.Provenance else None)
+                            try
+                                if cached.IsSome then
+                                    api |> Option.iter (fun client -> client.UseArtifact dependency.ProjectHash dependency.TargetHash (production |> Option.map _.ProductionId))
+                                production |> Option.iter (fun value -> productionDeclarations[id] <- value)
+                                production
+                            with :? Contracts.ArtifactUnavailableException -> None
+                        | _ -> None
+                id, production)
+        let production: Contracts.ProvenanceDeclaration = {
+            Version = 1; ProducerVersion = Version.version(); ProductionId = Guid.NewGuid().ToString("N"); NodeId = logicalNode.Id
+            Transformations = logicalNode.Provenance |> Option.map _.Transformations |> Option.defaultValue []
+            Dependencies = inputs |> List.map (fun (id, production) ->
+                { NodeId = id; ProductionId = production |> Option.map _.ProductionId }) }
+        productionDeclarations[node.Id] <- production
+        Some production
     let scheduledExec = Concurrent.ConcurrentDictionary<string, bool>()
     use hub = Hub.Create(options.MaxConcurrency)
 
@@ -437,7 +474,11 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
     let tryUseArtifact (node: GraphDef.Node) =
         try
-            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash)
+            let cachedProduction =
+                cache.TryGetSummaryOnly (GraphDef.isRemoteCacheable options node) (GraphDef.buildCacheKey node)
+                |> Option.bind (snd >> _.Provenance)
+            cachedProduction |> Option.iter (fun report -> productionDeclarations[node.Id] <- report)
+            api |> Option.iter (fun api -> api.UseArtifact node.ProjectHash node.TargetHash (cachedProduction |> Option.map _.ProductionId))
             true
         with :? Contracts.ArtifactUnavailableException ->
             Log.Warning("{NodeId}: Insights no longer has a finalized cache artifact", node.Id)
@@ -564,7 +605,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             nodeResults[node.Id] <- (TaskRequest.Exec, status)
 
             let summary =
-                { Cache.TargetSummary.Project = node.ProjectDir
+                { Cache.TargetSummary.Provenance = carryProduction node
+                  Cache.TargetSummary.Project = node.ProjectDir
                   Cache.TargetSummary.Target = node.Target
                   Cache.TargetSummary.Operations = [ stepLogs ]
                   Cache.TargetSummary.Outputs = outputState
@@ -575,7 +617,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                   Cache.TargetSummary.Cache = node.Artifacts }
 
             let files = cacheEntry.Complete summary
-            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
+            api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt summary.Provenance)
 
             match status with
             | TaskStatus.Success completionDate ->
@@ -639,6 +681,17 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         DiagnosticsTelemetry.recordTask batchNode.Id "finalization-started"
 
+        // A batch is one execution, but its logical members retain content lineage.
+        let preparedReports = System.Collections.Generic.HashSet<string>()
+        let rec prepareReport nodeId =
+            if preparedReports.Add nodeId then
+                let logicalNode = uploadGraph.Nodes |> Map.tryFind nodeId |> Option.defaultValue graph.Nodes[nodeId]
+                for dependencyId in logicalNode.Dependencies - logicalNode.PhaseDependencies do
+                    if members.Contains dependencyId then prepareReport dependencyId
+                if cacheEntries[nodeId].IsSome then
+                    carryProduction graph.Nodes[nodeId] |> ignore
+        members |> Set.iter prepareReport
+
         // Snapshot outputs and stage logs while the batch still owns its target locks.
         let preparedEntries =
             try
@@ -660,7 +713,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                             | _ -> Cache.OutputState.NotManaged
 
                         let summary =
-                            { Cache.TargetSummary.Project = node.ProjectDir
+                            { Cache.TargetSummary.Provenance = Some productionDeclarations[node.Id]
+                              Cache.TargetSummary.Project = node.ProjectDir
                               Cache.TargetSummary.Target = node.Target
                               Cache.TargetSummary.Operations = [ stepLogs ]
                               Cache.TargetSummary.Outputs = outputState
@@ -694,7 +748,13 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
         preparedEntries
         |> Map.iter (fun nodeId preparedEntry ->
-            hub.SubscribeBackground $"upload {nodeId}" [] (fun () ->
+            let logicalNode = uploadGraph.Nodes |> Map.tryFind nodeId |> Option.defaultValue graph.Nodes[nodeId]
+            let publicationDependencies =
+                logicalNode.Dependencies - logicalNode.PhaseDependencies
+                |> Set.filter members.Contains
+                |> Seq.map (fun id -> hub.GetSignal<DateTime>($"provenance-published:{id}"))
+                |> Seq.toList
+            hub.SubscribeBackground $"upload {nodeId}" publicationDependencies (fun () ->
                 DiagnosticsTelemetry.recordTask nodeId "upload-started"
                 let node = graph.Nodes[nodeId]
                 buildProgress.TaskUploading node.Id
@@ -707,7 +767,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         nodeResults[nodeId] <- (TaskRequest.Exec, status)
 
                         let files = cacheEntry.Complete summary
-                        api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt)
+                        api |> Option.iter (fun api -> api.AddArtifact node.ProjectDir node.ProjectName node.Target node.ProjectHash node.TargetHash files successful startedAt endedAt summary.Provenance)
 
                     match status with
                     | TaskStatus.Success completionDate ->
@@ -719,6 +779,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                         buildProgress.TaskCompleted nodeId false false
                 finally
                     DiagnosticsTelemetry.recordTask nodeId "upload-ended"
+                    hub.GetSignal<DateTime>($"provenance-published:{nodeId}").Set endedAt
                     completeBatchFinalization ()
             )
         )
@@ -780,7 +841,8 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             let getDependencyStatus _ (node: GraphDef.Node) =
                 match nodeResults.TryGetValue node.Id with
                 | true, (request, st) ->
-                    { NodeInfo.Request = request
+                    { NodeInfo.Provenance = (match productionDeclarations.TryGetValue node.Id with | true, report -> Some report | _ -> None)
+                      NodeInfo.Request = request
                       NodeInfo.Status = st
                       NodeInfo.Project = node.ProjectDir
                       NodeInfo.Target = node.Target
@@ -869,7 +931,8 @@ let loadSummary (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: G
                     if summary.IsSuccessful then TaskStatus.Success summary.EndedAt
                     else TaskStatus.Failure (summary.EndedAt, "logs")
 
-                { NodeInfo.Request =
+                { NodeInfo.Provenance = summary.Provenance
+                  NodeInfo.Request =
                     if summary.IsSuccessful then TaskRequest.Restore
                     else TaskRequest.Summary
                   NodeInfo.Status = status

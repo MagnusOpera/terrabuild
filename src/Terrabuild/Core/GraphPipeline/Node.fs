@@ -120,6 +120,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Target = target
                   Node.Phase = targetConfig.Phase
                   Node.Locks = targetConfig.Lock |> Option.toList |> Set.ofList
+                  Node.Provenance = None
                   Node.Operations = []
                   Node.EvaluationInputs = targetConfig.EvaluationInputs
                   Node.EnvironmentSensitive = targetConfig.EnvironmentSensitive

@@ -26,8 +26,8 @@ type private FakeApiClient(provider: string option, ?locationError: exn) =
         member _.StartBuild() = ()
         member _.UploadBuildGraph _graphHash _environment _nodes = ()
         member _.CompleteBuild _success = ()
-        member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt = ()
-        member _.UseArtifact _projectHash _hash = ()
+        member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt _provenance = ()
+        member _.UseArtifact _projectHash _hash _productionId = ()
 
         member _.GetArtifact path operation =
             calls.Add(path, operation)

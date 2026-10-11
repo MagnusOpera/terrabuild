@@ -6,7 +6,8 @@ import "_helpers.fss" as Helpers
 /// <param name="args" default="" example="&quot;&quot;">Arguments forwarded to the package.</param>
 [<export>] let run (context: Protocol.ActionContext) (package: string) (args: string option) =
   let args = args |> Option.defaultValue ""
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "npx"
                      Arguments = $"--yes -- {package} {args}"
                      ErrorLevel = 0 } ] }

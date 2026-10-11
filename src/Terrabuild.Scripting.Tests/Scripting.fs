@@ -11,6 +11,34 @@ open System.IO
 open System.Threading
 open System.Threading.Tasks
 
+[<Test>]
+let preservationIsARequiredCommandOutputIncludingDispatchFallback() =
+    let root = Path.GetTempPath()
+    let source = """
+type ExportFlag =
+  | Remote
+  | Never
+  | Dispatch
+type ProvenanceEffect = Preserved | Broken | Unaffected
+type CommandResult = { Batchable: bool; Operations: string list; PreserveProvenance: ProvenanceEffect }
+type LegacyCommandResult = { Batchable: bool; Operations: string list }
+[<export>] let build context = { Batchable = false; Operations = []; PreserveProvenance = Preserved }
+[<export>] let dispatch context = { Batchable = false; Operations = []; PreserveProvenance = Broken }
+[<export>] let notify context = { Batchable = false; Operations = []; PreserveProvenance = Unaffected }
+[<export>] let legacy context = { Batchable = false; Operations = [] }
+{ [nameof build] = [Remote]
+  [nameof dispatch] = [Dispatch; Never]
+  [nameof legacy] = [Remote]
+  [nameof notify] = [Remote] }
+"""
+    let script = loadScriptFromSourceWithIncludes root root (Path.Combine(root, "provenance-test.fss")) source (fun _ -> None)
+    let context: ActionContext = { Debug = false; CI = false; Command = "build"; Hash = "test"; Directory = root; Batch = None }
+    let arguments = Value.Map (Map ["context", Value.Object context])
+    let invoke name = script.GetMethod(script.ResolveCommandMethod(name).Value).Value.Invoke<CommandResult> arguments
+    (invoke "build").PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
+    (invoke "fallback").PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+    (fun () -> invoke "legacy" |> ignore) |> should throw typeof<TerrabuildException>
+    (invoke "notify").PreserveProvenance |> should equal ProvenanceEffect.Unaffected
 
 [<Test>]
 let loadScript() =

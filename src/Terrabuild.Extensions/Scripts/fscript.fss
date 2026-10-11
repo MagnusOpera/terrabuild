@@ -41,7 +41,8 @@ let append_quoted_part value acc =
     |> append_quoted_part script
     |> Helpers.append_part forwardedArgs
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "fscript"
                      Arguments = operationArgs
                      ErrorLevel = 0 } ] }

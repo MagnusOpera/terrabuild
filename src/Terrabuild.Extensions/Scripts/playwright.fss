@@ -18,7 +18,8 @@ import "_helpers.fss" as Helpers
     |> Helpers.append_part project
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "npx"
                      Arguments = command
                      ErrorLevel = 0 } ] }

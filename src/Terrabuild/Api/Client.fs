@@ -145,12 +145,15 @@ module internal Build =
           Files: string list
           Success: bool
           StartedAt: DateTime
-          EndedAt: DateTime }
+          EndedAt: DateTime
+          ProductionId: string option
+          Declaration: Contracts.ProvenanceDeclaration option }
 
     [<RequireQualifiedAccess>]
     type UseArtifactInput =
         { ProjectHash: string
-          TargetHash: string }
+          TargetHash: string
+          ProductionId: string option }
 
     [<RequireQualifiedAccess>]
     type BuildGraphNodeInput =
@@ -163,6 +166,9 @@ module internal Build =
           ProjectHash: string
           TargetHash: string
           Dependencies: string list
+          PhaseDependencies: string list
+          Transformations: Contracts.ProvenanceTransformation list
+          TargetHashResolved: bool option
           Artifacts: string
           Build: string
           Batch: string
@@ -191,7 +197,7 @@ module internal Build =
           StartBuildInput.Context = context }
         |> Http.post headers "/builds"
 
-    let addArtifact headers buildId project projectName target projectHash targetHash files success startedAt endedAt: Unit =
+    let addArtifact headers buildId project projectName target projectHash targetHash files success startedAt endedAt provenance: Unit =
         { AddArtifactInput.Project = project
           AddArtifactInput.ProjectName = projectName
           AddArtifactInput.Target = target
@@ -200,12 +206,15 @@ module internal Build =
           AddArtifactInput.Files = files
           AddArtifactInput.Success = success
           AddArtifactInput.StartedAt = startedAt
-          AddArtifactInput.EndedAt = endedAt }
+          AddArtifactInput.EndedAt = endedAt
+          AddArtifactInput.ProductionId = provenance |> Option.map _.ProductionId
+          AddArtifactInput.Declaration = provenance }
         |> Http.post<AddArtifactInput, Unit> headers $"/builds/{buildId}/add-artifact"
 
-    let useArtifact headers buildId projectHash hash: Unit =
+    let useArtifact headers buildId projectHash hash productionId: Unit =
         { UseArtifactInput.ProjectHash = projectHash
-          UseArtifactInput.TargetHash = hash }
+          UseArtifactInput.TargetHash = hash
+          UseArtifactInput.ProductionId = productionId }
         |> Http.useArtifact<UseArtifactInput, Unit> headers $"/builds/{buildId}/use-artifact"
 
     let completeBuild headers buildId success: Unit =
@@ -228,6 +237,9 @@ module internal Build =
                     BuildGraphNodeInput.ProjectHash = node.ProjectHash
                     BuildGraphNodeInput.TargetHash = node.TargetHash
                     BuildGraphNodeInput.Dependencies = node.Dependencies
+                    BuildGraphNodeInput.PhaseDependencies = node.PhaseDependencies
+                    BuildGraphNodeInput.Transformations = node.Transformations
+                    BuildGraphNodeInput.TargetHashResolved = node.TargetHashResolved
                     BuildGraphNodeInput.Artifacts = node.Artifacts
                     BuildGraphNodeInput.Build = node.Build
                     BuildGraphNodeInput.Batch = node.Batch
@@ -324,11 +336,11 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.CompleteBuild success =
             Build.completeBuild headers buildId.Value success
 
-        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
-            Build.addArtifact headers buildId.Value project projectName target projectHash targetHash files success startedAt endedAt
+        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt provenance =
+            Build.addArtifact headers buildId.Value project projectName target projectHash targetHash files success startedAt endedAt provenance
 
-        member _.UseArtifact projectHash hash =
-            Build.useArtifact headers buildId.Value projectHash hash
+        member _.UseArtifact projectHash hash productionId =
+            Build.useArtifact headers buildId.Value projectHash hash productionId
 
         member _.GetArtifact path operation =
             let resp = Artifact.getArtifact headers path operation
@@ -351,6 +363,9 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                     ProjectHash = node.ProjectHash
                     TargetHash = node.TargetHash
                     Dependencies = node.Dependencies
+                    PhaseDependencies = node.PhaseDependencies
+                    Transformations = node.Transformations
+                    TargetHashResolved = node.TargetHashResolved
                     Artifacts = node.Artifacts
                     Build = node.Build
                     Batch = node.Batch

@@ -145,6 +145,8 @@ type Script internal
     let mutable defaultResolutionCache: string option option = None
 
     member _.Identity = scriptId
+    member val ProvenanceOrigin = "custom" with get, set
+    member val ContractFingerprint = "" with get, set
 
     member _.GetMethod(name: string) =
         methodCache.GetOrAdd(

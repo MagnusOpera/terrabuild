@@ -29,7 +29,8 @@ let format_variables vars =
     | (_, "") -> $"{context.Command} {variables}"
     | _ -> $"{context.Command} {variables} {args}"
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "make"
                      Arguments = command
                      ErrorLevel = 0 } ] }

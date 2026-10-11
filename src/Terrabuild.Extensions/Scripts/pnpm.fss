@@ -73,7 +73,8 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -83,6 +84,7 @@ let batch_filters (context: Protocol.ActionContext) =
 /// <param name="frozen" default="true" example="true">Adds `--frozen-lockfile`.</param>
 /// <param name="args" default="" example="&quot;--no-color&quot;">Extra `pnpm install` arguments.</param>
 [<export>] let install (context: Protocol.ActionContext) (force: bool option) (frozen: bool option) (args: string option) =
+  let preserves = Helpers.preserves_locked_inputs context.Directory "pnpm-lock.yaml" (Option.defaultValue true frozen) args
   let filters = batch_filters context
   let frozen = frozen |> Helpers.map_true_default true "--frozen-lockfile"
   let force = force |> Helpers.map_true_default false "--force"
@@ -97,7 +99,8 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part force
     |> Helpers.append_part args
 
-  { Batchable = true
+  { PreserveProvenance = preserves
+    Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -114,7 +117,8 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part "run build"
     |> Helpers.append_part args
 
-  { Batchable = true
+  { PreserveProvenance = Broken
+    Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -131,7 +135,8 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part "run test"
     |> Helpers.append_part args
 
-  { Batchable = true
+  { PreserveProvenance = Broken
+    Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
                      ErrorLevel = 0 } ] }
@@ -150,7 +155,8 @@ let batch_filters (context: Protocol.ActionContext) =
     |> Helpers.append_part $"run {target}"  
     |> Helpers.append_part args
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command
                      ErrorLevel = 0 } ] }

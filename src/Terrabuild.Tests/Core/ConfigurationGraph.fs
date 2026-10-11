@@ -135,7 +135,8 @@ type private NoopCache() =
         member _.GetEntry _useRemote _id = new NoopEntry() :> Cache.IEntry
 
 let private buildTargetSummary isSuccessful =
-    { Cache.TargetSummary.Project = "."
+    { Cache.TargetSummary.Provenance = None
+      Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
       Cache.TargetSummary.Outputs = Cache.OutputState.Empty
@@ -1680,6 +1681,7 @@ let ``Action evaluation fails closed when dependencies cannot be fulfilled`` () 
               ProjectHash = $"project-{id}"
               TargetHash = $"target-{id}"
               ClusterHash = None
+              Provenance = None
               Operations = []
               EvaluationInputs = []
               EnvironmentSensitive = None

@@ -107,11 +107,21 @@ Supported flags:
 - `Default`
 - cacheability: `Never`, `Local`, `External`, `Remote`
 
+Preservation is a discriminated-union **command output**, not a descriptor flag.
+`ProvenanceEffect` has three cases: `Preserved`, `Broken`, and `Unaffected`.
+Every command **MUST** return `PreserveProvenance = Preserved`, `Broken`, or
+`Unaffected`. Missing fields, booleans, and option values **MUST** be rejected.
+Extensions own the declaration and any computation used to obtain it. Terrabuild
+**MUST NOT** inspect shell commands, arguments, ecosystem identities or lock files
+to infer preservation. The declaration **MUST NOT** enter operation hash serialization.
+
 ## 6. Method Resolution
 
 1. Command resolution **MUST** use exact exported function name when present.
 2. If no exact command function exists, Terrabuild **MUST** use the function flagged `dispatch` when present.
 3. Default metadata resolution **MUST** use the function flagged `default` when present.
+4. Preservation **MUST** use the output of the actual invoked entrypoint, including dispatch fallback.
+5. Terrabuild **MUST** carry the loaded extension origin and script identity with the declaration; Insights owns trust evaluation and report computation.
 
 Legacy entrypoint names such as `__dispatch__` and `__defaults__` are not supported.
 
@@ -130,9 +140,15 @@ type ShellOperation =
 
 type ShellOperations = ShellOperation list
 
+type ProvenanceEffect =
+  | Preserved
+  | Broken
+  | Unaffected
+
 type CommandResult =
     { Batchable: bool
-      Operations: ShellOperations }
+      Operations: ShellOperations
+      PreserveProvenance: ProvenanceEffect }
 
 type DependencyResolution =
     | Path
@@ -165,7 +181,8 @@ This is independent from `DependencyResolution`. For example, a pnpm extension c
 Command handler example:
 
 ```fsharp
-{ Batchable = false
+{ PreserveProvenance = Broken
+  Batchable = false
   Operations = [ { Command = "make"; Arguments = "build"; ErrorLevel = 0 } ] }
 ```
 
@@ -214,6 +231,7 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
+      PreserveProvenance = Broken
       Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Specific command entrypoint example
@@ -226,6 +244,7 @@ import "_helpers.fss" as Helpers
         |> Helpers.append_part (Helpers.with_args args)
 
     { Batchable = false
+      PreserveProvenance = Broken
       Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Script descriptor: exported function name -> flag list

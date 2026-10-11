@@ -31,6 +31,7 @@ type OutputState =
 
 [<RequireQualifiedAccess>]
 type TargetSummary = {
+    Provenance: Contracts.ProvenanceDeclaration option
     Project: string
     Target: string
     Operations: OperationSummary list list
@@ -44,6 +45,7 @@ type TargetSummary = {
 
 [<RequireQualifiedAccess>]
 type private StoredTargetSummary = {
+    Provenance: Contracts.ProvenanceDeclaration option
     Project: string
     Target: string
     Operations: OperationSummary list list
@@ -574,7 +576,8 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
 
     let write (summary: TargetSummary) file =
         let stored =
-            { StoredTargetSummary.Project = summary.Project
+            { StoredTargetSummary.Provenance = summary.Provenance
+              StoredTargetSummary.Project = summary.Project
               StoredTargetSummary.Target = summary.Target
               StoredTargetSummary.Operations =
                 summary.Operations
@@ -780,7 +783,8 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
         try
             let stored = summaryFile |> IO.readTextFile |> Json.Deserialize<StoredTargetSummary>
             let summary =
-                { TargetSummary.Project = stored.Project
+                { TargetSummary.Provenance = stored.Provenance
+                  TargetSummary.Project = stored.Project
                   TargetSummary.Target = stored.Target
                   TargetSummary.Operations =
                     stored.Operations

@@ -24,10 +24,11 @@ let internal resolveTargetOperations
     (contextHash: string)
     (batchContext: Terrabuild.ScriptingContracts.BatchContext option) =
     let operations = ResizeArray<ContaineredShellOperation>()
+    let transformations = ResizeArray<Contracts.ProvenanceTransformation>()
     let mutable cacheability = ArtifactMode.Managed
     let mutable batchable = true
 
-    for step in targetConfig.Steps do
+    for index, step in targetConfig.Steps |> List.indexed do
         let optContext =
             { Terrabuild.ScriptingContracts.ActionContext.Debug = options.Debug
               Terrabuild.ScriptingContracts.ActionContext.CI = options.Run.IsSome
@@ -52,6 +53,12 @@ let internal resolveTargetOperations
             | Extensions.InvocationResult.ErrorTarget ex -> forwardExternalError($"{contextHash}: Failed to get shell operation (extension error)", ex)
             | _ -> raiseInvalidArg $"{contextHash}: Failed to get shell operation (extension error)"
 
+        transformations.Add {
+            NodeId = projectConfig.Id; Step = $"{index}:{step.Extension}:{step.Command}"
+            Entrypoint = step.Script.ResolveCommandMethod(step.Command) |> Option.defaultValue step.Command
+            Preservation = executionResult.PreserveProvenance; Origin = step.Script.ProvenanceOrigin
+            ScriptIdentity = step.Script.Identity; ContractFingerprint = step.Script.ContractFingerprint }
+
         for shellOperation in executionResult.Operations do
             operations.Add {
                 ContaineredShellOperation.Image = step.Image
@@ -66,7 +73,8 @@ let internal resolveTargetOperations
 
         batchable <- batchable && executionResult.Batchable
 
-    cacheability, batchable, operations |> List.ofSeq
+    let plan: Contracts.ProvenancePlan = { Transformations = List.ofSeq transformations }
+    cacheability, batchable, operations |> List.ofSeq, plan
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Graph) =
     let allNodes = Dictionary<string, Node>()
@@ -81,7 +89,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             for childId in sourceNode.Dependencies do
                 resolveNode childId
 
-            let cachable, batchable, ops =
+            let cachable, batchable, ops, declaration =
                 resolveTargetOperations options projectConfig targetConfig projectConfig.Hash None
 
             let opsCmds = ops |> List.map operationCacheInput
@@ -110,6 +118,9 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
 
             let node =
                 { sourceNode with
+                    Provenance = Some {
+                        declaration with
+                            Transformations = declaration.Transformations |> List.map (fun item -> { item with NodeId = sourceNode.Id }) }
                     Operations = ops
                     Artifacts = cache
                     Outputs = targetOutput

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Include="Evidence.fs" />
     <Compile Include="Registry.fs" />
   </ItemGroup>
 
@@ -11,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Terrabuild.Scripting/Terrabuild.Scripting.fsproj" />
     <ProjectReference Include="../Terrabuild.Configuration/Terrabuild.Configuration.fsproj" />
     <ProjectReference Include="../Terrabuild.Expression/Terrabuild.Expression.fsproj" />
   </ItemGroup>

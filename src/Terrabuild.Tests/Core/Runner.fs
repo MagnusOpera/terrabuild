@@ -21,6 +21,7 @@ let private buildNode id projectDir target action operations =
       GraphDef.Node.ProjectHash = $"project-{id}"
       GraphDef.Node.TargetHash = $"target-{id}"
       GraphDef.Node.ClusterHash = Some "cluster"
+      GraphDef.Node.Provenance = None
       GraphDef.Node.Operations = operations
       GraphDef.Node.EvaluationInputs = []
       GraphDef.Node.EnvironmentSensitive = None
@@ -64,6 +65,29 @@ let private baseOptions workspace =
           Commit.Timestamp = DateTime.UtcNow }
       ConfigOptions.Options.CommitLog = []
       ConfigOptions.Options.Run = None }
+
+let private provenanceNode id =
+    let node = buildNode id "." "build" GraphDef.RunAction.Exec []
+    { node with
+        Provenance = Some {
+            Transformations = [{ NodeId = id; Step = "0:build"; Entrypoint = "build"; Preservation = Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
+                                 Origin = "builtin"; ScriptIdentity = "embedded:dotnet"; ContractFingerprint = "contract" }] } }
+
+[<Test>]
+let ``declarations survive cache serialization with original production identity`` () =
+    let report: ProvenanceDeclaration = { Version = 1; ProducerVersion = "test"; ProductionId = "production"; NodeId = "output"; Transformations = []; Dependencies = [] }
+    let roundTrip = Json.Serialize report |> Json.Deserialize<ProvenanceDeclaration>
+    roundTrip |> should equal report
+    let legacy = """{"project":".","target":"build","operations":[],"outputs":"empty","isSuccessful":true,"startedAt":"2026-10-11T00:00:00Z","endedAt":"2026-10-11T00:00:00Z","duration":"00:00:00","cache":"workspace"}"""
+    (Json.Deserialize<Cache.TargetSummary> legacy).Provenance |> should equal None
+
+[<Test>]
+let ``shared provenance fixture preserves custom trust and nullable dependency identities`` () =
+    let fixture = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "provenance-declaration-v1.json")
+    let report = File.ReadAllText fixture |> Json.Deserialize<ProvenanceDeclaration>
+    report.Transformations.Head.Origin |> should equal "custom"
+    report.Dependencies.Head.ProductionId |> should equal None
+    (Json.Serialize report |> Json.Deserialize<ProvenanceDeclaration>) |> should equal report
 
 [<Test>]
 let ``operation argument fingerprints are stable across machine roots`` () =
@@ -327,13 +351,13 @@ type private FakeApiClient(?failAddArtifact: bool, ?useArtifactError: exn) =
 
         member _.GetArtifact(_path) (_operation) = Uri("https://example.invalid/artifact"), None
 
-        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt =
+        member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt _provenance =
             if failAddArtifact then
                 failwith "artifact publication failed"
             else
                 addCalls.Add(project, projectName, target, projectHash, targetHash, files, success, startedAt, endedAt)
 
-        member _.UseArtifact projectHash targetHash =
+        member _.UseArtifact projectHash targetHash _productionId =
             useCalls.Add(projectHash, targetHash)
             useArtifactError |> Option.iter raise
 
@@ -642,6 +666,9 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
             Contracts.BuildGraphNode.ProjectHash = execMember.ProjectHash
             Contracts.BuildGraphNode.TargetHash = execMember.TargetHash
             Contracts.BuildGraphNode.Dependencies = execMember.Dependencies |> Seq.sort |> List.ofSeq
+            PhaseDependencies = []
+            Transformations = []
+            TargetHashResolved = Some false
             Contracts.BuildGraphNode.Artifacts = string execMember.Artifacts
             Contracts.BuildGraphNode.Build = string execMember.Build
             Contracts.BuildGraphNode.Batch = string execMember.Batch
@@ -760,7 +787,8 @@ let ``managed output restore completes while named target lock is held`` () =
                   GraphDef.Graph.Phases = Map.empty }
             let cache = FakeCache(workspace, onRestore = assertLeaseHeld)
             let cachedSummary =
-                { Cache.TargetSummary.Project = node.ProjectDir
+                { Cache.TargetSummary.Provenance = None
+                  Cache.TargetSummary.Project = node.ProjectDir
                   Cache.TargetSummary.Target = node.Target
                   Cache.TargetSummary.Operations = []
                   Cache.TargetSummary.Outputs = Cache.OutputState.Stored
@@ -833,7 +861,8 @@ let ``unavailable Insights artifacts rebuild but other API failures propagate`` 
               GraphDef.Graph.Phases = Map.empty }
         let cache = FakeCache(workspace)
         cache.SetSummary(GraphDef.buildCacheKey node,
-            { Cache.TargetSummary.Project = workspace
+            { Cache.TargetSummary.Provenance = None
+              Cache.TargetSummary.Project = workspace
               Target = "build"
               Operations = []
               Outputs = Cache.OutputState.Stored
@@ -1126,7 +1155,8 @@ let ``run restores the exact cached output set for lazy dependencies`` () =
                 |> Option.ofObj
                 |> Option.iter (fun directory -> Directory.CreateDirectory(directory) |> ignore)
                 File.WriteAllText(output, content)
-            ({ Cache.TargetSummary.Project = node.ProjectDir
+            ({ Cache.TargetSummary.Provenance = None
+               Cache.TargetSummary.Project = node.ProjectDir
                Cache.TargetSummary.Target = node.Target
                Cache.TargetSummary.Operations = []
                Cache.TargetSummary.Outputs = Cache.OutputState.Stored
@@ -1200,7 +1230,8 @@ let ``runner reports cached failures as summaries rather than restores`` () =
               GraphDef.Graph.Batches = Map.empty
               GraphDef.Graph.Phases = Map.empty }
         let cachedFailure =
-            { Cache.TargetSummary.Project = node.ProjectDir
+            { Cache.TargetSummary.Provenance = None
+              Cache.TargetSummary.Project = node.ProjectDir
               Cache.TargetSummary.Target = node.Target
               Cache.TargetSummary.Operations = []
               Cache.TargetSummary.Outputs = Cache.OutputState.Empty
@@ -1242,3 +1273,58 @@ let ``runner does not execute a downstream phase after prerequisite failure`` ()
         | Runner.TaskStatus.Blocked (_, dependencies) -> dependencies |> should equal [ tool.Id ]
         | status -> failwith $"Expected the downstream task to be blocked, got {status}"
         summary.Nodes[app.Id].Request |> should equal Runner.TaskRequest.Exec)
+
+[<Test>]
+let ``batch members preserve logical lineage and publish dependencies first`` () =
+    withTempWorkspace (fun workspace ->
+        let upstream = { provenanceNode "z-upstream" with ProjectDir = workspace }
+        let downstream = { provenanceNode "a-downstream" with ProjectDir = workspace; Dependencies = Set [upstream.Id] }
+        let batch = buildNode "batch-provenance" workspace "build" GraphDef.RunAction.Exec [buildOperation "/usr/bin/true" "" None]
+        let graph = {
+            GraphDef.Graph.Nodes = Map [upstream.Id, upstream; downstream.Id, downstream; batch.Id, batch]
+            GraphDef.Graph.RootNodes = Set [downstream.Id]
+            GraphDef.Graph.Batches = Map [batch.Id, Set [upstream.Id; downstream.Id]]
+            GraphDef.Graph.Phases = Map.empty }
+        let cache = FakeCache(workspace)
+        let api = FakeApiClient()
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        summary.IsSuccess |> should equal true
+        let original = summary.Nodes[upstream.Id].Provenance.Value
+        let produced = summary.Nodes[downstream.Id].Provenance.Value
+        produced.Dependencies.Head.ProductionId |> should equal (Some original.ProductionId)
+        api.AddCalls |> List.map (fun (_, _, _, hash, _, _, _, _, _) -> hash) |> should equal [upstream.ProjectHash; downstream.ProjectHash])
+
+[<Test>]
+let ``resolution carries invoked declaration without changing operation cache input`` () =
+    withTempWorkspace (fun workspace ->
+        let scriptPath = Path.Combine(workspace, "extension.fss")
+        File.WriteAllText(scriptPath, """
+type ExportFlag =
+  | Remote
+  | Dispatch
+type Operation = { Command: string; Arguments: string; ErrorLevel: int }
+type ProvenanceEffect = Preserved | Broken | Unaffected
+type Result = { Batchable: bool; Operations: Operation list; PreserveProvenance: ProvenanceEffect }
+[<export>] let dispatch context (preserve: bool) =
+  { Batchable = false; Operations = [{ Command = "echo"; Arguments = "same"; ErrorLevel = 0 }]; PreserveProvenance = if preserve then Preserved else Broken }
+{ [nameof dispatch] = [Dispatch; Remote] }
+        """.Trim())
+        let script = Extensions.lazyLoadScript workspace [] "custom" (Some "extension.fss") |> _.Value
+        let target: Configuration.Target = {
+            Hash = "target"; ClusterHash = "cluster"; Build = None; Batch = GraphDef.BatchMode.Never
+            Phase = None; Lock = None; DependsOn = Set.empty; Outputs = Set.empty; Cache = None
+            EvaluationInputs = []; EnvironmentSensitive = None
+            Steps = [{ Hash = "step"; Image = None; Platform = None; Cpus = None; ContainerVariables = Set.empty
+                       Envs = Map.empty; Extension = "custom"; Command = "arbitrary"; Script = script
+                       Context = Terrabuild.Expression.Value.Map (Map ["preserve", Terrabuild.Expression.Value.Bool true]) }] }
+        let project: Configuration.Project = {
+            Id = "app"; Name = None; Directory = "."; Hash = "project"; Dependencies = Set.empty
+            Files = Set.empty; Targets = Map.empty; Labels = Set.empty; Types = Set.empty }
+        let _, _, firstOps, first = GraphPipeline.Resolve.resolveTargetOperations (baseOptions workspace) project target "hash" None
+        let other = { target with Steps = target.Steps |> List.map (fun step -> { step with Context = Terrabuild.Expression.Value.Map (Map ["preserve", Terrabuild.Expression.Value.Bool false]) }) }
+        let _, _, secondOps, second = GraphPipeline.Resolve.resolveTargetOperations (baseOptions workspace) project other "hash" None
+        first.Transformations.Head.Preservation |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
+        second.Transformations.Head.Preservation |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
+        first.Transformations.Head.Entrypoint |> should equal "dispatch"
+        first.Transformations.Head.Origin |> should equal "custom"
+        (firstOps |> List.map GraphDef.operationCacheInput) |> should equal (secondOps |> List.map GraphDef.operationCacheInput))

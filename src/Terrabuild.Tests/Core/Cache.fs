@@ -57,7 +57,8 @@ let private withHomeDir root action =
         Environment.SetEnvironmentVariable("HOME", previousHome)
 
 let private summary (outputsDir: string option) =
-    { Cache.TargetSummary.Project = "."
+    { Cache.TargetSummary.Provenance = None
+      Cache.TargetSummary.Project = "."
       Cache.TargetSummary.Target = "build"
       Cache.TargetSummary.Operations = []
       Cache.TargetSummary.Outputs =
@@ -143,16 +144,19 @@ let ``remote summary downloads become durable local entries`` () =
             let storage = FakeStorage()
             let id = "project-hash/build/remote-summary"
             let cache = Cache.Cache(storage, None) :> Cache.ICache
-            cache.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
+            let fixture = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "provenance-declaration-v1.json")
+            let provenance = File.ReadAllText fixture |> Json.Deserialize<Contracts.ProvenanceDeclaration>
+            let original = { summary None with Provenance = Some provenance }
+            cache.GetEntry true id |> fun entry -> entry.Complete(original) |> ignore
 
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let downloaded = Cache.Cache(storage, None) :> Cache.ICache
-            downloaded.TryGetSummaryOnly true id |> should not' (equal None)
+            (downloaded.TryGetSummaryOnly true id).Value |> snd |> _.Provenance |> should equal original.Provenance
             storage.Downloads |> should equal 2
 
             let offline = Cache.Cache(storage, None) :> Cache.ICache
-            offline.TryGetSummaryOnly false id |> should not' (equal None)
+            (offline.TryGetSummaryOnly false id).Value |> snd |> _.Provenance |> should equal original.Provenance
             storage.Downloads |> should equal 2
         ))
 

@@ -4,6 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Require explicit preserved, broken, or unaffected provenance outcomes from every extension command.
+
+- Carry extension-returned provenance declarations and original production references to Insights across cache reuse.
+
 ## [0.203.0]
 
 - Upgrade FScript to 0.80.0 and report unsupported extension map keys clearly.

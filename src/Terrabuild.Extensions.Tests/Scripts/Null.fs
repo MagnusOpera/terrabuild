@@ -10,6 +10,7 @@ let ``null fake returns no operations`` () =
     let context = localContext "fake" (fixtureDir "")
     let result = invokeResult "@null" "fake" context Map.empty
 
+    result.PreserveProvenance |> should equal ProvenanceEffect.Unaffected
     result.Operations |> should be Empty
 
 [<Test>]

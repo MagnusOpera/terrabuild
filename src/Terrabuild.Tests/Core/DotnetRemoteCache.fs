@@ -88,7 +88,7 @@ and private RecordingApiClient() =
               Contracts.CommitGraph.GraphHash = "graph"
               Contracts.CommitGraph.Nodes = [] }
 
-        member _.AddArtifact project projectName target projectHash targetHash files success _startedAt _endedAt =
+        member _.AddArtifact project projectName target projectHash targetHash files success _startedAt _endedAt _provenance =
             addCalls.Enqueue(
                 { Project = project
                   ProjectName = projectName
@@ -98,7 +98,7 @@ and private RecordingApiClient() =
                   Files = files
                   Success = success })
 
-        member _.UseArtifact projectHash targetHash =
+        member _.UseArtifact projectHash targetHash _productionId =
             useCalls.Enqueue(projectHash, targetHash)
 
 type private FolderStorage(root: string) =

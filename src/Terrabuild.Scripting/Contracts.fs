@@ -58,9 +58,16 @@ module ScriptingContracts =
     type ShellOperations = ShellOperation list
 
     [<RequireQualifiedAccess>]
+    type ProvenanceEffect =
+        | Preserved
+        | Broken
+        | Unaffected
+
+    [<RequireQualifiedAccess>]
     type CommandResult = {
         Batchable: bool
         Operations: ShellOperations
+        PreserveProvenance: ProvenanceEffect
     }
 
     [<RequireQualifiedAccess>]

@@ -10,6 +10,8 @@ let ``sentry sourcemaps local upload tolerates errors`` () =
     let context = localContext "sourcemaps" (fixtureDir "")
     let result = invokeResult "@sentry" "sourcemaps" context Map.empty
 
+    result.PreserveProvenance |> should equal ProvenanceEffect.Preserved
+
     result.Operations
     |> should equal
         [ op "sentry-cli" "sourcemaps inject dist" 0

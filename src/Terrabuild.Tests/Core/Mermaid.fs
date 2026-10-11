@@ -18,6 +18,7 @@ let private node id phase =
       Node.ProjectHash = id
       Node.TargetHash = id
       Node.ClusterHash = None
+      GraphDef.Node.Provenance = None
       Node.Operations = []
       Node.EvaluationInputs = []
       Node.EnvironmentSensitive = None
