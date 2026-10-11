@@ -278,7 +278,7 @@ and private Descriptor =
                 |> List.map (fun (key, value) ->
                     match key with
                     | FScript.Language.MKString name -> name, value
-                    | FScript.Language.MKInt _ -> raiseInvalidArg "Descriptor map keys must be strings")
+                    | _ -> raiseInvalidArg "Descriptor map keys must be strings")
                 |> Map.ofList
             | FScript.Language.VRecord map -> map
             | _ -> raiseInvalidArg "FScript extension descriptor must be a map from function name to list of flags"
@@ -445,7 +445,7 @@ and private Conversions =
                 |> List.map (fun (key, itemValue) ->
                     match key with
                     | FScript.Language.MKString name -> name, convert itemValue
-                    | FScript.Language.MKInt _ -> raiseTypeError "Terrabuild map values expect string keys")
+                    | _ -> raiseTypeError "Terrabuild map values expect string keys")
                 |> Map.ofList
                 |> Terrabuild.Expression.Value.Map
             | FScript.Language.VOption None -> Terrabuild.Expression.Value.Nothing
@@ -518,6 +518,8 @@ and private Conversions =
                         array
                     | _ -> raiseTypeError $"Expected list return type to decode set, got {value}"
                 genericOfSeq.Invoke(null, [| values |])
+        elif targetType = typeof<Terrabuild.Expression.Value> then
+            fun value -> box (Conversions.toTerrabuildValue value)
         elif FSharpType.IsUnion(targetType, true) then
             let unionCases = FSharpType.GetUnionCases(targetType)
             if unionCases |> Array.exists (fun unionCase -> unionCase.GetFields().Length <> 0) then
@@ -556,7 +558,7 @@ and private Conversions =
                         |> List.map (fun (key, itemValue) ->
                             match key with
                             | FScript.Language.MKString name -> name, itemValue
-                            | FScript.Language.MKInt _ -> raiseTypeError "Record decoding expects string map keys")
+                            | _ -> raiseTypeError "Record decoding expects string map keys")
                         |> Map.ofList
                     | _ -> raiseTypeError $"Expected record return type, got {value}"
                 let fieldValues =
@@ -567,8 +569,6 @@ and private Conversions =
                         | None when isOptional -> fieldDecoder (FScript.Language.VOption None)
                         | None -> raiseTypeError $"Missing field '{fieldName}' in script result")
                 FSharpValue.MakeRecord(targetType, fieldValues)
-        elif targetType = typeof<Terrabuild.Expression.Value> then
-            fun value -> box (Conversions.toTerrabuildValue value)
         else
             raiseTypeError $"Unsupported script return type '{targetType.FullName}'"
 

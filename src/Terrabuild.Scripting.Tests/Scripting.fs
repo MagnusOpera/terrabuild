@@ -523,3 +523,56 @@ type ExportFlag =
                 (fun _ -> None)
             |> ignore)
         |> should throw typeof<FScript.Language.TypeException>)
+
+type MapKeyResult = { Number: int }
+
+let private withMapKeyScript key result descriptor test =
+    withTemporaryWorkspace (fun root ->
+        let source =
+            $"""
+type Key = | First | Second
+[<export>] let inspect (context: {{| Command: string |}}) = {result}
+type ExportFlag = | Remote
+{descriptor}
+"""
+        let script =
+            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
+                root root (Path.Combine(root, $"MapKey-{key}.fss")) source (fun _ -> None)
+        test script)
+
+[<TestCase("1")>]
+[<TestCase("true")>]
+[<TestCase("First")>]
+let nonStringDescriptorKeysAreRejected key =
+    (fun () ->
+        withMapKeyScript key "1" $"{{ [{key}] = [Remote] }}" ignore)
+    |> should (throwWithMessage "Descriptor map keys must be strings") typeof<TerrabuildException>
+
+[<TestCase("1")>]
+[<TestCase("true")>]
+[<TestCase("First")>]
+let nonStringReturnedMapKeysAreRejected key =
+    withMapKeyScript key $"{{ [{key}] = 1 }}" "{ [nameof inspect] = [Remote] }" (fun script ->
+        let args = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
+        (fun () -> script.GetMethod("inspect").Value.Invoke<Value> args |> ignore)
+        |> should (throwWithMessage "Terrabuild map values expect string keys") typeof<TerrabuildException>
+        (fun () -> script.GetMethod("inspect").Value.Invoke<MapKeyResult> args |> ignore)
+        |> should (throwWithMessage "Record decoding expects string map keys") typeof<TerrabuildException>)
+
+[<Test>]
+let stringReturnedMapKeysRemainSupported () =
+    withMapKeyScript "string" "{ [\"Number\"] = 42 }" "{ [nameof inspect] = [Remote] }" (fun script ->
+        let args = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
+        let method = script.GetMethod("inspect").Value
+        method.Invoke<Value> args
+        |> should equal (Value.Map (Map [ "Number", Value.Number 42 ]))
+        let result = method.Invoke<MapKeyResult> args
+        result.Number |> should equal 42)
+
+[<TestCase("1")>]
+[<TestCase("true")>]
+[<TestCase("First")>]
+let keyedMapsCanBeUsedInsideExtensions key =
+    withMapKeyScript key $"{{ [{key}] = 42 }}[{key}]" "{ [nameof inspect] = [Remote] }" (fun script ->
+        let args = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
+        script.GetMethod("inspect").Value.Invoke<int option> args |> should equal (Some 42))

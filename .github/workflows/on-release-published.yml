@@ -14,10 +14,17 @@ jobs:
   release-nuget:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+      - name: Cloning repository
+        uses: actions/checkout@v4
         with:
-          dotnet-version: 10.0.302
+          ref: ${{ github.ref }}
+          persist-credentials: false
+
+      - name: Setup Tools
+        uses: ./.github/actions/setup-tools
+        with:
+          install_dotnet: "true"
+          install_fscript: "false"
 
       - name: Download Github Release artifacts
         uses: robinraju/release-downloader@v1.11

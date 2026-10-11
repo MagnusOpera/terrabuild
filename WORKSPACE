@@ -24,7 +24,7 @@ locals {
     }
 
     versions = {
-        dotnet_sdk: "10.0.302" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
+        dotnet_sdk: "10.0.401" # https://mcr.microsoft.com/artifact/mar/dotnet/sdk/tags
         node: "22" # https://hub.docker.com/_/node/tags
         pnpm: "10.33.0" # https://pnpm.io/installation
     }

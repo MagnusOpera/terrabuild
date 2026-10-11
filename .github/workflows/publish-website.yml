@@ -25,22 +25,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+      - name: Setup Tools
+        uses: ./.github/actions/setup-tools
         with:
-          dotnet-version: 10.0.302
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: pnpm
-          cache-dependency-path: website/pnpm-lock.yaml
+          install_dotnet: "true"
+          install_node: "true"
+          install_pnpm: "true"
+          node_cache: pnpm
+          node_cache_dependency_path: website/pnpm-lock.yaml
+          install_fscript: "false"
 
       - name: Generate documentation and build website
         run: make website-build

@@ -12,7 +12,7 @@ inputs:
 
   dotnet_version:
     description: .NET SDK version to install
-    default: "10.0.302"
+    default: "10.0.401"
 
   install_node:
     description: Whether to install Node.js
@@ -21,6 +21,14 @@ inputs:
   node_version:
     description: Node.js version to install
     default: "22"
+
+  node_cache:
+    description: Package manager cache configured by setup-node
+    default: ""
+
+  node_cache_dependency_path:
+    description: Dependency lockfile path used by setup-node caching
+    default: ""
 
   install_pnpm:
     description: Whether to install pnpm
@@ -67,17 +75,19 @@ runs:
       with:
         dotnet-version: ${{ inputs.dotnet_version }}
 
-    - name: Setup Node.js
-      if: ${{ inputs.install_node == 'true' }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node_version }}
-
     - name: Setup pnpm
       if: ${{ inputs.install_pnpm == 'true' }}
       uses: pnpm/action-setup@v4
       with:
         version: ${{ inputs.pnpm_version }}
+
+    - name: Setup Node.js
+      if: ${{ inputs.install_node == 'true' }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: ${{ inputs.node_cache }}
+        cache-dependency-path: ${{ inputs.node_cache_dependency_path }}
 
     - name: Login to GHCR
       if: ${{ inputs.GITHUB_TOKEN != '' }}

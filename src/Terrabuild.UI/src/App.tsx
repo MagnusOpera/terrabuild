@@ -21,9 +21,9 @@ import {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import dagre from "@dagrejs/dagre";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import "xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import "@xterm/xterm/css/xterm.css";
 import BuildControlsPanel from "./components/BuildControlsPanel";
 import CacheManagementPanel from "./components/CacheManagementPanel";
 import BuildDetailsPanel from "./components/BuildDetailsPanel";
