@@ -4,10 +4,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.203.0]
+
 - Upgrade FScript to 0.80.0 and report unsupported extension map keys clearly.
 - Fix extensions returning Terrabuild expression values.
 - Upgrade UI dependencies and refresh the terminal component.
 - Upgrade .NET dependencies and standardize CI tool installation on .NET SDK 10.0.401.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.202.1...0.203.0
 
 ## [0.202.1]
 

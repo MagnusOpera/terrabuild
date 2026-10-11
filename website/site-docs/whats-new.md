@@ -6,15 +6,13 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.202.1
+## 0.203.0
 
-### 0.202.1
+### 0.203.0
 
-- Upgrade the embedded FScript language and runtime to 0.79.0 with improved numeric type inference.
+- Upgrade FScript to 0.80.0 and report unsupported extension map keys clearly.
+- Fix extensions returning Terrabuild expression values.
+- Upgrade UI dependencies and refresh the terminal component.
+- Upgrade .NET dependencies and standardize CI tool installation on .NET SDK 10.0.401.
 
-### 0.202.0
-
-- Reduce configuration dependency-discovery overhead and improve scaling for dependent locals.
-- Reduce filesystem scanning, output staging, and published PubSub signal overhead.
-
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.201.0...0.202.1
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.202.1...0.203.0
