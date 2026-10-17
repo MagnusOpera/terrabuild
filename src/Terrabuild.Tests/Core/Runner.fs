@@ -1305,7 +1305,7 @@ type ExportFlag =
 type Operation = { Command: string; Arguments: string; ErrorLevel: int }
 type ProvenanceEffect = Preserved | Broken | Unaffected
 type Result = { Batchable: bool; Operations: Operation list; PreserveProvenance: ProvenanceEffect }
-[<export>] let dispatch context (preserve: bool) =
+export let dispatch context (preserve: bool) =
   { Batchable = false; Operations = [{ Command = "echo"; Arguments = "same"; ErrorLevel = 0 }]; PreserveProvenance = if preserve then Preserved else Broken }
 { [nameof dispatch] = [Dispatch; Remote] }
         """.Trim())

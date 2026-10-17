@@ -79,7 +79,7 @@ let dependencies_from (package: Package) =
   List.append dependencies dev_dependencies
   |> List.distinct
 
-[<export>] let defaults (context: ExtensionContext) =
+export let defaults (context: ExtensionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -91,7 +91,7 @@ let dependencies_from (package: Package) =
     Outputs = ["dist/**"]
     Dependencies = dependencies }
 
-[<export>] let dispatch (context: ActionContext) (arguments: string option) =
+export let dispatch (context: ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part context.Command
@@ -101,12 +101,12 @@ let dependencies_from (package: Package) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-[<export>] let install (context: ActionContext) =
+export let install (context: ActionContext) =
   { PreserveProvenance = Broken
     Batchable = false
     Operations = [ shell_op "npm" "ci" ] }
 
-[<export>] let build (context: ActionContext) (arguments: string option) =
+export let build (context: ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part "run build --"
@@ -116,7 +116,7 @@ let dependencies_from (package: Package) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-[<export>] let test (context: ActionContext) (arguments: string option) =
+export let test (context: ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part "run test --"
@@ -126,7 +126,7 @@ let dependencies_from (package: Package) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-[<export>] let run (context: ActionContext) (command: string) (arguments: string option) =
+export let run (context: ActionContext) (command: string) (arguments: string option) =
   let command =
     ""
     |> append_part $"run {command} --"

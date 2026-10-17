@@ -22,10 +22,10 @@ type ExportFlag =
 type ProvenanceEffect = Preserved | Broken | Unaffected
 type CommandResult = { Batchable: bool; Operations: string list; PreserveProvenance: ProvenanceEffect }
 type LegacyCommandResult = { Batchable: bool; Operations: string list }
-[<export>] let build context = { Batchable = false; Operations = []; PreserveProvenance = Preserved }
-[<export>] let dispatch context = { Batchable = false; Operations = []; PreserveProvenance = Broken }
-[<export>] let notify context = { Batchable = false; Operations = []; PreserveProvenance = Unaffected }
-[<export>] let legacy context = { Batchable = false; Operations = [] }
+export let build context = { Batchable = false; Operations = []; PreserveProvenance = Preserved }
+export let dispatch context = { Batchable = false; Operations = []; PreserveProvenance = Broken }
+export let notify context = { Batchable = false; Operations = []; PreserveProvenance = Unaffected }
+export let legacy context = { Batchable = false; Operations = [] }
 { [nameof build] = [Remote]
   [nameof dispatch] = [Dispatch; Never]
   [nameof legacy] = [Remote]
@@ -235,7 +235,7 @@ let private concurrentLoadSource =
     """
 import "shared.fss" as Shared
 
-[<export>] let inspect (context: {| Command: string |}) = Shared.value
+export let inspect (context: {| Command: string |}) = Shared.value
 
 type ExportFlag =
   | Dispatch
@@ -307,7 +307,7 @@ let fscriptSandboxExcludesRootGitForExistsAndKind() =
         let entryFile = Path.Combine(root, "Sandbox.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   let exists = Fs.exists ".git/config"
   let kind =
     match Fs.kind ".git/config" with
@@ -357,7 +357,7 @@ let fscriptSandboxExcludesRootGitForReadText() =
         let entryFile = Path.Combine(root, "SandboxRead.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   Fs.readText ".git/config"
 
 type ExportFlag =
@@ -402,7 +402,7 @@ let fscriptSandboxDeniesTraversalBypassToRootGit() =
         let entryFile = Path.Combine(root, "SandboxTraversal.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   Fs.readText ".git/../.git/config"
 
 type ExportFlag =
@@ -455,7 +455,7 @@ let fscriptSandboxSupportsCustomDeniedPathGlobs() =
         let entryFile = Path.Combine(root, "SandboxCustomDeny.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   let gitExists = Fs.exists ".git/config"
   let modulesExists = Fs.exists "project/node_modules/pkg.json"
   $"{gitExists}|{modulesExists}"
@@ -498,7 +498,7 @@ let fscriptRegistryExcludesConsoleReadLine() =
         let entryFile = Path.Combine(root, "ConsoleReadLineBlocked.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   Console.readLine ()
 
 type ExportFlag =
@@ -528,7 +528,7 @@ let fscriptRegistryExcludesTaskSpawnAndAwait() =
         let entryFile = Path.Combine(root, "TaskBlocked.fss")
         let source =
             """
-[<export>] let inspect (context: {| Command: string |}) =
+export let inspect (context: {| Command: string |}) =
   Task.await (Task.spawn (fun () -> "ok"))
 
 type ExportFlag =
@@ -559,7 +559,7 @@ let private withMapKeyScript key result descriptor test =
         let source =
             $"""
 type Key = | First | Second
-[<export>] let inspect (context: {{| Command: string |}}) = {result}
+export let inspect (context: {{| Command: string |}}) = {result}
 type ExportFlag = | Remote
 {descriptor}
 """
@@ -613,7 +613,7 @@ type Mode = Fast | Slow
 type Inner = { Mode: Mode; Label: string option }
 type Input = { Nested: Inner; Items: Inner list }
 type ExportFlag = Remote
-[<export>] let inspect (context: {| Command: string |}) (input: Input) (mode: Mode option) =
+export let inspect (context: {| Command: string |}) (input: Input) (mode: Mode option) =
     let speed = match input.Nested.Mode with | Fast -> "fast" | Slow -> "slow"
     let optional = match mode with | Some Slow -> "slow" | _ -> "other"
     let label = Option.defaultValue "none" input.Nested.Label
@@ -636,7 +636,7 @@ let mapParametersRemainMapsWhileNestedRecordValuesAreAdapted() =
         let source = """
 type Item = { Name: string }
 type ExportFlag = Remote
-[<export>] let inspect (context: {| Command: string |}) (items: Item map) =
+export let inspect (context: {| Command: string |}) (items: Item map) =
     match items["first"] with | Some item -> item.Name | None -> "missing"
 { [nameof inspect] = [Remote] }
 """

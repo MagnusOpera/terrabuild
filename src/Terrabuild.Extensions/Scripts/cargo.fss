@@ -8,7 +8,7 @@ let with_profile profile =
 /// <summary>Computes default outputs and dependencies from `Cargo.toml`.</summary>
 /// <param name="ignores" example="[ ]"></param>
 /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = ["target/debug/"; "target/release/"]
@@ -16,7 +16,7 @@ let with_profile profile =
 
 /// <summary>Runs an arbitrary Cargo subcommand (Terrabuild action name is forwarded to `cargo`).</summary>
 /// <param name="args" default="" example="&quot;check --locked&quot;">Extra arguments for the subcommand.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   { PreserveProvenance = Broken
     Batchable = false
@@ -28,7 +28,7 @@ let with_profile profile =
 /// <title>Build project.</title>
 /// <param name="profile" default="dev" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
 /// <param name="args" default="" example="&quot;--keep-going&quot;">Extra `cargo build` arguments.</param>
-[<export>] let build (context: Protocol.ActionContext) (profile: string option) (args: string option) =
+export let build (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""
     |> Helpers.append_part "build"
@@ -43,7 +43,7 @@ let with_profile profile =
 /// <summary>Runs tests with `cargo test`.</summary>
 /// <param name="profile" default="dev" example="&quot;release&quot;">Cargo profile name (lowercase, for example `release`).</param>
 /// <param name="args" default="" example="&quot;--blame-hang&quot;">Extra `cargo test` arguments.</param>
-[<export>] let test (context: Protocol.ActionContext) (profile: string option) (args: string option) =
+export let test (context: Protocol.ActionContext) (profile: string option) (args: string option) =
   let command =
     ""
     |> Helpers.append_part "test"

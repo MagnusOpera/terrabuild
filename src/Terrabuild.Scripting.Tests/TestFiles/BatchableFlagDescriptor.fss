@@ -1,4 +1,4 @@
-[<export>] let run (context: {| Command: string |}) = "run"
+export let run (context: {| Command: string |}) = "run"
 
 type ExportFlag =
   | Dispatch

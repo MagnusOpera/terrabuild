@@ -43,7 +43,7 @@ type ActionContext =
 Contexts are structurally matched, so handlers should request only the fields they use:
 
 ```fsharp
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
+export let dispatch (context: {| Command: string |}) (args: string option) =
   // ...
 ```
 
@@ -121,4 +121,4 @@ type ExportFlag =
 - `Default` selects the project-metadata handler.
 - `Never`, `Local`, `External`, and `Remote` specify command cacheability.
 
-Only one function may be marked `Dispatch`, and only one may be marked `Default`. Descriptor keys must name functions declared with `[<export>]`.
+Only one function may be marked `Dispatch`, and only one may be marked `Default`. Descriptor keys must name functions declared with `export let`.

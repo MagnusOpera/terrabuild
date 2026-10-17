@@ -480,7 +480,7 @@ let ``Local extension import cannot escape workspace``() =
         """
 import "../../outside.fss" as Outside
 
-[<export>] let run (context: {| Command: string |}) = Outside.value
+export let run (context: {| Command: string |}) = Outside.value
 
 type ExportFlag =
   | Dispatch

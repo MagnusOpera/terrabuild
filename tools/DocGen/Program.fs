@@ -221,7 +221,7 @@ let private parseScriptDocs (scriptPath: string) (extensionName: string) : Scrip
             ()
         else
             match line with
-            | Regex "^\\[\\s*<\\s*export\\s*>\\s*\\]\\s*let\\s+([A-Za-z_][A-Za-z0-9_]*)\\b.*$" [commandName] ->
+            | Regex "^export[ \t]+let[ \t]+(?:rec[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)\\b.*$" [commandName] ->
                 applyAsCommandDoc commandName
                 seenCode <- true
             | _ ->
@@ -242,7 +242,7 @@ let private parseExportedFunctionParameters (scriptContent: string) =
     let matches =
         Regex.Matches(
             scriptContent,
-            @"\[\s*<\s*export\s*>\s*\]\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\s+((?:\([^\)]*\)\s*)+)=",
+            @"^[ \t]*export[ \t]+let[ \t]+(?:rec[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)\s+((?:\([^\)]*\)\s*)+)=",
             RegexOptions.Multiline)
     [ for m in matches do
         let name = m.Groups[1].Value
@@ -261,7 +261,7 @@ let private parseExportedFunctionBatchability (scriptContent: string) =
     let functionMatches =
         Regex.Matches(
             scriptContent,
-            @"\[\s*<\s*export\s*>\s*\]\s*let\s+([A-Za-z_][A-Za-z0-9_]*)\b",
+            @"^[ \t]*export[ \t]+let[ \t]+(?:rec[ \t]+)?([A-Za-z_][A-Za-z0-9_]*)\b",
             RegexOptions.Multiline)
         |> Seq.cast<Match>
         |> Seq.toList
@@ -370,7 +370,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
             let functionMeta =
                 match functionParams |> Map.tryFind functionName with
                 | Some meta -> meta
-                | None -> failwith $"Missing '[<export>] let {functionName} ...' declaration in {scriptPath}"
+                | None -> failwith $"Missing 'export let {functionName} ...' declaration in {scriptPath}"
 
             let commandDoc =
                 match commandDocs |> Map.tryFind commandName with

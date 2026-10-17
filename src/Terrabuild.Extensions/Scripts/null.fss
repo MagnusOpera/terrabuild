@@ -1,16 +1,16 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = []
     Dependencies = [] }
-[<export>] let dispatch (context: Protocol.ActionContext) =
+export let dispatch (context: Protocol.ActionContext) =
   { PreserveProvenance = Unaffected
     Batchable = false
     Operations = [] }
-[<export>] let fake (context: Protocol.ActionContext) =
+export let fake (context: Protocol.ActionContext) =
   { PreserveProvenance = Unaffected
     Batchable = false
     Operations = [] }

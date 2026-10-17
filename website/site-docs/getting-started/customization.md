@@ -62,7 +62,7 @@ type ExportFlag =
   | External
   | Remote
 
-[<export>] let build (context: {| Directory: string |}) : CommandResult =
+export let build (context: {| Directory: string |}) : CommandResult =
   { Batchable = false
     Operations =
       [ { Command = "sh"

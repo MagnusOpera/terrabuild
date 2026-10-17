@@ -91,7 +91,7 @@ let with_configuration configuration =
 /// <summary>Computes default outputs and project-reference dependencies.</summary>
 /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   let dependencies =
     context.Directory
     |> first_project_file
@@ -105,7 +105,7 @@ let with_configuration configuration =
 
 /// <summary>Runs an arbitrary `dotnet` command (action name is forwarded to `dotnet`).</summary>
 /// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
   { PreserveProvenance = Broken
     Batchable = false
@@ -113,7 +113,7 @@ let with_configuration configuration =
 
 /// <summary>Executes `dotnet tool ...` commands.</summary>
 /// <param name="args" default="" example="&quot;install MagnusOpera.OpenApiGen&quot;">Extra arguments for `dotnet tool`.</param>
-[<export>] let tool (context: Protocol.ActionContext) (args: string option) =
+export let tool (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
     |> Helpers.append_part "tool"
@@ -127,7 +127,7 @@ let with_configuration configuration =
 /// <param name="evaluate" default="false" example="&quot;true&quot;">Adds `--force-evaluate`.</param>
 /// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="args" default="" example="&quot;--force&quot;">Extra `dotnet restore` arguments.</param>
-[<export>] let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (dependencies: bool option) (args: string option) =
+export let restore (context: Protocol.ActionContext) (locked: bool option) (evaluate: bool option) (dependencies: bool option) (args: string option) =
   let lock_enforced = if Option.defaultValue false evaluate then false else Option.defaultValue true locked
   let preserves = Helpers.preserves_locked_inputs context.Directory "packages.lock.json" lock_enforced args
   let locked = locked |> Helpers.map_true_default true "--locked-mode"
@@ -158,7 +158,7 @@ let with_configuration configuration =
 /// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="version" default="" example="&quot;1.2.3&quot;">Sets MSBuild `Version`.</param>
 /// <param name="args" default="" example="&quot;--no-incremental&quot;">Extra `dotnet build` arguments.</param>
-[<export>] let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (dependencies: bool option) (version: string option) (args: string option) =
+export let build (context: Protocol.ActionContext) (configuration: string option) (parallel: int option) (log: bool option) (restore: bool option) (dependencies: bool option) (version: string option) (args: string option) =
   let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let log = log |> Helpers.map_true "-bl"
@@ -192,7 +192,7 @@ let with_configuration configuration =
 /// <param name="dependencies" default="true" example="&quot;false&quot;">When false, adds `--no-dependencies`.</param>
 /// <param name="version" default="" example="&quot;1.0.0&quot;">Package version (`/p:Version`).</param>
 /// <param name="args" default="" example="&quot;--include-symbols&quot;">Extra `dotnet pack` arguments.</param>
-[<export>] let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (args: string option) =
+export let pack (context: Protocol.ActionContext) (configuration: string option) (version: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (args: string option) =
   let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let version = version |> Helpers.map_value (fun value -> $"/p:Version={value}")
@@ -224,7 +224,7 @@ let with_configuration configuration =
 /// <param name="trim" default="false" example="true">Enables trimming.</param>
 /// <param name="single" default="false" example="true">Enables self-contained publish.</param>
 /// <param name="args" default="" example="&quot;--version-suffix beta&quot;">Extra `dotnet publish` arguments.</param>
-[<export>] let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
+export let publish (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (dependencies: bool option) (runtime: string option) (trim: bool option) (single: bool option) (args: string option) =
   let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"
@@ -259,7 +259,7 @@ let with_configuration configuration =
 /// <param name="build" default="true" example="&quot;true&quot;">Runs build before tests.</param>
 /// <param name="filter" default="" example="&quot;TestCategory!=integration&quot;">Filter expression (`--filter`).</param>
 /// <param name="args" default="" example="&quot;--blame-hang&quot;">Extra `dotnet test` arguments.</param>
-[<export>] let test (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
+export let test (context: Protocol.ActionContext) (configuration: string option) (restore: bool option) (build: bool option) (filter: string option) (args: string option) =
   let preservation = if Option.isNone args && Option.defaultValue true restore = false then Preserved else Broken
   let configuration = configuration |> with_configuration
   let restore = restore |> Helpers.map_false "--no-restore"

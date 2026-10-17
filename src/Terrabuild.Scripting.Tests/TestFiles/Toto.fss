@@ -1,4 +1,4 @@
-[<export>] let tagada (context: {| Directory: string |}) =
+export let tagada (context: {| Directory: string |}) =
   context.Directory
 
 type ExportFlag =

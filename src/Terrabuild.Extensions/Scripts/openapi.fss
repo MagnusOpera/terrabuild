@@ -23,7 +23,7 @@ let format_properties properties =
 /// <param name="output" example="&quot;src/api/client&quot;">Output directory.</param>
 /// <param name="properties" default="" example="{ withoutPrefixEnums: &quot;true&quot; }">Generator properties (`--additional-properties`).</param>
 /// <param name="args" default="" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra generator arguments.</param>
-[<export>] let generate (context: Protocol.ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
+export let generate (context: Protocol.ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
   let properties = format_properties properties
   let args = args |> Option.defaultValue ""
 

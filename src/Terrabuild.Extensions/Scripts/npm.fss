@@ -37,7 +37,7 @@ let dependencies_from (package: Package) =
 /// <summary>Computes default outputs and dependencies from `package.json`.</summary>
 /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -51,7 +51,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs an arbitrary npm command (forwards the Terrabuild action name to `npm`).</summary>
 /// <param name="args" default="" example="&quot;cache verify&quot;">Extra arguments for the npm command.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""
@@ -68,7 +68,7 @@ let dependencies_from (package: Package) =
 /// <param name="force" default="false" example="true">Adds `--force`.</param>
 /// <param name="clean" default="true" example="true">Uses `clean-install` when true.</param>
 /// <param name="args" default="" example="&quot;--install-strategy hoisted&quot;">Extra `npm ci` arguments.</param>
-[<export>] let install (context: Protocol.ActionContext) (force: bool option) (clean: bool option) (args: string option) =
+export let install (context: Protocol.ActionContext) (force: bool option) (clean: bool option) (args: string option) =
   let preserves = Helpers.preserves_locked_inputs context.Directory "package-lock.json" (Option.defaultValue true clean) args
   let force = force |> Helpers.map_true "--force"
   let clean = clean |> Helpers.map_true_default true "clean-"
@@ -88,7 +88,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `build` script via `npm run build`.</summary>
 /// <param name="args" default="" example="&quot;--workspaces&quot;">Extra arguments after `--`.</param>
-[<export>] let build (context: Protocol.ActionContext) (args: string option) =
+export let build (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""
@@ -103,7 +103,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `test` script via `npm run test`.</summary>
 /// <param name="args" default="" example="&quot;--runInBand&quot;">Extra arguments after `--`.</param>
-[<export>] let test (context: Protocol.ActionContext) (args: string option) =
+export let test (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""
@@ -119,7 +119,7 @@ let dependencies_from (package: Package) =
 /// <summary>Runs an arbitrary npm script via `npm run &lt;target&gt;`.</summary>
 /// <param name="target" example="&quot;build:prod&quot;">Script name.</param>
 /// <param name="args" default="" example="&quot;--watch&quot;">Extra arguments after `--`.</param>
-[<export>] let run (context: Protocol.ActionContext) (target: string) (args: string option) =
+export let run (context: Protocol.ActionContext) (target: string) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""
@@ -135,7 +135,7 @@ let dependencies_from (package: Package) =
 /// <summary>Executes a package binary via `npm exec`.</summary>
 /// <param name="package" example="&quot;openapi-generator-cli&quot;">Package to execute.</param>
 /// <param name="args" default="" example="&quot;version-manager list&quot;">Arguments for the package command.</param>
-[<export>] let exec (context: Protocol.ActionContext) (package: string) (args: string option) =
+export let exec (context: Protocol.ActionContext) (package: string) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""

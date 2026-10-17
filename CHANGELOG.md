@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Adopt FScript contextual `export let` declarations in extensions, fixtures, and documentation generation.
 - Declare the metadata context accepted by built-in extension defaults to match the values supplied during project discovery.
 - Convert extension arguments to their declared FScript record, option, and union types for compatibility with signature validation.
 - Require explicit preserved, broken, or unaffected provenance outcomes from every extension command.

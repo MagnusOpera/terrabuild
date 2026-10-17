@@ -14,7 +14,7 @@ let format_variables vars =
 /// <summary>Invokes the Terrabuild action name as the make target.</summary>
 /// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">`KEY=VALUE` pairs before the target.</param>
 /// <param name="args" default="" example="&quot;-d&quot;">Extra `make` arguments.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let variables =
     variables
     |> Option.map format_variables

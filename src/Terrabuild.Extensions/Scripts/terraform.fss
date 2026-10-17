@@ -10,7 +10,7 @@ let format_vars variables =
 /// <summary>Declares default outputs for Terraform actions.</summary>
 /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;*.planfile&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = ["*.planfile"]
@@ -18,7 +18,7 @@ let format_vars variables =
 
 /// <summary>Runs an arbitrary Terraform command (action name is forwarded to `terraform`).</summary>
 /// <param name="args" default="" example="&quot;fmt -write=false&quot;">Extra arguments for the Terraform subcommand.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let args = args |> Helpers.with_args
   let command =
     ""
@@ -33,7 +33,7 @@ let format_vars variables =
 /// <summary>Initializes Terraform providers and backend.</summary>
 /// <param name="config" default="" example="&quot;backend.prod.config&quot;">Backend config file.</param>
 /// <param name="args" default="" example="&quot;-upgrade&quot;">Extra `terraform init` arguments.</param>
-[<export>] let init (context: Protocol.ActionContext) (config: string option) (args: string option) =
+export let init (context: Protocol.ActionContext) (config: string option) (args: string option) =
   let config = config |> Helpers.map_value (fun value -> $"-backend-config={value}")
   let args = args |> Helpers.with_args
   let command =
@@ -51,7 +51,7 @@ let format_vars variables =
 /// <summary>Validates configuration before planning/applying.</summary>
 /// <title>Generate plan file.</title>
 /// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform validate` arguments.</param>
-[<export>] let validate (context: Protocol.ActionContext) (args: string option) =
+export let validate (context: Protocol.ActionContext) (args: string option) =
   let preservation = if Option.isNone args then Unaffected else Broken
   let args = args |> Helpers.with_args
   let command =
@@ -69,7 +69,7 @@ let format_vars variables =
 /// <param name="workspace" default="" example="&quot;dev&quot;">Workspace name (`default` when omitted).</param>
 /// <param name="create" default="true" example="true">Adds `-or-create`.</param>
 /// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform workspace select` arguments.</param>
-[<export>] let select (context: Protocol.ActionContext) (workspace: string option) (create: bool option) (args: string option) =
+export let select (context: Protocol.ActionContext) (workspace: string option) (create: bool option) (args: string option) =
   let preservation = if Option.isNone args then Unaffected else Broken
   let workspace = workspace |> Option.defaultValue "default"
   let create = create |> Helpers.map_true_default true "-or-create"
@@ -90,7 +90,7 @@ let format_vars variables =
 /// <title>Generate plan file.</title>
 /// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
 /// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform plan` arguments.</param>
-[<export>] let plan (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
+export let plan (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = args |> Helpers.with_args
   let command =
@@ -109,7 +109,7 @@ let format_vars variables =
 /// <title>Apply plan file.</title>
 /// <param name="plan" default="false" example="true">Skips the generated plan file when true.</param>
 /// <param name="args" default="" example="&quot;-no-color&quot;">Extra `terraform apply` arguments.</param>
-[<export>] let apply (context: Protocol.ActionContext) (plan: bool option) (args: string option) =
+export let apply (context: Protocol.ActionContext) (plan: bool option) (args: string option) =
   let planfile = plan |> Helpers.map_false_default false "terrabuild.planfile"
   let args = args |> Helpers.with_args
   let command =
@@ -128,7 +128,7 @@ let format_vars variables =
 /// <title>Destroy the deployment.</title>
 /// <param name="variables" default="" example="{ configuration: &quot;Release&quot; }">Variables passed as `-var` assignments.</param>
 /// <param name="args" default="" example="&quot;&quot;">Extra `terraform destroy` arguments.</param>
-[<export>] let destroy (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
+export let destroy (context: Protocol.ActionContext) (variables: string map option) (args: string option) =
   let vars = format_vars variables
   let args = args |> Helpers.with_args
   let command =

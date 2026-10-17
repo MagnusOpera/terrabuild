@@ -8,7 +8,7 @@ type ProjectInfo =
       Outputs: string list
       Dependencies: string list }
 
-[<export>] let defaults (context: {| Directory: string |}) =
+export let defaults (context: {| Directory: string |}) =
   { Id = None
     DependencyResolution = None
     Outputs = []

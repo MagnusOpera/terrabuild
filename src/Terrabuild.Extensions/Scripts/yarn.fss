@@ -37,7 +37,7 @@ let dependencies_from (package: Package) =
 /// <summary>Computes default outputs and dependencies from `package.json`.</summary>
 /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -51,7 +51,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs an arbitrary yarn command (Terrabuild action name is forwarded to `yarn`).</summary>
 /// <param name="args" default="" example="&quot;cache clean&quot;">Extra arguments for the yarn command.</param>
-[<export>] let dispatch (context: Protocol.ActionContext) (args: string option) =
+export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
     |> Helpers.append_part context.Command
@@ -68,7 +68,7 @@ let dependencies_from (package: Package) =
 /// <param name="update" default="false" example="true">Allows lockfile updates.</param>
 /// <param name="ignore_engines" default="false" example="true">Adds `--ignore-engines`.</param>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra `yarn install` arguments.</param>
-[<export>] let install (context: Protocol.ActionContext) (update: bool option) (ignore_engines: bool option) (args: string option) =
+export let install (context: Protocol.ActionContext) (update: bool option) (ignore_engines: bool option) (args: string option) =
   let preserves = Helpers.preserves_locked_inputs context.Directory "yarn.lock" (Option.defaultValue false update = false) args
   let update = update |> Helpers.map_false "--frozen-lockfile"
   let ignore_engines = ignore_engines |> Helpers.map_true "--ignore-engines"
@@ -89,7 +89,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `build` script via `yarn build`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
-[<export>] let build (context: Protocol.ActionContext) (args: string option) =
+export let build (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
     |> Helpers.append_part "build --"
@@ -103,7 +103,7 @@ let dependencies_from (package: Package) =
 
 /// <summary>Runs the `test` script via `yarn test`.</summary>
 /// <param name="args" default="" example="&quot;--verbose&quot;">Extra arguments after `--`.</param>
-[<export>] let test (context: Protocol.ActionContext) (args: string option) =
+export let test (context: Protocol.ActionContext) (args: string option) =
   let command =
     ""
     |> Helpers.append_part "test --"
@@ -118,7 +118,7 @@ let dependencies_from (package: Package) =
 /// <summary>Runs an arbitrary yarn script (`yarn &lt;command&gt;`).</summary>
 /// <param name="command" example="&quot;build:prod&quot;">Script name.</param>
 /// <param name="args" default="" example="&quot;--watch&quot;">Extra arguments after `--`.</param>
-[<export>] let run (context: Protocol.ActionContext) (command: string) (args: string option) =
+export let run (context: Protocol.ActionContext) (command: string) (args: string option) =
   let operation =
     ""
     |> Helpers.append_part command

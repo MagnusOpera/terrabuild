@@ -5,7 +5,7 @@ title: FScript extensions
 Terrabuild custom extensions are FScript (`.fss`) programs. FScript provides the language; Terrabuild provides a small host protocol that binds target arguments to exported functions and turns their results into executable operations.
 
 :::info FScript language documentation
-If records, options, pipelines, pattern matching, or `[<export>]` are unfamiliar, begin with the [FScript tutorial](https://fscript.magnusopera.io/manual/0.78.1/learn/quickstart). The [versioned FScript manual](https://fscript.magnusopera.io/manual/0.78.1/) documents the language embedded by Terrabuild.
+If records, options, pipelines, pattern matching, or `export let` are unfamiliar, begin with the [FScript tutorial](https://fscript.magnusopera.io/manual/learn/quickstart). The [FScript manual](https://fscript.magnusopera.io/manual/) documents the language embedded by Terrabuild.
 :::
 
 Legacy compiled F# scripts such as `.fsx` are not supported.
@@ -24,7 +24,7 @@ type CommandResult =
   { Batchable: bool
     Operations: ShellOperation list }
 
-[<export>] let install (context: {| Directory: string |}) (args: string option) : CommandResult =
+export let install (context: {| Directory: string |}) (args: string option) : CommandResult =
   let arguments = args |> Option.defaultValue ""
   let command =
     match arguments with
@@ -70,7 +70,7 @@ The action name `install` resolves to the exported FScript function named `insta
 
 Every extension entrypoint follows the same rules:
 
-1. Declare it with `[<export>] let`.
+1. Declare it with `export let`.
 2. Name its first parameter `context`.
 3. Name remaining parameters exactly like target arguments; matching is case-sensitive.
 4. Use `option<_>` for arguments that callers may omit.
@@ -79,7 +79,7 @@ Every extension entrypoint follows the same rules:
 Context records are structurally typed. Request only the fields the handler uses:
 
 ```fsharp
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) =
+export let dispatch (context: {| Command: string |}) (args: string option) =
   // ...
 ```
 
@@ -90,7 +90,7 @@ An omitted optional parameter becomes `None`. An omitted required parameter is a
 Terrabuild first looks for an exported function whose name matches the requested action. If none exists, it uses the single function marked `Dispatch`.
 
 ```fsharp
-[<export>] let dispatch (context: {| Command: string |}) (args: string option) : CommandResult =
+export let dispatch (context: {| Command: string |}) (args: string option) : CommandResult =
   let arguments = args |> Option.defaultValue ""
   { Batchable = false
     Operations =
@@ -154,7 +154,7 @@ type ProjectInfo =
     Outputs: string list
     Dependencies: string list }
 
-[<export>] let defaults (context: {| Directory: string |}) : ProjectInfo =
+export let defaults (context: {| Directory: string |}) : ProjectInfo =
   { Id = None
     DependencyResolution = Some Path
     Outputs = ["dist/**"]

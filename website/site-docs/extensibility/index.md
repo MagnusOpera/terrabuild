@@ -37,7 +37,7 @@ The FScript documentation explains the language: values, functions, type annotat
 
 The Terrabuild documentation explains the host protocol layered on top:
 
-- extension entrypoints use `[<export>] let`
+- extension entrypoints use `export let`
 - the first parameter is always named `context`
 - remaining parameters bind exact, case-sensitive target argument names
 - command handlers return `{ Batchable; Operations }`
