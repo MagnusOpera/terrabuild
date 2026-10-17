@@ -41,14 +41,10 @@ module private FScriptArguments =
         | TList inner, VList items -> VList(List.map (recurse inner) items)
         | TTuple types, VTuple items when types.Length = items.Length -> VTuple(List.map2 recurse types items)
         | TRecord fields, VRecord actual
-#if LOCAL_FSCRIPT
         | TRecordShape (_, fields, _), VRecord actual
-#endif
             -> adaptRecord fields actual
         | TRecord fields, VMap actual
-#if LOCAL_FSCRIPT
         | TRecordShape (_, fields, _), VMap actual
-#endif
             ->
             actual
             |> Map.toList

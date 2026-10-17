@@ -283,4 +283,6 @@ Parameter XML documentation attributes:
 
 ## Typed invocation arguments
 
+Terrabuild uses the published FScript Language and Runtime 0.81.1 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
+
 The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` and `TypeDefs` to adapt configuration values before invoking a function. Configuration maps remain FScript maps for map parameters and become `VRecord` for declared or structural record parameters. Nested records, lists, map values, and options are adapted recursively; omitted optional record fields become `None`. Enum strings become declared payload-free union cases, and CLR union values are qualified to the matching script type. Host-managed values retain their opaque representation and cannot be manufactured from configuration maps. FScript remains responsible for validating the resulting argument and return values against the signature.

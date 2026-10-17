@@ -3,7 +3,6 @@
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DefineConstants Condition="'$(UseLocalFScript)' == 'true'">$(DefineConstants);LOCAL_FSCRIPT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' != 'true'">
-    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.80.0" />
-    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.80.0" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.81.1" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.81.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' == 'true'">
