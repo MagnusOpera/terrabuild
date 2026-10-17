@@ -1,3 +1,8 @@
+type ExtensionContext =
+    { Debug: bool
+      Directory: string
+      CI: bool }
+
 type BatchContext =
     { Hash: string
       TempDir: string

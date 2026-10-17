@@ -20,7 +20,7 @@ The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
 For every exported extension function:
 
 1. The first parameter **MUST** be named `context`.
-2. The first parameter **MUST** represent the action context shape.
+2. The first parameter **MUST** represent the metadata context shape for a `Default` function or the action context shape for a command.
 3. Remaining parameters **MUST** use exact target argument names (case-sensitive).
 4. Parameter name matching **MUST NOT** perform case conversion, aliasing, or fallback names.
 5. Exported functions **MAY** declare a return annotation (`let f ... : Type = ...`) when using FScript `0.44.0+`.
@@ -46,7 +46,9 @@ Example:
 2. Scripts **MAY** use partial record annotations for context.
 3. Terrabuild currently provides fields compatible with `ActionContext` (for example `Command`, `Directory`, `Debug`, `CI`, `Hash`, `Batch`).
 
-Canonical host shape:
+Metadata discovery supplies `ExtensionContext` (`Debug`, `Directory`, `CI`); command execution supplies the full `ActionContext`. Default functions must not require command-only fields.
+
+Canonical command host shape:
 
 ```fsharp
 type BatchContext =
@@ -220,7 +222,7 @@ import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
-[<export>] let defaults (context: Protocol.ActionContext) : Protocol.ProjectInfo =
+[<export>] let defaults (context: Protocol.ExtensionContext) : Protocol.ProjectInfo =
     { Id = None; DependencyResolution = None; Outputs = []; Dependencies = [] }
 
 // Generic command fallback entrypoint (flagged "dispatch")
@@ -278,3 +280,7 @@ Parameter XML documentation attributes:
    - `default=""`: parameter is optional
    - `default="..."`: parameter is optional with a documented default value
 3. When `default` is set to a non-empty value, DocGen appends `Default value is <value>.` to the generated argument description.
+
+## Typed invocation arguments
+
+The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` and `TypeDefs` to adapt configuration values before invoking a function. Configuration maps remain FScript maps for map parameters and become `VRecord` for declared or structural record parameters. Nested records, lists, map values, and options are adapted recursively; omitted optional record fields become `None`. Enum strings become declared payload-free union cases, and CLR union values are qualified to the matching script type. Host-managed values retain their opaque representation and cannot be manufactured from configuration maps. FScript remains responsible for validating the resulting argument and return values against the signature.

@@ -15,7 +15,7 @@ let append_quoted_part value acc =
   append_quoted acc value
 
 /// <summary>FScript extension for executing project-scoped `.fss` scripts.</summary>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = []

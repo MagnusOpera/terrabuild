@@ -604,3 +604,44 @@ let keyedMapsCanBeUsedInsideExtensions key =
     withMapKeyScript key $"{{ [{key}] = 42 }}[{key}]" "{ [nameof inspect] = [Remote] }" (fun script ->
         let args = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
         script.GetMethod("inspect").Value.Invoke<int option> args |> should equal (Some 42))
+
+[<Test>]
+let argumentsFollowDeclaredRecordOptionAndUnionTypes() =
+    withTemporaryWorkspace (fun root ->
+        let source = """
+type Mode = Fast | Slow
+type Inner = { Mode: Mode; Label: string option }
+type Input = { Nested: Inner; Items: Inner list }
+type ExportFlag = Remote
+[<export>] let inspect (context: {| Command: string |}) (input: Input) (mode: Mode option) =
+    let speed = match input.Nested.Mode with | Fast -> "fast" | Slow -> "slow"
+    let optional = match mode with | Some Slow -> "slow" | _ -> "other"
+    let label = Option.defaultValue "none" input.Nested.Label
+    let count = List.length input.Items
+    $"{context.Command}:{speed}:{optional}:{label}:{count}"
+{ [nameof inspect] = [Remote] }
+"""
+        let script = loadScriptFromSourceWithIncludes root root (Path.Combine(root, "typed-arguments.fss")) source (fun _ -> None)
+        let inner = Value.Map(Map ["Mode", Value.Enum "Fast"])
+        let arguments = Value.Map(Map [
+            "context", Value.Map(Map ["Command", Value.String "inspect"])
+            "input", Value.Map(Map ["Nested", inner; "Items", Value.List [inner]])
+            "mode", Value.Enum "Slow" ])
+        script.GetMethod("inspect").Value.Invoke<string> arguments
+        |> should equal "inspect:fast:slow:none:1")
+
+[<Test>]
+let mapParametersRemainMapsWhileNestedRecordValuesAreAdapted() =
+    withTemporaryWorkspace (fun root ->
+        let source = """
+type Item = { Name: string }
+type ExportFlag = Remote
+[<export>] let inspect (context: {| Command: string |}) (items: Item map) =
+    match items["first"] with | Some item -> item.Name | None -> "missing"
+{ [nameof inspect] = [Remote] }
+"""
+        let script = loadScriptFromSourceWithIncludes root root (Path.Combine(root, "typed-map-arguments.fss")) source (fun _ -> None)
+        let arguments = Value.Map(Map [
+            "context", Value.Map(Map ["Command", Value.String "inspect"])
+            "items", Value.Map(Map ["first", Value.Map(Map ["Name", Value.String "kept"])]) ])
+        script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "kept")

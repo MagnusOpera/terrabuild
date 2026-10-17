@@ -1,7 +1,7 @@
 import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = []

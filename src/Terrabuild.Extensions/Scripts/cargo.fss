@@ -8,7 +8,7 @@ let with_profile profile =
 /// <summary>Computes default outputs and dependencies from `Cargo.toml`.</summary>
 /// <param name="ignores" example="[ ]"></param>
 /// <param name="outputs" example="[ &quot;target/debug/&quot; &quot;target/release/&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = ["target/debug/"; "target/release/"]

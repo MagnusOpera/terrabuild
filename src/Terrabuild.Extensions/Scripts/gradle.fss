@@ -4,7 +4,7 @@ import "_helpers.fss" as Helpers
 /// <summary>Gradle extension for build workflows.</summary>
 /// <summary>Declares default project outputs for Gradle builds.</summary>
 /// <param name="outputs" example="[ &quot;build/classes/&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = ["build/classes/"]

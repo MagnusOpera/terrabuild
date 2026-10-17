@@ -69,8 +69,9 @@ let invokeResult extensionName method context (args: Map<string, Value>) =
     Extensions.invokeScriptMethod<CommandResult> method (withContext context args) (script extensionName |> Some)
     |> failInvoke $"{extensionName}:{method}"
 
-let invokeDefaults extensionName context =
-    Extensions.invokeScriptDefault<ProjectInfo> (withContext context Map.empty) (script extensionName |> Some)
+let invokeDefaults extensionName (context: ActionContext) =
+    let metadataContext : ExtensionContext = { Debug = context.Debug; Directory = context.Directory; CI = context.CI }
+    Extensions.invokeScriptDefault<ProjectInfo> (withContext metadataContext Map.empty) (script extensionName |> Some)
     |> failInvoke $"{extensionName}:defaults"
 
 let cacheability extensionName method =

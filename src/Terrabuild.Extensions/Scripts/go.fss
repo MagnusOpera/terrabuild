@@ -89,7 +89,7 @@ let project_operations (context: Protocol.ActionContext) action arguments =
 /// <summary>Reads mandatory Go module metadata and discovers local replacement dependencies.</summary>
 /// <param name="ignores" example="[ ]"></param>
 /// <param name="outputs" example="[ &quot;bin/&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   let (id, dependencies) = load_module context.Directory
   { Id = Some id
     DependencyResolution = Some Scope

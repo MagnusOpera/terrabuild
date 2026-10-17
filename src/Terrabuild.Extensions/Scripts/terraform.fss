@@ -10,7 +10,7 @@ let format_vars variables =
 /// <summary>Declares default outputs for Terraform actions.</summary>
 /// <param name="ignores" example="[ &quot;.terraform/&quot; &quot;*.tfstate/&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;*.planfile&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   { Id = None
     DependencyResolution = None
     Outputs = ["*.planfile"]

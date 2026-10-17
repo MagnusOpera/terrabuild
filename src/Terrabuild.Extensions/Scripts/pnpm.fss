@@ -47,7 +47,7 @@ let batch_filters (context: Protocol.ActionContext) =
 /// <summary>Computes default outputs and dependencies from `package.json`.</summary>
 /// <param name="ignores" example="[ &quot;node_modules/**&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;dist/**&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   let package = load_package context.Directory
 
   let id =

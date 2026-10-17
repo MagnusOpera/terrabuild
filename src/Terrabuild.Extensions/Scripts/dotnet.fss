@@ -91,7 +91,7 @@ let with_configuration configuration =
 /// <summary>Computes default outputs and project-reference dependencies.</summary>
 /// <param name="ignores" example="[ &quot;**/*.binlog&quot; ]"></param>
 /// <param name="outputs" example="[ &quot;bin/&quot; &quot;obj/&quot; &quot;**/*.binlog&quot; ]"></param>
-[<export>] let defaults (context: Protocol.ActionContext) =
+[<export>] let defaults (context: Protocol.ExtensionContext) =
   let dependencies =
     context.Directory
     |> first_project_file

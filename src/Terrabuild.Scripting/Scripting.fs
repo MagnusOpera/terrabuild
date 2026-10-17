@@ -11,6 +11,74 @@ open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
 open Errors
 
+/// Match configuration values to the script's declared parameter types before invoking FScript.
+module private FScriptArguments =
+    open FScript.Language
+
+    let rec adapt (typeDefs: Map<string, Type>) expected (value: Value) =
+        let recurse t v = adapt typeDefs t v
+        let adaptRecord expectedFields actualFields =
+            let supplied =
+                actualFields |> Map.map (fun name item ->
+                    match Map.tryFind name expectedFields with
+                    | Some fieldType -> recurse fieldType item
+                    | None -> item)
+            expectedFields |> Map.fold (fun fields name fieldType ->
+                if Map.containsKey name fields then fields
+                else
+                    match fieldType with
+                    | TOption _ -> Map.add name (VOption None) fields
+                    | _ -> raiseTypeError $"Missing record argument field '{name}'") supplied
+            |> VRecord
+        match expected, value with
+        | TNamed name, _ ->
+            match typeDefs.TryFind name with
+            | Some expanded -> recurse expanded value
+            | None -> value
+        | TOption _, VOption None -> value
+        | TOption inner, VOption (Some item) -> VOption(Some(recurse inner item))
+        | TOption inner, item -> VOption(Some(recurse inner item))
+        | TList inner, VList items -> VList(List.map (recurse inner) items)
+        | TTuple types, VTuple items when types.Length = items.Length -> VTuple(List.map2 recurse types items)
+        | TRecord fields, VRecord actual
+#if LOCAL_FSCRIPT
+        | TRecordShape (_, fields, _), VRecord actual
+#endif
+            -> adaptRecord fields actual
+        | TRecord fields, VMap actual
+#if LOCAL_FSCRIPT
+        | TRecordShape (_, fields, _), VMap actual
+#endif
+            ->
+            actual
+            |> Map.toList
+            |> List.map (fun (key, item) ->
+                match key with
+                | MKString name -> name, item
+                | _ -> raiseTypeError "Record arguments expect string map keys")
+            |> Map.ofList
+            |> adaptRecord fields
+        | TMap (keyType, itemType), VMap items ->
+            items |> Map.toList |> List.map (fun (key, item) ->
+                let adaptedKey =
+                    match key with
+                    | MKString name ->
+                        match recurse keyType (VString name) with
+                        | VUnionCase (typeName, caseName, None) -> MKUnionCase(typeName, caseName)
+                        | _ -> key
+                    | _ -> key
+                adaptedKey, recurse itemType item)
+            |> Map.ofList |> VMap
+        | TUnion (name, cases), VString caseName when cases.TryFind caseName = Some None ->
+            VUnionCase(name, caseName, None)
+        | TUnion (name, cases), VUnionCase (actualName, caseName, payload)
+            when actualName = name || name.EndsWith("." + actualName, StringComparison.Ordinal) ->
+            match cases.TryFind caseName, payload with
+            | Some None, None -> VUnionCase(name, caseName, None)
+            | Some (Some t), Some item -> VUnionCase(name, caseName, Some(recurse t item))
+            | _ -> value
+        | _ -> value
+
 type private RuntimeInvoker = Terrabuild.Expression.Value -> System.Type -> objnull
 
 type PerformanceSnapshot =
@@ -170,16 +238,8 @@ type Script internal
                                 raiseInvalidArg $"Exported function '{methodName}' must declare 'context' as first parameter"
 
                         let toFScriptArgument (parameterType: FScript.Language.Type) (value: Terrabuild.Expression.Value) =
-                            match parameterType with
-                            | FScript.Language.TOption _ ->
-                                match value with
-                                | Terrabuild.Expression.Value.Nothing -> FScript.Language.VOption None
-                                | _ ->
-                                    match Conversions.ToFScriptValue value with
-                                    | FScript.Language.VOption optionValue -> FScript.Language.VOption optionValue
-                                    | converted -> FScript.Language.VOption (Some converted)
-                            | _ ->
-                                Conversions.ToFScriptValue value
+                            Conversions.ToFScriptValue value
+                            |> FScriptArguments.adapt loaded.TypeDefs parameterType
 
                         let runtimeInvoke (args: Terrabuild.Expression.Value) (targetType: System.Type) =
                             let invokeStartedAt = Stopwatch.GetTimestamp()

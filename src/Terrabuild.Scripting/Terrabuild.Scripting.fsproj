@@ -3,6 +3,7 @@
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DefineConstants Condition="'$(UseLocalFScript)' == 'true'">$(DefineConstants);LOCAL_FSCRIPT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
