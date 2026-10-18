@@ -28,8 +28,7 @@ module ScriptRegistry =
         ]
 
     let private internalScriptFiles =
-        [ "Scripts/_helpers.fss"
-          "Scripts/_protocol.fss" ]
+        [ "Scripts/_helpers.fss" ]
 
     let EmbeddedScriptFiles =
         let builtIns =

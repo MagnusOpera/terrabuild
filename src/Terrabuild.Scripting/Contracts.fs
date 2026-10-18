@@ -1,26 +1,27 @@
 namespace Terrabuild
 
 open Collections
+open FScript.Runtime
 
 module ScriptingContracts =
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ExtensionContext", ScriptConstructible = true)>]
     type ExtensionContext = {
-        Debug: bool
-        Directory: string
-        CI: bool
+        [<FScriptVisible>] Debug: bool
+        [<FScriptVisible>] Directory: string
+        [<FScriptVisible>] CI: bool
     }
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.DependencyResolution", ScriptConstructible = true)>]
     type DependencyResolution =
         | Path
         | Scope
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ProjectInfo", ScriptConstructible = true)>]
     type ProjectInfo = {
-        Id: string option
-        DependencyResolution: DependencyResolution option
-        Outputs: Set<string>
-        Dependencies: Set<string>
+        [<FScriptVisible>] Id: string option
+        [<FScriptVisible>] DependencyResolution: DependencyResolution option
+        [<FScriptVisible>] Outputs: Set<string>
+        [<FScriptVisible>] Dependencies: Set<string>
     }
     with
         static member Default = {
@@ -30,54 +31,54 @@ module ScriptingContracts =
             Dependencies = Set.empty
         }
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.BatchContext", ScriptConstructible = true)>]
     type BatchContext = {
-        Hash: string
-        TempDir: string
-        ProjectPaths: string set
-        BatchCommands: string list
+        [<FScriptVisible>] Hash: string
+        [<FScriptVisible>] TempDir: string
+        [<FScriptVisible>] ProjectPaths: string set
+        [<FScriptVisible>] BatchCommands: string list
     }
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ActionContext", ScriptConstructible = true)>]
     type ActionContext = {
-        Debug: bool
-        CI: bool
-        Command: string
-        Hash: string
-        Directory: string
-        Batch: BatchContext option
+        [<FScriptVisible>] Debug: bool
+        [<FScriptVisible>] CI: bool
+        [<FScriptVisible>] Command: string
+        [<FScriptVisible>] Hash: string
+        [<FScriptVisible>] Directory: string
+        [<FScriptVisible>] Batch: BatchContext option
     }
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ShellOperation", ScriptConstructible = true)>]
     type ShellOperation = {
-        Command: string
-        Arguments: string
-        ErrorLevel: int
+        [<FScriptVisible>] Command: string
+        [<FScriptVisible>] Arguments: string
+        [<FScriptVisible>] ErrorLevel: int
     }
 
     type ShellOperations = ShellOperation list
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ProvenanceEffect", ScriptConstructible = true)>]
     type ProvenanceEffect =
         | Preserved
         | Broken
         | Unaffected
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.CommandResult", ScriptConstructible = true)>]
     type CommandResult = {
-        Batchable: bool
-        Operations: ShellOperations
-        PreserveProvenance: ProvenanceEffect
+        [<FScriptVisible>] Batchable: bool
+        [<FScriptVisible>] Operations: ShellOperations
+        [<FScriptVisible>] PreserveProvenance: ProvenanceEffect
     }
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.Cacheability", ScriptConstructible = true)>]
     type Cacheability =
         | Never
         | Local
         | External
         | Remote
 
-    [<RequireQualifiedAccess>]
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.ExportFlag", ScriptConstructible = true)>]
     type ExportFlag =
         | Dispatch
         | Default

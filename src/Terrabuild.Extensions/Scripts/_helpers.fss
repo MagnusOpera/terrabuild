@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 
 let append_part part acc =
   match (part, acc) with

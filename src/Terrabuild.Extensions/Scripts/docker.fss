@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>Docker extension for image build and publish workflows.</summary>
@@ -95,6 +94,6 @@ export let push (context: Protocol.ActionContext) (image: string) (tag: string) 
                      ErrorLevel = 0 } ] }
 
 // Exported functions and Terrabuild execution flags.
-{ [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [External]
-  [nameof push] = [External] }
+{ [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof build] = [Cache External]
+  [nameof push] = [Cache External] }

@@ -15,21 +15,15 @@ open System.Threading.Tasks
 let preservationIsARequiredCommandOutputIncludingDispatchFallback() =
     let root = Path.GetTempPath()
     let source = """
-type ExportFlag =
-  | Remote
-  | Never
-  | Dispatch
-type ProvenanceEffect = Preserved | Broken | Unaffected
-type CommandResult = { Batchable: bool; Operations: string list; PreserveProvenance: ProvenanceEffect }
 type LegacyCommandResult = { Batchable: bool; Operations: string list }
 export let build context = { Batchable = false; Operations = []; PreserveProvenance = Preserved }
 export let dispatch context = { Batchable = false; Operations = []; PreserveProvenance = Broken }
 export let notify context = { Batchable = false; Operations = []; PreserveProvenance = Unaffected }
 export let legacy context = { Batchable = false; Operations = [] }
-{ [nameof build] = [Remote]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof legacy] = [Remote]
-  [nameof notify] = [Remote] }
+{ [nameof build] = [Cache Remote]
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof legacy] = [Cache Remote]
+  [nameof notify] = [Cache Remote] }
 """
     let script = loadScriptFromSourceWithIncludes root root (Path.Combine(root, "provenance-test.fss")) source (fun _ -> None)
     let context: ActionContext = { Debug = false; CI = false; Command = "build"; Hash = "test"; Directory = root; Batch = None }
@@ -645,3 +639,25 @@ export let inspect (context: {| Command: string |}) (items: Item map) =
             "context", Value.Map(Map ["Command", Value.String "inspect"])
             "items", Value.Map(Map ["first", Value.Map(Map ["Name", Value.String "kept"])]) ])
         script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "kept")
+
+[<Test>]
+let sharedProtocolIsConstructibleAndKeepsExecutionRestrictions() =
+    let root = Path.GetTempPath()
+    let context: FScript.Runtime.HostContext = { RootDirectory = root; DeniedPathGlobs = [] }
+    let registration = Terrabuild.FScriptProtocol.registration context
+    registration.Types.Length |> should equal 6
+    registration.Unions.Length |> should equal 4
+    Terrabuild.FScriptProtocol.fingerprint |> should contain "Cache:of Protocol.Cacheability"
+    Terrabuild.FScriptProtocol.fingerprint |> should contain "Remote:nullary"
+    registration.Types |> List.forall (fun descriptor -> not descriptor.HostManaged) |> should equal true
+    registration.Functions |> List.exists (fun fn -> Set.contains fn.Name (set ["Task.spawn"; "Task.await"; "Console.readLine"])) |> should equal false
+    let loaded = FScript.Runtime.ScriptHost.loadSourceWithRegistration registration """
+let mode = Protocol.DependencyResolution.Path
+let project = { Id = Some "sample"; DependencyResolution = Some mode; Outputs = ["bin"; "bin"]; Dependencies = [] }
+project
+"""
+    let project = FScript.Runtime.HostTypes.unwrap<ProjectInfo> loaded.LastValue
+    project.DependencyResolution |> should equal (Some DependencyResolution.Path)
+    project.Outputs |> should equal (set ["bin"])
+    let duplicate = { registration with Unions = registration.Unions @ registration.Unions }
+    (fun () -> FScript.Language.HostInterop.typeDefinitions duplicate [] |> ignore) |> should throw typeof<FScript.Language.EvalException>

@@ -45,40 +45,23 @@ for Terrabuild extensions.
 Create a `tools` directory at the workspace root and add:
 
 ```fsharp title="tools/workflow.fss"
-type ShellOperation =
-  { Command: string
-    Arguments: string
-    ErrorLevel: int }
-
-type CommandResult =
-  { Batchable: bool
-    Operations: ShellOperation list }
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
-
-export let build (context: {| Directory: string |}) : CommandResult =
-  { Batchable = false
+export let build (context: {| Directory: string |}) : Protocol.CommandResult =
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations =
       [ { Command = "sh"
           Arguments = "build.sh"
           ErrorLevel = 0 } ] }
 
-{ [nameof build] = [Local] }
+{ [nameof build] = [Cache Local] }
 ```
 
 Read the script in three parts:
 
-1. The records describe the operation returned to Terrabuild: a command,
-   arguments, and the accepted exit-code threshold.
+1. Terrabuild supplies the `Protocol` types and union cases through FFI; no protocol import or duplicate declarations are needed.
 2. The exported `build` function returns one operation. Terrabuild supplies
    `context`; this action uses the fixed `build.sh` convention in each project.
-3. The final descriptor maps `build` to `Local`, declaring local artifact caching
+3. The final descriptor maps `build` to `Cache Local`, declaring local artifact caching
    as its default. `Batchable = false` keeps projects in separate invocations.
 
 The extension returns instructions for execution. It does not run the build

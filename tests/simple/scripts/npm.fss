@@ -1,40 +1,3 @@
-type ProvenanceEffect = Preserved | Broken | Unaffected
-
-type ActionContext =
-    { Command: string
-      Directory: string }
-
-type ExtensionContext =
-    { Directory: string }
-
-type DependencyResolution =
-  | Path
-  | Scope
-
-type ProjectInfo =
-    { Id: string option
-      DependencyResolution: DependencyResolution option
-      Outputs: string list
-      Dependencies: string list }
-
-type ShellOperation =
-    { Command: string
-      Arguments: string
-      ErrorLevel: int }
-
-type CommandResult =
-    { Batchable: bool
-      Operations: ShellOperation list
-      PreserveProvenance: ProvenanceEffect }
-
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
-
 type Package =
     { dependencies: string map option
       devDependencies: string map option }
@@ -79,7 +42,7 @@ let dependencies_from (package: Package) =
   List.append dependencies dev_dependencies
   |> List.distinct
 
-export let defaults (context: ExtensionContext) =
+export let defaults (context: Protocol.ExtensionContext) =
   let dependencies =
     context.Directory
     |> load_package
@@ -91,7 +54,7 @@ export let defaults (context: ExtensionContext) =
     Outputs = ["dist/**"]
     Dependencies = dependencies }
 
-export let dispatch (context: ActionContext) (arguments: string option) =
+export let dispatch (context: Protocol.ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part context.Command
@@ -101,12 +64,12 @@ export let dispatch (context: ActionContext) (arguments: string option) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-export let install (context: ActionContext) =
+export let install (context: Protocol.ActionContext) =
   { PreserveProvenance = Broken
     Batchable = false
     Operations = [ shell_op "npm" "ci" ] }
 
-export let build (context: ActionContext) (arguments: string option) =
+export let build (context: Protocol.ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part "run build --"
@@ -116,7 +79,7 @@ export let build (context: ActionContext) (arguments: string option) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-export let test (context: ActionContext) (arguments: string option) =
+export let test (context: Protocol.ActionContext) (arguments: string option) =
   let command =
     ""
     |> append_part "run test --"
@@ -126,7 +89,7 @@ export let test (context: ActionContext) (arguments: string option) =
     Batchable = false
     Operations = [ shell_op "npm" command ] }
 
-export let run (context: ActionContext) (command: string) (arguments: string option) =
+export let run (context: Protocol.ActionContext) (command: string) (arguments: string option) =
   let command =
     ""
     |> append_part $"run {command} --"
@@ -137,8 +100,8 @@ export let run (context: ActionContext) (command: string) (arguments: string opt
     Operations = [ shell_op "npm" command ] }
 
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof install] = [Local]
-  [nameof build] = [Remote]
-  [nameof test] = [Remote]
-  [nameof run] = [Local] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof install] = [Cache Local]
+  [nameof build] = [Cache Remote]
+  [nameof test] = [Cache Remote]
+  [nameof run] = [Cache Local] }

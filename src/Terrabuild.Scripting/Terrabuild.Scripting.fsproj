@@ -2,18 +2,20 @@
 
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Contracts.fs" />
+    <Compile Include="FScriptProtocol.fs" />
     <Compile Include="TypeHelpers.fs" />
     <Compile Include="Scripting.fs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' != 'true'">
-    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.81.1" />
-    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.81.1" />
+    <PackageReference Include="MagnusOpera.FScript.Language" Version="0.81.7" />
+    <PackageReference Include="MagnusOpera.FScript.Runtime" Version="0.81.7" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScript)' == 'true'">

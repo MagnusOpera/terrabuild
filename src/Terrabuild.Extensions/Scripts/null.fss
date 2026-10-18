@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 export let defaults (context: Protocol.ExtensionContext) =
@@ -17,5 +16,5 @@ export let fake (context: Protocol.ActionContext) =
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof fake] = [Never] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof fake] = [Cache Never] }

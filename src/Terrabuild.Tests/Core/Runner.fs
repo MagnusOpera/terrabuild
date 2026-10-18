@@ -1299,15 +1299,9 @@ let ``resolution carries invoked declaration without changing operation cache in
     withTempWorkspace (fun workspace ->
         let scriptPath = Path.Combine(workspace, "extension.fss")
         File.WriteAllText(scriptPath, """
-type ExportFlag =
-  | Remote
-  | Dispatch
-type Operation = { Command: string; Arguments: string; ErrorLevel: int }
-type ProvenanceEffect = Preserved | Broken | Unaffected
-type Result = { Batchable: bool; Operations: Operation list; PreserveProvenance: ProvenanceEffect }
 export let dispatch context (preserve: bool) =
   { Batchable = false; Operations = [{ Command = "echo"; Arguments = "same"; ErrorLevel = 0 }]; PreserveProvenance = if preserve then Preserved else Broken }
-{ [nameof dispatch] = [Dispatch; Remote] }
+{ [nameof dispatch] = [Dispatch; Cache Remote] }
         """.Trim())
         let script = Extensions.lazyLoadScript workspace [] "custom" (Some "extension.fss") |> _.Value
         let target: Configuration.Target = {

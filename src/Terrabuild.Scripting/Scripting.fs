@@ -765,17 +765,6 @@ let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
     |> List.sort
     |> String.concat "|"
 
-module private RuntimeRegistry =
-    let private blockedFunctions =
-        Set.ofList
-            [ "Task.spawn"
-              "Task.await"
-              "Console.readLine" ]
-
-    let all (ctx: FScript.Runtime.HostContext) =
-        FScript.Runtime.Registry.all ctx
-        |> List.filter (fun externalFunction -> blockedFunctions.Contains externalFunction.Name |> not)
-
 let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: string list) =
     let fullRoot = Path.GetFullPath(rootDirectory)
     let deniedPathGlobs = normalizeDeniedPathGlobs deniedPathGlobs
@@ -787,12 +776,12 @@ let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: s
 let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (scriptFile: string) =
 
     let fullPath = Path.GetFullPath(scriptFile)
-    let externs = RuntimeRegistry.all (createFScriptHostContext rootDirectory deniedPathGlobs)
+    let registration = FScriptProtocol.registration (createFScriptHostContext rootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
     let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
     let loaded =
-        FScript.Runtime.ScriptHost.loadSourceWithIncludes
-            externs
+        FScript.Runtime.ScriptHost.loadSourceWithIncludesAndRegistration
+            registration
             rootDirectory
             fullPath
             entrySource
@@ -808,12 +797,12 @@ let private loadFScriptFromSourceWithIncludes
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let externs = RuntimeRegistry.all (createFScriptHostContext hostRootDirectory deniedPathGlobs)
+    let registration = FScriptProtocol.registration (createFScriptHostContext hostRootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
     let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =
-        FScript.Runtime.ScriptHost.loadSourceWithIncludes
-            externs
+        FScript.Runtime.ScriptHost.loadSourceWithIncludesAndRegistration
+            registration
             includeRootDirectory
             entryFile
             entrySource

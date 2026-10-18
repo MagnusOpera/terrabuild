@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>pnpm extension for install, build, and test workflows.</summary>
@@ -163,8 +162,8 @@ export let run (context: Protocol.ActionContext) (target: string) (recursive: bo
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof install] = [Local]
-  [nameof build] = [Remote]
-  [nameof test] = [Remote]
-  [nameof run] = [Local] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof install] = [Cache Local]
+  [nameof build] = [Cache Remote]
+  [nameof test] = [Cache Remote]
+  [nameof run] = [Cache Local] }

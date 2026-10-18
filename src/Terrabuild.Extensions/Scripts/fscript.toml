@@ -1,0 +1,6 @@
+# Build from the repository root first:
+# dotnet build terrabuild.slnx -c Release
+# Paths below are relative to this manifest.
+[runtime]
+default-externs = false
+extern-assemblies = ["../../Terrabuild.Scripting/bin/Release/net10.0/Terrabuild.Scripting.dll"]

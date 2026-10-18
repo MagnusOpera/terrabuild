@@ -10,42 +10,28 @@ If records, options, pipelines, pattern matching, or `export let` are unfamiliar
 
 Legacy compiled F# scripts such as `.fsx` are not supported.
 
+Terrabuild registers `Protocol.*` record/union types and their constructors for every extension. Use them directly without importing a protocol script.
+
 ## Your first extension
 
 Create a script inside the workspace:
 
 ```fsharp title="tools/extensions/npm-ci.fss"
-type ShellOperation =
-  { Command: string
-    Arguments: string
-    ErrorLevel: int }
-
-type CommandResult =
-  { Batchable: bool
-    Operations: ShellOperation list }
-
-export let install (context: {| Directory: string |}) (args: string option) : CommandResult =
+export let install (context: {| Directory: string |}) (args: string option) : Protocol.CommandResult =
   let arguments = args |> Option.defaultValue ""
   let command =
     match arguments with
     | "" -> "ci"
     | value -> $"ci {value}"
 
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations =
       [ { Command = "npm"
           Arguments = command
           ErrorLevel = 0 } ] }
 
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
-
-{ [nameof install] = [Local] }
+{ [nameof install] = [Cache Local] }
 ```
 
 Register it in the workspace:
@@ -90,15 +76,16 @@ An omitted optional parameter becomes `None`. An omitted required parameter is a
 Terrabuild first looks for an exported function whose name matches the requested action. If none exists, it uses the single function marked `Dispatch`.
 
 ```fsharp
-export let dispatch (context: {| Command: string |}) (args: string option) : CommandResult =
+export let dispatch (context: {| Command: string |}) (args: string option) : Protocol.CommandResult =
   let arguments = args |> Option.defaultValue ""
-  { Batchable = false
+  { PreserveProvenance = Broken
+    Batchable = false
     Operations =
       [ { Command = "your-tool"
           Arguments = $"{context.Command} {arguments}"
           ErrorLevel = 0 } ] }
 
-{ [nameof dispatch] = [Dispatch; Never] }
+{ [nameof dispatch] = [Dispatch; Cache Never] }
 ```
 
 With this fallback, `my_extension lint { }` invokes `dispatch` with `context.Command = "lint"`. A script may define at most one dispatch handler.
@@ -108,27 +95,19 @@ With this fallback, `my_extension lint { }` invokes `dispatch` with `context.Com
 The script's final expression must be a map from exported function names to lists of discriminated-union flags. Flags are union cases, not strings.
 
 ```fsharp
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
-
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Remote] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof build] = [Cache Remote] }
 ```
 
 `Dispatch` and `Default` select special handlers. Every command handler also needs exactly one cacheability behavior:
 
 | Flag | Artifact behavior |
 |------|-------------------|
-| `Never` | Do not cache outputs. |
-| `Local` | Store outputs in the local workspace cache. |
-| `Remote` | Use managed caching, including Insights when connected. |
-| `External` | The command manages artifacts externally; Terrabuild stores its summary. |
+| `Cache Never` | Do not cache outputs. |
+| `Cache Local` | Store outputs in the local workspace cache. |
+| `Cache Remote` | Use managed caching, including Insights when connected. |
+| `Cache External` | The command manages artifacts externally; Terrabuild stores its summary. |
 
 When a target runs several commands, the cacheability of the **last command** is
 the target's default artifact mode. This is intentional: the final command is
@@ -144,17 +123,7 @@ Batching is not a descriptor flag. Each invocation reports whether it supports b
 A handler marked `Default` can discover project identity, outputs, and dependencies while Terrabuild constructs the project graph:
 
 ```fsharp
-type DependencyResolution =
-  | Path
-  | Scope
-
-type ProjectInfo =
-  { Id: string option
-    DependencyResolution: DependencyResolution option
-    Outputs: string list
-    Dependencies: string list }
-
-export let defaults (context: {| Directory: string |}) : ProjectInfo =
+export let defaults (context: {| Directory: string |}) : Protocol.ProjectInfo =
   { Id = None
     DependencyResolution = Some Path
     Outputs = ["dist/**"]
@@ -197,3 +166,17 @@ Imports in local scripts are resolved to workspace files. Imports in remote scri
 - [Host Functions](./functions) lists the functions Terrabuild exposes to scripts.
 - [Container](./container) explains how an extension runs its returned operations in Docker or Podman.
 - The normative protocol is maintained in [`docs/architecture/fscript-extension-protocol.md`](https://github.com/MagnusOpera/terrabuild/blob/main/docs/architecture/fscript-extension-protocol.md).
+
+## Editor configuration
+
+For the built-in extensions, build with `dotnet build terrabuild.slnx -c Release`, then open a script under `src/Terrabuild.Extensions/Scripts`. Its `fscript.toml` selects the shared protocol provider for FScript diagnostics, completion, and hover. Use FScript CLI 0.81.7 or later and VS Code extension 0.81.7 or later. The extension must bundle versioned server assemblies so providers built against the published packages can load.
+
+For custom scripts, put a manifest beside them and point `extern-assemblies` at the built `Terrabuild.Scripting.dll`:
+
+```toml
+[runtime]
+default-externs = false
+extern-assemblies = ["path/to/Terrabuild.Scripting.dll"]
+```
+
+Paths resolve relative to the manifest. Select it with **FScript: Select Configuration** when the workspace contains several manifests. Trust the workspace to enable provider loading. The provider exposes Terrabuild's approved host functions; it does not run your extension handlers.

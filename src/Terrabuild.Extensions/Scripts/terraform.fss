@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>Terraform extension for init, plan, apply, and destroy workflows.</summary>
@@ -145,10 +144,10 @@ export let destroy (context: Protocol.ActionContext) (variables: string map opti
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof init] = [Local]
-  [nameof validate] = [Remote]
-  [nameof select] = [Never]
-  [nameof plan] = [Remote]
-  [nameof apply] = [Remote]
-  [nameof destroy] = [Remote] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof init] = [Cache Local]
+  [nameof validate] = [Cache Remote]
+  [nameof select] = [Cache Never]
+  [nameof plan] = [Cache Remote]
+  [nameof apply] = [Cache Remote]
+  [nameof destroy] = [Cache Remote] }

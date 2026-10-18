@@ -354,7 +354,7 @@ let private loadScriptFromOriginWithIncludes
             entryPath
             entrySource
             resolveImportedSource
-    loaded.ContractFingerprint <- sourceMap.Values |> Seq.sort |> Hash.sha256strings
+    loaded.ContractFingerprint <- sourceMap.Values |> Seq.sort |> Seq.append [Terrabuild.FScriptProtocol.fingerprint] |> Hash.sha256strings
     loaded
 
 let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name: string) (script: string option) =
@@ -395,7 +395,7 @@ let lazyLoadScript (workspaceRoot: string) (deniedPathGlobs: string list) (name:
                             resolveImportedSource
                     loaded.ProvenanceOrigin <- "builtin"
                     loaded.ContractFingerprint <-
-                        [ entrySource; sourceMap[toEmbeddedScriptVirtualPath "Scripts/_protocol.fss"]; sourceMap[toEmbeddedScriptVirtualPath "Scripts/_helpers.fss"] ]
+                        [ entrySource; sourceMap[toEmbeddedScriptVirtualPath "Scripts/_helpers.fss"]; Terrabuild.FScriptProtocol.fingerprint ]
                         |> Hash.sha256strings
                     loaded
                 | None ->

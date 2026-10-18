@@ -92,22 +92,14 @@ Flags **MUST** be discriminated union cases (not strings).
 Canonical form:
 
 ```fsharp
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
-
-{ [nameof dispatch] = [Dispatch; Never] }
+{ [nameof dispatch] = [Dispatch; Cache Never] }
 ```
 
 Supported flags:
 
 - `Dispatch`
 - `Default`
-- cacheability: `Never`, `Local`, `External`, `Remote`
+- cacheability: `Cache Never`, `Cache Local`, `Cache External`, `Cache Remote`
 
 Preservation is a discriminated-union **command output**, not a descriptor flag.
 `ProvenanceEffect` has three cases: `Preserved`, `Broken`, and `Unaffected`.
@@ -218,7 +210,6 @@ Any protocol change **MUST** be introduced in this document before implementatio
 Terrabuild's embedded extensions use the shared protocol and helper modules in `src/Terrabuild.Extensions/Scripts`:
 
 ```fsharp
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 // Optional metadata entrypoint (flagged "default")
@@ -251,19 +242,19 @@ export let build (context: Protocol.ActionContext) (configuration: string option
 
 // Script descriptor: exported function name -> flag list
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Remote] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof build] = [Cache Remote] }
 ```
 
 Template usage rules:
 
 1. `context` **MUST** be the first parameter of every exported function.
 2. Context field names **MUST** use exact PascalCase protocol names (`Command`, `Directory`, `Batch`, ...).
-3. The `_protocol.fss` and `_helpers.fss` modules are embedded for Terrabuild's built-in extensions. Custom extensions **MUST** define the shapes they use or supply their own imported files; built-in helper modules are not injected into custom script origins.
-4. Imported symbols are available through aliases only, so scripts **MUST** use `Protocol.*` and `Helpers.*` when those aliases are chosen.
+3. Terrabuild registers the CLR protocol from `Terrabuild.Scripting` for every built-in and custom extension. Scripts **MUST NOT** redeclare these record shapes. `_helpers.fss` remains an embedded script utility for built-in extensions.
+4. Registered types use `Protocol.*` names without an import. Helpers imported as `Helpers` use that alias.
 5. Non-context target arguments **SHOULD** use `option` when they may be omitted by target configuration.
 6. Descriptor keys **MUST** reference exported function names (prefer `nameof`).
-7. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, `Never`, `Local`, `External`, `Remote`.
+7. Descriptor flags **MUST** be selected from: `Dispatch`, `Default`, and `Cache` applied to `Never`, `Local`, `External`, or `Remote`.
 
 Migration rules for legacy compiled extension scripts:
 
@@ -283,6 +274,16 @@ Parameter XML documentation attributes:
 
 ## Typed invocation arguments
 
-Terrabuild uses the published FScript Language and Runtime 0.81.1 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
+Terrabuild uses the published FScript Language and Runtime 0.81.7 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
 
 The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` and `TypeDefs` to adapt configuration values before invoking a function. Configuration maps remain FScript maps for map parameters and become `VRecord` for declared or structural record parameters. Nested records, lists, map values, and options are adapted recursively; omitted optional record fields become `None`. Enum strings become declared payload-free union cases, and CLR union values are qualified to the matching script type. Host-managed values retain their opaque representation and cannot be manufactured from configuration maps. FScript remains responsible for validating the resulting argument and return values against the signature.
+
+## Shared FFI environment
+
+`ScriptingContracts` is the source of truth. Its attributed records and unions are described once by `FScriptProtocol`: six constructible records and four unions (`DependencyResolution`, `ProvenanceEffect`, `Cacheability`, `ExportFlag`). CLR sets project to script lists and reconstruct with set deduplication/order. All contexts and results remain constructible; no opaque state is introduced.
+
+The shared registration supplies the approved standard externs while excluding `Task.spawn`, `Task.await`, and `Console.readLine`. Execution and DocGen load this same registration. Built-in contract fingerprints include a stable serialization of the registered schema and script sources, rather than a copied protocol file or assembly build identity.
+
+`src/Terrabuild.Extensions/Scripts/fscript.toml` selects the `Terrabuild.Scripting` assembly for CLI and VS Code authoring after a Release build. It disables automatic defaults because the provider supplies the approved extern set. Loading a provider only describes contracts; it does not execute an extension. Custom authors may copy the manifest beside their scripts and adjust the assembly path. Terrabuild itself always supplies its protocol, independently of editor manifest selection.
+
+The default build uses the published FScript 0.81.7 packages, including foreign union and set projection. A sibling checkout is only needed when explicitly developing FScript through `flags=fscript` or `/p:UseLocalFScript=true`.

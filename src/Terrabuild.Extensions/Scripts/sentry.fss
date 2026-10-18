@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>Sentry extension for sourcemap injection and upload.</summary>
@@ -25,4 +24,4 @@ export let sourcemaps (context: Protocol.ActionContext) (project: string option)
           ErrorLevel = errorLevel } ] }
 
 // Exported functions and Terrabuild execution flags.
-{ [nameof sourcemaps] = [External] }
+{ [nameof sourcemaps] = [Cache External] }

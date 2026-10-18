@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>Gradle extension for build workflows.</summary>
@@ -42,5 +41,5 @@ export let build (context: Protocol.ActionContext) (configuration: string option
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof build] = [Remote] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof build] = [Cache Remote] }

@@ -4,6 +4,8 @@ title: Protocol types
 
 These are the FScript shapes exchanged with Terrabuild. They are ordinary FScript records and discriminated unions; see the [FScript type-system documentation](https://fscript.magnusopera.io/manual/0.78.1/language/type-system) for the language rules.
 
+All types below are registered by Terrabuild under `Protocol.*` names. The declarations describe their visible shapes; use the supplied types directly without redeclaring them.
+
 ## ExtensionContext
 
 Terrabuild supplies this context to the handler marked `Default` while discovering project metadata:
@@ -92,7 +94,8 @@ Every command handler returns:
 ```fsharp
 type CommandResult =
   { Batchable: bool
-    Operations: ShellOperation list }
+    Operations: ShellOperation list
+    PreserveProvenance: ProvenanceEffect }
 ```
 
 - `Batchable = true` means the returned operation is valid for the supplied batch context.
@@ -106,19 +109,16 @@ Batchability belongs to the result, not the descriptor.
 The script's final value maps exported function names to these flags:
 
 ```fsharp
-type ExportFlag =
-  | Dispatch
-  | Default
-  | Never
-  | Local
-  | External
-  | Remote
+type Cacheability = Never | Local | External | Remote
+type ExportFlag = Dispatch | Default | Cache of Cacheability
 
-{ [nameof dispatch] = [Dispatch; Never] }
+{ [nameof dispatch] = [Dispatch; Cache Never] }
 ```
 
 - `Dispatch` selects the fallback command handler.
 - `Default` selects the project-metadata handler.
-- `Never`, `Local`, `External`, and `Remote` specify command cacheability.
+- `Cache Never`, `Cache Local`, `Cache External`, and `Cache Remote` specify command cacheability.
 
 Only one function may be marked `Dispatch`, and only one may be marked `Default`. Descriptor keys must name functions declared with `export let`.
+
+`ProvenanceEffect = Preserved | Broken | Unaffected` is a required command result field. Set `Broken` for operations that modify managed dependencies, `Preserved` when they retain them, or `Unaffected` when they do not affect provenance.

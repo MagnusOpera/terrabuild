@@ -1,4 +1,3 @@
-import "_protocol.fss" as Protocol
 import "_helpers.fss" as Helpers
 
 /// <summary>npm extension for install, build, test, and exec workflows.</summary>
@@ -151,9 +150,9 @@ export let exec (context: Protocol.ActionContext) (package: string) (args: strin
 
 // Exported functions and Terrabuild execution flags.
 { [nameof defaults] = [Default]
-  [nameof dispatch] = [Dispatch; Never]
-  [nameof install] = [Local]
-  [nameof build] = [Remote]
-  [nameof test] = [Remote]
-  [nameof run] = [Local]
-  [nameof exec] = [Local] }
+  [nameof dispatch] = [Dispatch; Cache Never]
+  [nameof install] = [Cache Local]
+  [nameof build] = [Cache Remote]
+  [nameof test] = [Cache Remote]
+  [nameof run] = [Cache Local]
+  [nameof exec] = [Cache Local] }
