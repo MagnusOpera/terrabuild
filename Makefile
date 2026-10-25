@@ -6,12 +6,24 @@ comma := ,
 
 flags_tokens := $(subst $(comma), ,$(flags))
 use_local_fscript := $(filter fscript,$(flags_tokens))
-dotnet_props := $(if $(use_local_fscript),/p:UseLocalFScript=true,)
+use_local_sdk := $(filter fscript-sdk,$(flags_tokens))
+dotnet_props := $(if $(use_local_fscript),/p:UseLocalFScript=true,) $(if $(use_local_sdk),/p:UseLocalFScriptExtensibility=true,)
+
+# Nested MSBuild invocations in host self-builds must use the same source checkout.
+ifneq ($(use_local_fscript),)
+export UseLocalFScript := true
+endif
+ifneq ($(use_local_sdk),)
+export UseLocalFScriptExtensibility := true
+endif
 
 terrabuild ?= dotnet run --project $(ROOT_DIR)src/Terrabuild -c $(config) $(dotnet_props) --
 refresh ?= false
 version ?= 0.0.0
 engine ?= docker
+self_engine ?= $(if $(use_local_fscript),host,$(engine))
+self_configuration ?= $(if $(use_local_fscript),local,$(config))
+self_force := $(if $(use_local_fscript),--force,)
 dryrun ?= false
 
 current_dir = $(shell pwd)
@@ -103,10 +115,10 @@ website-build: website-prepare
 	cd website && pnpm build
 
 self: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --retry --debug --log
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(self_configuration) --engine $(self_engine) $(self_force) --retry --debug --log
 
 self-ci: clean publish
-	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(config) --engine $(engine) --retry --debug --log --local-only
+	$(PWD)/.out/dotnet/terrabuild run build test dist --configuration $(self_configuration) --engine $(self_engine) $(self_force) --retry --debug --log --local-only
 
 self-logs:
 	$(PWD)/.out/dotnet/terrabuild logs build test dist --configuration $(config) --debug --log --local-only

@@ -1,7 +1,6 @@
 namespace Terrabuild
 
-open FScript.Language
-open FScript.Runtime
+open FScript.Extensibility
 open ScriptingContracts
 
 /// One protocol for execution, built-in/custom extensions, DocGen, and editor analysis.
@@ -15,6 +14,16 @@ module FScriptProtocol =
             Unions =
                 [ HostTypes.describeUnion<DependencyResolution>(); HostTypes.describeUnion<ProvenanceEffect>()
                   HostTypes.describeUnion<Cacheability>(); HostTypes.describeUnion<ExportFlag>() ] }
+
+    /// Compiler-only guarantees for our deeply immutable data contracts.
+    /// Runtime functions supplied by the host remain conservative.
+    let pureTypeNames =
+        // Review new types explicitly; registration alone must never imply purity.
+        [ "Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"
+          "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"
+          "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"
+          "Protocol.Cacheability"; "Protocol.ExportFlag" ]
+        |> List.sort
 
     /// Stable schema fingerprint, independent of assembly build identity.
     let fingerprint =
@@ -33,8 +42,13 @@ module FScriptProtocol =
 
     let registration (context: HostContext) =
         let blocked = set ["Task.spawn"; "Task.await"; "Console.readLine"]
-        { protocol with Functions = Registry.all context |> List.filter (fun fn -> not (blocked.Contains fn.Name)) }
+        { protocol with Functions = context.DefaultFunctions |> List.filter (fun fn -> not (blocked.Contains fn.Name)) }
+
 
 type FScriptProtocolProvider =
     [<FScriptExternProvider>]
     static member Provide(context: HostContext) : ExtensionRegistration = FScriptProtocol.registration context
+
+    // Optional compiler companions use only BCL types. AST interpretation ignores them.
+    static member FScriptPureTypes() : System.Collections.Generic.IEnumerable<string> = FScriptProtocol.pureTypeNames
+    static member FScriptPureFunctions() : System.Collections.Generic.IEnumerable<string> = Seq.empty

@@ -644,20 +644,51 @@ export let inspect (context: {| Command: string |}) (items: Item map) =
 let sharedProtocolIsConstructibleAndKeepsExecutionRestrictions() =
     let root = Path.GetTempPath()
     let context: FScript.Runtime.HostContext = { RootDirectory = root; DeniedPathGlobs = [] }
-    let registration = Terrabuild.FScriptProtocol.registration context
+    let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
+    let registration = Terrabuild.FScriptProtocol.registration (FScript.Extensibility.HostContext(root, [], defaults))
     registration.Types.Length |> should equal 6
     registration.Unions.Length |> should equal 4
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Cache:of Protocol.Cacheability"
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Remote:nullary"
     registration.Types |> List.forall (fun descriptor -> not descriptor.HostManaged) |> should equal true
     registration.Functions |> List.exists (fun fn -> Set.contains fn.Name (set ["Task.spawn"; "Task.await"; "Console.readLine"])) |> should equal false
-    let loaded = FScript.Runtime.ScriptHost.loadSourceWithRegistration registration """
+    let mutable captured = ProjectInfo.Default
+    let capture = FScript.Extensibility.HostFunctions.create registration "Host.capture" (fun (project: ProjectInfo) -> captured <- project)
+    let native = { registration with Functions = capture :: registration.Functions } |> FScript.Runtime.ExtensionBridge.toLanguageRegistration
+    let loaded = FScript.Runtime.ScriptHost.loadSourceWithRegistration native """
 let mode = Protocol.DependencyResolution.Path
 let project = { Id = Some "sample"; DependencyResolution = Some mode; Outputs = ["bin"; "bin"]; Dependencies = [] }
-project
+Host.capture project
 """
-    let project = FScript.Runtime.HostTypes.unwrap<ProjectInfo> loaded.LastValue
+    ignore loaded
+    let project = captured
     project.DependencyResolution |> should equal (Some DependencyResolution.Path)
     project.Outputs |> should equal (set ["bin"])
     let duplicate = { registration with Unions = registration.Unions @ registration.Unions }
-    (fun () -> FScript.Language.HostInterop.typeDefinitions duplicate [] |> ignore) |> should throw typeof<FScript.Language.EvalException>
+    (fun () -> FScript.Extensibility.HostInterop.typeDefinitions duplicate [] |> ignore) |> should throw typeof<FScript.Extensibility.ExtensionException>
+
+[<Test>]
+let protocolPurityMetadataIsLimitedToImmutableTypes() =
+    let names=Terrabuild.FScriptProtocolProvider.FScriptPureTypes() |> Set.ofSeq
+    names.Count |> should equal 10
+    names |> should equal (set ["Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"; "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"; "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"; "Protocol.Cacheability"; "Protocol.ExportFlag"])
+    Terrabuild.FScriptProtocolProvider.FScriptPureFunctions() |> Seq.isEmpty |> should equal true
+    typeof<Terrabuild.FScriptProtocolProvider>.Assembly.GetReferencedAssemblies()
+    |> Array.exists (fun assembly -> assembly.Name="FScript.Compiler" || assembly.Name.StartsWith("FScript.Backend.") || assembly.Name="FScript.Interpreter.Lir")
+    |> should equal false
+
+[<Test>]
+let interpretedExtensionStatusDoesNotControlTerrabuildProcess() =
+    let original=Environment.ExitCode
+    let source="""
+Env.setExitCode 19
+export let inspect (context: {| Command: string |}) =
+    Env.setExitCode 7
+    context.Command
+{ [nameof inspect] = [] }
+"""
+    let root=Path.GetTempPath()
+    let script=loadScriptFromSourceWithIncludes root root (Path.Combine(root, "exit-status.fss")) source (fun _ -> None)
+    let arguments=Value.Map(Map ["context",Value.Map(Map ["Command",Value.String "still-running"])])
+    script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "still-running"
+    Environment.ExitCode |> should equal original

@@ -4,8 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Use the independent FScript extension SDK for protocol types and provider registration.
+
 - Expose extension protocol types through FFI and provide an FScript editor configuration for extension authors.
-- Upgrade the embedded FScript language and runtime to published version 0.81.7.
+- Target FScript 0.84.0 while retaining AST interpretation, immutable protocol metadata, and isolated extension exit status.
 - Adopt FScript contextual `export let` declarations in extensions, fixtures, and documentation generation.
 - Declare the metadata context accepted by built-in extension defaults to match the values supplied during project discovery.
 - Convert extension arguments to their declared FScript record, option, and union types for compatibility with signature validation.
