@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Validate interpreted extensions and self-builds against the published FScript 0.84.0 packages.
 - Use the independent FScript extension SDK for protocol types and provider registration.
 
 - Expose extension protocol types through FFI and provide an FScript editor configuration for extension authors.

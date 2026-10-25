@@ -294,7 +294,7 @@ Attributed protocol contracts and the provider use `FScript.Extensibility` from 
 
 Terrabuild's embedding layer still references Language/Runtime and adapts the SDK registration with `ExtensionBridge.toLanguageRegistration`. The scripting assembly hosts both contracts and embedding; standalone extension assemblies can reference only the SDK. Script syntax, constructible protocol types, sets, manifests, and restricted function policy are unchanged.
 
-Development checkouts now live under the FScript umbrella: `../FScript/FScript` for the product and `../FScript/FScript.Extensibility` for the SDK. `UseLocalFScript=true` selects product projects; the separate `UseLocalFScriptExtensibility=true` selects SDK sources. Make accepts `flags=fscript,fscript-sdk`. Normal builds and release CI use NuGet. The expected product version is 0.84.0; until publication, validate against the local product checkout rather than a fabricated package version.
+Development checkouts now live under the FScript umbrella: `../FScript/FScript` for the product and `../FScript/FScript.Extensibility` for the SDK. `UseLocalFScript=true` selects product projects; the separate `UseLocalFScriptExtensibility=true` selects SDK sources. Make accepts `flags=fscript,fscript-sdk`. Normal builds and release CI use NuGet. The published product version is 0.84.0; ordinary builds restore it from NuGet without a sibling checkout.
 
 ## Interpreted execution and purity metadata
 
@@ -304,13 +304,15 @@ Terrabuild continues using the AST evaluator through `ScriptHost` for both loadi
 
 Extensions return typed protocol values. `Env.setExitCode` is execution-local FScript metadata and does not select Terrabuild's build exit status; Terrabuild intentionally uses value-returning `ScriptHost.invoke`. Invocation exceptions and operation `ErrorLevel` values remain the failure protocol. Result printing is controlled by the embedding host, so CLI `--no-result` is not needed here.
 
-### Validate before publishing FScript 0.84.0
+### Validate the published integration
 
 ```sh
-make try-docs flags=fscript
-make test flags=fscript
-make smoke-tests flags=fscript
-make self flags=fscript
+make try-docs
+make test
+make smoke-tests
+make self
 ```
 
-Local flags propagate to nested host MSBuild processes. Local self-builds select the host engine and `local` workspace configuration so sibling source projects remain accessible, and force execution because sibling source changes are not workspace cache inputs. The repository workspace permits the CLI engine selection; its default remains Docker. Normal self-builds retain the configured engine and configuration. `flags=fscript,fscript-sdk` also selects the local SDK checkout when developing the SDK itself. Package builds become available once FScript 0.84.0 is published; no compiler migration is needed for Terrabuild.
+Add `flags=fscript` to these commands when validating changes in the sibling product checkout instead of the published packages.
+
+Local flags propagate to nested host MSBuild processes. Local self-builds select the host engine and `local` workspace configuration so sibling source projects remain accessible, and force execution because sibling source changes are not workspace cache inputs. The repository workspace permits the CLI engine selection; its default remains Docker. Normal self-builds retain the configured engine and configuration. `flags=fscript,fscript-sdk` also selects the local SDK checkout when developing the SDK itself. Package builds use the published FScript 0.84.0 release; no compiler migration is needed for Terrabuild.
