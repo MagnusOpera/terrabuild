@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.204.0]
+
 - Validate interpreted extensions and self-builds against the published FScript 0.84.0 packages.
 - Use the independent FScript extension SDK for protocol types and provider registration.
 - Expose extension protocol types through FFI and provide an FScript editor configuration for extension authors.
@@ -13,6 +15,8 @@ All notable changes to Terrabuild are documented in this file.
 - Convert extension arguments to their declared FScript record, option, and union types for compatibility with signature validation.
 - Require explicit preserved, broken, or unaffected provenance outcomes from every extension command.
 - Carry extension-returned provenance declarations and original production references to Insights across cache reuse.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.203.0...0.204.0
 
 ## [0.203.0]
 
