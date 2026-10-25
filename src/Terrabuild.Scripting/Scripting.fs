@@ -765,6 +765,12 @@ let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
     |> List.sort
     |> String.concat "|"
 
+// Interpreter adaptation belongs to embedding; protocol authoring uses only the SDK.
+let private createFScriptRegistration (context: FScript.Runtime.HostContext) =
+    let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
+    FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, defaults))
+    |> FScript.Runtime.ExtensionBridge.toLanguageRegistration
+
 let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: string list) =
     let fullRoot = Path.GetFullPath(rootDirectory)
     let deniedPathGlobs = normalizeDeniedPathGlobs deniedPathGlobs
@@ -776,7 +782,7 @@ let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: s
 let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (scriptFile: string) =
 
     let fullPath = Path.GetFullPath(scriptFile)
-    let registration = FScriptProtocol.registration (createFScriptHostContext rootDirectory deniedPathGlobs)
+    let registration = createFScriptRegistration (createFScriptHostContext rootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
     let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
     let loaded =
@@ -797,7 +803,7 @@ let private loadFScriptFromSourceWithIncludes
     (entryFile: string)
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
-    let registration = FScriptProtocol.registration (createFScriptHostContext hostRootDirectory deniedPathGlobs)
+    let registration = createFScriptRegistration (createFScriptHostContext hostRootDirectory deniedPathGlobs)
     let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
     let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =

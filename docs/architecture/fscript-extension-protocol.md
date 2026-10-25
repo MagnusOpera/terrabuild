@@ -274,7 +274,7 @@ Parameter XML documentation attributes:
 
 ## Typed invocation arguments
 
-Terrabuild uses the published FScript Language and Runtime 0.81.7 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
+Terrabuild uses the FScript Language and Runtime 0.84.0 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
 
 The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` and `TypeDefs` to adapt configuration values before invoking a function. Configuration maps remain FScript maps for map parameters and become `VRecord` for declared or structural record parameters. Nested records, lists, map values, and options are adapted recursively; omitted optional record fields become `None`. Enum strings become declared payload-free union cases, and CLR union values are qualified to the matching script type. Host-managed values retain their opaque representation and cannot be manufactured from configuration maps. FScript remains responsible for validating the resulting argument and return values against the signature.
 
@@ -286,4 +286,33 @@ The shared registration supplies the approved standard externs while excluding `
 
 `src/Terrabuild.Extensions/Scripts/fscript.toml` selects the `Terrabuild.Scripting` assembly for CLI and VS Code authoring after a Release build. It disables automatic defaults because the provider supplies the approved extern set. Loading a provider only describes contracts; it does not execute an extension. Custom authors may copy the manifest beside their scripts and adjust the assembly path. Terrabuild itself always supplies its protocol, independently of editor manifest selection.
 
-The default build uses the published FScript 0.81.7 packages, including foreign union and set projection. A sibling checkout is only needed when explicitly developing FScript through `flags=fscript` or `/p:UseLocalFScript=true`.
+The default build uses the FScript 0.84.0 packages, including foreign union and set projection. A sibling checkout is only needed when explicitly developing FScript through `flags=fscript` or `/p:UseLocalFScript=true`.
+
+## Independent SDK boundary
+
+Attributed protocol contracts and the provider use `FScript.Extensibility` from `MagnusOpera.FScript.Extensibility` 1.0.0. The SDK has its own stable unsigned assembly identity (1.0.0.0), independent of FScript product versions. Providers receive read-only SDK `HostContext` and filter its `DefaultFunctions`, preserving Terrabuild's restricted catalog without depending on Runtime implementations in the provider contract.
+
+Terrabuild's embedding layer still references Language/Runtime and adapts the SDK registration with `ExtensionBridge.toLanguageRegistration`. The scripting assembly hosts both contracts and embedding; standalone extension assemblies can reference only the SDK. Script syntax, constructible protocol types, sets, manifests, and restricted function policy are unchanged.
+
+Development checkouts now live under the FScript umbrella: `../FScript/FScript` for the product and `../FScript/FScript.Extensibility` for the SDK. `UseLocalFScript=true` selects product projects; the separate `UseLocalFScriptExtensibility=true` selects SDK sources. Make accepts `flags=fscript,fscript-sdk`. Normal builds and release CI use NuGet. The published product version is 0.84.0; ordinary builds restore it from NuGet without a sibling checkout.
+
+## Interpreted execution and purity metadata
+
+Terrabuild continues using the AST evaluator through `ScriptHost` for both loading and invocation. It does not depend on the compiler, LIR interpreter, or either backend. The shared `FScriptVersion` property pins Language and Runtime to 0.84.0 when packages are used; the extension SDK remains 1.0.0.
+
+`FScriptProtocolProvider.FScriptPureTypes()` advertises the ten protocol records/unions as deeply immutable data contracts. Their registered fields and payloads contain only immutable values; no opaque mutable handles or effectful getters are exposed. `FScriptPureFunctions()` returns an empty sequence: approved runtime functions are not blanket-marked pure. The type list is an explicit allowlist: a newly registered type needs a separate immutability review. FScript purity is not inferred from Terrabuild cacheability or provenance flags. These optional BCL companion methods are only consumed by FScript compiler tooling and have no optimization effect on interpreted Terrabuild extensions. They do not memoize or reorder extension calls.
+
+Extensions return typed protocol values. `Env.setExitCode` is execution-local FScript metadata and does not select Terrabuild's build exit status; Terrabuild intentionally uses value-returning `ScriptHost.invoke`. Invocation exceptions and operation `ErrorLevel` values remain the failure protocol. Result printing is controlled by the embedding host, so CLI `--no-result` is not needed here.
+
+### Validate the published integration
+
+```sh
+make try-docs
+make test
+make smoke-tests
+make self
+```
+
+Add `flags=fscript` to these commands when validating changes in the sibling product checkout instead of the published packages.
+
+Local flags propagate to nested host MSBuild processes. Local self-builds select the host engine and `local` workspace configuration so sibling source projects remain accessible, and force execution because sibling source changes are not workspace cache inputs. The repository workspace permits the CLI engine selection; its default remains Docker. Normal self-builds retain the configured engine and configuration. `flags=fscript,fscript-sdk` also selects the local SDK checkout when developing the SDK itself. Package builds use the published FScript 0.84.0 release; no compiler migration is needed for Terrabuild.

@@ -1,7 +1,7 @@
 namespace Terrabuild
 
 open Collections
-open FScript.Runtime
+open FScript.Extensibility
 
 module ScriptingContracts =
     [<RequireQualifiedAccess; FScriptHostType("Protocol.ExtensionContext", ScriptConstructible = true)>]
