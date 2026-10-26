@@ -6,7 +6,12 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.204.0
+## 0.204.1
+
+### 0.204.1
+
+- Update runtime libraries, telemetry, testing dependencies, and the F# formatter to current stable releases.
+- Target FScript 0.86.3 for faster extension parsing, analysis, and interpreted record/map operations.
 
 ### 0.204.0
 
@@ -20,4 +25,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Require explicit preserved, broken, or unaffected provenance outcomes from every extension command.
 - Carry extension-returned provenance declarations and original production references to Insights across cache reuse.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.203.0...0.204.0
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.203.0...0.204.1

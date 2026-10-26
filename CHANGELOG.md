@@ -4,9 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Update runtime libraries, telemetry, testing dependencies, and the F# formatter to current stable releases.
+## [0.204.1]
 
+- Update runtime libraries, telemetry, testing dependencies, and the F# formatter to current stable releases.
 - Target FScript 0.86.3 for faster extension parsing, analysis, and interpreted record/map operations.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.204.0...0.204.1
 
 ## [0.204.0]
 
