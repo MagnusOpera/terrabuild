@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Null
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -15,4 +16,4 @@ let ``null fake returns no operations`` () =
 
 [<Test>]
 let ``null fake cacheability is never`` () =
-    cacheability "@null" "fake" |> should equal (Some Cacheability.Never)
+    cacheability "@null" "fake" |> shouldEqual (Some Cacheability.Never)

@@ -2,6 +2,7 @@ module Terrabuild.Expression.Eval.Tests
 
 open NUnit.Framework
 open FsUnit
+open FsUnitTyped
 open Terrabuild.Expression
 open Errors
 
@@ -356,8 +357,8 @@ let orBool() =
 
 [<Test>]
 let conversionFunctions() =
-    asStringOption (Value.String "hello") |> should equal (Some "hello")
-    asStringOption Value.Nothing |> should equal None
+    asStringOption (Value.String "hello") |> shouldEqual (Some "hello")
+    asStringOption Value.Nothing |> shouldEqual None
     asString (Value.String "hello") |> should equal "hello"
     match asEnum (Value.Enum "single") with
     | Ok value -> value |> should equal "single"
@@ -366,9 +367,9 @@ let conversionFunctions() =
     match asEnum (Value.String "single") with
     | Error value -> value |> should equal "Failed to convert 'String \"single\"' to enum"
     | Ok _ -> Assert.Fail("Expected enum conversion to fail")
-    asBoolOption (Value.Bool true) |> should equal (Some true)
-    asBoolOption Value.Nothing |> should equal None
-    asStringSetOption (Value.List [ Value.String "a"; Value.String "b" ]) |> should equal (Some (Set [ "a"; "b" ]))
+    asBoolOption (Value.Bool true) |> shouldEqual (Some true)
+    asBoolOption Value.Nothing |> shouldEqual None
+    asStringSetOption (Value.List [ Value.String "a"; Value.String "b" ]) |> shouldEqual (Some (Set [ "a"; "b" ]))
 
 [<Test>]
 let mapHelpers() =
@@ -394,5 +395,5 @@ let locationIsAttachedOnExpressionFailure() =
         Assert.Fail("Expected TerrabuildException")
     with
     | :? TerrabuildException as ex ->
-        ex.Location |> should equal (Some location)
+        ex.Location |> shouldEqual (Some location)
         ex.Message |> should equal "Invalid arguments for function Replace with parameters (nothing*string*string)"

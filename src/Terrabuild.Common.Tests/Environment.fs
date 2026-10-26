@@ -1,5 +1,6 @@
 module Tests.Environment
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 
 let getVarName prefix =
@@ -12,7 +13,7 @@ let ``no variable returns None``() =
     let name, _ = getVarName "TB_VAR"
     name
     |> Environment.getTerrabuildEnvVar
-    |> should equal None
+    |> shouldEqual None
 
 [<Test>]
 let ``not matching prefix returns None``() =
@@ -21,7 +22,7 @@ let ``not matching prefix returns None``() =
     System.Environment.SetEnvironmentVariable(tbvar, "pouet pouet")
     name
     |> Environment.getTerrabuildEnvVar
-    |> should equal None
+    |> shouldEqual None
     System.Environment.SetEnvironmentVariable(tbvar, null)
 
 [<Test>]
@@ -31,7 +32,7 @@ let ``matching case returns Some``() =
     System.Environment.SetEnvironmentVariable(tbvar, "pouet pouet")
     name
     |> Environment.getTerrabuildEnvVar
-    |> should equal (Some "pouet pouet")
+    |> shouldEqual (Some "pouet pouet")
     System.Environment.SetEnvironmentVariable(tbvar, null)
 
 [<Test>]
@@ -42,5 +43,5 @@ let ``not matching case returns None``() =
     System.Environment.SetEnvironmentVariable(tbvar, "pouet pouet")
     name
     |> Environment.getTerrabuildEnvVar
-    |> should equal None
+    |> shouldEqual None
     System.Environment.SetEnvironmentVariable(tbvar, null)

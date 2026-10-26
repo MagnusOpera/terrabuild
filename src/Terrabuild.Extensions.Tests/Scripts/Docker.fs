@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Docker
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -24,4 +25,4 @@ let ``docker build in ci includes push`` () =
 
 [<Test>]
 let ``docker push cacheability is external`` () =
-    cacheability "@docker" "push" |> should equal (Some Cacheability.External)
+    cacheability "@docker" "push" |> shouldEqual (Some Cacheability.External)

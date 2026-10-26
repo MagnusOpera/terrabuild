@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Npm
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -22,7 +23,7 @@ let ``npm install defaults to clean-install`` () =
 
 [<Test>]
 let ``npm install cacheability is local`` () =
-    cacheability "@npm" "install" |> should equal (Some Cacheability.Local)
+    cacheability "@npm" "install" |> shouldEqual (Some Cacheability.Local)
 
 [<Test>]
 let ``node installs return lock declarations from their existing operations`` () =

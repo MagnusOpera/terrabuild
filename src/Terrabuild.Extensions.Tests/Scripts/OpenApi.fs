@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.OpenApi
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -23,4 +24,4 @@ let ``openapi generate command`` () =
 
 [<Test>]
 let ``openapi generate cacheability is remote`` () =
-    cacheability "@openapi" "generate" |> should equal (Some Cacheability.Remote)
+    cacheability "@openapi" "generate" |> shouldEqual (Some Cacheability.Remote)

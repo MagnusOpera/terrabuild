@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Shell
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -14,4 +15,4 @@ let ``shell dispatch runs action as command`` () =
 
 [<Test>]
 let ``shell dispatch cacheability is never`` () =
-    cacheability "@shell" "echo" |> should equal (Some Cacheability.Never)
+    cacheability "@shell" "echo" |> shouldEqual (Some Cacheability.Never)

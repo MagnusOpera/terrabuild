@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Cargo
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -21,4 +22,4 @@ let ``cargo dispatch forwards command and args`` () =
 
 [<Test>]
 let ``cargo build cacheability is remote`` () =
-    cacheability "@cargo" "build" |> should equal (Some Cacheability.Remote)
+    cacheability "@cargo" "build" |> shouldEqual (Some Cacheability.Remote)

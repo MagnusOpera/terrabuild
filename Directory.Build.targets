@@ -1,5 +1,5 @@
 <Project>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="10.1.401" />
+    <PackageReference Update="FSharp.Core" Version="10.1.403" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Gradle
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -14,4 +15,4 @@ let ``gradle build command`` () =
 
 [<Test>]
 let ``gradle build cacheability is remote`` () =
-    cacheability "@gradle" "build" |> should equal (Some Cacheability.Remote)
+    cacheability "@gradle" "build" |> shouldEqual (Some Cacheability.Remote)

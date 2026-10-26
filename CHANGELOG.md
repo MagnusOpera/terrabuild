@@ -4,6 +4,10 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Update runtime libraries, telemetry, testing dependencies, and the F# formatter to current stable releases.
+
+- Target FScript 0.86.3 for faster extension parsing, analysis, and interpreted record/map operations.
+
 ## [0.204.0]
 
 - Validate interpreted extensions and self-builds against the published FScript 0.84.0 packages.

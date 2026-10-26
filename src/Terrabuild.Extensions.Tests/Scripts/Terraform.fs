@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Terraform
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -23,4 +24,4 @@ let ``terraform apply uses planfile by default`` () =
 
 [<Test>]
 let ``terraform apply cacheability is remote`` () =
-    cacheability "@terraform" "apply" |> should equal (Some Cacheability.Remote)
+    cacheability "@terraform" "apply" |> shouldEqual (Some Cacheability.Remote)

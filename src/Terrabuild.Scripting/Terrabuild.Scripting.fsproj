@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
-    <FScriptVersion Condition="'$(FScriptVersion)' == ''">0.84.0</FScriptVersion>
+    <FScriptVersion Condition="'$(FScriptVersion)' == ''">0.86.3</FScriptVersion>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

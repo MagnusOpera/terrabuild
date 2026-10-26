@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Collections.Concurrent
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Contracts
 open GraphDef
@@ -537,7 +538,7 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
         phase2.Api.UseCalls |> should contain (phase2B.ProjectHash, phase2B.TargetHash)
         phase2.Api.AddCalls.Length |> should equal 1
         phase2.Api.AddCalls[0].Project |> should equal "A"
-        phase2.Api.AddCalls[0].ProjectName |> should equal (Some "a")
+        phase2.Api.AddCalls[0].ProjectName |> shouldEqual (Some "a")
         phase2.Cache.EntryCalls |> List.contains (buildCacheKey phase2B) |> should equal false
         phase2.Cache.EntryCalls |> should contain (buildCacheKey phase2A)
         phase2.Cache.SummaryOnlyCalls |> should contain (buildCacheKey phase2B)

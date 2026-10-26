@@ -3,6 +3,7 @@ open System
 open System.IO
 open System.Text.Json
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Collections
 
@@ -135,7 +136,7 @@ let ``cache completion records an empty output snapshot when outputs are not mat
             |> JsonDocument.Parse
 
         writtenSummary.RootElement.GetProperty("outputs").GetString()
-        |> should equal "empty")
+        |> shouldEqual "empty")
 
 [<Test>]
 let ``remote summary downloads become durable local entries`` () =
@@ -152,11 +153,11 @@ let ``remote summary downloads become durable local entries`` () =
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let downloaded = Cache.Cache(storage, None) :> Cache.ICache
-            (downloaded.TryGetSummaryOnly true id).Value |> snd |> _.Provenance |> should equal original.Provenance
+            (downloaded.TryGetSummaryOnly true id).Value |> snd |> _.Provenance |> shouldEqual original.Provenance
             storage.Downloads |> should equal 2
 
             let offline = Cache.Cache(storage, None) :> Cache.ICache
-            (offline.TryGetSummaryOnly false id).Value |> snd |> _.Provenance |> should equal original.Provenance
+            (offline.TryGetSummaryOnly false id).Value |> snd |> _.Provenance |> shouldEqual original.Provenance
             storage.Downloads |> should equal 2
         ))
 
@@ -222,7 +223,7 @@ let ``corrupt remote generations are treated as cache misses`` () =
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let consumer = Cache.Cache(storage, None) :> Cache.ICache
-            consumer.TryGetSummaryOnly true id |> should equal None
+            consumer.TryGetSummaryOnly true id |> shouldEqual None
         ))
 
 [<Test>]
@@ -233,7 +234,7 @@ let ``remote transport failures are treated as cache misses`` () =
             storage.FailReads <- true
             let cache = Cache.Cache(storage, None) :> Cache.ICache
 
-            cache.TryGetSummaryOnly true "project-hash/build/unavailable" |> should equal None
+            cache.TryGetSummaryOnly true "project-hash/build/unavailable" |> shouldEqual None
         ))
 
 [<Test>]
@@ -263,7 +264,7 @@ let ``remote publication failure preserves the completed local entry`` () =
             entry.Complete(summary None) |> should be Empty
 
             let offline = Cache.Cache(storage, None) :> Cache.ICache
-            offline.TryGetSummaryOnly false id |> should not' (equal None)
+            offline.TryGetSummaryOnly false id |> shouldNotEqual None
         ))
 
 [<Test>]
@@ -282,7 +283,7 @@ let ``new entries publish atomically over completed entries`` () =
             Path.Combine(entryDir, "logs", "summary.json")
             |> File.ReadAllText
             |> JsonDocument.Parse
-        published.RootElement.GetProperty("target").GetString() |> should equal "replacement")
+        published.RootElement.GetProperty("target").GetString() |> shouldEqual "replacement")
 
 [<Test>]
 let ``cache lookup recovers an entry interrupted after its previous version was moved`` () =
@@ -294,7 +295,7 @@ let ``cache lookup recovers an entry interrupted after its previous version was 
             Directory.Move(entryDir, backupDir)
 
             let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
-            cache.TryGetSummaryOnly false id |> should not' (equal None)
+            cache.TryGetSummaryOnly false id |> shouldNotEqual None
 
             Directory.Exists(entryDir) |> should equal true
             Directory.Exists(backupDir) |> should equal false
@@ -310,7 +311,7 @@ let ``cache lookup removes a stale publication backup after the new entry is vis
             Directory.CreateDirectory(backupDir) |> ignore
 
             let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
-            cache.TryGetSummaryOnly false id |> should not' (equal None)
+            cache.TryGetSummaryOnly false id |> shouldNotEqual None
 
             Directory.Exists(entryDir) |> should equal true
             Directory.Exists(backupDir) |> should equal false
@@ -350,7 +351,7 @@ let ``restore replaces the complete declared output set`` () =
             entry.StoreOutputs source (IO.enumerateFiles source) |> ignore
             entry.Complete(summary (Some "outputs")) |> ignore
 
-            cache.Restore false id (Set [ "generated/**" ]) project |> should not' (equal None)
+            cache.Restore false id (Set [ "generated/**" ]) project |> shouldNotEqual None
 
             File.ReadAllText(Path.Combine(generated, "cached.txt")) |> should equal "cached"
             File.ReadAllText(Path.Combine(generated, "new.txt")) |> should equal "new"
@@ -372,7 +373,7 @@ let ``restore removes stale declared files for an empty cached output set`` () =
             cache.GetEntry false id
             |> fun entry -> entry.Complete(summary None) |> ignore
 
-            cache.Restore false id (Set [ "generated/**" ]) project |> should not' (equal None)
+            cache.Restore false id (Set [ "generated/**" ]) project |> shouldNotEqual None
 
             File.Exists(stale) |> should equal false
         ))
@@ -675,7 +676,7 @@ let ``try get summary only refreshes origin timestamp for local cache entries`` 
             let result = cache.TryGetSummaryOnly false "project-hash/build/target-hash"
             let refreshedTimestamp = File.GetLastWriteTimeUtc(originFile)
 
-            result |> should not' (equal None)
+            result |> shouldNotEqual None
             refreshedTimestamp |> should be (greaterThan oldTimestamp)
         )
     )
@@ -699,7 +700,7 @@ let ``try get summary only does not refresh origin timestamp when summary load f
             let result = cache.TryGetSummaryOnly false "project-hash/build/target-hash"
             let refreshedTimestamp = File.GetLastWriteTimeUtc(originFile)
 
-            result |> should equal None
+            result |> shouldEqual None
             refreshedTimestamp |> should equal oldTimestamp
         )
     )

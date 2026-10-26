@@ -4,6 +4,7 @@ open System
 open System.IO
 open Collections
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Contracts
 open GraphDef
@@ -316,14 +317,14 @@ target build {
         |> should equal [ "terrabuild.environment"; "var.deployment_token" ]
         node.EnvironmentSensitiveInputs |> List.map _.Name
         |> should equal [ "terrabuild.environment" ]
-        node.EnvironmentSensitive |> should equal (Some true)
+        node.EnvironmentSensitive |> shouldEqual (Some true)
         node.EnvironmentSensitivityStatus |> should equal "opted-in"
         node.Locks |> should equal [ "deployment" ]
         operation.ForwardedVariableNames |> should equal [ "CI" ]
         operation.ForwardedVariablesFingerprint.IsSome |> should equal true
         operation.InjectedEnvironment |> List.map _.Name
         |> should equal [ "DEPLOYMENT_ENVIRONMENT"; "DEPLOYMENT_TOKEN" ]
-        operation.Container |> should equal None
+        operation.Container |> shouldEqual None
         report |> Json.Serialize |> should not' (contain "sensitive-value")
 
         let explanation = Diagnostics.renderExplanation report
@@ -661,7 +662,7 @@ target build {
         node.Operations.Head.MetaCommand |> should equal "@shell echo"
         node.Artifacts |> should equal ArtifactMode.None
         node.Outputs |> should equal Set.empty<string>
-        node.ClusterHash |> should equal None)
+        node.ClusterHash |> shouldEqual None)
 
 [<Test>]
 let ``Resolve stage uses the last command cacheability as the target default`` () =
@@ -1321,7 +1322,7 @@ target build { @shell echo { args = "build" } }
         let hit = actionDecision node.Id
         hit.Reason |> should equal "cache-hit"
         hit.Cache.Value.Lookup |> should equal "hit"
-        hit.Cache.Value.Origin |> should equal (Some "local"))
+        hit.Cache.Value.Origin |> shouldEqual (Some "local"))
 
 [<Test>]
 let ``Action rebuilds a successful summary whose outputs are unavailable offline`` () =
@@ -1573,8 +1574,8 @@ target build {
 """
 
         let stages = runPipeline (baseOptions workspace (Set [ "build" ]))
-        stages.FullGraph.Nodes["workspace/path#apps/inherit:build"].Phase |> should equal (Some "application")
-        stages.FullGraph.Nodes["workspace/path#apps/optout:build"].Phase |> should equal None
+        stages.FullGraph.Nodes["workspace/path#apps/inherit:build"].Phase |> shouldEqual (Some "application")
+        stages.FullGraph.Nodes["workspace/path#apps/optout:build"].Phase |> shouldEqual None
         stages.ResolvedGraph.Nodes["workspace/path#apps/inherit:build"].Operations.Head.Arguments |> should equal "application"
         stages.ResolvedGraph.Nodes["workspace/path#apps/optout:build"].Operations.Head.Arguments |> should equal "")
 

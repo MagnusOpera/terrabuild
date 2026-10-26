@@ -8,6 +8,7 @@ open System.Threading.Tasks
 open Contracts
 open Errors
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Storages
 
@@ -87,7 +88,7 @@ type private RecordingHandler(statusCode: HttpStatusCode, responseBody: string) 
 [<TestCase("{\"uri\":\"https://example.invalid\",\"provider\":null}")>]
 let ``missing or null provider deserializes as Azure`` json =
     let output = Json.Deserialize<ArtifactLocationOutput>(json)
-    Api.Artifact.normalizeProvider output.Provider |> should equal None
+    Api.Artifact.normalizeProvider output.Provider |> shouldEqual None
 
 
 [<Test>]
@@ -103,7 +104,7 @@ let ``remote storage requests operation-specific locations and selects Azure`` (
         ) :> IStorage
 
     storage.Exists "artifact" |> should equal true
-    storage.TryDownload "artifact" |> should equal (Some "download")
+    storage.TryDownload "artifact" |> shouldEqual (Some "download")
     storage.Upload "artifact" "summary.zip"
 
     api.Calls
@@ -198,14 +199,14 @@ let ``Cloudflare backend maps not found responses`` () =
     let location = Uri("https://r2.example/missing")
 
     storage.Exists "artifact" location |> should equal false
-    storage.TryDownload "artifact" location |> should equal None
+    storage.TryDownload "artifact" location |> shouldEqual None
 
 [<Test>]
 let ``unfinished artifact locations are cache misses for reads only`` () =
     let api = FakeApiClient(Some "r2", locationError = ArtifactUnavailableException("pending"))
     let storage = Storages.Factory.RemoteStorage(api) :> IStorage
     storage.Exists "pending" |> should equal false
-    storage.TryDownload "pending" |> should equal None
+    storage.TryDownload "pending" |> shouldEqual None
     Assert.Throws<ArtifactUnavailableException>(Action(fun () -> storage.Upload "pending" "file")) |> ignore
 
 [<Test>]

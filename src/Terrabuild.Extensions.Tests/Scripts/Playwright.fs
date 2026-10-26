@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Playwright
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -21,4 +22,4 @@ let ``playwright test with browser and project`` () =
 
 [<Test>]
 let ``playwright test cacheability is remote`` () =
-    cacheability "@playwright" "test" |> should equal (Some Cacheability.Remote)
+    cacheability "@playwright" "test" |> shouldEqual (Some Cacheability.Remote)

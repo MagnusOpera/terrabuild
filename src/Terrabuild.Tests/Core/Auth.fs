@@ -2,6 +2,7 @@ module Terrabuild.Tests.Core.Auth
 open System
 open System.IO
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 
 let private withTempHome action =
@@ -37,12 +38,12 @@ let ``logout removes only the selected workspace credentials`` () =
 
         Auth.logout selected.Id
 
-        Auth.readAuth selected.Id |> should equal None
-        Auth.readAuth other.Id |> should equal (Some other))
+        Auth.readAuth selected.Id |> shouldEqual None
+        Auth.readAuth other.Id |> shouldEqual (Some other))
 
 [<Test>]
 let ``logout is safe when no authentication configuration exists`` () =
     withTempHome (fun _ ->
         Auth.logout "missing-workspace"
 
-        Auth.readAuth "missing-workspace" |> should equal None)
+        Auth.readAuth "missing-workspace" |> shouldEqual None)

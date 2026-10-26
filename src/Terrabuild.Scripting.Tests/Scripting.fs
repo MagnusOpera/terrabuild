@@ -2,6 +2,7 @@ module Terrabuild.Scripting.Scripting.Tests
 
 open NUnit.Framework
 open FsUnit
+open FsUnitTyped
 open Terrabuild.Scripting
 open Terrabuild.ScriptingContracts
 open Terrabuild.Expression
@@ -81,15 +82,15 @@ let loadFScriptExports() =
 let loadFScriptDispatchAndDefault() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Extension.fss"
-    script.ResolveCommandMethod("unknown") |> should equal (Some "dispatch")
-    script.ResolveDefaultMethod() |> should equal (Some "defaults")
+    script.ResolveCommandMethod("unknown") |> shouldEqual (Some "dispatch")
+    script.ResolveDefaultMethod() |> shouldEqual (Some "defaults")
 
 [<Test>]
 let loadFScriptFlags() =
     let root = NUnit.Framework.TestContext.CurrentContext.TestDirectory
     let script = Terrabuild.Scripting.loadScript root [] "TestFiles/Extension.fss"
     let flags = script.TryGetFunctionFlags("run")
-    flags |> should equal (Some [ ExportFlag.Cache Cacheability.Local ])
+    flags |> shouldEqual (Some [ ExportFlag.Cache Cacheability.Local ])
 
 [<Test>]
 let loadFScriptStringFlagsFails() =
@@ -597,7 +598,7 @@ let stringReturnedMapKeysRemainSupported () =
 let keyedMapsCanBeUsedInsideExtensions key =
     withMapKeyScript key $"{{ [{key}] = 42 }}[{key}]" "{ [nameof inspect] = [Remote] }" (fun script ->
         let args = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
-        script.GetMethod("inspect").Value.Invoke<int option> args |> should equal (Some 42))
+        script.GetMethod("inspect").Value.Invoke<int option> args |> shouldEqual (Some 42))
 
 [<Test>]
 let argumentsFollowDeclaredRecordOptionAndUnionTypes() =
@@ -662,7 +663,7 @@ Host.capture project
 """
     ignore loaded
     let project = captured
-    project.DependencyResolution |> should equal (Some DependencyResolution.Path)
+    project.DependencyResolution |> shouldEqual (Some DependencyResolution.Path)
     project.Outputs |> should equal (set ["bin"])
     let duplicate = { registration with Unions = registration.Unions @ registration.Unions }
     (fun () -> FScript.Extensibility.HostInterop.typeDefinitions duplicate [] |> ignore) |> should throw typeof<FScript.Extensibility.ExtensionException>
@@ -674,8 +675,11 @@ let protocolPurityMetadataIsLimitedToImmutableTypes() =
     names |> should equal (set ["Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"; "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"; "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"; "Protocol.Cacheability"; "Protocol.ExportFlag"])
     Terrabuild.FScriptProtocolProvider.FScriptPureFunctions() |> Seq.isEmpty |> should equal true
     typeof<Terrabuild.FScriptProtocolProvider>.Assembly.GetReferencedAssemblies()
-    |> Array.exists (fun assembly -> assembly.Name="FScript.Compiler" || assembly.Name.StartsWith("FScript.Backend.") || assembly.Name="FScript.Interpreter.Lir")
-    |> should equal false
+    |> Array.exists (fun assembly ->
+        match assembly.Name with
+        | null -> false
+        | name -> name="FScript.Compiler" || name.StartsWith("FScript.Backend.") || name="FScript.Interpreter.Lir")
+    |> shouldEqual false
 
 [<Test>]
 let interpretedExtensionStatusDoesNotControlTerrabuildProcess() =

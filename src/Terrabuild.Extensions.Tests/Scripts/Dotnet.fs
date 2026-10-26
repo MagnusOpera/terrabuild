@@ -2,6 +2,7 @@ module Terrabuild.Tests.Scripts.Dotnet
 
 open System.IO
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -16,7 +17,7 @@ let ``dotnet defaults reads project references`` () =
 
 [<Test>]
 let ``dotnet build default is remote cache`` () =
-    cacheability "@dotnet" "build" |> should equal (Some Cacheability.Remote)
+    cacheability "@dotnet" "build" |> shouldEqual (Some Cacheability.Remote)
 
 [<Test>]
 let ``dotnet restore is batchable`` () =

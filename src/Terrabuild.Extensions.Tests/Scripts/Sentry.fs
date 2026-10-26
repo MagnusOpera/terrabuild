@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Sentry
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -19,4 +20,4 @@ let ``sentry sourcemaps local upload tolerates errors`` () =
 
 [<Test>]
 let ``sentry sourcemaps cacheability is external`` () =
-    cacheability "@sentry" "sourcemaps" |> should equal (Some Cacheability.External)
+    cacheability "@sentry" "sourcemaps" |> shouldEqual (Some Cacheability.External)

@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Make
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -19,4 +20,4 @@ let ``make dispatch supports variables`` () =
 
 [<Test>]
 let ``make dispatch cacheability is never`` () =
-    cacheability "@make" "build" |> should equal (Some Cacheability.Never)
+    cacheability "@make" "build" |> shouldEqual (Some Cacheability.Never)

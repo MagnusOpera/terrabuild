@@ -4,6 +4,7 @@ open Terrabuild.Expression
 open System.IO
 open NUnit.Framework
 open FsUnit
+open FsUnitTyped
 
 [<Test>]
 let checkValidSyntax() =
@@ -162,6 +163,6 @@ let parseWithSourceTracksExpressionLocation() =
     let firstAttribute = file.Blocks.Head.Attributes.Head
     match Expr.TryGetLocation firstAttribute.Value with
     | Some location ->
-        location.File |> should equal (Some "TestFiles/Success_Syntax")
+        location.File |> shouldEqual (Some "TestFiles/Success_Syntax")
         location.StartLine |> should equal 5
     | None -> Assert.Fail("Expected expression location")

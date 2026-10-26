@@ -4,6 +4,7 @@ open System.IO
 open System.Collections.Generic
 open System.Runtime.InteropServices
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Contracts
 
@@ -79,14 +80,14 @@ let ``declarations survive cache serialization with original production identity
     let roundTrip = Json.Serialize report |> Json.Deserialize<ProvenanceDeclaration>
     roundTrip |> should equal report
     let legacy = """{"project":".","target":"build","operations":[],"outputs":"empty","isSuccessful":true,"startedAt":"2026-10-11T00:00:00Z","endedAt":"2026-10-11T00:00:00Z","duration":"00:00:00","cache":"workspace"}"""
-    (Json.Deserialize<Cache.TargetSummary> legacy).Provenance |> should equal None
+    (Json.Deserialize<Cache.TargetSummary> legacy).Provenance |> shouldEqual None
 
 [<Test>]
 let ``shared provenance fixture preserves custom trust and nullable dependency identities`` () =
     let fixture = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "provenance-declaration-v1.json")
     let report = File.ReadAllText fixture |> Json.Deserialize<ProvenanceDeclaration>
     report.Transformations.Head.Origin |> should equal "custom"
-    report.Dependencies.Head.ProductionId |> should equal None
+    report.Dependencies.Head.ProductionId |> shouldEqual None
     (Json.Serialize report |> Json.Deserialize<ProvenanceDeclaration>) |> should equal report
 
 [<Test>]
@@ -377,7 +378,7 @@ let ``buildCommands formats docker container requests through docker path on lin
             metaCommand |> should equal "test"
             workDir |> should equal workspace
             cmd |> should equal "docker"
-            image |> should equal operation.Image
+            image |> shouldEqual operation.Image
             errorLevel |> should equal 0
             envs |> should equal (Map [ "FROM_ENV_MAP", "set-by-terrabuild"; "TB_SAMPLE", "/terrabuild-home/cache" ])
             args |> should contain "--entrypoint dotnet"
@@ -531,7 +532,7 @@ let ``buildCommands uses explicit host path when engine is host even with image`
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/env"
         args |> should equal "printenv"
-        image |> should equal operation.Image)
+        image |> shouldEqual operation.Image)
 
 [<Test>]
 let ``buildCommands uses host path when operation has no image regardless of engine`` () =
@@ -548,7 +549,7 @@ let ``buildCommands uses host path when operation has no image regardless of eng
         workDir |> should equal "src/App"
         cmd |> should equal "/usr/bin/true"
         args |> should equal "--flag"
-        image |> should equal None)
+        image |> shouldEqual None)
 
 [<Test>]
 let ``buildBatchSchedule flattens member labels in GitHub mode`` () =
@@ -690,9 +691,9 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
         summary.Nodes |> Map.containsKey batchNode.Id |> should equal false
 
         let restoreReport = report.Nodes |> List.find (fun node -> node.Id = restoreMember.Id)
-        restoreReport.Outcome |> should equal (Some "restore")
-        restoreReport.OutcomeReason |> should equal (Some "batch-cache-reuse")
-        restoreReport.BatchId |> should equal (Some batchNode.Id)
+        restoreReport.Outcome |> shouldEqual (Some "restore")
+        restoreReport.OutcomeReason |> shouldEqual (Some "batch-cache-reuse")
+        restoreReport.BatchId |> shouldEqual (Some batchNode.Id)
         report.Batches |> List.map _.Id |> should contain batchNode.Id)
 
 [<Test>]
@@ -841,8 +842,8 @@ let ``missing cached outputs fall back to target execution`` () =
         summary.IsSuccess |> should equal true
         summary.Nodes[node.Id].Request |> should equal Runner.TaskRequest.Exec
         let nodeReport = report.Nodes |> List.exactlyOne
-        nodeReport.Outcome |> should equal (Some "execute")
-        nodeReport.OutcomeReason |> should equal (Some "restore-missed")
+        nodeReport.Outcome |> shouldEqual (Some "execute")
+        nodeReport.OutcomeReason |> shouldEqual (Some "restore-missed")
         (report.Executions |> List.exactlyOne).Kind |> should equal "execution")
 
 [<TestCase(true)>]
@@ -1291,7 +1292,7 @@ let ``batch members preserve logical lineage and publish dependencies first`` ()
         summary.IsSuccess |> should equal true
         let original = summary.Nodes[upstream.Id].Provenance.Value
         let produced = summary.Nodes[downstream.Id].Provenance.Value
-        produced.Dependencies.Head.ProductionId |> should equal (Some original.ProductionId)
+        produced.Dependencies.Head.ProductionId |> shouldEqual (Some original.ProductionId)
         api.AddCalls |> List.map (fun (_, _, _, hash, _, _, _, _, _) -> hash) |> should equal [upstream.ProjectHash; downstream.ProjectHash])
 
 [<Test>]

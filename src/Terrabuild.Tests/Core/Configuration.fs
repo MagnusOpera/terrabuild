@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Core.Configuration
 open Collections
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open System
 open System.IO
@@ -220,9 +221,9 @@ target build {
             |> List.exactlyOne
 
         let inherited = step "inherit"
-        inherited.Image |> should equal (Some "workspace-image")
-        inherited.Platform |> should equal (Some "linux/arm64")
-        inherited.Cpus |> should equal (Some 2)
+        inherited.Image |> shouldEqual (Some "workspace-image")
+        inherited.Platform |> shouldEqual (Some "linux/arm64")
+        inherited.Cpus |> shouldEqual (Some 2)
         inherited.ContainerVariables |> should equal (Set [ "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
         inherited.Envs
         |> should equal (Map [ "SHARED", "workspace"; "WORKSPACE_ONLY", "workspace" ])
@@ -232,9 +233,9 @@ target build {
                               "workspace_only", Value.Bool true ]))
 
         let added = step "add"
-        added.Image |> should equal (Some "workspace-image")
-        added.Platform |> should equal (Some "linux/amd64")
-        added.Cpus |> should equal (Some 2)
+        added.Image |> shouldEqual (Some "workspace-image")
+        added.Platform |> shouldEqual (Some "linux/amd64")
+        added.Cpus |> shouldEqual (Some 2)
         added.ContainerVariables
         |> should equal (Set [ "PROJECT_ONLY"; "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
         added.Envs
@@ -249,9 +250,9 @@ target build {
                               "workspace_only", Value.Bool true ]))
 
         let empty = step "empty"
-        empty.Image |> should equal None
-        empty.Platform |> should equal None
-        empty.Cpus |> should equal None
+        empty.Image |> shouldEqual None
+        empty.Platform |> shouldEqual None
+        empty.Cpus |> shouldEqual None
         empty.ContainerVariables |> should equal (Set [ "WORKSPACE_ONE"; "WORKSPACE_TWO" ])
         empty.Envs
         |> should equal (Map [ "SHARED", "workspace"; "WORKSPACE_ONLY", "workspace" ])
@@ -578,8 +579,8 @@ target build {
         let inherited = config.Projects["workspace/path#apps/inherited"].Targets["build"]
         let neutral = config.Projects["workspace/path#apps/neutral"].Targets["build"]
 
-        inherited.EnvironmentSensitive |> should equal (Some true)
-        neutral.EnvironmentSensitive |> should equal (Some false)
+        inherited.EnvironmentSensitive |> shouldEqual (Some true)
+        neutral.EnvironmentSensitive |> shouldEqual (Some false)
 
         writeFile root "WORKSPACE" """
 workspace {}
@@ -594,7 +595,7 @@ extension @shell {}
         let _, updatedConfig = Configuration.read (baseOptions root (Set [ "build" ]))
         let updatedInherited = updatedConfig.Projects["workspace/path#apps/inherited"].Targets["build"]
 
-        updatedInherited.EnvironmentSensitive |> should equal (Some false)
+        updatedInherited.EnvironmentSensitive |> shouldEqual (Some false)
         updatedInherited.Hash |> should equal inherited.Hash)
 
 [<Test>]
@@ -637,9 +638,9 @@ target build {
         let overridden = config.Projects["workspace/path#apps/overridden"].Targets["build"]
         let unlocked = config.Projects["workspace/path#apps/unlocked"].Targets["build"]
 
-        inherited.Lock |> should equal (Some "nuget-tools")
-        overridden.Lock |> should equal (Some "other-resource")
-        unlocked.Lock |> should equal None
+        inherited.Lock |> shouldEqual (Some "nuget-tools")
+        overridden.Lock |> shouldEqual (Some "other-resource")
+        unlocked.Lock |> shouldEqual None
 
         let graph = GraphPipeline.Node.build options config
         graph.Nodes["workspace/path#apps/inherited:build"].Locks |> should equal (Set [ "nuget-tools" ])
@@ -659,7 +660,7 @@ extension @shell {}
         let _, updatedConfig = Configuration.read (baseOptions root (Set [ "build" ]))
         let updatedInherited = updatedConfig.Projects["workspace/path#apps/inherited"].Targets["build"]
 
-        updatedInherited.Lock |> should equal (Some "replacement-lock")
+        updatedInherited.Lock |> shouldEqual (Some "replacement-lock")
         updatedInherited.Hash |> should equal inherited.Hash)
 
 [<Test>]
@@ -793,7 +794,7 @@ target build {
         let _, config = Configuration.read options
         let project = config.Projects["workspace/path#app"]
 
-        project.Targets["build"].Build |> should equal (Some GraphDef.BuildMode.Always))
+        project.Targets["build"].Build |> shouldEqual (Some GraphDef.BuildMode.Always))
 
 [<Test>]
 let ``Configuration rejects project scripts using fsx`` () =

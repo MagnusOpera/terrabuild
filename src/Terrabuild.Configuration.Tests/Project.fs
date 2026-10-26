@@ -3,6 +3,7 @@ module Terrabuild.Configuration.Tests.Project
 open System.IO
 open NUnit.Framework
 open FsUnit
+open FsUnitTyped
 
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Project
@@ -18,8 +19,8 @@ target build { phase = phase.application }
 target test { phase = nothing }
 """
 
-    project.Targets["build"].Phase |> should equal (Some (Expr.Variable "phase.application"))
-    project.Targets["test"].Phase |> should equal (Some Expr.Nothing)
+    project.Targets["build"].Phase |> shouldEqual (Some (Expr.Variable "phase.application"))
+    project.Targets["test"].Phase |> shouldEqual (Some Expr.Nothing)
 
 [<Test>]
 let ``projects cannot declare phases`` () =
@@ -217,4 +218,4 @@ extension dummy {}
 """
     let project = Terrabuild.Configuration.FrontEnd.Project.parse content
 
-    project.Extensions["dummy"].Script |> should equal None
+    project.Extensions["dummy"].Script |> shouldEqual None

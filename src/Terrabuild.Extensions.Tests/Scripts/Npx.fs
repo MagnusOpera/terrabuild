@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Npx
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -14,4 +15,4 @@ let ``npx run command`` () =
 
 [<Test>]
 let ``npx run cacheability is local`` () =
-    cacheability "@npx" "run" |> should equal (Some Cacheability.Local)
+    cacheability "@npx" "run" |> shouldEqual (Some Cacheability.Local)

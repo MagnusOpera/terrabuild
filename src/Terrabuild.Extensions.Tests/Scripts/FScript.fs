@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.FScript
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -30,4 +31,4 @@ let ``fscript execute runs script with project root sandbox and forwarded args``
 
 [<Test>]
 let ``fscript execute cacheability is never`` () =
-    cacheability "@fscript" "execute" |> should equal (Some Cacheability.Never)
+    cacheability "@fscript" "execute" |> shouldEqual (Some Cacheability.Never)

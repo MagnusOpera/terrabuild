@@ -1,6 +1,7 @@
 module Terrabuild.Tests.Scripts.Yarn
 
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -21,4 +22,4 @@ let ``yarn install with update false keeps frozen lockfile`` () =
 
 [<Test>]
 let ``yarn install cacheability is local`` () =
-    cacheability "@yarn" "install" |> should equal (Some Cacheability.Local)
+    cacheability "@yarn" "install" |> shouldEqual (Some Cacheability.Local)

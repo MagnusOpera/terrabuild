@@ -3,6 +3,7 @@ module Terrabuild.Tests.Scripts.Go
 open System
 open FScript.Language
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Terrabuild.ScriptingContracts
 open Terrabuild.Tests.Scripts.Helpers
@@ -12,8 +13,8 @@ let ``go defaults require module metadata and discover local replacements`` () =
     let context = localContext "build" (fixtureDir "go-app")
     let result = invokeDefaults "@go" context
 
-    result.Id |> should equal (Some "example.com/go-app")
-    result.DependencyResolution |> should equal (Some DependencyResolution.Scope)
+    result.Id |> shouldEqual (Some "example.com/go-app")
+    result.DependencyResolution |> shouldEqual (Some DependencyResolution.Scope)
     result.Dependencies |> should equal (set [ "example.com/go-lib" ])
     result.Outputs |> should equal (set [ "bin/" ])
 
@@ -29,7 +30,7 @@ let ``go build uses cacheable bin output`` () =
 
     result.Batchable |> should equal true
     result.Operations |> normalizeOps |> should equal [ op "go" "build -o \"bin/\" ./..." 0 ]
-    cacheability "@go" "build" |> should equal (Some Cacheability.Remote)
+    cacheability "@go" "build" |> shouldEqual (Some Cacheability.Remote)
 
 [<Test>]
 let ``go install and test forward packages and args`` () =
@@ -49,8 +50,8 @@ let ``go install and test forward packages and args`` () =
     let testArgs = Map.ofList [ "packages", list [ str "./internal/..." ]; "args", str "-race" ]
     let test = invokeResult "@go" "test" testContext testArgs
     test.Operations |> normalizeOps |> should equal [ op "go" "test -race ./internal/..." 0 ]
-    cacheability "@go" "install" |> should equal (Some Cacheability.Local)
-    cacheability "@go" "test" |> should equal (Some Cacheability.Remote)
+    cacheability "@go" "install" |> shouldEqual (Some Cacheability.Local)
+    cacheability "@go" "test" |> shouldEqual (Some Cacheability.Remote)
 
 [<Test>]
 let ``go batch emits one operation per module`` () =
@@ -74,4 +75,4 @@ let ``go dispatch forwards command and args without batching`` () =
 
     result.Batchable |> should equal false
     result.Operations |> normalizeOps |> should equal [ op "go" "version -m" 0 ]
-    cacheability "@go" "version" |> should equal (Some Cacheability.Never)
+    cacheability "@go" "version" |> shouldEqual (Some Cacheability.Never)

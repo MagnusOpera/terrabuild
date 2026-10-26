@@ -2,6 +2,7 @@ module Terrabuild.Configuration.Tests.Workspace
 open System.IO
 open NUnit.Framework
 open FsUnit
+open FsUnitTyped
 
 open Terrabuild.Configuration.AST
 open Terrabuild.Configuration.AST.Workspace
@@ -184,7 +185,7 @@ target build {
     workspace.Phases
     |> should equal (Map [ "toolchains", { PhaseBlock.DependsOn = Set.empty }
                            "application", { PhaseBlock.DependsOn = Set [ "toolchains" ] } ])
-    workspace.Targets["build"].Phase |> should equal (Some (Expr.Variable "phase.application"))
+    workspace.Targets["build"].Phase |> shouldEqual (Some (Expr.Variable "phase.application"))
 
 [<Test>]
 let ``duplicate phase declaration is rejected`` () =

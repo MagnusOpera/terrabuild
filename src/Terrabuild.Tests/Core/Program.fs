@@ -5,6 +5,7 @@ open System.Text.Json
 open Argu
 open CLI
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 open Contracts
 
@@ -104,7 +105,7 @@ let ``preparation failures finalize the latest diagnostic snapshot`` () =
         Throws.TypeOf<InvalidOperationException>())
 
     diagnostic
-    |> should equal (Some ("failure", "partial", Some "analysis failed"))
+    |> shouldEqual (Some ("failure", "partial", Some "analysis failed"))
 
 [<Test>]
 let ``atomic text replacement leaves a complete destination and no staging file`` () =
@@ -185,7 +186,7 @@ let ``getImpactBaseGraph uses resolved environment key`` () =
 
     global.Program.getImpactBaseGraph (api :> IApiClient) options "base-sha" |> ignore
 
-    api.LastLookup |> should equal (Some ("acme/repo", "base-sha", "dev-staging"))
+    api.LastLookup |> shouldEqual (Some ("acme/repo", "base-sha", "dev-staging"))
 
 [<Test>]
 let ``CLI parses out argument for run`` () =
@@ -209,7 +210,7 @@ let ``CLI accepts dry run and rejects removed what if option`` () =
 
     Assert.Throws<Errors.TerrabuildException>(Action(fun () ->
         global.Program.normalizeTargetNames removedTargets |> Seq.toList |> ignore))
-    |> should not' (equal null)
+    |> shouldNotEqual null
 
 [<Test>]
 let ``CLI parses optional build group for run`` () =
@@ -218,10 +219,10 @@ let ``CLI parses optional build group for run`` () =
     let ungrouped = parser.ParseCommandLine([| "run"; "build" |], raiseOnUsage = true)
 
     grouped.GetResult(TerrabuildArgs.Run).TryGetResult(RunArgs.Group)
-    |> should equal (Some "deployment-123")
+    |> shouldEqual (Some "deployment-123")
 
     ungrouped.GetResult(TerrabuildArgs.Run).TryGetResult(RunArgs.Group)
-    |> should equal None
+    |> shouldEqual None
 
 [<Test>]
 let ``CLI parses explain target selection`` () =
@@ -253,7 +254,7 @@ let ``build context serializes optional group identifier`` () =
     use ungrouped = Json.Serialize(context None) |> JsonDocument.Parse
 
     grouped.RootElement.GetProperty("groupId").GetString()
-    |> should equal "deployment-123"
+    |> shouldEqual "deployment-123"
 
     hasJsonProperty ungrouped.RootElement "groupId"
     |> should equal false
@@ -368,11 +369,11 @@ let ``writeRunResultFile writes JSON for successful and ignored nodes`` () =
 
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
-        json.GetProperty("status").GetString() |> should equal "success"
+        json.GetProperty("status").GetString() |> shouldEqual "success"
         json.GetProperty("targets").EnumerateArray() |> Seq.map (fun item -> item.GetString()) |> Seq.toList |> should equal [ "build"; "test" ]
         let results = json.GetProperty("results")
-        results.GetProperty("root:build").GetString() |> should equal "success"
-        results.GetProperty("app:test").GetString() |> should equal "ignored"
+        results.GetProperty("root:build").GetString() |> shouldEqual "success"
+        results.GetProperty("app:test").GetString() |> shouldEqual "ignored"
         hasJsonProperty results "unnamed:build" |> should equal false)
 
 [<Test>]
@@ -397,10 +398,10 @@ let ``writeRunResultFile writes JSON for failed summary and optional writer skip
 
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
-        json.GetProperty("status").GetString() |> should equal "failure"
+        json.GetProperty("status").GetString() |> shouldEqual "failure"
         let results = json.GetProperty("results")
-        results.GetProperty("root:build").GetString() |> should equal "failure"
-        results.GetProperty("app:test").GetString() |> should equal "ignored"
+        results.GetProperty("root:build").GetString() |> shouldEqual "failure"
+        results.GetProperty("app:test").GetString() |> shouldEqual "ignored"
         hasJsonProperty results "unnamed:build" |> should equal false)
 
 [<Test>]
@@ -419,9 +420,9 @@ let ``writeImpactResultFile writes JSON`` () =
 
         use doc = JsonDocument.Parse(File.ReadAllText(path))
         let json = doc.RootElement
-        json.GetProperty("base").GetString() |> should equal "base-sha"
-        json.GetProperty("head").GetString() |> should equal "head-sha"
-        json.GetProperty("impacts").GetProperty("app:build").GetString() |> should equal "changed")
+        json.GetProperty("base").GetString() |> shouldEqual "base-sha"
+        json.GetProperty("head").GetString() |> shouldEqual "head-sha"
+        json.GetProperty("impacts").GetProperty("app:build").GetString() |> shouldEqual "changed")
 
 [<Test>]
 let ``buildImpactResult reports changed and dependency impacts from target hashes`` () =

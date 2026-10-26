@@ -1,6 +1,7 @@
 module Tests.Json
 open System.Text.Json
 open FsUnit
+open FsUnitTyped
 open NUnit.Framework
 
 type BuildState =
@@ -40,7 +41,7 @@ let ``unwrap option values at the root``() =
     box (Some "ready" : string option) |> serialize |> should equal "\"ready\""
     box (None : string option) |> serialize |> should equal "null"
 
-    "\"ready\"" |> Json.Deserialize<string option> |> should equal (Some "ready")
+    "\"ready\"" |> Json.Deserialize<string option> |> shouldEqual (Some "ready")
 
 [<Test>]
 let ``skip none option fields on records``() =
