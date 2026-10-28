@@ -511,6 +511,25 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
             buildProgress.TaskCompleted node.Id true false
         DiagnosticsTelemetry.recordTask node.Id "summary-ended"
 
+    // Caller owns any target locks. Batch preparation must not signal completion
+    // or fall back to individual execution before the native batch runs.
+    let restoreOutputs (node: GraphDef.Node) =
+        DiagnosticsTelemetry.recordTask node.Id "restore-started"
+        Log.Debug("{NodeId}: restoring Node", node.Id)
+        buildProgress.TaskDownloading node.Id
+
+        let projectDirectory =
+            match node.ProjectDir with
+            | FS.Directory d -> d
+            | FS.File f -> f |> FS.parentDirectory |> Option.get
+            | _ -> "."
+
+        let useRemote = GraphDef.isRemoteCacheable options node
+        let cacheEntryId = GraphDef.buildCacheKey node
+        let summary = cache.Restore useRemote cacheEntryId node.Outputs projectDirectory
+        DiagnosticsTelemetry.recordTask node.Id "restore-ended"
+        summary
+
     let rec restoreNode (node: GraphDef.Node) =
         let cacheEntryId = GraphDef.buildCacheKey node
         let restoredSummary =
@@ -520,20 +539,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                 | GraphDef.ArtifactMode.Managed when node.Outputs <> Set.empty -> node.Locks
                 | _ -> Set.empty
             use _targetLocks = acquireTargetLocks node.Id [ node.Id ] restoreLocks
-            DiagnosticsTelemetry.recordTask node.Id "restore-started"
-            Log.Debug("{NodeId}: restoring Node", node.Id)
-            buildProgress.TaskDownloading node.Id
-
-            let projectDirectory =
-                match node.ProjectDir with
-                | FS.Directory d -> d
-                | FS.File f -> f |> FS.parentDirectory |> Option.get
-                | _ -> "."
-
-            let useRemote = GraphDef.isRemoteCacheable options node
-            let summary = cache.Restore useRemote cacheEntryId node.Outputs projectDirectory
-            DiagnosticsTelemetry.recordTask node.Id "restore-ended"
-            summary
+            restoreOutputs node
 
         match restoredSummary with
         | Some summary when tryUseArtifact node ->
@@ -639,21 +645,35 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
         if not flattenBatchProgress then
             buildProgress.TaskBuilding batchNode.Id
 
+        // Prepare every cache hit before the native command can inspect outputs.
+        // The batch already owns the union of its members' target locks.
+        let restoredMembers =
+            members
+            |> Seq.choose (fun nodeId ->
+                let node = graph.Nodes[nodeId]
+                match node.Action with
+                | GraphDef.RunAction.Restore ->
+                    match restoreOutputs node with
+                    | Some summary when summary.IsSuccessful && tryUseArtifact node -> Some nodeId
+                    | _ ->
+                        Log.Warning("{NodeId}: cached artifact is unavailable; executing the member in the batch instead", node.Id)
+                        DiagnosticsTelemetry.recordTask node.Id "restore-missed"
+                        None
+                | _ -> None)
+            |> Set.ofSeq
+
         let cacheEntries =
             members
             |> Seq.map (fun nodeId ->
                 let node = graph.Nodes[nodeId]
-                buildProgress.TaskBuilding node.Id
-
                 let cacheEntry =
-                    match node.Action with
-                    | GraphDef.RunAction.Restore when tryUseArtifact node ->
-                        None
-                    | _ ->
+                    if restoredMembers.Contains nodeId then None
+                    else
                         let useRemote = GraphDef.isRemoteCacheable options node
                         let cacheEntryId = GraphDef.buildCacheKey node
                         cache.GetEntry useRemote cacheEntryId |> Some
 
+                buildProgress.TaskBuilding node.Id
                 node.Id, cacheEntry)
             |> Map.ofSeq
 

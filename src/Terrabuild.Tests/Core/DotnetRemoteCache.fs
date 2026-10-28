@@ -549,3 +549,63 @@ let ``dotnet remote cache restores project reference with empty local caches`` (
 
         File.Exists(Path.Combine(clone2, "B", "obj", "project.assets.json")) |> should equal true
         File.Exists(Path.Combine(clone2, "B", "bin", "Debug", "net9.0", "B.dll")) |> should equal true)
+
+[<Test; Category("integration"); NonParallelizable>]
+let ``dotnet batch restores cached members and NuGet packages in a clean workspace`` () =
+    withTempRoot (fun root ->
+        let fixture = Path.Combine(root, "fixture")
+        let clone1 = Path.Combine(root, "clone-1")
+        let clone2 = Path.Combine(root, "clone-2")
+        let home1 = Path.Combine(root, "home-1")
+        let home2 = Path.Combine(root, "home-2")
+        let storage = FolderStorage(Path.Combine(root, "remote-storage"))
+        createFixture fixture
+        let projectFile name =
+            $"""
+project {name} {{
+  includes = [ "**/*.cs" ]
+  @dotnet {{ }}
+}}
+target build {{
+  artifacts = ~managed
+  batch = ~single
+  @dotnet restore {{ locked = false }}
+  @dotnet build {{
+    configuration = "Debug"
+    restore = false
+  }}
+}}
+"""
+        writeFile fixture "A/PROJECT" (projectFile "a")
+        writeFile fixture "B/PROJECT" (projectFile "b")
+        copyDirectory fixture clone1
+        initializeGitRepository clone1
+        let phase1 = runPhase storage clone1 home1 Map.empty
+        phase1.Summary.IsSuccess |> should equal true
+        phase1.GraphBatch.Batches.Count |> should equal 1
+        let originalB = findBuildNode phase1.GraphAction "b"
+        let originalProduction = phase1.Summary.Nodes[originalB.Id].Provenance
+
+        copyDirectory fixture clone2
+        writeFile clone2 "A/Program.cs" (programV1 + "\n// Changed application, cached library.\n")
+        initializeGitRepository clone2
+        Directory.Exists(nugetPackagesDir home2) |> should equal false
+        Directory.Exists(Path.Combine(clone2, "B", "bin")) |> should equal false
+        Directory.Exists(Path.Combine(clone2, "B", "obj")) |> should equal false
+        let phase2 = runPhase storage clone2 home2 Map.empty
+        let app = findBuildNode phase2.GraphAction "a"
+        let library = findBuildNode phase2.GraphAction "b"
+        app.Action |> should equal RunAction.Exec
+        library.Action |> should equal RunAction.Restore
+        phase2.GraphBatch.Batches.Count |> should equal 1
+        phase2.GraphBatch.Batches.Values |> Seq.exactlyOne |> should equal (Set [ app.Id; library.Id ])
+        phase2.Summary.IsSuccess |> should equal true
+        assertBuildRequest Runner.TaskRequest.Exec phase2.Summary app.Id
+        assertBuildRequest Runner.TaskRequest.Restore phase2.Summary library.Id
+        phase2.Summary.Nodes[library.Id].Provenance |> shouldEqual originalProduction
+        phase2.Cache.SummaryCalls |> should contain (buildCacheKey library)
+        phase2.Api.AddCalls |> List.map _.Project |> should equal [ "A" ]
+        Directory.Exists(Path.Combine(nugetPackagesDir home2, "serilog")) |> should equal true
+        Directory.Exists(Path.Combine(nugetPackagesDir home2, "microsoft.extensions.filesystemglobbing")) |> should equal true
+        File.Exists(Path.Combine(clone2, "B", "obj", "project.assets.json")) |> should equal true
+        File.Exists(Path.Combine(clone2, "B", "bin", "Debug", "net9.0", "B.dll")) |> should equal true)

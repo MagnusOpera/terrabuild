@@ -20,7 +20,9 @@ Terrabuild creates a batch cluster only when:
 
 The extension turns each cluster into a tool-specific batch command. Check the extension documentation before enabling batching because the supported actions and grouping rules differ by tool.
 
-A batch may include a target that could have restored from cache when another member must execute. This trade can help when one native batch costs less than a mixture of execution and artifact restoration. The member remains a logical cache reuse: Terrabuild records `restore (batch-cache-reuse)`, links it to the physical command through `batchId`, and does not publish a replacement artifact for that member. The batch result still determines whether every member succeeds. Measure both modes for the workspace before relying on that assumption.
+A batch may include a cached target when another member must execute. Before running the native batch command, Terrabuild restores cached members' declared outputs while holding the batch's target locks. Every member stays in the native batch, so the tool can use restored binaries and incremental build state to decide what needs rebuilding. Terrabuild records successfully restored members as `restore (batch-cache-reuse)`, links them to the physical command through `batchId`, and does not publish replacement artifacts for them. If an artifact is unavailable at execution time, the member executes within the same batch and Terrabuild publishes its new artifact. The batch result still determines whether every member succeeds.
+
+Artifact restoration does not replace native dependency restoration. For example, restoring .NET `bin/` and `obj/` outputs does not populate NuGet's shared package directory. Keep the solution-wide NuGet restore required by your build; Terrabuild does not disable it when preparing cached batch members.
 
 Choose a `batch` mode on the target:
 

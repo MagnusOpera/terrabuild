@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Restore cached project outputs before native batch commands so builds can reuse prebuilt binaries.
+
 ## [0.204.1]
 
 - Update runtime libraries, telemetry, testing dependencies, and the F# formatter to current stable releases.

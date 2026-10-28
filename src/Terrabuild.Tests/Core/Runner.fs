@@ -264,6 +264,18 @@ type private FakeEntry(root: string, id: string, completed: ResizeArray<string>,
             completed.Add(id)
             [ $"artifact-{id}" ]
 
+let private successfulCachedSummary (node: GraphDef.Node) : Cache.TargetSummary =
+    { Cache.TargetSummary.Provenance = None
+      Project = node.ProjectDir
+      Target = node.Target
+      Operations = []
+      Outputs = Cache.OutputState.Stored
+      IsSuccessful = true
+      StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+      EndedAt = DateTime.UtcNow
+      Duration = TimeSpan.FromSeconds(1.0)
+      Cache = node.Artifacts }
+
 type private FakeCache(root: string, ?onStoreOutputs: unit -> unit, ?onRestore: unit -> unit) =
     let completed = ResizeArray<string>()
     let disposed = ResizeArray<string>()
@@ -619,9 +631,13 @@ let ``run keeps restored batch members as artifact reuses`` command expectedSucc
               GraphDef.Graph.Phases = Map.empty }
 
         let cache = FakeCache(workspace)
+        let provenance: ProvenanceDeclaration =
+            { Version = 1; ProducerVersion = "test"; ProductionId = "cached-production"; NodeId = restoreMember.Id; Transformations = []; Dependencies = [] }
+        cache.SetSummary(GraphDef.buildCacheKey restoreMember, { successfulCachedSummary restoreMember with Provenance = Some provenance })
         let api = FakeApiClient()
         let options = baseOptions workspace
         let summary = Runner.run options (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+        summary.Nodes[restoreMember.Id].Provenance |> shouldEqual (Some provenance)
         let report =
             Diagnostics.build {
                 Diagnostics.Context.Options = options
@@ -707,12 +723,73 @@ let ``batch republishes a reused member rejected by Insights`` () =
               GraphDef.Graph.Batches = Map [ batchNode.Id, Set [ memberNode.Id ] ]
               GraphDef.Graph.Phases = Map.empty }
         let cache = FakeCache(workspace)
+        cache.SetSummary(GraphDef.buildCacheKey memberNode, successfulCachedSummary memberNode)
         let api = FakeApiClient(useArtifactError = Contracts.ArtifactUnavailableException("pending"))
         let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
         summary.IsSuccess |> should equal true
         summary.Nodes[memberNode.Id].Request |> should equal Runner.TaskRequest.Exec
         api.AddCalls.Length |> should equal 1
         api.UseCalls.Length |> should equal 1)
+
+[<TestCase(true)>]
+[<TestCase(false)>]
+let ``batch prepares cached outputs under its lock and executes restore misses in the batch`` restoreAvailable =
+    withTempWorkspace (fun workspace ->
+        let projectDir = Path.Combine(workspace, "project")
+        let generatedDir = Path.Combine(projectDir, "generated")
+        let cachedDir = Path.Combine(workspace, "cached")
+        Directory.CreateDirectory(generatedDir) |> ignore
+        Directory.CreateDirectory(Path.Combine(cachedDir, "generated")) |> ignore
+        File.WriteAllText(Path.Combine(cachedDir, "generated", "binary.txt"), "cached-binary")
+        File.WriteAllText(Path.Combine(generatedDir, "stale.txt"), "stale")
+        let marker = Path.Combine(workspace, "batch-ran.txt")
+        let script = Path.Combine(workspace, "batch.sh")
+        let precondition =
+            if restoreAvailable then
+                $"test \"$(cat '{generatedDir}/binary.txt')\" = cached-binary && test ! -e '{generatedDir}/stale.txt'"
+            else
+                $"test ! -e '{generatedDir}/binary.txt' && test -e '{generatedDir}/stale.txt'"
+        File.WriteAllText(script, $"{precondition} && touch '{marker}'")
+
+        let lockName = $"batch-restore-{Guid.NewGuid():N}"
+        let lockPath = TargetLock.lockFilePath (Cache.createTerrabuildProfile()) lockName
+        let mutable restores = 0
+        let assertLeaseHeld () =
+            restores <- restores + 1
+            let mutable held = false
+            try
+                use _stream = new FileStream(lockPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)
+                ()
+            with :? IOException -> held <- true
+            held |> should equal true
+
+        let restored =
+            { buildNode "restored" projectDir "build" GraphDef.RunAction.Restore [ buildOperation "/usr/bin/false" "" None ] with
+                Locks = Set [ lockName ]
+                Outputs = Set [ "generated/**" ] }
+        let executing = buildNode "executing" workspace "build" GraphDef.RunAction.Exec []
+        let batch =
+            { buildNode "batch" workspace "build" GraphDef.RunAction.Exec [ buildOperation "/bin/sh" $"\"{script}\"" None ] with
+                Locks = restored.Locks }
+        let graph: GraphDef.Graph =
+            { GraphDef.Graph.Nodes = Map [ restored.Id, restored; executing.Id, executing; batch.Id, batch ]
+              RootNodes = Set [ restored.Id; executing.Id ]
+              Batches = Map [ batch.Id, Set [ restored.Id; executing.Id ] ]
+              Phases = Map.empty }
+        let cache = FakeCache(workspace, onRestore = assertLeaseHeld)
+        if restoreAvailable then
+            cache.SetSummary(GraphDef.buildCacheKey restored, successfulCachedSummary restored)
+            cache.SetRestoreOutputs(GraphDef.buildCacheKey restored, cachedDir)
+        let api = FakeApiClient()
+        let summary = Runner.run (baseOptions workspace) (cache :> Cache.ICache) (Some (api :> Contracts.IApiClient)) graph graph
+
+        restores |> should equal 1
+        summary.IsSuccess |> should equal true
+        File.Exists(marker) |> should equal true
+        summary.Nodes[restored.Id].Request |> should equal (if restoreAvailable then Runner.TaskRequest.Restore else Runner.TaskRequest.Exec)
+        cache.Completed |> List.contains (GraphDef.buildCacheKey restored) |> should equal (not restoreAvailable)
+        api.UseCalls.Length |> should equal (if restoreAvailable then 1 else 0)
+        api.AddCalls.Length |> should equal (if restoreAvailable then 1 else 2))
 
 [<Test>]
 let ``batch output staging completes while named target lock is held`` () =
