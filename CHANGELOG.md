@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade the embedded FScript language and runtime to 0.87.2.
 - Restore cached project outputs before native batch commands so builds can reuse prebuilt binaries.
 
 ## [0.204.1]
