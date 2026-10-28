@@ -4,8 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.205.0]
+
 - Upgrade the embedded FScript language and runtime to 0.87.2.
 - Restore cached project outputs before native batch commands so builds can reuse prebuilt binaries.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.204.1...0.205.0
 
 ## [0.204.1]
 
