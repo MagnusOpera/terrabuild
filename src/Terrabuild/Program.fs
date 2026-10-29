@@ -281,6 +281,7 @@ let internal runWithFailureDiagnostic writeDiagnostic action =
 let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
     use _profileLease =
         if result.Contains(TerrabuildArgs.Clear) then Cache.acquireProfileClearLease()
+        elif result.Contains(TerrabuildArgs.Console) then { new IDisposable with member _.Dispose() = () }
         else Cache.acquireProfileUsage()
     Cache.createDirectories()
     Exec.reapContainers()

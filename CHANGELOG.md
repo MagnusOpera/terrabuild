@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep local cache lookups, pruning, and console clearing consistent during concurrent builds.
+
 ## [0.205.0]
 
 - Upgrade the embedded FScript language and runtime to 0.87.2.

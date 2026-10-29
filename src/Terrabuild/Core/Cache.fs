@@ -494,7 +494,10 @@ let pruneCacheEntries cacheDir cutoff =
                 { summary with
                     Scanned = summary.Scanned + 1 }
 
-            if File.Exists originFile |> not then
+            // Publication backups belong to the original entry's lock and recovery protocol.
+            if (IO.getFilename entryDir).Contains(".old-", StringComparison.Ordinal) then
+                { summary with Skipped = summary.Skipped + 1 }
+            elif File.Exists originFile |> not then
                 let staleStaging =
                     isStagingDirectory entryDir
                     && Directory.GetLastWriteTimeUtc(entryDir) <= cutoff
@@ -687,7 +690,6 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
 
 
 type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
-    let cachedSummaries = System.Collections.Concurrent.ConcurrentDictionary<string, (Origin*TargetSummary) option>()
 
     let tryRemoteDownload path =
         try storage.TryDownload path
@@ -868,23 +870,14 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
     let getSummaryOnly useRemote (id: string) =
         let entryDir = FS.combinePath (createCache()) id
-        match cachedSummaries.TryGetValue(id) with
-        | true, (Some _ as originSummary) ->
-            touchOrigin entryDir
-            originSummary
-        | true, originSummary -> originSummary
-        | false, _ ->
-            let originSummary =
-                withEntryLock entryDir (fun () ->
-                    recoverReplacedDirectory entryDir
-                    match tryLoadCompleteEntry entryDir with
-                    | Some originSummary ->
-                        touchOrigin entryDir
-                        Some originSummary
-                    | None when useRemote -> downloadEntry id false entryDir
-                    | None -> None)
-            cachedSummaries.TryAdd(id, originSummary) |> ignore
-            originSummary
+        withEntryLock entryDir (fun () ->
+            recoverReplacedDirectory entryDir
+            match tryLoadCompleteEntry entryDir with
+            | Some originSummary ->
+                touchOrigin entryDir
+                Some originSummary
+            | None when useRemote -> downloadEntry id false entryDir
+            | None -> None)
 
     interface ICache with
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
@@ -938,6 +931,5 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             originSummary |> Option.map snd
 
         member _.GetEntry useRemote id : IEntry =
-            cachedSummaries.TryRemove(id) |> ignore
             let entryDir = FS.combinePath (createCache()) id
             new NewEntry(entryDir, useRemote, id, storage, masterKey)

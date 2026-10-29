@@ -375,6 +375,17 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
 
     let app = builder.Build()
 
+    // Lease individual requests so an idle console does not prevent clearing.
+    app.Use(Func<HttpContext, RequestDelegate, Task>(fun ctx next ->
+        task {
+            let path = ctx.Request.Path.Value
+            if path = "/api/cache/clear" || path = "/api/build/log" then
+                do! next.Invoke(ctx)
+            else
+                use _usage = Cache.acquireProfileUsage()
+                do! next.Invoke(ctx)
+        })) |> ignore
+
     let logState = createLogState()
     let buildState = createBuildState()
     let workspaceLock = obj()
@@ -539,6 +550,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
                 else
                     try
                         lock workspaceLock (fun () ->
+                            use _clear = Cache.acquireProfileClearLease()
                             if clearCache then Cache.clearCache()
                             if clearHome then Cache.clearHomeCache()
                         )

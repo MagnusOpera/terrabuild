@@ -704,3 +704,36 @@ let ``try get summary only does not refresh origin timestamp when summary load f
             refreshedTimestamp |> should equal oldTimestamp
         )
     )
+
+[<Test>]
+let ``summary lookup observes publication after a cached miss and replacement`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let id = "project-hash/build/fresh-summary"
+            let cache = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            cache.TryGetSummaryOnly false id |> shouldEqual None
+            use first = cache.GetEntry false id
+            first.Complete(summary None) |> ignore
+            cache.TryGetSummary false id |> Option.map _.Target |> shouldEqual (Some "build")
+            use replacement = cache.GetEntry false id
+            // A reader runs after writing starts, before publication.
+            cache.TryGetSummary false id |> Option.map _.Target |> shouldEqual (Some "build")
+            replacement.Complete({ summary None with Target = "replacement" }) |> ignore
+            cache.TryGetSummary false id |> Option.map _.Target |> shouldEqual (Some "replacement")
+            let other = Cache.Cache(FakeStorage(), None) :> Cache.ICache
+            use external = other.GetEntry false id
+            external.Complete({ summary None with Target = "external" }) |> ignore
+            cache.TryGetSummary false id |> Option.map _.Target |> shouldEqual (Some "external")))
+
+[<Test>]
+let ``prune preserves publication backups for entry recovery`` () =
+    withTempDir (fun root ->
+        let id = "project-hash/build/target-hash"
+        let entryDir = createLocalCacheEntry root id (summary None)
+        File.SetLastWriteTimeUtc(Path.Combine(entryDir, "origin"), DateTime.UtcNow.AddDays(-30.0))
+        let backup = entryDir + ".old-" + Guid.NewGuid().ToString("N")
+        Directory.Move(entryDir, backup)
+        use _publisher = ExclusiveFileLock.acquire "test publisher" (entryDir + ".lock")
+        let result = Cache.pruneCacheEntries (Path.Combine(root, ".terrabuild", "cache")) (DateTime.UtcNow.AddDays(-7.0))
+        result.Pruned |> shouldEqual 0
+        Directory.Exists(backup) |> shouldEqual true)
