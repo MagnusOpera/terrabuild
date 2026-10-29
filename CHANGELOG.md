@@ -4,9 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.205.1]
+
 - Reduce configuration parsing and hashing allocations while preserving existing cache hashes.
 - Keep build workers from blocking the shared thread pool and reuse console configuration between requests.
 - Keep local cache lookups, pruning, and console clearing consistent during concurrent builds.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.205.0...0.205.1
 
 ## [0.205.0]
 
