@@ -31,7 +31,7 @@ type EventQueue(maxConcurrency: int) =
             invalidArg (nameof maxConcurrency) "maxConcurrency must be > 0"
 
     let maxConcurrency = maxConcurrency
-    let backgroundMaxConcurrency = 4 * maxConcurrency
+    let backgroundMaxConcurrency = int (min (int64 Int32.MaxValue) (4L * int64 maxConcurrency))
 
     let options =
         UnboundedChannelOptions(
@@ -43,22 +43,27 @@ type EventQueue(maxConcurrency: int) =
     let normal = Channel.CreateUnbounded<WorkItem>(options)
     let background = Channel.CreateUnbounded<WorkItem>(options)
 
-    // gate is only for start + first error transition, not hot path
+    // Only worker creation and the first error transition take the gate.
     let gate = Lock()
 
-    let mutable started = false
     let mutable waiting = false
     let mutable pending = 0
+    let mutable normalPending = 0
+    let mutable backgroundPending = 0
+    let mutable normalWorkerCount = 0
+    let mutable backgroundWorkerCount = 0
     let mutable lastError : ExceptionDispatchInfo option = None
 
-    let workers : Task array ref = ref [||]
+    let workers = ResizeArray<Task>()
 
     let drained =
         TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
 
     let cts = new CancellationTokenSource()
 
-    let decrementPending () =
+    let decrementPending kind =
+        if kind = Priority.Normal then Interlocked.Decrement(&normalPending) |> ignore
+        else Interlocked.Decrement(&backgroundPending) |> ignore
         let value = Interlocked.Decrement(&pending)
         if Volatile.Read(&waiting) && value = 0 then
             drained.TrySetResult() |> ignore
@@ -66,7 +71,7 @@ type EventQueue(maxConcurrency: int) =
     let drainAndDrop (reader: ChannelReader<WorkItem>) =
         let mutable item = Unchecked.defaultof<WorkItem>
         while reader.TryRead(&item) do
-            decrementPending()
+            decrementPending item.Kind
 
     let trySetError (ex: exn) =
         // fast path: already failed
@@ -94,54 +99,45 @@ type EventQueue(maxConcurrency: int) =
                 // any error sets lastError + clears normal queue (stops normal scheduling)
                 trySetError ex
         finally
-            decrementPending()
+            decrementPending item.Kind
 
+    // Handlers are synchronous and may wait on child processes, file locks or HTTP.
+    // Dedicated, bounded workers keep those waits off the shared ThreadPool.
     let workerLoop (reader: ChannelReader<WorkItem>) =
-        task {
-            try
-                let token = cts.Token
-                let mutable item = Unchecked.defaultof<WorkItem>
+        try
+            let mutable item = Unchecked.defaultof<WorkItem>
+            while reader.WaitToReadAsync(cts.Token).AsTask().GetAwaiter().GetResult() do
+                while reader.TryRead(&item) do
+                    run item
+        with
+        | :? OperationCanceledException -> ()
+        | :? ChannelClosedException -> ()
 
-                while! reader.WaitToReadAsync(token) do
-                    while reader.TryRead(&item) do
-                        run item
-            with
-            | :? OperationCanceledException ->
-                ()
-            | :? ChannelClosedException ->
-                ()
-        } :> Task
-
-    let startWorkers () =
-        let tasks = Array.zeroCreate<Task> (maxConcurrency + backgroundMaxConcurrency)
-
-        let mutable i = 0
-        while i < maxConcurrency do
-            tasks[i] <- Task.Run(fun () -> workerLoop normal.Reader, cts.Token)
-            i <- i + 1
-
-        while i < tasks.Length do
-            tasks[i] <- Task.Run(fun () -> workerLoop background.Reader, cts.Token)
-            i <- i + 1
-
-        tasks
-
-    let ensureStarted () =
-        if started then
-            ()
-        else
+    let ensureWorkers kind =
+        let desiredCount () =
+            if kind = Priority.Normal then min maxConcurrency (Volatile.Read(&normalPending))
+            else min backgroundMaxConcurrency (Volatile.Read(&backgroundPending))
+        let workerCount () =
+            if kind = Priority.Normal then Volatile.Read(&normalWorkerCount)
+            else Volatile.Read(&backgroundWorkerCount)
+        if workerCount() < desiredCount() then
             lock gate (fun () ->
-                if started then
-                    ()
-                else
-                    started <- true
+                // Grow only as work arrives, avoiding idle threads for small graphs.
+                while workerCount() < desiredCount() do
+                    let reader =
+                        if kind = Priority.Normal then
+                            normalWorkerCount <- normalWorkerCount + 1
+                            normal.Reader
+                        else
+                            backgroundWorkerCount <- backgroundWorkerCount + 1
+                            background.Reader
+                    workers.Add(Task.Factory.StartNew(
+                        Action(fun () -> workerLoop reader),
+                        cts.Token,
+                        TaskCreationOptions.LongRunning,
+                        TaskScheduler.Default)))
 
-                    // If nothing pending at start, we are already drained
-                    if Volatile.Read(&pending) = 0 then
-                        drained.TrySetResult() |> ignore
-
-                    workers.Value <- startWorkers ()
-            )
+    let workerSnapshot () = lock gate (fun () -> workers.ToArray())
 
     interface IEventQueue with
         member _.Enqueue kind action =
@@ -153,6 +149,8 @@ type EventQueue(maxConcurrency: int) =
                 ()
             else
                 Interlocked.Increment(&pending) |> ignore
+                if kind = Priority.Normal then Interlocked.Increment(&normalPending) |> ignore
+                else Interlocked.Increment(&backgroundPending) |> ignore
 
                 let work = WorkItem(kind, action)
 
@@ -166,7 +164,7 @@ type EventQueue(maxConcurrency: int) =
                         .ContinueWith(
                             (fun (_: Task) ->
                                 // If WriteAsync failed, mark as complete so WaitCompletion doesn't hang.
-                                decrementPending()
+                                decrementPending kind
                             ),
                             TaskScheduler.Default
                         )
@@ -174,7 +172,7 @@ type EventQueue(maxConcurrency: int) =
 
                 // Start processing immediately so producers such as workspace
                 // discovery can overlap with the work they enqueue.
-                ensureStarted ()
+                ensureWorkers kind
 
         member _.WaitCompletion() =
             Volatile.Write(&waiting, true)
@@ -189,7 +187,7 @@ type EventQueue(maxConcurrency: int) =
             background.Writer.TryComplete() |> ignore
 
             // Ensure workers are done
-            Task.WaitAll(workers.Value)
+            Task.WaitAll(workerSnapshot())
 
             lastError
 
@@ -203,8 +201,7 @@ type EventQueue(maxConcurrency: int) =
             background.Writer.TryComplete() |> ignore
 
             try
-                if workers.Value.Length > 0 then
-                    Task.WaitAll(workers.Value)
+                Task.WaitAll(workerSnapshot())
             with
             | _ -> ()
 

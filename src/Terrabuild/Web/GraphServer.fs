@@ -185,9 +185,9 @@ let private buildConfig
     finally
         System.Environment.CurrentDirectory <- previousDir
 
-let private buildBatchGraph workspace targets projects configuration environment engine =
+let private buildBatchGraph readConfig targets projects configuration environment engine =
     DiagnosticsTelemetry.reset true
-    let options, config = buildConfig workspace targets projects configuration environment engine
+    let (options: ConfigOptions.Options), config = readConfig targets projects configuration environment engine
     let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
     let options = { options with MaxConcurrency = System.Environment.ProcessorCount |> max 1 }
     let fullGraph = GraphPipeline.Node.build options config |> GraphPipeline.Phase.build
@@ -288,7 +288,7 @@ let private createBuildCommand (workspace: string) (request: BuildRequest) =
     else
         exePath, baseArgs
 
-let private startBuildProcess (workspace: string) (request: BuildRequest) (logState: BuildLogState) (buildState: BuildState) =
+let private startBuildProcess (workspace: string) (request: BuildRequest) (logState: BuildLogState) (buildState: BuildState) (onCompleted: unit -> unit) =
     lock buildState.Lock (fun () ->
         match buildState.Active with
         | Some proc when not proc.HasExited -> Error "Build already running."
@@ -334,6 +334,7 @@ let private startBuildProcess (workspace: string) (request: BuildRequest) (logSt
                     buildState.ExitCode <- Some proc.ExitCode
                     buildState.Active <- None
                     completeLogStreams logState
+                    onCompleted()
                 )
                 Ok proc.Id
     )
@@ -389,6 +390,12 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
     let logState = createLogState()
     let buildState = createBuildState()
     let workspaceLock = obj()
+    use snapshots = new WorkspaceSnapshotCache.Cache<_, _>(workspace, TimeSpan.FromSeconds(2.0))
+    let readConfig targets projects configuration environment engine =
+        let startedAt = DateTime.UtcNow
+        let key = targets, projects, configuration, environment, normalizeEngineOption engine
+        let options, config = snapshots.Get(key, fun () -> buildConfig workspace targets projects configuration environment engine)
+        { options with StartedAt = startedAt }, config
 
     let embeddedProvider =
         let assembly = System.Reflection.Assembly.GetExecutingAssembly()
@@ -433,7 +440,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
         task {
             let targets =
                 lock workspaceLock (fun () ->
-                    let _, config = buildConfig workspace [] None None None None
+                    let _, config = readConfig [] None None None None
                     config.Targets |> Map.keys |> Seq.sort |> Seq.toList
                 )
             let json = Json.Serialize targets
@@ -445,7 +452,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
         task {
             let projects =
                 lock workspaceLock (fun () ->
-                    let _, config = buildConfig workspace [] None None None None
+                    let _, config = readConfig [] None None None None
                     config.Projects
                     |> Map.toList
                     |> List.choose (fun (_, project) ->
@@ -476,7 +483,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             else
                 let graph, options, report =
                     lock workspaceLock (fun () ->
-                        buildBatchGraph workspace targets projects configuration environment engine
+                        buildBatchGraph readConfig targets projects configuration environment engine
                     )
                 let explanations =
                     report.Nodes
@@ -509,7 +516,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
             else
                 let graph, _, _ =
                     lock workspaceLock (fun () ->
-                        buildBatchGraph workspace targets projects configuration environment engine
+                        buildBatchGraph readConfig targets projects configuration environment engine
                     )
                 let cache = Cache.Cache(Storages.Factory.create None, None) :> Cache.ICache
                 let statuses =
@@ -550,6 +557,7 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
                 else
                     try
                         lock workspaceLock (fun () ->
+                            snapshots.Invalidate()
                             use _clear = Cache.acquireProfileClearLease()
                             if clearCache then Cache.clearCache()
                             if clearHome then Cache.clearHomeCache()
@@ -578,7 +586,8 @@ let start (graphArgs: ParseResults<ConsoleArgs>) (logEnabled: bool) (debugEnable
                 if targets.IsEmpty then
                     return Results.BadRequest("At least one target is required.")
                 else
-                    match startBuildProcess workspace request logState buildState with
+                    snapshots.Invalidate()
+                    match startBuildProcess workspace request logState buildState snapshots.Invalidate with
                     | Ok pid -> return Results.Json {| pid = pid; startedAt = DateTime.UtcNow |}
                     | Error reason -> return Results.Conflict(reason)
         }))

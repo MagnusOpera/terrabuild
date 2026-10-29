@@ -61,16 +61,12 @@ let rec eval (context: EvaluationContext) (expr: Expr) =
             | Expr.List list ->
                 let values =
                     list
-                    |> List.fold (fun list v ->
-                        let mv = eval resolvedLocation v
-                        list @ [mv]) []
+                    |> List.map (eval resolvedLocation)
                 Value.List values
             | Expr.Function (f, exprs) ->
                 let values =
                     exprs
-                    |> List.fold (fun exprs expr ->
-                        let e = eval resolvedLocation expr
-                        exprs @ [e]) []
+                    |> List.map (eval resolvedLocation)
                 let res =
                     match f, values with
                     | Function.Plus, [Value.String left; Value.String right] -> Value.String (left + right)

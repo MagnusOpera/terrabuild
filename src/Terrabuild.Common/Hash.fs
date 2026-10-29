@@ -4,36 +4,25 @@ open System.Security.Cryptography
 open System
 
 
+// Match StreamWriter's BOM-free UTF-8 and strict invalid-surrogate handling.
+let private utf8 = System.Text.UTF8Encoding(false, true)
+
 let sha256files files =
-    use ms = new MemoryStream()
-
-    let computeFileSha file =
-        let sha256 = SHA256.Create()
-        use hFile = File.OpenRead(file)
-        hFile |> sha256.ComputeHash |> ms.Write
-
-    files |> Seq.iter computeFileSha
-
-    ms.Position <- 0
-    let sha256 = SHA256.Create()
-    let hash = ms |> sha256.ComputeHash |> Convert.ToHexString
-    hash
-
+    // Hash the ordered concatenation of file digests, not the file contents.
+    use aggregate = IncrementalHash.CreateHash(HashAlgorithmName.SHA256)
+    for file in files do
+        use stream = File.OpenRead(file)
+        aggregate.AppendData(SHA256.HashData(stream))
+    aggregate.GetHashAndReset() |> Convert.ToHexString
 
 let sha256 (s: string) =
-    let sha256 = SHA256.Create()
-    use ms = new MemoryStream()
-    use txtWriter = new StreamWriter(ms)
-    txtWriter.Write(s)
-    txtWriter.Flush()
-    ms.Position <- 0L
-    let hash = ms |> sha256.ComputeHash |> Convert.ToHexString
-    hash
+    // StreamWriter.Write(null) previously hashed an empty stream.
+    let bytes = if obj.ReferenceEquals(s, null) then Array.empty else utf8.GetBytes(s)
+    SHA256.HashData(bytes) |> Convert.ToHexString
 
 let sha256file file =
-    use sha256 = SHA256.Create()
     use stream = File.OpenRead(file)
-    stream |> sha256.ComputeHash |> Convert.ToHexString
+    SHA256.HashData(stream) |> Convert.ToHexString
 
 let sha256strings (lines: string seq) =
     lines |> String.join "\n" |> sha256

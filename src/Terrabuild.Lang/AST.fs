@@ -16,6 +16,12 @@ with
         else
             attributes @ [attribute]
 
+    static member internal Prepend (attributes: Attribute list) (attribute: Attribute) =
+        if attributes |> List.exists (fun a -> a.Name = attribute.Name) then
+            Errors.raiseParseError $"duplicated attribute '{attribute.Name}'"
+        else
+            attribute :: attributes
+
 
 type [<RequireQualifiedAccess>] Block =
     { Resource: string

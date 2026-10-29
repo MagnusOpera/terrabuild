@@ -56,6 +56,7 @@
     <Compile Include="Storages/Factory.fs" />
     <Compile Include="CLI.fs" />
     <Compile Include="Web/EmbeddedUiFileProvider.fs" />
+    <Compile Include="Web/WorkspaceSnapshotCache.fs" />
     <Compile Include="Web/GraphServer.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

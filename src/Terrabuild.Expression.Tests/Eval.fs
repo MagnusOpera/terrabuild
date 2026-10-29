@@ -397,3 +397,11 @@ let locationIsAttachedOnExpressionFailure() =
     | :? TerrabuildException as ex ->
         ex.Location |> shouldEqual (Some location)
         ex.Message |> should equal "Invalid arguments for function Replace with parameters (nothing*string*string)"
+
+[<Test>]
+let listAndFunctionArgumentsFailInSourceOrder() =
+    let first = Expr.Variable "var.first_missing"
+    let second = Expr.Variable "var.second_missing"
+    for expression in [Expr.List [first; second]; Expr.Function(Function.Plus, [first; second])] do
+        let error = Assert.Throws<TerrabuildException>(fun () -> eval evaluationContext expression |> ignore) |> nonNull
+        Assert.That(error.Message, Does.Contain("var.first_missing"))

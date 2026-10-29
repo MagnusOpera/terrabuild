@@ -166,3 +166,16 @@ let parseWithSourceTracksExpressionLocation() =
         location.File |> shouldEqual (Some "TestFiles/Success_Syntax")
         location.StartLine |> should equal 5
     | None -> Assert.Fail("Expected expression location")
+
+[<Test>]
+let ``large lists and function arguments retain source order`` () =
+    let numbers = [1..2000]
+    let commaValues = numbers |> List.map string |> String.concat ", "
+    let spaceValues = numbers |> List.map string |> String.concat " "
+    let parsed = FrontEnd.parse $"locals {{ comma = [{commaValues}] space = [{spaceValues}] call = upper({commaValues}) }}"
+    let attributes = parsed.Blocks.Head.Attributes
+    attributes |> List.map _.Name |> shouldEqual ["comma"; "space"; "call"]
+    let expected = numbers |> List.map Expr.Number
+    attributes[0].Value |> shouldEqual (Expr.List expected)
+    attributes[1].Value |> shouldEqual (Expr.List expected)
+    attributes[2].Value |> shouldEqual (Expr.Function(Function.Upper, expected))

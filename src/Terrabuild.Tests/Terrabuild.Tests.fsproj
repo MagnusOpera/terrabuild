@@ -11,6 +11,7 @@
     <Compile Include="SourceControls/GitHub.fs" />
     <Compile Include="SourceControls/Repository.fs" />
     <Compile Include="Storages/Remote.fs" />
+    <Compile Include="Core/WorkspaceSnapshotCache.fs" />
     <Compile Include="Core/Auth.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/ConfigurationPerformance.fs" />

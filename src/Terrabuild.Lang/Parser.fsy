@@ -73,18 +73,18 @@ let private withRuleLocation (parseState: IParseState) firstToken lastToken (exp
 
 File:
     | EOF { File.Build [] }
-    | Blocks EOF { File.Build $1 }
+    | Blocks EOF { File.Build (List.rev $1) }
 
 Attributes:
     | Attribute { [$1] }
-    | Attributes Attribute { Attribute.Append $1 $2 }
+    | Attributes Attribute { Attribute.Prepend $1 $2 }
 
 Attribute:
     | AttributeName EQUAL Expr { Attribute.Build $1 $3 }
 
 Blocks:
     | Block { [$1] }
-    | Blocks Block { $1 @ [$2] }
+    | Blocks Block { $2 :: $1 }
 
 Block:
     | ResourceName LBRACE BlockContent RBRACE { Block.Build $1 None $3 }
@@ -92,9 +92,9 @@ Block:
 
 BlockContent:
     | /* empty */ { ([], []) }
-    | Attributes { ($1, []) }
-    | Blocks { ([], $1) }
-    | Attributes Blocks { ($1, $2) }
+    | Attributes { (List.rev $1, []) }
+    | Blocks { ([], List.rev $1) }
+    | Attributes Blocks { (List.rev $1, List.rev $2) }
 
 ExprSource:
     | ExprList { Expr.List $1 }
@@ -171,18 +171,18 @@ InterpolatedStringExpression:
     }
 
 ExprTuple:
-    | LPAREN ExprTupleContent RPAREN { $2 }
+    | LPAREN ExprTupleContent RPAREN { List.rev $2 }
 ExprTupleContent:
     | /* empty */ { [] }
     | Expr { [$1] }
-    | ExprTupleContent COMMA Expr { $1 @ [$3] }
+    | ExprTupleContent COMMA Expr { $3 :: $1 }
 
 ExprList:
-    | LSQBRACKET ExprListContent RSQBRACKET { $2 }
+    | LSQBRACKET ExprListContent RSQBRACKET { List.rev $2 }
 ExprListContent:
     | /* empty */ { [] }
-    | ExprListContent Expr { $1 @ [$2] }
-    | ExprListContent COMMA Expr { $1 @ [$3] }
+    | ExprListContent Expr { $2 :: $1 }
+    | ExprListContent COMMA Expr { $3 :: $1 }
 
 ExprMap:
     | LBRACE ExprMapContent RBRACE { $2 }

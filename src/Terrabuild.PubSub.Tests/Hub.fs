@@ -317,3 +317,59 @@ let reentrant_get_in_callback_does_not_deadlock() =
 
     waitTask.Result |> should equal Status.Ok
     triggered |> should equal true
+
+[<Test>]
+let ``blocking handlers run outside the shared thread pool`` () =
+    use hub = Hub.Create(1)
+    use release = new ManualResetEventSlim(false)
+    use entered = new CountdownEvent(2)
+    let mutable normalIsPoolThread = true
+    let mutable backgroundIsPoolThread = true
+    hub.Subscribe "blocking normal" [] (fun () ->
+        normalIsPoolThread <- Thread.CurrentThread.IsThreadPoolThread
+        entered.Signal() |> ignore
+        release.Wait())
+    hub.SubscribeBackground "blocking background" [] (fun () ->
+        backgroundIsPoolThread <- Thread.CurrentThread.IsThreadPoolThread
+        entered.Signal() |> ignore
+        release.Wait())
+    try
+        entered.Wait(5000) |> should equal true
+        normalIsPoolThread |> should equal false
+        backgroundIsPoolThread |> should equal false
+    finally
+        release.Set()
+    hub.WaitCompletion() |> should equal Status.Ok
+
+[<TestCase(false)>]
+[<TestCase(true)>]
+let ``dedicated workers respect each queue concurrency limit`` background =
+    use hub = Hub.Create(2)
+    let limit = if background then 8 else 2
+    use entered = new CountdownEvent(limit)
+    use release = new ManualResetEventSlim(false)
+    let mutable active = 0
+    let subscribe = if background then hub.SubscribeBackground else hub.Subscribe
+    for index in 1..32 do
+        subscribe (string index) [] (fun () ->
+            let running = Interlocked.Increment(&active)
+            try
+                Assert.That(running, Is.LessThanOrEqualTo(limit))
+                if not entered.IsSet then entered.Signal() |> ignore
+                release.Wait()
+            finally
+                Interlocked.Decrement(&active) |> ignore)
+    try
+        entered.Wait(5000) |> should equal true
+        Volatile.Read(&active) |> should equal limit
+    finally
+        release.Set()
+    hub.WaitCompletion() |> should equal Status.Ok
+
+[<Test>]
+let ``large concurrency limits do not overflow or allocate idle workers`` () =
+    use hub = Hub.Create(System.Int32.MaxValue)
+    use completed = new ManualResetEventSlim(false)
+    hub.SubscribeBackground "one background job" [] completed.Set
+    completed.Wait(5000) |> should equal true
+    hub.WaitCompletion() |> should equal Status.Ok
