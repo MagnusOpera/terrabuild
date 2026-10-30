@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade the embedded FScript language and runtime to 0.88.0.
+
 ## [0.205.1]
 
 - Reduce configuration parsing and hashing allocations while preserving existing cache hashes.
