@@ -452,7 +452,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 Dependencies = []
                 PhaseDependencies = []
                 Transformations = []
-                TargetHashResolved = Some false
+                TargetHashResolved = Some true
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"
@@ -470,7 +470,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 Dependencies = [ "lib-build" ]
                 PhaseDependencies = []
                 Transformations = []
-                TargetHashResolved = Some false
+                TargetHashResolved = Some true
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"
@@ -520,3 +520,35 @@ let ``buildImpactResult marks missing base nodes as changed and skips unnamed no
 
     impactResult.Impacts.Count |> should equal 1
     impactResult.Impacts["root:build"] |> should equal "changed"
+
+[<TestCase("unresolved")>]
+[<TestCase("legacy")>]
+[<TestCase("blank")>]
+let ``buildImpactResult conservatively marks incomparable base hashes as changed`` baselineKind =
+    let node = buildGraphNode "app-build" (Some "App") "src/App" "build"
+    let baseNode: Contracts.BuildGraphNode =
+        { Id = node.Id
+          ProjectId = node.ProjectId
+          ProjectName = node.ProjectName
+          ProjectDir = node.ProjectDir
+          Target = node.Target
+          Phase = None
+          ProjectHash = node.ProjectHash
+          TargetHash = if baselineKind = "blank" then "" else node.TargetHash
+          Dependencies = []
+          PhaseDependencies = []
+          Transformations = []
+          TargetHashResolved = if baselineKind = "legacy" then None else Some (baselineKind <> "unresolved")
+          Artifacts = "Workspace"
+          Build = "Auto"
+          Batch = "Single"
+          Action = "Exec"
+          Required = true
+          IsBatchNode = false }
+    let baseGraph: Contracts.CommitGraph =
+        { Repository = "acme/repo"; Commit = "base-sha"; GraphHash = "base"; Nodes = [ baseNode ] }
+    let impact =
+        global.Program.buildImpactResult "base-sha"
+            { Sha = "head-sha"; Message = "head"; Author = "dev"; Email = "dev@example.com"; Timestamp = DateTime.UtcNow }
+            (Set [ "build" ]) (buildGraph [ node ]) baseGraph
+    impact.Impacts["app:build"] |> should equal "changed"

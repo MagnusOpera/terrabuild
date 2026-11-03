@@ -208,6 +208,70 @@ let private runPipelineWithCache (cache: Cache.ICache) options =
       CascadedGraph = cascadedGraph
       FinalGraph = finalGraph }
 
+[<Test>]
+let ``impact compares resolved hashes without marking unchanged projects and toolchains`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build { depends_on = [ target.^build ] }
+"""
+        writeFile workspace "toolchain/PROJECT" """
+project toolchain { @shell {} }
+target build { @shell echo { args = "toolchain" } }
+"""
+        for project in [ "webapp"; "api" ] do
+            writeFile workspace $"{project}/PROJECT" $"""
+project {project} {{ depends_on = [ project.toolchain ] @shell {{}} }}
+target build {{ @shell echo {{ args = "build" }} }}
+"""
+            writeFile workspace $"{project}/input.txt" "before"
+        let options = baseOptions workspace (Set [ "build" ])
+        let baseline = runPipelineWithCache (NoopCache() :> Cache.ICache) options
+        let baseNodes: Contracts.BuildGraphNode list =
+            baseline.ResolvedGraph.Nodes
+            |> Map.values
+            |> Seq.map (fun node ->
+                { Id = node.Id
+                  ProjectId = node.ProjectId
+                  ProjectName = node.ProjectName
+                  ProjectDir = node.ProjectDir
+                  Target = node.Target
+                  Phase = node.Phase
+                  ProjectHash = node.ProjectHash
+                  TargetHash = node.TargetHash
+                  Dependencies = node.Dependencies |> Set.toList
+                  PhaseDependencies = node.PhaseDependencies |> Set.toList
+                  Transformations = []
+                  TargetHashResolved = Some true
+                  Artifacts = "Workspace"
+                  Build = "Auto"
+                  Batch = "Single"
+                  Action = "Exec"
+                  Required = true
+                  IsBatchNode = false })
+            |> Seq.toList
+        writeFile workspace "api/PROJECT" """
+project api { depends_on = [ project.toolchain ] @shell {} }
+target build { @shell echo { args = "changed build" } }
+"""
+        let current = runPipelineWithCache (NoopCache() :> Cache.ICache) options
+        let toolchain = current.SourceGraph.Nodes |> Map.values |> Seq.find (fun node -> node.ProjectName = Some "toolchain")
+        toolchain.TargetHash |> should not' (equal current.ResolvedGraph.Nodes[toolchain.Id].TargetHash)
+        let prepared: global.Program.PreparedRunTarget =
+            { RunOptions = Unchecked.defaultof<_>
+              Options = current.Options
+              Configuration = current.Config
+              Cache = NoopCache() :> Cache.ICache
+              Api = None
+              FullGraph = current.FullGraph
+              SourceGraph = current.SourceGraph
+              ResolvedGraph = current.ResolvedGraph
+              Graph = current.FinalGraph }
+        let baselineGraph: Contracts.CommitGraph =
+            { Repository = "acme/repo"; Commit = "base-sha"; GraphHash = "baseline"; Nodes = baseNodes }
+        let impact = global.Program.buildPreparedImpactResult "base-sha" prepared baselineGraph
+        impact.Impacts |> should equal (Map [ "api:build", "changed" ]))
+
 let private actionDecision nodeId =
     DiagnosticsTelemetry.snapshot().Actions
     |> List.find (fun decision -> decision.NodeId = nodeId)

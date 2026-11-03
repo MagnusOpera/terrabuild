@@ -56,7 +56,7 @@ type ImpactResult = {
     Impacts: Map<string, string>
 }
 
-type private PreparedRunTarget = {
+type internal PreparedRunTarget = {
     RunOptions: RunTargetOptions
     Options: ConfigOptions.Options
     Configuration: Configuration.Workspace
@@ -170,7 +170,8 @@ let buildImpactResult (baseCommit: string) (headCommit: Contracts.Commit) (targe
                 |> Seq.map (fun node -> node.TargetHash)
                 |> Set.ofSeq
 
-            if baseNodes |> List.exists (fun node -> String.IsNullOrWhiteSpace(node.TargetHash)) then true
+            // Unresolved or legacy baselines cannot establish a comparable operation identity.
+            if baseNodes |> List.exists (fun node -> node.TargetHashResolved <> Some true || String.IsNullOrWhiteSpace(node.TargetHash)) then true
             else currentHashes <> baseHashes
 
     let reverseDependencies =
@@ -238,6 +239,10 @@ let writeRunResultFile (filePath: string) (graph: GraphDef.Graph) (summary: Runn
     buildRunResult graph summary
     |> Json.Serialize
     |> IO.writeTextFile filePath
+
+let internal buildPreparedImpactResult baseCommit (prepared: PreparedRunTarget) baseGraph =
+    // Compare the resolved logical graph published by Runner, before batching adds synthetic nodes.
+    buildImpactResult baseCommit prepared.Options.HeadCommit prepared.Options.Targets prepared.ResolvedGraph baseGraph
 
 let writeImpactResultFile (filePath: string) (impactResult: ImpactResult) =
     match Path.GetDirectoryName(filePath) with
@@ -559,7 +564,7 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | None -> raiseInvalidArg "impact requires a base commit."
 
         let baseGraph = getImpactBaseGraph api options baseCommit
-        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.SourceGraph baseGraph
+        let impactResult = buildPreparedImpactResult baseCommit prepared baseGraph
         match runOptions.RunResultFile with
         | Some filePath -> writeImpactResultFile filePath impactResult
         | None -> raiseInvalidArg "impact requires an output file."

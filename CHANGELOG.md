@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Prevent impact reports from marking unchanged projects and toolchains as changed when comparing resolved build graphs.
+
 ## [0.205.1]
 
 - Reduce configuration parsing and hashing allocations while preserving existing cache hashes.
