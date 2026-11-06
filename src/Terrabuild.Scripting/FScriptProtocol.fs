@@ -41,8 +41,7 @@ module FScriptProtocol =
         |> String.concat "\n"
 
     let registration (context: HostContext) =
-        let blocked = set ["Task.spawn"; "Task.await"; "Console.readLine"]
-        { protocol with Functions = context.DefaultFunctions |> List.filter (fun fn -> not (blocked.Contains fn.Name)) }
+        { protocol with Functions = context.DefaultFunctions }
 
 
 type FScriptProtocolProvider =

@@ -4,7 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Upgrade the embedded FScript language and runtime to 0.90.1.
 - Keep changelog spacing consistent during editing and release preparation.
+- Use FScript host permissions to allow sandboxed IO and joined tasks while denying interactive input and native extensions.
 
 ## [0.205.3]
 

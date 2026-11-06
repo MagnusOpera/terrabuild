@@ -42,7 +42,7 @@ The Terrabuild documentation explains the host protocol layered on top:
 - remaining parameters bind exact, case-sensitive target argument names
 - command handlers return `{ Batchable; Operations }`
 - the script's final value describes dispatch, defaults, and cacheability
-- Terrabuild supplies a restricted set of host functions and confines filesystem access to the workspace
+- Terrabuild grants IO and Threading permissions, denies interactive input and native FFI, and confines filesystem access to the workspace
 
 Start with [FScript Extensions](./script), then use [Protocol Types](./types) and [Host Functions](./functions) as references.
 

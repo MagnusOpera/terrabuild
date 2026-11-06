@@ -518,12 +518,13 @@ type ExportFlag =
         |> should throw typeof<FScript.Language.TypeException>)
 
 [<Test>]
-let fscriptRegistryExcludesTaskSpawnAndAwait() =
+let fscriptPermissionsAllowTaskSpawnAndAwait() =
     withTemporaryWorkspace (fun root ->
         let entryFile = Path.Combine(root, "TaskBlocked.fss")
         let source =
             """
 export let inspect (context: {| Command: string |}) =
+  let pending = Task.delay 5 |> Task.continueWith (fun () -> Fs.writeText "task-finished.txt" "done" |> ignore)
   Task.await (Task.spawn (fun () -> "ok"))
 
 type ExportFlag =
@@ -537,15 +538,12 @@ type ExportFlag =
 { [nameof inspect] = [Remote] }
 """
 
-        (fun () ->
-            Terrabuild.Scripting.loadScriptFromSourceWithIncludes
-                root
-                root
-                entryFile
-                source
-                (fun _ -> None)
-            |> ignore)
-        |> should throw typeof<FScript.Language.TypeException>)
+        let script = Terrabuild.Scripting.loadScriptFromSourceWithIncludes root root entryFile source (fun _ -> None)
+        let context: ActionContext =
+            { Debug = false; CI = false; Command = "inspect"; Hash = "test"; Directory = root; Batch = None }
+        let arguments = Value.Map (Map [ "context", Value.Object context ])
+        script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "ok"
+        File.ReadAllText(Path.Combine(root, "task-finished.txt")) |> should equal "done")
 
 type MapKeyResult = { Number: int }
 
@@ -642,9 +640,9 @@ export let inspect (context: {| Command: string |}) (items: Item map) =
         script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "kept")
 
 [<Test>]
-let sharedProtocolIsConstructibleAndKeepsExecutionRestrictions() =
+let sharedProtocolIsConstructibleAndUsesHostPermissions() =
     let root = Path.GetTempPath()
-    let context: FScript.Runtime.HostContext = { RootDirectory = root; DeniedPathGlobs = [] }
+    let context: FScript.Runtime.HostContext = { Permissions = FScript.Language.HostPermissions.IO ||| FScript.Language.HostPermissions.Threading; RootDirectory = root; DeniedPathGlobs = [] }
     let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
     let registration = Terrabuild.FScriptProtocol.registration (FScript.Extensibility.HostContext(root, [], defaults))
     registration.Types.Length |> should equal 6
@@ -652,10 +650,12 @@ let sharedProtocolIsConstructibleAndKeepsExecutionRestrictions() =
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Cache:of Protocol.Cacheability"
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Remote:nullary"
     registration.Types |> List.forall (fun descriptor -> not descriptor.HostManaged) |> should equal true
-    registration.Functions |> List.exists (fun fn -> Set.contains fn.Name (set ["Task.spawn"; "Task.await"; "Console.readLine"])) |> should equal false
+    registration.Functions |> List.exists (fun fn -> fn.Name = "Console.readLine") |> should equal false
+    for name in ["Task.spawn"; "Task.await"; "Task.delay"; "Task.continueWith"] do
+        registration.Functions |> List.exists (fun fn -> fn.Name = name) |> should equal true
     let mutable captured = ProjectInfo.Default
     let capture = FScript.Extensibility.HostFunctions.create registration "Host.capture" (fun (project: ProjectInfo) -> captured <- project)
-    let native = { registration with Functions = capture :: registration.Functions } |> FScript.Runtime.ExtensionBridge.toLanguageRegistration
+    let native = { registration with Functions = capture :: registration.Functions } |> FScript.Runtime.ExtensionBridge.toLanguageRegistrationWithPermissions FScript.Language.HostPermissions.All
     let loaded = FScript.Runtime.ScriptHost.loadSourceWithRegistration native """
 let mode = Protocol.DependencyResolution.Path
 let project = { Id = Some "sample"; DependencyResolution = Some mode; Outputs = ["bin"; "bin"]; Dependencies = [] }

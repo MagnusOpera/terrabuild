@@ -769,13 +769,14 @@ let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
 let private createFScriptRegistration (context: FScript.Runtime.HostContext) =
     let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
     FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, defaults))
-    |> FScript.Runtime.ExtensionBridge.toLanguageRegistration
+    |> FScript.Runtime.ExtensionBridge.toLanguageRegistrationWithPermissions context.Permissions
 
 let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: string list) =
     let fullRoot = Path.GetFullPath(rootDirectory)
     let deniedPathGlobs = normalizeDeniedPathGlobs deniedPathGlobs
     let context: FScript.Runtime.HostContext =
-        { RootDirectory = fullRoot
+        { Permissions = FScript.Language.HostPermissions.IO ||| FScript.Language.HostPermissions.Threading
+          RootDirectory = fullRoot
           DeniedPathGlobs = deniedPathGlobs }
     context
 
