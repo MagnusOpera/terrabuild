@@ -41,3 +41,5 @@ command shown under `batches` and `executions`.
 An explicit root that resolves to `exec` but is absent from the final schedule is
 an internal consistency error. `explain` reports it as a Terrabuild bug instead
 of presenting a contradictory `exec` and `not-required` combination.
+
+To compare the inputs and cache decisions of two saved runs, use [`terrabuild compare`](compare.md).

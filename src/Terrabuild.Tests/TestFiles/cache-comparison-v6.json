@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 6,
+  "run": {
+    "status": "success",
+    "completeness": "complete",
+    "terrabuildVersion": "0.206.0",
+    "workspace": "/workspace",
+    "targets": [
+      "build"
+    ],
+    "engine": "host",
+    "force": false,
+    "retry": false,
+    "localOnly": true,
+    "maxConcurrency": 1,
+    "variableNames": [],
+    "startedAt": "2026-01-01T00:00:00Z",
+    "endedAt": "2026-01-01T00:00:01Z",
+    "durationMs": 1000
+  },
+  "projects": [
+    {
+      "id": "workspace/path#app",
+      "name": "app",
+      "directory": "app",
+      "files": [
+        {
+          "path": "app/input.txt",
+          "hash": "file-a"
+        }
+      ],
+      "fileContentHash": "content-a",
+      "fileNameHash": "names-a",
+      "dependencies": [],
+      "dependenciesHash": "deps-a",
+      "projectHash": "project-a"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "workspace/path#app:build",
+      "projectId": "workspace/path#app",
+      "projectName": "app",
+      "projectDirectory": "app",
+      "target": "build",
+      "selected": true,
+      "dependencies": [],
+      "phaseDependencies": [],
+      "locks": [],
+      "outputs": [
+        "dist/"
+      ],
+      "artifacts": "managed",
+      "build": "auto",
+      "batchMode": "never",
+      "action": "restore",
+      "actionReason": "cache-hit",
+      "actionDependencies": [],
+      "required": false,
+      "requirementReason": "not-required",
+      "requiredBy": [],
+      "evaluationInputs": [],
+      "environmentSensitiveInputs": [],
+      "environmentSensitivityStatus": "neutral",
+      "resolvedOperations": [],
+      "fingerprint": {
+        "declaredTargetHash": "declared",
+        "operationHashes": [
+          "operation"
+        ],
+        "dependencyTargetHashes": [],
+        "phaseDependenciesExcludedFromHash": [],
+        "targetHash": "target-a",
+        "cacheKey": "project-a/build/target-a"
+      }
+    }
+  ],
+  "batches": [],
+  "results": [],
+  "executions": [],
+  "performance": {
+    "phases": [],
+    "configurationProjects": [],
+    "slowestPhases": [],
+    "slowestTasks": [],
+    "criticalChain": [],
+    "fScript": {
+      "scriptLoads": 0,
+      "scriptLoadMs": 0,
+      "scriptCacheHits": 0,
+      "invocations": 0,
+      "invocationMs": 0,
+      "scriptEvaluations": 0,
+      "scriptEvaluationMs": 0,
+      "toFScriptConversions": 0,
+      "toFScriptConversionMs": 0,
+      "fromFScriptConversions": 0,
+      "fromFScriptConversionMs": 0,
+      "methodResolutions": 0,
+      "methodResolutionMs": 0,
+      "functions": []
+    }
+  }
+}

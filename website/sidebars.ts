@@ -111,6 +111,7 @@ const sidebars: SidebarsConfig = {
         'workspace/phase',
         'usage/impact',
         'usage/explain',
+        'usage/compare',
       ],
     },
     {

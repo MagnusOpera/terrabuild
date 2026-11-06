@@ -14,6 +14,7 @@ SUBCOMMANDS:
     scaffold <options>    Scaffold workspace.
     logs <options>        dump logs.
     run <options>         Run specified targets.
+    compare <options>     Explain cache-key changes between two saved diagnostic reports.
     explain <options>     Explain target selection and execution decisions.
     impact <options>      Report impacted targets compared to a base commit.
     serve <options>       Serve specified targets.
@@ -27,6 +28,8 @@ SUBCOMMANDS:
 ```
 
 ## Command pages
+
+- [`compare`](compare.md): explain differences between saved runs.
 
 - [run](./run): build, restore, or report selected targets
 - [explain](./explain): inspect selection, cache, and scheduling decisions without executing targets

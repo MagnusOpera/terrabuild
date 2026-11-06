@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Explain cache-key changes across saved runs with offline `terrabuild compare`, including changed files, dependencies, operations, and evaluated inputs.
 - Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
 
 ## [0.206.0]
