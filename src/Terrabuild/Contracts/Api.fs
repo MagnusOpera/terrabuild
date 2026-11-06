@@ -33,6 +33,25 @@ type CommitGraph = {
 type ArtifactUnavailableException(path: string) =
     inherit Exception($"Insights has no finalized artifact for {path}.")
 
+[<RequireQualifiedAccess>]
+type ArtifactLocation = {
+    Path: string
+    Operation: string
+    Uri: string
+    Provider: string option
+    ExpiresAt: DateTime
+}
+
+[<RequireQualifiedAccess>]
+type ArtifactLookup = {
+    Entry: string
+    Found: bool
+    Locations: ArtifactLocation list
+}
+
+type IArtifactLookupApi =
+    abstract LookupArtifacts: entries:string list -> ArtifactLookup list option
+
 type IApiClient =
     abstract StartBuild: Unit -> Unit
     abstract UploadBuildGraph: graphHash:string -> environment:string -> nodes:BuildGraphNode list -> Unit

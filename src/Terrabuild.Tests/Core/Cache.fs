@@ -11,15 +11,29 @@ type private FakeStorage() =
     let uploads = ResizeArray<string>()
     let blobs = Collections.Generic.Dictionary<string, byte[]>()
     let mutable downloads = 0
+    let downloadPaths = ResizeArray<string>()
     let mutable failReads = false
     let mutable failUploads = false
 
     member _.Uploads = uploads |> Seq.toList
     member _.Downloads = downloads
+    member _.DownloadPaths = lock downloadPaths (fun () -> downloadPaths |> Seq.toList)
     member _.FailReads with get() = failReads and set value = failReads <- value
     member _.FailUploads with get() = failUploads and set value = failUploads <- value
     member _.Delete id = blobs.Remove(id) |> ignore
     member _.Corrupt id = blobs[id] <- [| 0uy; 1uy; 2uy |]
+    member _.CorruptMetadata id =
+        let document = System.Text.Json.Nodes.JsonNode.Parse(blobs[id]) |> Option.ofObj |> Option.get
+        let metadata = document["metadata"] |> Option.ofObj |> Option.get
+        metadata["data"] <- System.Text.Json.Nodes.JsonValue.Create("AAAA")
+        blobs[id] <- System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())
+    member _.RemoveSummaryReference id =
+        let document =
+            System.Text.Json.Nodes.JsonNode.Parse(blobs[id])
+            |> Option.ofObj
+            |> Option.defaultWith (fun () -> failwith "Expected a manifest object")
+        document.AsObject().Remove("metadata") |> ignore
+        blobs[id] <- System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())
 
     interface Contracts.IStorage with
         member _.Exists id =
@@ -29,7 +43,8 @@ type private FakeStorage() =
             if failReads then failwith "remote read unavailable"
             match blobs.TryGetValue(id) with
             | true, contents ->
-                downloads <- downloads + 1
+                System.Threading.Interlocked.Increment(&downloads) |> ignore
+                lock downloadPaths (fun () -> downloadPaths.Add(id))
                 let file = Path.GetTempFileName()
                 File.WriteAllBytes(file, contents)
                 Some file
@@ -154,11 +169,11 @@ let ``remote summary downloads become durable local entries`` () =
 
             let downloaded = Cache.Cache(storage, None) :> Cache.ICache
             (downloaded.TryGetSummaryOnly true id).Value |> snd |> _.Provenance |> shouldEqual original.Provenance
-            storage.Downloads |> should equal 2
+            storage.Downloads |> should equal 1
 
             let offline = Cache.Cache(storage, None) :> Cache.ICache
             (offline.TryGetSummaryOnly false id).Value |> snd |> _.Provenance |> shouldEqual original.Provenance
-            storage.Downloads |> should equal 2
+            storage.Downloads |> should equal 1
         ))
 
 [<Test>]
@@ -218,8 +233,7 @@ let ``corrupt remote generations are treated as cache misses`` () =
             let id = "project-hash/build/corrupt-generation"
             let producer = Cache.Cache(storage, None) :> Cache.ICache
             producer.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
-            let logsBlob = storage.Uploads |> List.find (fun path -> (path.Split('/')[3]).StartsWith("logs-"))
-            storage.Corrupt logsBlob
+            storage.CorruptMetadata (id + "/manifest")
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let consumer = Cache.Cache(storage, None) :> Cache.ICache
@@ -737,3 +751,94 @@ let ``prune preserves publication backups for entry recovery`` () =
         let result = Cache.pruneCacheEntries (Path.Combine(root, ".terrabuild", "cache")) (DateTime.UtcNow.AddDays(-7.0))
         result.Pruned |> shouldEqual 0
         Directory.Exists(backup) |> shouldEqual true)
+
+[<Test>]
+let ``encrypted summary lookup does not download operation logs or outputs`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/metadata-only"
+            let key = Some (Array.init 32 byte)
+            let producer = Cache.Cache(storage, key) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            let log = entry.NextLogFile()
+            File.WriteAllText(log, String.replicate 10000 "operation output\n")
+            entry.Complete(summary None) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, key) :> Cache.ICache
+            let found = consumer.TryGetSummaryOnly true id
+            found.IsSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal false
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/outputs-")) |> should equal false
+            storage.Downloads |> should equal 1
+            consumer.TryGetSummary true id |> Option.isSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal true
+            consumer.TryGetSummary false id |> Option.isSome |> should equal true
+        ))
+
+[<Test>]
+let ``incorrect master key cannot reuse encrypted summary metadata`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/encrypted-metadata"
+            let producer = Cache.Cache(storage, Some (Array.init 32 byte)) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            entry.Complete(summary None) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, Some (Array.create 32 99uy)) :> Cache.ICache
+            consumer.TryGetSummaryOnly true id |> shouldEqual None
+        ))
+
+
+[<Test>]
+let ``legacy generation manifests without summary metadata still download logs`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/legacy-generation"
+            let producer = Cache.Cache(storage, None) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            entry.Complete(summary None) |> ignore
+            storage.RemoveSummaryReference (id + "/manifest")
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, None) :> Cache.ICache
+            consumer.TryGetSummaryOnly true id |> Option.isSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal true
+        ))
+
+
+[<Test>]
+let ``metadata prefetch overlaps independent reads and keeps concurrency bounded`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let underlying = FakeStorage()
+            let ids = [ for index in 1..12 -> $"project-{index}/build/hash" ]
+            let producer = Cache.Cache(underlying, None) :> Cache.ICache
+            for id in ids do
+                use entry = producer.GetEntry true id
+                entry.Complete(summary None) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let gate = obj()
+            let mutable active = 0
+            let mutable peak = 0
+            let storage =
+                { new Contracts.IStorage with
+                    member _.Name = "delayed"
+                    member _.Upload id file = (underlying :> Contracts.IStorage).Upload id file
+                    member _.Exists id = (underlying :> Contracts.IStorage).Exists id
+                    member _.TryDownload id =
+                        lock gate (fun () -> active <- active + 1; peak <- max peak active)
+                        try
+                            System.Threading.Thread.Sleep(30)
+                            (underlying :> Contracts.IStorage).TryDownload id
+                        finally lock gate (fun () -> active <- active - 1) }
+            let consumer = Cache.Cache(storage, None)
+            (consumer :> Cache.ICacheLookup).PrepareReads ids
+            Assert.That(peak, Is.GreaterThan(1))
+            Assert.That(peak, Is.LessThanOrEqualTo(8))
+            let downloaded = underlying.Downloads
+            for id in ids do
+                (consumer :> Cache.ICache).TryGetSummaryOnly true id |> Option.isSome |> should equal true
+            underlying.Downloads |> should equal downloaded
+        ))
