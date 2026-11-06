@@ -605,3 +605,58 @@ let ``impact ignores synthetic batches and unnamed projects on both sides`` () =
                     (Set [ "build" ]) current
                     { Repository = "repo"; Commit = "base"; GraphHash = "graph"; Nodes = [] }
     result.Impacts |> should equal Map.empty<string, string>
+
+
+[<Test>]
+let ``CLI accepts explicit cached output restoration`` () =
+    let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
+    let result = parser.ParseCommandLine([| "run"; "test"; "--restore"; "--project"; "api" |], raiseOnUsage = true)
+    result.GetResult(TerrabuildArgs.Run).Contains(RunArgs.Restore) |> should equal true
+
+[<Test>]
+let ``run restore materializes cached reports without executing tests or restoring build prerequisites`` () =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Fixture uses a POSIX shell")
+    withTempDir (fun root ->
+        let app = Path.Combine(root, "app")
+        let home = Path.Combine(root, "home")
+        Directory.CreateDirectory(app) |> ignore
+        File.WriteAllText(Path.Combine(root, "WORKSPACE"), "workspace { engine = ~host }\ntarget build { }\ntarget test { }\n")
+        File.WriteAllText(Path.Combine(app, "PROJECT"), """
+project fixture { }
+target build {
+    artifacts = ~managed
+    outputs = [ "bin/" ]
+    @shell sh { args = "build.sh" }
+}
+target test {
+    artifacts = ~managed
+    outputs = [ "TestResults/" ]
+    depends_on = [ target.build ]
+    @shell sh { args = "test.sh" }
+}
+        """)
+        File.WriteAllText(Path.Combine(app, "build.sh"), "mkdir -p bin\nprintf tool > bin/tool\nprintf build >> ../build-count\n")
+        File.WriteAllText(Path.Combine(app, "test.sh"), "test -f bin/tool || exit 9\nmkdir -p TestResults\nprintf report > TestResults/result.xml\nprintf test >> ../test-count\n")
+        for args in [ "init -q"; "add WORKSPACE app"; "-c user.name=Test -c user.email=test@example.com commit -qm fixture" ] do
+            match Exec.execCaptureOutput root "git" args Map.empty with
+            | Exec.Success _ -> ()
+            | Exec.Error (message, _) -> Assert.Fail(message)
+        let binary = typeof<CLI.RunArgs>.Assembly.Location
+        let run flags =
+            match Exec.execCaptureOutput root "dotnet" ($"\"{binary}\" run test --project fixture --local-only {flags}") (Map [ "HOME", home ]) with
+            | Exec.Success _ -> ()
+            | Exec.Error (message, code) -> Assert.Fail($"CLI failed ({code}): {message}")
+        run ""
+        Directory.Delete(Path.Combine(app, "TestResults"), true)
+        Directory.Delete(Path.Combine(app, "bin"), true)
+        run ""
+        File.Exists(Path.Combine(app, "TestResults/result.xml")) |> should equal false
+        run "--restore"
+        File.ReadAllText(Path.Combine(app, "TestResults/result.xml")) |> should equal "report"
+        File.Exists(Path.Combine(app, "bin/tool")) |> should equal false
+        File.ReadAllText(Path.Combine(root, "test-count")) |> should equal "test"
+        File.ReadAllText(Path.Combine(root, "build-count")) |> should equal "build"
+        File.AppendAllText(Path.Combine(app, "test.sh"), "\n# change test inputs\n")
+        run "--restore"
+        File.ReadAllText(Path.Combine(root, "test-count")) |> should equal "testtest"
+    )

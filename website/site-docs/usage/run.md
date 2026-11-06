@@ -9,7 +9,7 @@ USAGE: terrabuild run [--help] [--workspace <path>] [--out <path>]
                       [--configuration <name>] [--environment <name>]
                       [--variable <variable>=<value>] [--label [<labels>...]]
                       [--type [<types>...]] [--project [<projects>...]]
-                      [--force] [--retry] [--parallel <max>] [--local-only]
+                      [--force] [--retry] [--restore] [--parallel <max>] [--local-only]
                       [--note <note>] [--group <group>] [--tag <tag>]
                       [--engine <engine>]
                       [--dry-run] <target>...
@@ -68,3 +68,16 @@ terrabuild run build --dry-run
 ```
 
 In `--dry-run` mode Terrabuild does not invoke the runner, so no run result file is written.
+
+
+## Restore selected cached outputs
+
+Use `--restore` when a later CI step needs files from a cached target:
+
+```bash
+terrabuild run test --project api_tests web_tests --restore
+```
+
+Cached managed or workspace targets selected by the requested target names and project filters remain restoration roots. Their declared outputs, such as TRX and JUnit reports, are materialized without rerunning successful checks. Explicitly requesting several targets restores each selected cached target, even when one is also another target's dependency. Cached roots remain dependency barriers, so their build-time prerequisites are not restored merely to collect reports. External artifacts are not downloaded into the checkout.
+
+Cache misses and failures retain normal `run` semantics, including `--retry`, and `--dry-run` only previews the graph. `--restore` changes output materialization, not cache keys. File replacement uses the same transactional restoration and target locks as ordinary dependency restoration. Without this option, existing lazy restoration behavior is unchanged.

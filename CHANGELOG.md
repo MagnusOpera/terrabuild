@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Restore cached outputs of explicitly selected targets with `terrabuild run --restore`, including test reports on fresh CI runners.
 - Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
 
 ## [0.206.0]

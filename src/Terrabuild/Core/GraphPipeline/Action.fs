@@ -139,3 +139,17 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
             Graph.Nodes = nodes
             Graph.RootNodes = rootNodes }
     graph
+
+
+/// Keep explicitly requested cache hits as realization roots without expanding their build-time dependencies.
+let restoreSelectedOutputs (projects: Set<string>) (targets: Set<string>) (graph: Graph) =
+    let selected =
+        graph.Nodes.Values
+        |> Seq.filter (fun node ->
+            projects.Contains node.ProjectId && targets.Contains node.Target &&
+            node.Action = RunAction.Restore &&
+            (node.Artifacts = ArtifactMode.Managed || node.Artifacts = ArtifactMode.Workspace))
+        |> Seq.map _.Id
+        |> Set.ofSeq
+    let nodes = graph.Nodes |> Map.map (fun id node -> if selected.Contains id then { node with Required = true } else node)
+    { graph with Nodes = nodes; RootNodes = graph.RootNodes + selected }
