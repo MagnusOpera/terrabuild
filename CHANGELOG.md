@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Fix the default production Insights API hostname after the Cloudflare migration.
+
 ## [0.205.2]
 
 - Compare resolved target hashes for branch impact and report added and removed targets.

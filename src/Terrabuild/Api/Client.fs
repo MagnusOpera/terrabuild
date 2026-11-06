@@ -4,6 +4,12 @@ open FSharp.Data
 open Collections
 open Contracts
 
+module internal Endpoint =
+    let resolve configuredUrl =
+        configuredUrl
+        |> Option.defaultValue "https://api.magnusopera.io/terrabuild"
+        |> Uri
+
 
 module private Http =
     open Serilog
@@ -13,8 +19,9 @@ module private Http =
 
 
     let apiUrl =
-        let baseUrl = DotNetEnv.Env.GetString("TERRABUILD_API_URL", "https://api.prod.magnusopera.io/terrabuild")
-        Uri(baseUrl)
+        Environment.GetEnvironmentVariable("TERRABUILD_API_URL")
+        |> Option.ofObj
+        |> Endpoint.resolve
 
     let insecureSSL =
         match DotNetEnv.Env.GetString("TERRABUILD_API_INSECURE_SSL", "") with
