@@ -83,3 +83,99 @@ let BenchmarkOutputEnumerationAgainstSnapshots () =
             | null | "" -> [ "**/*" ]
             | value -> value.Split(';') |> Array.toList
         benchmark root patterns
+
+[<Test>]
+let ``copy keeps symbolic file links instead of dereferencing them`` () =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Requires POSIX symbolic-link creation")
+    withOutputDirectory (fun root ->
+        let source = Path.Combine(root, "source")
+        let copied = Path.Combine(root, "copied")
+        Directory.CreateDirectory(source) |> ignore
+        File.WriteAllText(Path.Combine(source, "target.js"), "launcher")
+        File.CreateSymbolicLink(Path.Combine(source, "tool"), "target.js") |> ignore
+        File.CreateSymbolicLink(Path.Combine(source, "missing"), "not-created.js") |> ignore
+        IO.copyFiles copied source [ Path.Combine(source, "target.js"); Path.Combine(source, "tool"); Path.Combine(source, "missing") ] |> ignore
+        Assert.That(String.Equals(FileInfo(Path.Combine(copied, "tool")).LinkTarget, "target.js", StringComparison.Ordinal), Is.True)
+        File.ReadAllText(Path.Combine(copied, "tool")) |> should equal "launcher"
+        Assert.That(String.Equals(FileInfo(Path.Combine(copied, "missing")).LinkTarget, "not-created.js", StringComparison.Ordinal), Is.True))
+
+[<Test>]
+let ``copy replaces destination links without writing through them`` () =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Requires POSIX symbolic-link creation")
+    withOutputDirectory (fun root ->
+        let source = Path.Combine(root, "source")
+        let copied = Path.Combine(root, "copied")
+        Directory.CreateDirectory(source) |> ignore
+        Directory.CreateDirectory(copied) |> ignore
+        let outside = Path.Combine(root, "untouched.txt")
+        File.WriteAllText(outside, "untouched")
+        File.WriteAllText(Path.Combine(source, "output.txt"), "new output")
+        File.CreateSymbolicLink(Path.Combine(copied, "output.txt"), outside) |> ignore
+        IO.copyFiles copied source [ Path.Combine(source, "output.txt") ] |> ignore
+        File.ReadAllText(outside) |> should equal "untouched"
+        File.ReadAllText(Path.Combine(copied, "output.txt")) |> should equal "new output"
+        Assert.That(isNull (FileInfo(Path.Combine(copied, "output.txt")).LinkTarget), Is.True))
+
+[<TestCase("/outside")>]
+[<TestCase("../../../outside")>]
+let ``tar rejects symbolic links outside its extraction directory`` linkTarget =
+    withOutputDirectory (fun root ->
+        let archive = Path.Combine(root, "archive.tar")
+        do
+            use stream = File.Create(archive)
+            use writer = new System.Formats.Tar.TarWriter(stream)
+            let entry = System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.SymbolicLink, "node_modules/.bin/tool")
+            entry.LinkName <- linkTarget
+            writer.WriteEntry(entry)
+        (fun () -> Compression.untar (Path.Combine(root, "output")) archive)
+        |> should throw typeof<ArgumentException>)
+
+[<Test>]
+let ``tar refuses to write through existing symbolic-link parents`` () =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Requires POSIX symbolic-link creation")
+    withOutputDirectory (fun root ->
+        let output = Path.Combine(root, "output")
+        let outside = Path.Combine(root, "outside")
+        Directory.CreateDirectory(output) |> ignore
+        Directory.CreateDirectory(outside) |> ignore
+        Directory.CreateSymbolicLink(Path.Combine(output, "linked"), outside) |> ignore
+        let archive = Path.Combine(root, "archive.tar")
+        do
+            use stream = File.Create(archive)
+            use writer = new System.Formats.Tar.TarWriter(stream)
+            use content = new MemoryStream([| 42uy |])
+            let entry = System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.RegularFile, "linked/file.txt")
+            entry.DataStream <- content
+            writer.WriteEntry(entry)
+        (fun () -> Compression.untar output archive) |> should throw typeof<ArgumentException>
+        File.Exists(Path.Combine(outside, "file.txt")) |> should equal false)
+
+[<Test>]
+let ``tar round trip keeps relative symbolic file links`` () =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Requires POSIX symbolic-link creation")
+    withOutputDirectory (fun root ->
+        let source = Path.Combine(root, "source")
+        let output = Path.Combine(root, "output")
+        Directory.CreateDirectory(source) |> ignore
+        File.WriteAllText(Path.Combine(source, "target.js"), "launcher")
+        File.CreateSymbolicLink(Path.Combine(source, "tool"), "target.js") |> ignore
+        let archive = Compression.tar source
+        try
+            Compression.untar (output + string Path.DirectorySeparatorChar) archive
+            Assert.That(String.Equals(FileInfo(Path.Combine(output, "tool")).LinkTarget, "target.js", StringComparison.Ordinal), Is.True)
+            File.ReadAllText(Path.Combine(output, "tool")) |> should equal "launcher"
+        finally File.Delete(archive))
+
+[<Test>]
+let ``tar refuses directory aliases before cache publication`` () =
+    withOutputDirectory (fun root ->
+        let archive = Path.Combine(root, "archive.tar")
+        do
+            use stream = File.Create(archive)
+            use writer = new System.Formats.Tar.TarWriter(stream)
+            writer.WriteEntry(System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.Directory, "package"))
+            let entry = System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.SymbolicLink, "alias")
+            entry.LinkName <- "package"
+            writer.WriteEntry(entry)
+        (fun () -> Compression.untar (Path.Combine(root, "output")) archive)
+        |> should throw typeof<ArgumentException>)

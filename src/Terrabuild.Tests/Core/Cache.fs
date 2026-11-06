@@ -842,3 +842,31 @@ let ``metadata prefetch overlaps independent reads and keeps concurrency bounded
                 (consumer :> Cache.ICache).TryGetSummaryOnly true id |> Option.isSome |> should equal true
             underlying.Downloads |> should equal downloaded
         ))
+
+[<TestCase(false)>]
+[<TestCase(true)>]
+let ``restored npm launchers retain relative symbolic links`` remote =
+    if OperatingSystem.IsWindows() then Assert.Ignore("Requires POSIX symbolic-link creation")
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let source = Path.Combine(root, "source")
+            let bin = Path.Combine(source, "node_modules", ".bin")
+            let package = Path.Combine(source, "node_modules", "package")
+            Directory.CreateDirectory(bin) |> ignore
+            Directory.CreateDirectory(package) |> ignore
+            File.WriteAllText(Path.Combine(package, "launcher.js"), "launcher")
+            File.CreateSymbolicLink(Path.Combine(bin, "tool"), "../package/launcher.js") |> ignore
+            let storage = FakeStorage()
+            let cache = Cache.Cache(storage, None) :> Cache.ICache
+            let id = "project-hash/install/symlinks"
+            let entry = cache.GetEntry remote id
+            entry.StoreOutputs source (IO.enumerateOutputFiles [ "node_modules/**" ] source) |> ignore
+            entry.Complete(summary (Some "outputs")) |> ignore
+            if remote then
+                Directory.Delete(Path.Combine(root, ".terrabuild", "cache", id), true)
+            let project = Path.Combine(root, "project")
+            Directory.CreateDirectory(project) |> ignore
+            cache.Restore remote id (Set [ "node_modules/**" ]) project |> shouldNotEqual None
+            let launcher = Path.Combine(project, "node_modules", ".bin", "tool")
+            Assert.That(String.Equals(FileInfo(launcher).LinkTarget, "../package/launcher.js", StringComparison.Ordinal), Is.True)
+            File.ReadAllText(launcher) |> should equal "launcher"))
