@@ -18,10 +18,17 @@ type private ArtifactLocationOutput =
       Provider: string option }
 
 
-type private FakeApiClient(provider: string option, ?locationError: exn) =
+type private FakeApiClient(provider: string option, ?locationError: exn, ?lookup: string list -> ArtifactLookup list option) =
     let calls = ResizeArray<string * string>()
 
+    let lookupCalls = ResizeArray<string list>()
     member _.Calls = calls |> Seq.toList
+    member _.LookupCalls = lookupCalls |> Seq.toList
+
+    interface IArtifactLookupApi with
+        member _.LookupArtifacts entries =
+            lookupCalls.Add(entries)
+            lookup |> Option.bind (fun handler -> handler entries)
 
     interface IApiClient with
         member _.StartBuild() = ()
@@ -215,3 +222,62 @@ let ``artifact location authorization failures are not cache misses`` () =
     let storage = Storages.Factory.RemoteStorage(api) :> IStorage
     Assert.Throws<TerrabuildException>(Action(fun () -> storage.Exists "artifact" |> ignore)) |> ignore
     Assert.Throws<TerrabuildException>(Action(fun () -> storage.TryDownload "artifact" |> ignore)) |> ignore
+
+
+[<Test>]
+let ``batch read authorization reuses locations and avoids single artifact API calls`` () =
+    let entry = "project/build/hash"
+    let lookup (entries: string list) : ArtifactLookup list option =
+        entries |> List.map (fun id ->
+            { ArtifactLookup.Entry = id
+              ArtifactLookup.Found = true
+              ArtifactLookup.Locations =
+                [ for operation in [ "get"; "head" ] ->
+                    { ArtifactLocation.Path = id + "/manifest"
+                      Operation = operation
+                      Uri = "https://storage.example/manifest"
+                      Provider = Some "r2"
+                      ExpiresAt = DateTime.UtcNow.AddMinutes(2.0) } ] }) |> Some
+    let api = FakeApiClient(Some "r2", lookup = lookup)
+    let backend = RecordingBackend()
+    let storage = Storages.Factory.RemoteStorage(api, cloudflareBackend = backend)
+    (storage :> IBatchStorage).PrepareReads [ entry; entry ]
+    (storage :> IStorage).TryDownload (entry + "/manifest") |> shouldEqual (Some "download")
+    (storage :> IStorage).Exists (entry + "/manifest") |> should equal true
+    api.LookupCalls |> should equal [ [ entry ] ]
+    api.Calls |> should be Empty
+    backend.Calls.Length |> should equal 2
+
+[<Test>]
+let ``batch misses avoid individual authorization and expired locations fall back`` () =
+    let missing = "missing/build/hash"
+    let expired = "expired/build/hash"
+    let api = FakeApiClient(Some "r2", lookup = fun _ -> Some [
+        { ArtifactLookup.Entry = missing; Found = false; Locations = [] }
+        { ArtifactLookup.Entry = expired; Found = true; Locations = [
+            { ArtifactLocation.Path = expired + "/manifest"; Operation = "get"
+              Uri = "https://storage.example/expired"; Provider = Some "r2"
+              ExpiresAt = DateTime.UtcNow.AddSeconds(-1.0) } ] } ])
+    let storage = Storages.Factory.RemoteStorage(api, cloudflareBackend = RecordingBackend())
+    (storage :> IBatchStorage).PrepareReads [ missing; expired ]
+    (storage :> IStorage).TryDownload (missing + "/manifest") |> shouldEqual None
+    (storage :> IStorage).TryDownload (expired + "/manifest") |> shouldEqual (Some "download")
+    api.Calls |> should equal [ expired + "/manifest", "get" ]
+    (storage :> IStorage).Upload (missing + "/manifest") "source"
+    (storage :> IStorage).TryDownload (missing + "/manifest") |> shouldEqual (Some "download")
+
+[<Test>]
+let ``unsupported batch endpoint falls back and is not retried for every chunk`` () =
+    let api = FakeApiClient(None)
+    let storage = Storages.Factory.RemoteStorage(api, azureBackend = RecordingBackend())
+    (storage :> IBatchStorage).PrepareReads [ for index in 1..130 -> $"project/build/{index}" ]
+    api.LookupCalls.Length |> should equal 1
+    (storage :> IStorage).TryDownload "project/build/1/manifest" |> shouldEqual (Some "download")
+    api.Calls |> should equal [ "project/build/1/manifest", "get" ]
+
+[<Test>]
+let ``batch lookup requests are bounded`` () =
+    let api = FakeApiClient(None, lookup = fun _ -> Some [])
+    let storage = Storages.Factory.RemoteStorage(api)
+    (storage :> IBatchStorage).PrepareReads [ for index in 1..130 -> $"project/build/{index}" ]
+    api.LookupCalls |> List.map List.length |> should equal [ 64; 64; 2 ]

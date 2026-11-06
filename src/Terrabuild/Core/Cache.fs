@@ -69,6 +69,7 @@ type private RemoteManifest = {
     Generation: string
     Logs: RemoteBlob
     Outputs: RemoteBlob option
+    Summary: RemoteBlob option
 }
 
 [<RequireQualifiedAccess>]
@@ -97,6 +98,9 @@ type IEntry =
     abstract StoreOutputs: sourceDir:string -> entries:string list -> OutputState
     abstract StoreLogs: entries:string list -> unit
     abstract Complete: summary:TargetSummary -> string list
+
+type ICacheLookup =
+    abstract PrepareReads: entries:string list -> unit
 
 type ICache =
     abstract TryGetSummaryOnly: useRemote:bool -> id:string -> (Origin * TargetSummary) option
@@ -663,15 +667,23 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                             else
                                 None
                         let logs = uploadBlob logsDir $"{id}/{logsFilename}"
+                        let summaryFilename = $"summary-{generation}"
+                        let summaryDir = FS.combinePath stagingDir "metadata"
+                        IO.createDirectory summaryDir
+                        File.Copy(FS.combinePath logsDir "summary.json", FS.combinePath summaryDir "summary.json")
+                        let metadata = uploadBlob summaryDir $"{id}/{summaryFilename}"
+                        IO.deleteAny summaryDir
                         let manifest : RemoteManifest =
                             { RemoteManifest.Version = 1
                               RemoteManifest.Generation = generation
                               RemoteManifest.Logs = logs
-                              RemoteManifest.Outputs = outputs }
+                              RemoteManifest.Outputs = outputs
+                              RemoteManifest.Summary = Some metadata }
                         manifest |> Json.Serialize |> IO.writeTextFile manifestFile
                         storage.Upload $"{id}/manifest" manifestFile
                         [ if outputs.IsSome then yield outputsFilename
                           yield logsFilename
+                          yield summaryFilename
                           yield "manifest" ]
                     with exn ->
                         IO.deleteAny manifestFile
@@ -690,6 +702,7 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
 
 
 type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
+    let manifests = System.Collections.Concurrent.ConcurrentDictionary<string, RemoteManifest>()
 
     let tryRemoteDownload path =
         try storage.TryDownload path
@@ -752,7 +765,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 IO.deleteAny file
         | _ -> false
 
-    let tryReadRemoteManifest (id: string) =
+    let downloadRemoteManifest (id: string) =
         match tryRemoteDownload $"{id}/manifest" with
         | None -> RemoteManifestResult.Missing
         | Some file ->
@@ -769,6 +782,16 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                     RemoteManifestResult.Invalid
             finally
                 IO.deleteAny file
+
+    let tryReadRemoteManifest id =
+        match manifests.TryGetValue(id) with
+        | true, manifest -> RemoteManifestResult.Found manifest
+        | _ ->
+            let result = downloadRemoteManifest id
+            match result with
+            | RemoteManifestResult.Found manifest -> manifests[id] <- manifest
+            | _ -> ()
+            result
 
     let tryLoadLocalRemoteManifest (entryDir: string) =
         let file = FS.combinePath entryDir remoteManifestFilename
@@ -868,6 +891,27 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             releaseStagingLease ()
             if Directory.Exists stagingDir then IO.deleteAny stagingDir
 
+    let tryDownloadSummary id entryDir =
+        match tryReadRemoteManifest id with
+        | RemoteManifestResult.Found ({ Summary = Some blob } as manifest) ->
+            let stagingDir = createStagingDirectory entryDir
+            use lease = acquireStagingLease stagingDir
+            try
+                if tryDownloadBlob (FS.combinePath stagingDir "logs") id blob && (tryLoadSummary stagingDir).IsSome then
+                    manifest |> Json.Serialize |> IO.writeTextFile (FS.combinePath stagingDir remoteManifestFilename)
+                    IO.writeTextFile (FS.combinePath stagingDir "summary-only") ""
+                    stagingDir |> setOrigin Origin.Remote
+                    lease.Dispose()
+                    IO.deleteAny (FS.combinePath stagingDir stagingLeaseFilename)
+                    replaceDirectory entryDir stagingDir
+                    tryLoadCompleteEntry entryDir
+                else None
+            finally
+                lease.Dispose()
+                if Directory.Exists stagingDir then IO.deleteAny stagingDir
+        | RemoteManifestResult.Invalid -> None
+        | _ -> downloadEntry id false entryDir
+
     let getSummaryOnly useRemote (id: string) =
         let entryDir = FS.combinePath (createCache()) id
         withEntryLock entryDir (fun () ->
@@ -876,8 +920,17 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
             | Some originSummary ->
                 touchOrigin entryDir
                 Some originSummary
-            | None when useRemote -> downloadEntry id false entryDir
+            | None when useRemote -> tryDownloadSummary id entryDir
             | None -> None)
+
+    interface ICacheLookup with
+        member _.PrepareReads entries =
+            match storage with
+            | :? Contracts.IBatchStorage as batch ->
+                entries
+                |> List.filter (fun id -> not (File.Exists(FS.combinePath (FS.combinePath (createCache()) id) originFilename)))
+                |> batch.PrepareReads
+            | _ -> ()
 
     interface ICache with
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id
@@ -906,7 +959,13 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                 else false
 
         member _.TryGetSummary useRemote id =
-            getSummaryOnly useRemote id |> Option.map snd
+            let entryDir = FS.combinePath (createCache()) id
+            withEntryLock entryDir (fun () ->
+                recoverReplacedDirectory entryDir
+                match tryLoadCompleteEntry entryDir with
+                | Some (_, summary) when not (File.Exists(FS.combinePath entryDir "summary-only")) -> Some summary
+                | _ when useRemote -> downloadEntry id false entryDir |> Option.map snd
+                | _ -> None)
 
         member _.Restore useRemote id outputs projectDirectory =
             let entryDir = FS.combinePath (createCache()) id

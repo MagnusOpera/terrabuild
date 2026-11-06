@@ -11,15 +11,24 @@ type private FakeStorage() =
     let uploads = ResizeArray<string>()
     let blobs = Collections.Generic.Dictionary<string, byte[]>()
     let mutable downloads = 0
+    let downloadPaths = ResizeArray<string>()
     let mutable failReads = false
     let mutable failUploads = false
 
     member _.Uploads = uploads |> Seq.toList
     member _.Downloads = downloads
+    member _.DownloadPaths = downloadPaths |> Seq.toList
     member _.FailReads with get() = failReads and set value = failReads <- value
     member _.FailUploads with get() = failUploads and set value = failUploads <- value
     member _.Delete id = blobs.Remove(id) |> ignore
     member _.Corrupt id = blobs[id] <- [| 0uy; 1uy; 2uy |]
+    member _.RemoveSummaryReference id =
+        let document =
+            System.Text.Json.Nodes.JsonNode.Parse(blobs[id])
+            |> Option.ofObj
+            |> Option.defaultWith (fun () -> failwith "Expected a manifest object")
+        document.AsObject().Remove("summary") |> ignore
+        blobs[id] <- System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())
 
     interface Contracts.IStorage with
         member _.Exists id =
@@ -30,6 +39,7 @@ type private FakeStorage() =
             match blobs.TryGetValue(id) with
             | true, contents ->
                 downloads <- downloads + 1
+                downloadPaths.Add(id)
                 let file = Path.GetTempFileName()
                 File.WriteAllBytes(file, contents)
                 Some file
@@ -88,13 +98,12 @@ let ``cache completion returns logs when outputs do not exist`` () =
 
         let files = entry.Complete(summary None)
 
-        files.Length |> should equal 2
-        files.Head.StartsWith("logs-") |> should equal true
-        files.Tail |> should equal [ "manifest" ]
-        storage.Uploads.Length |> should equal 2
-        storage.Uploads.Head.StartsWith("project-hash/build/target-hash/logs-") |> should equal true
-        storage.Uploads.Head.Split('/').Length |> should equal 4
-        storage.Uploads.Tail |> should equal [ "project-hash/build/target-hash/manifest" ])
+        files.Length |> should equal 3
+        files[0].StartsWith("logs-") |> should equal true
+        files[1].StartsWith("summary-") |> should equal true
+        files[2] |> should equal "manifest"
+        storage.Uploads.Length |> should equal 3
+        storage.Uploads |> List.forall (fun path -> path.Split('/').Length = 4) |> should equal true)
 
 [<Test>]
 let ``cache completion reports flat generation filenames for Insights`` () =
@@ -110,16 +119,17 @@ let ``cache completion reports flat generation filenames for Insights`` () =
 
         let files = entry.Complete(summary (Some "outputs"))
 
-        files.Length |> should equal 3
+        files.Length |> should equal 4
         files[0].StartsWith("outputs-") |> should equal true
         files[1].StartsWith("logs-") |> should equal true
-        files[2] |> should equal "manifest"
-        storage.Uploads.Length |> should equal 3
+        files[2].StartsWith("summary-") |> should equal true
+        files[3] |> should equal "manifest"
+        storage.Uploads.Length |> should equal 4
         storage.Uploads[0].StartsWith("project-hash/build/target-hash/outputs-") |> should equal true
         storage.Uploads[0].Split('/').Length |> should equal 4
         storage.Uploads[1].StartsWith("project-hash/build/target-hash/logs-") |> should equal true
         storage.Uploads[1].Split('/').Length |> should equal 4
-        storage.Uploads[2] |> should equal "project-hash/build/target-hash/manifest")
+        storage.Uploads[3] |> should equal "project-hash/build/target-hash/manifest")
 
 [<Test>]
 let ``cache completion records an empty output snapshot when outputs are not materialized`` () =
@@ -218,8 +228,8 @@ let ``corrupt remote generations are treated as cache misses`` () =
             let id = "project-hash/build/corrupt-generation"
             let producer = Cache.Cache(storage, None) :> Cache.ICache
             producer.GetEntry true id |> fun entry -> entry.Complete(summary None) |> ignore
-            let logsBlob = storage.Uploads |> List.find (fun path -> (path.Split('/')[3]).StartsWith("logs-"))
-            storage.Corrupt logsBlob
+            let summaryBlob = storage.Uploads |> List.find (fun path -> (path.Split('/')[3]).StartsWith("summary-"))
+            storage.Corrupt summaryBlob
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
 
             let consumer = Cache.Cache(storage, None) :> Cache.ICache
@@ -737,3 +747,58 @@ let ``prune preserves publication backups for entry recovery`` () =
         let result = Cache.pruneCacheEntries (Path.Combine(root, ".terrabuild", "cache")) (DateTime.UtcNow.AddDays(-7.0))
         result.Pruned |> shouldEqual 0
         Directory.Exists(backup) |> shouldEqual true)
+
+[<Test>]
+let ``encrypted summary lookup does not download operation logs or outputs`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/metadata-only"
+            let key = Some (Array.init 32 byte)
+            let producer = Cache.Cache(storage, key) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            let log = entry.NextLogFile()
+            File.WriteAllText(log, String.replicate 10000 "operation output\n")
+            entry.Complete(summary None) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, key) :> Cache.ICache
+            let found = consumer.TryGetSummaryOnly true id
+            found.IsSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal false
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/outputs-")) |> should equal false
+            storage.Downloads |> should equal 2
+            consumer.TryGetSummary true id |> Option.isSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal true
+            consumer.TryGetSummary false id |> Option.isSome |> should equal true
+        ))
+
+[<Test>]
+let ``incorrect master key cannot reuse encrypted summary metadata`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/encrypted-metadata"
+            let producer = Cache.Cache(storage, Some (Array.init 32 byte)) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            entry.Complete(summary None) |> ignore
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, Some (Array.create 32 99uy)) :> Cache.ICache
+            consumer.TryGetSummaryOnly true id |> shouldEqual None
+        ))
+
+
+[<Test>]
+let ``legacy generation manifests without summary metadata still download logs`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let id = "project-hash/build/legacy-generation"
+            let producer = Cache.Cache(storage, None) :> Cache.ICache
+            use entry = producer.GetEntry true id
+            entry.Complete(summary None) |> ignore
+            storage.RemoveSummaryReference (id + "/manifest")
+            IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
+            let consumer = Cache.Cache(storage, None) :> Cache.ICache
+            consumer.TryGetSummaryOnly true id |> Option.isSome |> should equal true
+            storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal true
+        ))
