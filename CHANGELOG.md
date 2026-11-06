@@ -4,9 +4,13 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.206.0]
+
 - Upgrade the embedded FScript language and runtime to 0.90.1.
 - Keep changelog spacing consistent during editing and release preparation.
 - Use FScript host permissions to allow sandboxed IO and joined tasks while denying interactive input and native extensions.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.205.3...0.206.0
 
 ## [0.205.3]
 
