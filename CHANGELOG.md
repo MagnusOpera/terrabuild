@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.207.0]
+
 - Keep generated website pages, version metadata, and new release snapshots out of Git after local website preparation.
 - Make every CLI command discoverable under Usage and document version, shared selection options, and impact workflows.
 - Explain cache-key changes across saved runs with offline `terrabuild compare`, including changed files, dependencies, operations, and evaluated inputs.
@@ -11,6 +13,8 @@ All notable changes to Terrabuild are documented in this file.
 - Prefetch remote cache metadata and availability checks concurrently instead of waiting along build dependency chains.
 - Speed up remote cache lookup with encrypted summary metadata and batched Insights artifact authorization, with legacy server and cache fallback.
 - Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.206.0...0.207.0
 
 ## [0.206.0]
 
