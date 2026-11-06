@@ -1,5 +1,8 @@
 namespace Contracts
 
+type IBatchStorage =
+    abstract PrepareReads: entries:string list -> unit
+
 
 type IStorage =
     abstract Exists: id:string -> bool
