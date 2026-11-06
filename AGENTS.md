@@ -131,7 +131,7 @@ Terrabuild uses a draft-based release flow:
 
 1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
    - Optional preview mode: `make release-prepare version=X.Y.Z[-next] dryrun=true`
-2. The command updates `CHANGELOG.md`, generates the current `What's New` documentation page, commits those release metadata changes, and creates a local annotated tag.
+2. The command updates and commits `CHANGELOG.md`, generates the ignored current `What's New` documentation page, and creates a local annotated tag.
 3. Push commit and tag:
    - `git push origin main --follow-tags`
 4. Wait for CI (`on-push-tag.yml`) to create the GitHub release as draft and upload artifacts.
@@ -162,5 +162,6 @@ Rules:
 - The workflow may be run manually to publish `main` without creating a documentation version.
 - Website tags do not trigger application releases.
 - Website builds regenerate the rolling `Next` page from current `Unreleased` entries followed by all releases in the latest `-next` family, retaining a subtitle for each section and comparing that family with the exact commit being built.
-- Website generation happens only in the workflow runner and must not commit generated changes back to `main`.
+- Production website generation happens in the workflow runner and must not commit generated changes back to `main`.
+- Local `make website` and `make website-build` also generate ignored `What's New`, version registry, extension docs, and release snapshots; these outputs must not be added to Git. Historical tracked snapshots remain versioned.
 - Release tags and maintenance branches do not build or publish the website.

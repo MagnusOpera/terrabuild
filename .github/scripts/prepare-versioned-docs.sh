@@ -34,6 +34,9 @@ if [[ ! -d "$snapshot_dir" || ! -f "$snapshot_sidebar" ]]; then
   git -C "$repo_root" archive "$latest_stable" | tar -x -C "$temp_dir"
   ln -s "$website_dir/node_modules" "$temp_dir/website/node_modules"
 
+  # Release pages are generated locally rather than committed in release tags.
+  "${script_dir}/generate-whats-new.sh" "$latest_stable" "$temp_dir/CHANGELOG.md" \
+    "$temp_dir/website/site-docs/whats-new.md" "$latest_stable"
   make -C "$temp_dir" docs
 
   (
@@ -46,13 +49,18 @@ if [[ ! -d "$snapshot_dir" || ! -f "$snapshot_sidebar" ]]; then
   cp "$temp_dir/website/versioned_sidebars/version-$latest_stable-sidebars.json" "$snapshot_sidebar"
 fi
 
-node - "$website_dir/versions.json" "$latest_stable" <<'NODE'
+node - "$website_dir" "$latest_stable" <<'NODE'
 const fs = require('node:fs');
+const path = require('node:path');
 
-const [versionsPath, latestStable] = process.argv.slice(2);
-const versions = fs.existsSync(versionsPath)
-  ? JSON.parse(fs.readFileSync(versionsPath, 'utf8'))
-  : [];
+const [websiteDir, latestStable] = process.argv.slice(2);
+const versionsPath = path.join(websiteDir, 'versions.json');
+// Rebuild the registry from complete snapshots, including historical tracked
+// versions, so a fresh checkout does not need a generated versions.json.
+const versions = fs.readdirSync(path.join(websiteDir, 'versioned_sidebars'))
+  .map((file) => /^version-(\d+\.\d+\.\d+)-sidebars\.json$/.exec(file)?.[1])
+  .filter((version) => version && fs.existsSync(path.join(websiteDir, 'versioned_docs', `version-${version}`)))
+  .sort((left, right) => right.localeCompare(left, 'en', {numeric: true}));
 const updated = [latestStable, ...versions.filter((version) => version !== latestStable)];
 
 fs.writeFileSync(versionsPath, `${JSON.stringify(updated, null, 2)}\n`);

@@ -194,7 +194,7 @@ fi
 ./.github/scripts/generate-whats-new.sh "$version" "$updated_changelog" "$updated_whats_new" "$version"
 
 if [[ "$dryrun" == "true" ]]; then
-  echo "[DRY RUN] Would update CHANGELOG.md and website/site-docs/whats-new.md, commit and create annotated tag '${version}'."
+  echo "[DRY RUN] Would update and commit CHANGELOG.md, generate ignored website/site-docs/whats-new.md, and create annotated tag '${version}'."
   if [[ "$is_next" == "true" ]]; then
     echo "[DRY RUN] Mode: preview family aggregation."
   else
@@ -208,7 +208,7 @@ fi
 cp "$updated_changelog" CHANGELOG.md
 cp "$updated_whats_new" website/site-docs/whats-new.md
 
-git add CHANGELOG.md website/site-docs/whats-new.md
+git add CHANGELOG.md
 
 git commit -m "chore(release): ${version}"
 git tag -a "${version}" -m "Release ${version}"

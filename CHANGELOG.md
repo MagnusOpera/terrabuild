@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep generated website pages, version metadata, and new release snapshots out of Git after local website preparation.
 - Make every CLI command discoverable under Usage and document version, shared selection options, and impact workflows.
 - Explain cache-key changes across saved runs with offline `terrabuild compare`, including changed files, dependencies, operations, and evaluated inputs.
 - Restore cached outputs of explicitly selected targets with `terrabuild run --restore`, including test reports on fresh CI runners.

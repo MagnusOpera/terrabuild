@@ -83,6 +83,7 @@ printf '* First item.\n* Second item.\n' > "$fixture/stars-expected.md"
 diff -u "$fixture/stars-expected.md" "$fixture/stars.md"
 
 cd "$fixture/repo"
+printf '/website/site-docs/whats-new.md\n' > .gitignore
 printf 'fixture\n' > website/site-docs/whats-new.md
 git init -q
 git config user.name 'Changelog test'
@@ -127,6 +128,9 @@ Introductory text.
 - Existing change.
 CHANGELOG
 diff -u "$fixture/expected-release.md" CHANGELOG.md
+[[ -s website/site-docs/whats-new.md ]]
+[[ -z "$(git ls-files website/site-docs/whats-new.md)" ]]
+[[ -z "$(git status --porcelain)" ]]
 
 # A second release must not accumulate blanks around headings or bullet lists.
 awk '{ print; if ($0 == "## [Unreleased]") print "\n\n- Third change.\n\n" }' CHANGELOG.md > "$fixture/next.md"
