@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.207.1]
+
 - Preserve hidden output files and symbolic file links in local and remote caches so restored npm launchers keep working.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.207.0...0.207.1
 
 ## [0.207.0]
 
