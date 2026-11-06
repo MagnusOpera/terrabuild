@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Prefetch remote cache metadata and availability checks concurrently instead of waiting along build dependency chains.
 - Speed up remote cache lookup with encrypted summary metadata and batched Insights artifact authorization, with legacy server and cache fallback.
 - Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
 

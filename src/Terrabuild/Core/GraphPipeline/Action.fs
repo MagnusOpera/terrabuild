@@ -21,13 +21,18 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
             if reachable.Add(nodeId) then
                 graph.Nodes[nodeId].Dependencies |> Seq.iter visit
         graph.RootNodes |> Seq.iter visit
-        reachable
-        |> Seq.map (fun nodeId -> graph.Nodes[nodeId])
-        |> Seq.filter (fun node -> isRemoteCacheable options node && node.Build <> BuildMode.Always && node.Artifacts <> ArtifactMode.None)
-        |> Seq.map buildCacheKey
-        |> Seq.distinct
-        |> Seq.toList
-        |> lookup.PrepareReads
+        let entries =
+            reachable
+            |> Seq.map (fun nodeId -> graph.Nodes[nodeId])
+            |> Seq.filter (fun node -> isRemoteCacheable options node && node.Build <> BuildMode.Always && node.Artifacts <> ArtifactMode.None)
+            |> Seq.map buildCacheKey
+            |> Seq.distinct
+            |> Seq.toList
+        if not entries.IsEmpty then
+            let started = DiagnosticsTelemetry.offsetMs()
+            let timer = System.Diagnostics.Stopwatch.StartNew()
+            lookup.PrepareReads entries
+            DiagnosticsTelemetry.recordPhase "cache-prefetch" started timer.Elapsed.TotalMilliseconds
     | _ -> ()
 
     let getNodeAction (node: Node) (buildingDependencies: string list) =
