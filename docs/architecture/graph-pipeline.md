@@ -174,3 +174,10 @@ Planned actions remain available for explaining scheduler decisions, while final
 - Circular target dependency chains are invalid and reported during graph construction.
 - Environment-sensitive predefined inputs are invalid unless the consuming target explicitly sets `environment_sensitive = true`.
 - Failures in a prerequisite phase leave downstream phase dependencies unsatisfied, so downstream operations do not run.
+
+
+## Cross-run cache comparison
+
+`terrabuild compare --before <report.json> --after <report.json>` reads two diagnostic schema-6 snapshots without configuration loading, cache access, workspace mutation, or Insights requests. It bypasses normal execution initialization so global debug logging cannot overwrite an input report. Targets are matched by normalized workspace-relative project directory and target name, independent of absolute machine paths and report order. Nodes selected in either snapshot are compared; unresolved fingerprints remain explicitly unresolved, and added/removed targets remain distinct.
+
+Comparison attributes changed keys to changed project file hashes, project dependencies, target dependencies, evaluated input hashes, target definition hashes, and operation hashes. Cache availability and forced-execution changes are reported separately from fingerprint changes. The comparison does not assume that every key change caused an execution, infer changes from phase barriers, or modify the cache algorithm. Unattributed changes remain labeled as such. Output includes only evidence hashes and names, never operation arguments or environment plaintext. `--out` writes versioned comparison JSON and cannot overwrite either input. Unsupported report schemas and duplicate target identities fail with actionable errors.

@@ -251,7 +251,7 @@ let internal runWithFailureDiagnostic writeDiagnostic action =
         writeDiagnostic "failure" "partial" (Some ex.Message)
         reraise()
 
-let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
+let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
     use _profileLease =
         if result.Contains(TerrabuildArgs.Clear) then Cache.acquireProfileClearLease()
         elif result.Contains(TerrabuildArgs.Console) then { new IDisposable with member _.Dispose() = () }
@@ -863,6 +863,22 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | _ ->
         Log.Debug("Failed to parse {result}", result)
         parser.PrintUsage() |> Terminal.writeLine; 0
+
+let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseResults<TerrabuildArgs>) =
+    match result.TryGetResult(TerrabuildArgs.Compare) with
+    | Some args ->
+        let beforePath = args.GetResult(CompareArgs.Before) |> Path.GetFullPath
+        let afterPath = args.GetResult(CompareArgs.After) |> Path.GetFullPath
+        let outputPath = args.TryGetResult(CompareArgs.Out) |> Option.map Path.GetFullPath
+        if outputPath |> Option.exists (fun path -> path = beforePath || path = afterPath) then
+            raiseInvalidArg "Comparison output must not overwrite either input report."
+        let comparison = CacheComparison.compare (CacheComparison.readReport beforePath) (CacheComparison.readReport afterPath)
+        outputPath |> Option.iter (fun path ->
+            Path.GetDirectoryName(path) |> Option.ofObj |> Option.iter IO.createDirectory
+            comparison |> Json.Serialize |> IO.writeTextFile path)
+        CacheComparison.render comparison |> Terminal.writeLine
+        0
+    | None -> processWorkspaceCommandLine parser result
 
 [<EntryPoint>]
 let main _ =

@@ -120,6 +120,19 @@ with
             | Engine _ -> "Container engine to use (docker, podman or host)."
 
 [<RequireQualifiedAccess>]
+type CompareArgs =
+    | [<ExactlyOnce; Unique>] Before of path:string
+    | [<ExactlyOnce; Unique>] After of path:string
+    | [<Unique>] Out of path:string
+with
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Before _ -> "Diagnostic JSON report from the earlier run."
+            | After _ -> "Diagnostic JSON report from the later run."
+            | Out _ -> "Write the structured cache comparison to JSON."
+
+[<RequireQualifiedAccess>]
 type ImpactArgs =
     | [<ExactlyOnce; MainCommand; First>] Target of target:string list
     | [<ExactlyOnce; Unique>] Base of sha:string
@@ -234,6 +247,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Run of ParseResults<RunArgs>
     | [<CliPrefix(CliPrefix.None)>] Explain of ParseResults<ExplainArgs>
     | [<CliPrefix(CliPrefix.None)>] Impact of ParseResults<ImpactArgs>
+    | [<CliPrefix(CliPrefix.None)>] Compare of ParseResults<CompareArgs>
     | [<CliPrefix(CliPrefix.None)>] Serve of ParseResults<ServeArgs>
     | [<CliPrefix(CliPrefix.None)>] Console of ParseResults<ConsoleArgs>
     | [<CliPrefix(CliPrefix.None)>] Clear of ParseResults<ClearArgs>
@@ -252,6 +266,7 @@ with
             | Run _ -> "Run specified targets."
             | Explain _ -> "Explain target selection and execution decisions."
             | Impact _ -> "Report impacted targets compared to a base commit."
+            | Compare _ -> "Explain cache-key changes between two diagnostic reports."
             | Serve _ -> "Serve specified targets."
             | Console _ -> "Launch web console."
             | Clear _ -> "Clear specified caches."
