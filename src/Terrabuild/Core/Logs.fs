@@ -147,9 +147,10 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 $"## <a name=\"user-content-{uniqueId}\"></a> {statusEmoji} {label}"
 
             let dumpLogs =
-                let originSummary = originSummaries[representative.Id]
-                match originSummary with
-                | Some (_, summary) -> 
+                let cacheEntryId = GraphDef.buildCacheKey representative
+                let logSummary = cache.TryGetSummary (not options.LocalOnly) cacheEntryId
+                match logSummary with
+                | Some summary ->
                     let dumpLogs () =
                         summary.Operations |> List.iter (fun group ->
                             group |> List.iter (fun step ->
@@ -288,9 +289,9 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
             let (logStart, logEnd), dumpLogs =
                 let cacheEntryId = GraphDef.buildCacheKey node
-                let originSummary = cache.TryGetSummaryOnly false cacheEntryId
-                match originSummary with
-                | Some (_, summary) -> 
+                let logSummary = cache.TryGetSummary (not options.LocalOnly) cacheEntryId
+                match logSummary with
+                | Some summary ->
                     let dumpLogs () =
                         summary.Operations |> Seq.iter (fun group ->
                             group |> Seq.iter (fun step ->
@@ -340,8 +341,14 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
             let formatEndedAt (value: System.DateTime) =
                 value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
 
-            match summary with
-            | Some (_, summary) ->
+            // Successful GitHub annotations need no operation logs.
+            let failedSummary =
+                summary
+                |> Option.bind (fun (_, metadata) ->
+                    if metadata.IsSuccessful then None
+                    else cache.TryGetSummary (not options.LocalOnly) cacheEntryId)
+            match failedSummary with
+            | Some summary ->
                 if summary.IsSuccessful |> not then
                     $"::error title=build failed::{label}" |> Terminal.writeLine
                     match summary.Operations |> List.tryLast with

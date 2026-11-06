@@ -391,3 +391,64 @@ let ``GitHubActions renders batch label with hash in failure annotation`` () =
         output.Contains($"::error title=build failed::build batch {batchId}") |> should equal true
     finally
         if Directory.Exists(root) then Directory.Delete(root, true)
+
+[<TestCase("markdown", false, false)>]
+[<TestCase("markdown", false, true)>]
+[<TestCase("terminal", false, false)>]
+[<TestCase("terminal", false, true)>]
+[<TestCase("github", false, false)>]
+[<TestCase("github", false, true)>]
+[<TestCase("markdown", true, false)>]
+[<TestCase("terminal", true, false)>]
+[<TestCase("github", true, false)>]
+let ``Renderers load operation logs before reading metadata-only entries`` (renderer: string) (localOnly: bool) (successful: bool) =
+    let root = Path.Combine(Path.GetTempPath(), $"terrabuild-lazy-logs-{Guid.NewGuid():N}")
+    Directory.CreateDirectory(root) |> ignore
+    try
+        let logFile = Path.Combine(root, "step1.log")
+        let markdownFile = Path.Combine(root, "summary.md")
+        let node = buildNode "node" "src/app" "project" "target"
+        let targetSummary = if successful then buildTargetSummary logFile else buildFailedTargetSummary logFile
+        let mutable loads = 0
+        let cache =
+            { new ICache with
+                member _.TryGetSummaryOnly _ _ = Some (Origin.Remote, targetSummary)
+                member _.CanRestore _ _ _ = true
+                member _.TryGetSummary useRemote _ =
+                    useRemote |> should equal (not localOnly)
+                    loads <- loads + 1
+                    if localOnly then None
+                    else
+                        File.WriteAllText(logFile, "downloaded operation log")
+                        Some targetSummary
+                member _.Restore _ _ _ _ = failwith "Rendering must not restore outputs"
+                member _.GetEntry _ _ = failwith "Rendering must not execute commands" }
+        let graph: GraphDef.Graph =
+            { GraphDef.Graph.Nodes = Map [node.Id, node]
+              RootNodes = Set [node.Id]
+              Batches = Map.empty
+              Phases = Map.empty }
+        let runnerSummary: Runner.Summary =
+            { Runner.Summary.Commit = "commit"
+              BranchOrTag = "main"
+              StartedAt = DateTime.UtcNow.AddMinutes(-1.0)
+              EndedAt = DateTime.UtcNow
+              IsSuccess = successful
+              Targets = Set ["build"]
+              Nodes = Map [node.Id, { buildSummaryInfo () with
+                                        Status = if successful then Runner.TaskStatus.Success DateTime.UtcNow
+                                                 else Runner.TaskStatus.Failure (DateTime.UtcNow, "failed") }] }
+        let logType =
+            match renderer with
+            | "markdown" -> Contracts.LogType.Markdown markdownFile
+            | "terminal" -> Contracts.LogType.Terminal
+            | _ -> Contracts.LogType.GitHubActions
+        let options = { buildOptions markdownFile with LocalOnly = localOnly; LogTypes = [logType] }
+        let console = captureConsoleOutput (fun () -> Logs.dumpLogs (Guid.NewGuid()) options cache graph runnerSummary)
+        let output = if renderer = "markdown" then File.ReadAllText(markdownFile) else console
+        let needsLogs = renderer <> "github" || not successful
+        loads |> should equal (if needsLogs then 1 else 0)
+        output.Contains("downloaded operation log") |> should equal (not localOnly && needsLogs)
+        File.Exists(logFile) |> should equal (not localOnly && needsLogs)
+    finally
+        Directory.Delete(root, true)

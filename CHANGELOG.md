@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Load cached operation logs on demand when rendering build reports, avoiding crashes after metadata-only cache hits.
+
 ## [0.207.1]
 
 - Preserve hidden output files and symbolic file links in local and remote caches so restored npm launchers keep working.
