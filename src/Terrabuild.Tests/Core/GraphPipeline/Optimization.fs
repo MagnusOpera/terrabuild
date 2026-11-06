@@ -250,3 +250,22 @@ let ``optimized cascade benchmark`` () =
     let optimizedMs = measureMilliseconds 3 (fun () -> GraphPipeline.Cascade.build graph)
     TestContext.Progress.WriteLine($"cascade: legacy={legacyMs:F1}ms optimized={optimizedMs:F1}ms")
     optimizedMs |> should be (lessThan legacyMs)
+
+
+[<Test>]
+let ``requested output restoration keeps cached roots without selecting unrelated artifacts`` () =
+    let cached = buildNode "cached" Set.empty None RunAction.Restore ArtifactMode.Managed BuildMode.Auto false
+    let dependency = buildNode "dependency" Set.empty None RunAction.Restore ArtifactMode.Managed BuildMode.Auto false
+    let external = buildNode "external" Set.empty None RunAction.Restore ArtifactMode.External BuildMode.Auto false
+    let executing = buildNode "executing" Set.empty None RunAction.Exec ArtifactMode.Managed BuildMode.Auto true
+    let cached = { cached with Dependencies = Set.singleton dependency.Id }
+    let original = { buildGraph [ cached; dependency; external; executing ] Map.empty with RootNodes = Set.singleton executing.Id }
+    let restored = GraphPipeline.Action.restoreSelectedOutputs (Set [ cached.ProjectId; external.ProjectId; executing.ProjectId ]) (Set.singleton "build") original
+    restored.RootNodes |> should equal (Set [ cached.Id; executing.Id ])
+    restored.Nodes[cached.Id].Required |> should equal true
+    restored.Nodes[dependency.Id].Required |> should equal false
+    restored.Nodes[external.Id].Required |> should equal false
+    restored.Nodes[cached.Id].TargetHash |> should equal cached.TargetHash
+    restored.Nodes[cached.Id].Action |> should equal RunAction.Restore
+    let filtered = GraphPipeline.Action.restoreSelectedOutputs (Set.singleton cached.ProjectId) (Set.singleton "test") original
+    filtered.RootNodes |> should equal original.RootNodes

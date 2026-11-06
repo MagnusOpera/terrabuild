@@ -102,7 +102,7 @@ After actions are assigned, root nodes are recalculated from the selected roots:
 
 - `Exec` roots remain roots and are marked required, including roots using `build = ~lazy`.
 - `Summary` roots remain roots so selected failed cache entries are reported.
-- `Restore` roots are removed because successful cache hits do not need runner work unless required by a dependent.
+- `Restore` roots are removed because successful cache hits do not need runner work unless required by a dependent. With `run --restore`, explicitly selected managed and workspace cache hits are retained as required roots before Cascade. They remain realization barriers and do not pull in their build-time dependencies.
 
 ## Cascade.fs
 
