@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
+
 ## [0.206.0]
 
 - Upgrade the embedded FScript language and runtime to 0.90.1.
