@@ -34,6 +34,9 @@ jobs:
       - name: Cloning repository
         uses: actions/checkout@v4
 
+      - name: Verify changelog formatting
+        run: make check-changelog-format test-release-changelog
+
       - name: Install Terrabuild
         uses: magnusopera/action-install-gh-release@feature/prerelease
         with:

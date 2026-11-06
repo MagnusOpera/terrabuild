@@ -48,7 +48,7 @@ webui:
 	cd src/Terrabuild.UI && pnpm install --force
 	cd src/Terrabuild.UI && pnpm build
 
-test:
+test: check-changelog-format test-release-changelog
 	dotnet test -c $(config) $(dotnet_props) terrabuild.slnx
 
 clean:
@@ -239,3 +239,14 @@ smoke-tests: smoke-test-basic smoke-test-cluster-layers smoke-test-multirefs smo
 
 release-prepare:
 	./.github/scripts/release.sh "$(version)" "$(dryrun)"
+
+.PHONY: format-changelog check-changelog-format test-release-changelog
+
+format-changelog:
+	./.github/scripts/format-changelog.sh
+
+check-changelog-format:
+	./.github/scripts/format-changelog.sh --check
+
+test-release-changelog:
+	./.github/scripts/test-release-changelog.sh

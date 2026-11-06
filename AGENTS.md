@@ -107,6 +107,8 @@ For broad/core changes:
 - `CHANGELOG.md` must keep a top `## [Unreleased]` section.
 - Each new feature/fix entry must be a short, single-line bullet.
 - Write entries in user-facing terms (what changed), not implementation detail.
+- Keep one-line bullet entries adjacent with no blank lines between them; use exactly one blank line around headings and compare links.
+- After editing `CHANGELOG.md`, run `make format-changelog`; `make check-changelog-format` checks spacing without changing files.
 - At release time, `make release-prepare` moves unreleased entries to the versioned section and resets `Unreleased`.
 - Each released version section must end with its `**Full Changelog**` compare link.
 

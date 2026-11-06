@@ -183,6 +183,9 @@ awk -v section_file="$new_section_file" '
   { print }
 ' "$stripped_changelog" > "$updated_changelog"
 
+# Normalize both the extracted body and existing history before publication.
+"${repo_root}/.github/scripts/format-changelog.sh" "$updated_changelog"
+
 if ! grep -q "^## \[${version}\]$" "$updated_changelog"; then
   echo "ERROR: Failed to materialize CHANGELOG section for ${version}."
   exit 1

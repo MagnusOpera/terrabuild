@@ -26,6 +26,9 @@ jobs:
       - name: Cloning repository
         uses: actions/checkout@v4
 
+      - name: Verify changelog formatting
+        run: make check-changelog-format test-release-changelog
+
       - name: Setup Tools
         uses: ./.github/actions/setup-tools
         with:

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Keep changelog spacing consistent during editing and release preparation.
+
 ## [0.205.3]
 
 - Fix the default production Insights API hostname after the Cloudflare migration.
@@ -97,7 +99,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.200.2-next]
 
-
 - Use a branded Terrabuild image for social link previews.
 - Highlight Terrabuild configuration examples using their own language syntax.
 - Rework documentation around desired-state build and deployment with progressive tutorials, environment configuration, FScript customization, and advanced scenarios.
@@ -179,14 +180,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.200.1-next]
 
-
 - Restore remote cache publication through Insights while retaining atomic cache generations.
 - Expand the Terrabuild agent skill with current target-policy, cache, phase, batching, locking, recovery, reporting, and Insights guidance.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.0-next...0.200.1-next
 
 ## [0.200.0-next]
-
 
 - Document that Insights reporting is mandatory once a run connects while remote artifact transfer remains a cache concern.
 - Replace debug diagnostics atomically without allowing diagnostic I/O to mask build failures.
@@ -284,7 +283,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.199.0-next]
 
-
 - Select projects by identifier or workspace-relative path and reject unknown `--project` values.
 - Remove stale declared outputs when restoring a cached target.
 - Avoid executing batches that contain only cached targets.
@@ -321,7 +319,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.198.4-next]
 
-
 - Upgrade the embedded FScript language and runtime packages to `0.78.1`.
 - Load different FScript extensions concurrently while continuing to prepare each script only once.
 - Build configurations faster by scanning projects and evaluating their dependency graph concurrently.
@@ -332,20 +329,17 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.198.3-next]
 
-
 - Realize lazy dependencies when restored targets are promoted into an executing batch.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.2-next...0.198.3-next
 
 ## [0.198.2-next]
 
-
 - Hide ignored nodes from the local console execution graph by default and allow showing them from Advanced controls.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.1-next...0.198.2-next
 
 ## [0.198.1-next]
-
 
 - Summarize selected environment-sensitivity violations at the top of `explain` output.
 - Finalize failed preparation diagnostics with the latest partial graph and error, and direct environment-sensitivity failures to `explain`.
@@ -360,7 +354,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.198.0-next...0.198.1-next
 
 ## [0.198.0-next]
-
 
 - Avoid realizing build-time dependencies behind restored or summarized nodes while preserving direct lazy prerequisites of executing targets.
 - Keep the rolling documentation labelled `Next` while selecting the latest stable Terrabuild tag as the default released documentation version.
@@ -395,15 +388,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.197.9-next]
 
-
 - Exclude engine-injected Unix user IDs from diagnostic operation fingerprints.
-
 - Make diagnostic operation fingerprints stable across machines with different workspace and cache paths.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.8-next...0.197.9-next
 
 ## [0.197.8-next]
-
 
 - Replace scattered debug snapshots with one deterministic diagnostic report explaining rebuild causes, cache fingerprints, and performance bottlenecks.
 
@@ -411,13 +401,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.197.7-next]
 
-
 - Make project extension collections additive so optimizer-compatible workspace values cannot be replaced or removed per project, including merging compatible action defaults and forwarded variables across batch members.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.6-next...0.197.7-next
 
 ## [0.197.6-next]
-
 
 - Apply project extension overrides field by field while treating collection fields as atomic replacements.
 - Merge compatible project environments in batched targets and reject conflicting values before execution.
@@ -426,13 +414,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.197.5-next]
 
-
 - Group related Terrabuild invocations in Insights with the optional `run --group` identifier.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.4-next...0.197.5-next
 
 ## [0.197.4-next]
-
 
 - Select Azure Blob Storage or Cloudflare R2 artifact caching from the API-provided storage location.
 
@@ -440,13 +426,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.197.3-next]
 
-
 - Show extension dispatch handlers as the user-supplied `<command>` placeholder in generated documentation.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.2-next...0.197.3-next
 
 ## [0.197.2-next]
-
 
 - Preserve cached summaries for restored members when another member of the same batch must execute.
 - Let extensions persist successful command stdout to project files, including a dedicated Terraform output action.
@@ -457,7 +441,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.197.1-next]
 
-
 - Require every commit targeting `main` to include a concise, user-facing `Unreleased` changelog entry.
 - Upgrade the Terrabuild UI dependency set and refresh vulnerable transitive packages to address the current Vite, esbuild, and YAML security advisories.
 - Patch the website dependency chain to remove current browser, build, and development-server security vulnerabilities.
@@ -466,7 +449,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.197.0-next...0.197.1-next
 
 ## [0.197.0-next]
-
 
 - Connect CI self-builds to the Insights staging cache with an explicit login/logout lifecycle, and fix logout so it removes only the selected workspace credentials.
 - Build repository-scoped, versioned .NET SDK (`@dotnetsdk`) and pnpm toolchain images in a dedicated prerequisite phase, authenticate CI image publication to GHCR, use those images consistently for local and CI self-builds, and upgrade the .NET SDK to `10.0.302`.
@@ -490,13 +472,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.196.4-next]
 
-
 - Reorder the getting-started guide around graph planning, task execution, and caching, removing the duplicated cache decision flow from the Tasks page.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.3-next...0.196.4-next
 
 ## [0.196.3-next]
-
 
 - Clarify that phase dependencies are whole-phase success barriers, with an illustrated example of their intentionally coarse enlistment semantics.
 - Link extension authors to the FScript documentation site instead of its source repository.
@@ -506,13 +486,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.196.2-next]
 
-
 - Rework the website learning path and correct configuration examples, cache guidance, dependency and phase explanations, container-runtime behavior, language reference details, and console graph options.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.1-next...0.196.2-next
 
 ## [0.196.1-next]
-
 
 - Add an opt-in `Phases` view to the interactive graph console that groups phased targets into labeled blocks and shows phase ordering with dashed edges.
 - Keep Mermaid graphs in debug logs and build summaries ungrouped, even when targets belong to phases, to preserve readability for large graphs.
@@ -520,7 +498,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.196.0-next...0.196.1-next
 
 ## [0.196.0-next]
-
 
 - Add optional workspace-declared build phases that enlist prerequisite-phase targets, enforce phase ordering through immutable graph dependencies, isolate batches by phase, group phased execution in Mermaid graphs, expose `terrabuild.phase`, and publish phase metadata with build-graph nodes.
 
@@ -550,13 +527,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.195.10-next]
 
-
 - Fix macOS release notarization on current GitHub-hosted runners by using the runner's default Xcode toolchain.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.9-next...0.195.10-next
 
 ## [0.195.9-next]
-
 
 - Fix static `project.<current-project>.version` lookups so they resolve to the current project hash without creating a circular self-dependency.
 
@@ -564,13 +539,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.195.8-next]
 
-
 - Fix macOS release signing to use the explicit arm64 code-signing identifier `io.magnusopera.terrabuild.arm64`.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.7-next...0.195.8-next
 
 ## [0.195.7-next]
-
 
 - Upgrade embedded FScript runtime/language packages to `0.75.0`.
 - Harden tar extraction for cache archives by skipping root pseudo-entries and rejecting paths that escape the extraction directory.
@@ -578,7 +551,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.6-next...0.195.7-next
 
 ## [0.195.6-next]
-
 
 - Add graph pipeline construction coverage from configuration through batching, and tighten construction error handling for target cycles, failed cached summaries, and web graph project selection.
 - Align architecture and website documentation with the current graph construction pipeline, target dependency constraints, lazy and summary actions, impact scope, and batch requirements.
@@ -594,13 +566,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.195.4-next]
 
-
 - Refine graph modeling so `impact` compares a raw source graph while `run` continues from a later execution-resolution stage.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.3-next...0.195.4-next
 
 ## [0.195.3-next]
-
 
 - Scope `terrabuild impact` commit-graph lookup by environment so preview and staging graphs for the same commit no longer overwrite each other.
 
@@ -608,20 +578,17 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.195.2-next]
 
-
 - Add `terrabuild impact --base <sha> --out <path>` and `terrabuild run --out <path>` for machine-readable build reports.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.1-next...0.195.2-next
 
 ## [0.195.1-next]
 
-
 - Add `terrabuild run --out <path>` and `terrabuild impact --base <sha> --out <path>` for machine-readable JSON reports.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.195.0-next...0.195.1-next
 
 ## [0.195.0-next]
-
 
 - Add `terrabuild run --out <path>` to export a machine-readable run report.
 - Upgrade embedded FScript runtime/language packages to `0.72.0`.
@@ -647,7 +614,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.194.4-next]
 
-
 - Upgrade embedded FScript runtime/language packages to `0.71.0`.
 - Restrict the Terrabuild FScript host registry to disable `Task.spawn`, `Task.await`, and `Console.readLine` for extension scripts while keeping the remaining default host functions available.
 - Document the Terrabuild-exposed FScript host functions in the extensibility docs.
@@ -655,7 +621,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.3-next...0.194.4-next
 
 ## [0.194.3-next]
-
 
 - NuGet upgrades.
 - Upgrade embedded FScript runtime/language packages to `0.68.0`.
@@ -665,20 +630,17 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.194.2-next]
 
-
 - Include `ProjectHash` and `TargetHash` in uploaded build-graph nodes so downstream Insights snapshots can resolve and persist optional artifact links per node.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.1-next...0.194.2-next
 
 ## [0.194.1-next]
 
-
 - Send optional Terrabuild project names with artifact publication so downstream consumers can surface stable project identities instead of only project directories.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.194.0-next...0.194.1-next
 
 ## [0.194.0-next]
-
 
 - Capture `GITHUB_ACTOR` and `GITHUB_ACTOR_ID` in the GitHub source-control integration.
 
@@ -697,13 +659,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.9-next]
 
-
 - Refine the desktop website header so the local-search bar is larger and centered, while the docs version selector stays on the right before the GitHub link.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.8-next...0.193.9-next
 
 ## [0.193.8-next]
-
 
 - Treat the newest stable docs version as the maintained stable line so the outdated-version warning is shown only for older stable releases, not for the latest stable tag.
 - Remove the Terrabuild blog from the Docusaurus site now that release/blog content has moved to the Magnus Opera corporate website.
@@ -741,7 +701,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.6-next]
 
-
 - Move the public website into the Terrabuild repository under `website/`, migrate the existing docs/blog/site content from `terrabuild.io` into Docusaurus, and keep extension docs generated into the in-repo versioned documentation tree.
 - Add release-aware website workflows so `make release-prepare version=X.Y.Z` snapshots stable docs versions, GitHub Pages is published from release artifacts, and `make website`/`make website-build` let local preview/build flows regenerate extension docs without cutting a release.
 - Rework the migrated site navigation and styling to match the existing Terrabuild site more closely, including ordered docs sidebars, Mermaid rendering in docs/blog content, always-underlined content links with inline Magnus Opera/GitHub icons, a slimmer footer, and a working full mobile docs sidebar on `/docs`.
@@ -750,7 +709,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.5-next]
 
-
 - Upgrade `Terrabuild.UI` from Vite `8.0.2` to `8.0.8` and refresh the UI lockfile to the matching transitive dependency set.
 - Upgrade embedded FScript runtime/language to `0.62.0`, move built-in extension ownership into `Terrabuild.Extensions` with scripts under `src/Terrabuild.Extensions/Scripts`, split extension coverage into `Terrabuild.Extensions.Tests`, move the protocol doc to `docs/architecture/fscript-extension-protocol.md`, and remove the registry-level `@shell`/`@npx` default `args = ""` special case.
 
@@ -758,13 +716,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.4-next]
 
-
 - Fix smoke tests
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.3-next...0.193.4-next
 
 ## [0.193.3-next]
-
 
 - Add unit coverage for `Terrabuild.Common.Json` discriminated-union serialization and option unwrapping/skipped-field behavior.
 - Replace string-based engine selection with a typed Docker/Podman/host model, make `workspace.engine` authoritative over CLI and Graph UI selection, expose `host` consistently in the UI/docs, keep `terrabuild.engine` expression values lowercase, and add regression coverage for engine-based workspace expressions.
@@ -773,7 +729,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.2-next]
 
-
 - Split Runner command formatting into explicit Docker, Podman, and host execution paths, and cache discovered container home directories per engine/image so Podman no longer reuses Docker-specific execution metadata.
 - Add a built-in `@fscript` extension backed by the standalone `fscript` executable, with unit coverage, smoke-test coverage, and CI setup that installs `fscript` from `magnusopera/fscript`.
 
@@ -781,14 +736,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.193.1-next]
 
-
 - Upgrade `Terrabuild.UI` to Mantine 9, Vite 8, and React 19, including the required Mantine 8.x to 9.x component/layout API migrations.
 - Fix inherited extension project-version dependency discovery, add regression coverage, and keep smoke-test snapshots pinned to `linux/amd64`.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.193.0-next...0.193.1-next
 
 ## [0.193.0-next]
-
 
 - Add explicit extension dependency resolution metadata (`Path` or `Scope`) so scripts can declare whether dependency identifiers resolve by workspace path or extension scope, keeping canonical project IDs stable for pnpm-style packages.
 - Remove the legacy compiled F# extension compatibility layer; Terrabuild now supports only FScript `.fss` extension scripts and rejects `.fsx` extension paths with a migration error.
@@ -811,13 +764,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.192.4-next]
 
-
 - Add a live `.NET` remote-cache integration smoke test that runs the in-process graph pipeline through Docker, verifies `@dotnet restore/build` command emission, and proves a cached project-reference target is restored without recompilation on a fresh worker cache.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.3-next...0.192.4-next
 
 ## [0.192.3-next]
-
 
 - Normalize repository identity before hashing projects and build graphs so equivalent local GitHub remotes and `GITHUB_REPOSITORY` resolve to the same namespace while preserving multi-repository workspace separation by host/path.
 - Normalize GitHub repository owner/name case during repository hashing so local remotes like `git@github.com:MagnusOpera/Terrabuild.git` match CI `GITHUB_REPOSITORY=magnusopera/terrabuild`.
@@ -826,13 +777,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.192.2-next]
 
-
 - Support both dotted and bracketed project version lookups in expressions (`project.foo.version`, `project.["foo"].version`, `project.[terrabuild.project].version`) and restore project-reference discovery so those expressions load referenced projects correctly during graph construction.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.1-next...0.192.2-next
 
 ## [0.192.1-next]
-
 
 - Add first-class `Repository` source-control metadata to Terrabuild options, use it directly for remote Insights reporting, and include repository/origin identity in local project and graph hashes so cache keys remain stable across Git worktrees.
 - Upload build graph snapshots to Insights after `StartBuild()`, including node execution metadata (`artifacts`, `build`, `batch`, `action`, `required`, `isBatchNode`) so downstream flow and architecture metrics can compute transitive graph impact.
@@ -840,7 +789,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.192.0-next...0.192.1-next
 
 ## [0.192.0-next]
-
 
 - Add artifact `startedAt`/`endedAt` timestamps to Insights cache publication so Terrabuild sends per-target execution windows with `add-artifact`.
 
@@ -855,7 +803,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.3...0.191.1
 
 ## [0.191.1-next]
-
 
 - Revert `+=` `-=`
 - Revert `includes` and `outputs` overrides
@@ -879,13 +826,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.190.3-next]
 
-
 - Fix cache summary generation to omit the `outputs` artifact marker when batched or managed builds did not materialize any outputs, avoiding broken restore attempts against non-existent output archives.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.2-next...0.190.3-next
 
 ## [0.190.2-next]
-
 
 - Fix cache artifact publication to send logical file names (`logs`, `outputs`) to Insights while keeping full `<ProjectHash>/<Target>/<TargetHash>/...` storage keys internal to cache uploads.
 
@@ -893,13 +838,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.190.1-next]
 
-
 - Change project-level `includes` and `outputs` to act as true overrides of inferred/default values instead of being merged implicitly.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.190.0-next...0.190.1-next
 
 ## [0.190.0-next]
-
 
 - Reuse existing artifacts for batched `Restore` members by linking them to the current build with `use-artifact` instead of republishing cache/artifact state after batch execution.
 
@@ -980,13 +923,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.21-next]
 
-
 - Default Terrabuild.UI build configuration now starts with `Retry` enabled when the console opens.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.20-next...0.189.21-next
 
 ## [0.189.20-next]
-
 
 - Add a dedicated Terrabuild.UI Cache Management section (between build configuration and build details) with `Cache`/`Home` scope checkboxes, a red `Clear Cache` action, in-progress toast, and automatic graph/status reload after successful cache clearing.
 - Add GraphServer `POST /api/cache/clear` endpoint to clear selected cache scopes (`cache`, `home`) for the UI.
@@ -996,7 +937,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.19-next]
 
-
 - Terrabuild.UI now shows a startup toast while workspace targets/projects are being collected and keeps Build Controls disabled until that initialization completes.
 - Terrabuild.UI now shows a loading toast and disables Build Controls while fetching graph and build status after target selection changes.
 
@@ -1004,14 +944,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.18-next]
 
-
 - Add `dependencies` support to `@dotnet` `restore/build/pack/publish`, mapping `dependencies = false` to `--no-dependencies`, while preserving imperative `restore/build` no-flag behavior (`false` => `--no-restore` / `--no-build`).
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.17-next...0.189.18-next
 
 ## [0.189.17-next]
-
-
 
 - Simplify CI markdown batch detail headers to `build <hash>` (without `[members ...]`) since project members are already listed below.
 
@@ -1025,20 +962,17 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.15-next]
 
-
 - Update markdown batch log summaries to list one row per project with shared batch anchors, split batch duration evenly across those project rows, and render batch detail headers in terminal style (`build <hash> [members]`) without the `Projects:` prefix.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.14-next...0.189.15-next
 
 ## [0.189.14-next]
 
-
 - Align GitHub Actions batch log labeling with local style by rendering `target batch <hash>` and listing all batch projects under a `Projects:` section in step summary details.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.13-next...0.189.14-next
 
 ## [0.189.13-next]
-
 
 - Change `@pnpm install` default to not pass `--force`; `force = true` is now required to opt in.
 - Revert default extension build configs to debug profiles (`dotnet=Debug`, `gradle=Debug`, `cargo=dev`).
@@ -1048,7 +982,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.12-next]
 
-
 - Fix Terraform `@terraform apply` default behavior to pass `terrabuild.planfile` when `plan` is omitted.
 - Restore extension-focused unit tests in `Terrabuild.Tests/Scripts` with one file per built-in FScript extension (`cargo`, `docker`, `dotnet`, `gradle`, `make`, `npm`, `npx`, `null`, `openapi`, `playwright`, `pnpm`, `sentry`, `shell`, `terraform`, `yarn`) covering defaults, cacheability, command rendering, and batch regressions.
 
@@ -1056,15 +989,14 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.11-next]
 
-
 - Add expression source-location tracking (`file:line:column`) through parsing and evaluation so configuration errors report exact anchors.
 - Preserve legacy parser shape for existing consumers while using source-aware parsing in WORKSPACE/PROJECT loading paths.
 - Render configuration expression error anchors with workspace-relative file paths for clearer diagnostics in multi-project workspaces.
 - Improve local-evaluation diagnostics by including failing local names in error chaining.
+
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.10-next...0.189.11-next
 
 ## [0.189.10-next]
-
 
 - Fix dotnet extension batching by generating one per-batch `.slnx` file in-script and using it for batched `dotnet` commands.
 - Fix dotnet local dependency discovery by querying `//ProjectReference/@Include` from XML and normalizing Windows-style separators, so graph dependencies and batching match GA behavior.
@@ -1087,7 +1019,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.9-next]
 
-
 - Upgrade Terrabuild FScript runtime/language to `0.54.2`.
 - Use FScript `HostContext.DeniedPathGlobs` and pass workspace script sandbox deny patterns from `workspace.deny`.
 - Default script sandbox deny list to `[ ".git" ]` when `workspace.deny` is not specified.
@@ -1097,7 +1028,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.8-next]
 
-
 - Upgrade Terrabuild FScript runtime/language to `0.52.0`.
 - Exclude `<workspace-root>/.git/**` from FScript extension filesystem extern access.
 - Adopt FScript `String.*` helpers in built-in extension scripts where behavior is preserved.
@@ -1106,14 +1036,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.7-next]
 
-
 - Upgrade Terrabuild FScript runtime/language to `0.50.0`.
 - Align extension script/docs literal formatting to FScript compact multiline compatibility rules.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.6-next...0.189.7-next
 
 ## [0.189.6-next]
-
 
 - Upgrade Terrabuild FScript runtime/language to `0.41.0`.
 - Make extension batch support dynamic per command by requiring command handlers to return `{ Batchable; Operations }`.
@@ -1123,7 +1051,6 @@ All notable changes to Terrabuild are documented in this file.
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.189.5-next...0.189.6-next
 
 ## [0.189.5-next]
-
 
 - Upgrade Terrabuild FScript runtime to 0.40.0 and initialize `Env` (`ScriptName`, `Arguments`) when loading `.fss` extension scripts.
 - Fix FScript `Env` prelude injection to preserve leading `import` directives in embedded scripts.
@@ -1147,7 +1074,6 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [0.189.2-next]
 
-
 - Initialize changelog-driven draft release notes for tag workflows
 - Load built-in extension scripts from embedded resources only and remove filesystem fallback/copy
 - Fix embedded extension loading to preserve workspace host context in smoke-test scenarios
@@ -1158,7 +1084,6 @@ All notable changes to Terrabuild are documented in this file.
 ## [0.189.1-next]
 
 * feat: fix embedded extension location with AOT by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/384
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.189.0-next...0.189.1-next
 
@@ -1173,15 +1098,16 @@ All notable changes to Terrabuild are documented in this file.
 ## [0.188.29]
 
 ## What's Changed
+
 * fix: ensure PubSub does not deadlock by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/375
 * feat: add unit tests for reentrant get by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/376
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.188.27...0.188.29
 
 ## [0.188.27]
 
 ## What's Changed
+
 * feat: add web ui with graph and terminal by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/348
 * feat: embed web application into Terrabuild exe by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/349
 * feat: add notifications by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/350
@@ -1210,75 +1136,74 @@ All notable changes to Terrabuild are documented in this file.
 * feat: collapse/expand terminal by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/373
 * fix: incomplete root node shall lead to build error by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/374
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.187.1...0.188.27
 
 ## [0.188.27-next]
 
 ## What's Changed
-* fix: incomplete root node shall lead to build error by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/374
 
+* fix: incomplete root node shall lead to build error by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/374
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.188.26-next...0.188.27-next
 
 ## [0.188.26-next]
 
 ## What's Changed
-* feat: collapse/expand terminal by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/373
 
+* feat: collapse/expand terminal by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/373
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.188.25-next...0.188.26-next
 
 ## [0.188.25-next]
 
 ## What's Changed
-* feat: better node selection handling by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/372
 
+* feat: better node selection handling by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/372
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.188.24-next...0.188.25-next
 
 ## [0.187.1]
 
 ## What's Changed
-* fat: rename all batch strategy as single by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/347
 
+* fat: rename all batch strategy as single by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/347
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.187.0...0.187.1
 
 ## [0.187.0]
 
 ## What's Changed
-* feat: add cpus on extensions by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/346
 
+* feat: add cpus on extensions by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/346
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.186.5...0.187.0
 
 ## [0.186.5]
 
 ## What's Changed
-* fix: remove previous config if any by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/345
 
+* fix: remove previous config if any by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/345
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.186.4...0.186.5
 
 ## [0.186.4]
 
 ## What's Changed
-* fix: rendering issue by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/344
 
+* fix: rendering issue by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/344
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.186.3...0.186.4
 
 ## [0.186.3]
 
 ## What's Changed
+
 * feat: simplify sign and release workflow by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/335
 * feat: update self build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/337
 * feat: merge pr and push workflows by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/339
 * feat: implement new obvious dependency management by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/341
 * feat: do not upload outputs if descriptor is empty by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/342
 * feat: enable SxS install by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/343
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.18...0.186.3
 
@@ -1292,46 +1217,47 @@ Changes:
 ## [0.185.18]
 
 ## What's Changed
-* feat: add fast path for required nodes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/334
 
+* feat: add fast path for required nodes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/334
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.17...0.185.18
 
 ## [0.185.17]
 
 ## What's Changed
-* feat: skip non required nodes in Runner by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/333
 
+* feat: skip non required nodes in Runner by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/333
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.16...0.185.17
 
 ## [0.185.16]
 
 ## What's Changed
-* feat: delegate restore to cascade by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/332
 
+* feat: delegate restore to cascade by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/332
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.15...0.185.16
 
 ## [0.185.15]
 
 ## What's Changed
-* fix: restore external shall not be required by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/331
 
+* fix: restore external shall not be required by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/331
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.14...0.185.15
 
 ## [0.185.14]
 
 ## What's Changed
-* feat: add more relaxation rules by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/330
 
+* feat: add more relaxation rules by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/330
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.185.13...0.185.14
 
 ## [0.185.13]
 
 ## What's Changed
+
 * feat: proper batch computation by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/314
 * feat: configurable batch mode by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/315
 * feat: remove extension/batch and extend target/batch meaning by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/316
@@ -1349,7 +1275,6 @@ Changes:
 * chore: update logs by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/328
 * fix: USER identification is fixed via $HOME by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/329
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.184.3...0.185.13
 
 ## [0.184.3]
@@ -1362,25 +1287,25 @@ Changes:
 ## [0.184.2]
 
 ## What's Changed
-* fix: parent must rebuild if child has changed by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/313
 
+* fix: parent must rebuild if child has changed by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/313
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.184.1...0.184.2
 
 ## [0.184.1]
 
 ## What's Changed
+
 * feat: add support for env block for extension by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/311
 * feat: version is only checked on release builds by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/312
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.183.5...0.184.1
 
 ## [0.183.5]
 
 ## What's Changed
-* feat: differentiated subscribe by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/310
 
+* feat: differentiated subscribe by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/310
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.183.4...0.183.5
 
@@ -1391,113 +1316,114 @@ Changes:
 ## [0.183.3]
 
 ## What's Changed
-* feat: download logs if log is enabled by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/309
 
+* feat: download logs if log is enabled by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/309
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.183.2...0.183.3
 
 ## [0.183.2]
 
 ## What's Changed
-* feat: encrypt artifacts before storing them server side by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/308
 
+* feat: encrypt artifacts before storing them server side by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/308
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.182.6...0.183.2
 
 ## [0.182.5]
 
 ## What's Changed
-* chore: silent sentry errors as they are useless by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/306
 
+* chore: silent sentry errors as they are useless by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/306
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.182.4...0.182.5
 
 ## [0.182.4]
 
 ## What's Changed
+
 * feat: extension owned project identifier by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/303
 * chore: unify npm package management by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/304
 * feat: adjust error level on sentry upload for local build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/305
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.181.4...0.182.4
 
 ## [0.181.4]
 
 ## What's Changed
-* fix: enforce tb var prefix by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/302
 
+* fix: enforce tb var prefix by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/302
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.181.3...0.181.4
 
 ## [0.181.3]
 
 ## What's Changed
-* feat: variable names are case insensitive by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/301
 
+* feat: variable names are case insensitive by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/301
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.181.2...0.181.3
 
 ## [0.181.2]
 
 ## What's Changed
-* feat: download external artifacts summary by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/300
 
+* feat: download external artifacts summary by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/300
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.181.1...0.181.2
 
 ## [0.181.1]
 
 ## What's Changed
-* feat: environments pattern matching by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/299
 
+* feat: environments pattern matching by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/299
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.181.0...0.181.1
 
 ## [0.181.0]
 
 ## What's Changed
-* feat: add environments filter on projects by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/298
 
+* feat: add environments filter on projects by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/298
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.180.1...0.181.0
 
 ## [0.180.1]
 
 ## What's Changed
-* fix: always add --link-workspace-packages for pnpm install by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/297
 
+* fix: always add --link-workspace-packages for pnpm install by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/297
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.180.0...0.180.1
 
 ## [0.180.0]
 
 ## What's Changed
-* feat: add support for optional comma in list and map by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/296
 
+* feat: add support for optional comma in list and map by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/296
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.179.1...0.180.0
 
 ## [0.179.1]
 
 ## What's Changed
+
 * chore: align code with syntax by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/294
 * fix: single project must not specify --recursive by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/295
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.179.0...0.179.1
 
 ## [0.179.0]
 
 ## What's Changed
-* feat: rename rebuild as build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/293
 
+* feat: rename rebuild as build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/293
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.178.6...0.179.0
 
 ## [0.178.6]
 
 ## What's Changed
+
 * feat: .net 10 by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/285
 * feat: add pnpm support by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/286
 * fix: debug mode must log by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/288
@@ -1506,12 +1432,12 @@ Changes:
 * feat: update extension docs by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/291
 * feat: invert lockfile flag by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/292
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.177.3...0.178.6
 
 ## [0.177.3]
 
 ## What's Changed
+
 * feat: configuration engine in workspace by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/275
 * feat: update api for bulk insertions by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/276
 * feat: sentry cli extension by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/278
@@ -1521,7 +1447,6 @@ Changes:
 * feat: force summary download of failed restorable nodes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/282
 * feat: rename build-graph as node-graph by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/283
 * feat: rename container as image by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/284
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.176.10...0.177.3
 
@@ -1556,6 +1481,7 @@ Changes:
 ## [0.176.10]
 
 ## What's Changed
+
 * feat: add support for external cache policy by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/263
 * feat: skip ignored nodes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/264
 * feat: align use remote by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/265
@@ -1569,12 +1495,12 @@ Changes:
 * feat: add enum syntax ~<identifier> by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/273
 * feat: rename cache as artifacts by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/274
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.175.3...0.176.10
 
 ## [0.175.3]
 
 ## What's Changed
+
 * feat: prioritize background task over normal task by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/259
 * feat: track and kill processes if required by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/260
 * fix: exec error must fail task by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/261
@@ -1590,18 +1516,18 @@ Changes
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.174.13...0.174.14
 
-
 ## [0.174.13]
 
 ## What's Changed
-* fix: invalid up to date computation by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/258
 
+* fix: invalid up to date computation by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/258
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.174.12...0.174.13
 
 ## [0.174.12]
 
 ## What's Changed
+
 * feat: batch build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/246
 * feat: batch docs by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/247
 * feat: batch node status by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/248
@@ -1615,12 +1541,12 @@ Changes
 * feat: simplify version check by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/256
 * feat: stop scheduling tasks on first error by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/257
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.173.14...0.174.12
 
 ## [0.173.14]
 
 ## What's Changed
+
 * feat: default labels by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/235
 * feat: add locked mode support by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/236
 * feat: implement filter by project types by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/238
@@ -1633,22 +1559,21 @@ Changes
 * feat: use LibGit2Sharp for better performance and correct file matching by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/244
 * feat: restore node but not its dependencies by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/245
 
-
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.172.0...0.173.14
 
 ## [0.172.0]
 
 ## What's Changed
-* feat: use sync updates by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/234
 
+* feat: use sync updates by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/234
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.171.0...0.172.0
 
 ## [0.171.0]
 
 ## What's Changed
-* feat: generate mermaid as markdown by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/230
 
+* feat: generate mermaid as markdown by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/230
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.170.2...0.171.0
 
@@ -1671,24 +1596,24 @@ Changes
 ## [0.169.0]
 
 ## What's Changed
-* feat: cleanup graph implementation + phony targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/232
 
+* feat: cleanup graph implementation + phony targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/232
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.168.1...0.169.0
 
 ## [0.168.1]
 
 ## What's Changed
-* fix: restore shall not install dependencies by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/231
 
+* fix: restore shall not install dependencies by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/231
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.168.0...0.168.1
 
 ## [0.168.0]
 
 ## What's Changed
-* feat: continuation based build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/229
 
+* feat: continuation based build by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/229
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.167.1...0.168.0
 
@@ -1699,32 +1624,32 @@ Changes
 ## [0.167.0]
 
 ## What's Changed
-* feat: optimize restore idempotent targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/228
 
+* feat: optimize restore idempotent targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/228
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.166.0...0.167.0
 
 ## [0.166.0]
 
 ## What's Changed
-* feat: idempotent target by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/227
 
+* feat: idempotent target by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/227
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.165.0...0.166.0
 
 ## [0.165.0]
 
 ## What's Changed
-* feat: scaffold with attributes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/226
 
+* feat: scaffold with attributes by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/226
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.164.0...0.165.0
 
 ## [0.164.0]
 
 ## What's Changed
-* feat: deferred targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/225
 
+* feat: deferred targets by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/225
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.163.2...0.164.0
 
@@ -1739,8 +1664,8 @@ Changes
 ## [0.163.0]
 
 ## What's Changed
-* feat: add support for workspace target cache by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/224
 
+* feat: add support for workspace target cache by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/224
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.162.5...0.163.0
 
@@ -1777,6 +1702,7 @@ fix: remove --ipc=host since it's not compatible with shared memory settings
 ## [0.162.0]
 
 ## What's Changed
+
 * feat: use init for containers by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/217
 * feat: increase shared memory by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/219
 * feat: playwright support by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/218
@@ -1784,7 +1710,6 @@ fix: remove --ipc=host since it's not compatible with shared memory settings
 * feat: cacheability is implemented as attribute on extensions by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/221
 * fix: upload iif target is remote cacheable by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/222
 * feat: update docs by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/223
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.161.0...0.162.0
 
@@ -1795,8 +1720,8 @@ fix: remove --ipc=host since it's not compatible with shared memory settings
 ## [0.160.0]
 
 ## What's Changed
-* feat: dotnet restore only current project by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/216
 
+* feat: dotnet restore only current project by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/216
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.159.5...0.160.0
 
@@ -1811,59 +1736,59 @@ fix: remove --ipc=host since it's not compatible with shared memory settings
 ## [0.159.3]
 
 ## What's Changed
-* feat: parallel downloads by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/215
 
+* feat: parallel downloads by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/215
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.158.0...0.159.3
 
 ## [0.158.0]
 
 ## What's Changed
-* feat: add version check by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/214
 
+* feat: add version check by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/214
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.157.2...0.158.0
 
 ## [0.157.1]
 
 ## What's Changed
-* feat: enhance exit code handling by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/212
 
+* feat: enhance exit code handling by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/212
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.157.0...0.157.1
 
 ## [0.155.0]
 
 ## What's Changed
+
 * fix: dotnet test is cacheable by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/206
 * fix: terraform plan is unmanaged by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/207
 * feat: update retry logic for unmanaged task by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/208
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.154.0...0.155.0
 
 ## [0.154.0]
 
 ## What's Changed
+
 * feat: use only snake_case identifiers by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/204
 * feat: numbers are int only by @pchalamet in https://github.com/MagnusOpera/terrabuild/pull/205
-
 
 **Full Changelog**: https://github.com/MagnusOpera/terrabuild/compare/0.153.0...0.154.0
 
 ## [0.153.0]
 
 ## What's Changed
-* fix: invalid hash computation on automatic dependencies by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/203
 
+* fix: invalid hash computation on automatic dependencies by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/203
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.152.2...0.153.0
 
 ## [0.152.2]
 
 ## What's Changed
-* fix: mermaid graph shall not have extra nodes by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/202
 
+* fix: mermaid graph shall not have extra nodes by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/202
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.152.1...0.152.2
 
@@ -1892,22 +1817,23 @@ fix: restore force managed
 ## [0.151.0]
 
 ## What's Changed
-* feat: force restore flag by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/201
 
+* feat: force restore flag by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/201
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.150.0...0.151.0
 
 ## [0.150.0]
 
 ## What's Changed
-* Fix: filename in hash by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/200
 
+* Fix: filename in hash by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/200
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.149.0...0.150.0
 
 ## [0.149.0]
 
 ## What's Changed
+
 * feat: add support for npx
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.148.3...0.149.0
@@ -1921,49 +1847,49 @@ fix: terraform requires variables for destroy 🤷‍♂️
 ## [0.148.1]
 
 ## What's Changed
-* fix: enforce truthy eval for boolean operation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/199
 
+* fix: enforce truthy eval for boolean operation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/199
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.147.1...0.148.1
 
 ## [0.147.0]
 
 ## What's Changed
-* fix: boolean operators shall be && and || by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/198
 
+* fix: boolean operators shall be && and || by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/198
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.146.0...0.147.0
 
 ## [0.146.0]
 
 ## What's Changed
-* feat: implement ~= operator (regex match) by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/197
 
+* feat: implement ~= operator (regex match) by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/197
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.145.0...0.146.0
 
 ## [0.145.0]
 
 ## What's Changed
+
 * feat: option to create terraform workspace on plan if it does not exist by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/195
 * feat: implement terraform destroy by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/196
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.144.2...0.145.0
 
 ## [0.144.2]
 
 ## What's Changed
-* fix: shared files shall not crash on hash computation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/194
 
+* fix: shared files shall not crash on hash computation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/194
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.144.0...0.144.2
 
 ## [0.144.0]
 
 ## What's Changed
-* feat: update configuration listing by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/193
 
+* feat: update configuration listing by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/193
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.143.5...0.144.0
 
@@ -1982,54 +1908,55 @@ fix: terraform requires variables for destroy 🤷‍♂️
 ## [0.143.2]
 
 ## What's Changed
-* feat: expand $TERRABUILD_HOME for containers by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/192
 
+* feat: expand $TERRABUILD_HOME for containers by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/192
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.143.1...0.143.2
 
 ## [0.143.1]
 
 ## What's Changed
-* feat: use regex for describing container vars by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/191
 
+* feat: use regex for describing container vars by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/191
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.143.0...0.143.1
 
 ## [0.143.0]
 
 ## What's Changed
-* feat: support for TERRABUILD_CREDENTIALS by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/190
 
+* feat: support for TERRABUILD_CREDENTIALS by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/190
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.142.2...0.143.0
 
 ## [0.142.2]
 
 ## What's Changed
-* feat: additionnal props for openapi gen by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/189
 
+* feat: additionnal props for openapi gen by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/189
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.142.1...0.142.2
 
 ## [0.142.1]
 
 ## What's Changed
-* feat: update settings emoji 🦄 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/188
 
+* feat: update settings emoji 🦄 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/188
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.142.0...0.142.1
 
 ## [0.142.0]
 
 ## What's Changed
-* feat: ability to filter by project id by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/187
 
+* feat: ability to filter by project id by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/187
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.141.3...0.142.0
 
 ## [0.141.3]
 
 feat: update build graph emoji 👀
+
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.141.2...0.141.3
 
 ## [0.141.2]
@@ -2039,8 +1966,8 @@ feat: update build graph emoji 👀
 ## [0.141.0]
 
 ## What's Changed
-* feat: change pattern npm & yarn + remove support for inner npm module by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/186
 
+* feat: change pattern npm & yarn + remove support for inner npm module by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/186
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.140.2...0.141.0
 
@@ -2051,22 +1978,23 @@ feat: update build graph emoji 👀
 ## [0.140.1]
 
 ## What's Changed
-* feat: add colors on mermaid graph by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/185
 
+* feat: add colors on mermaid graph by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/185
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.140.0...0.140.1
 
 ## [0.140.0]
 
 ## What's Changed
-* feat: array access by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/184
 
+* feat: array access by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/184
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.139.9...0.140.0
 
 ## [0.139.9]
 
 ## What's Changed
+
 * upgrade to .net 9.0.300 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/177
 * feat: managed artifacts by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/179
 * feat: add support for managed at workspace level by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/180
@@ -2074,74 +2002,75 @@ feat: update build graph emoji 👀
 * chore: rework node scheduling by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/182
 * fix: if task is older than children then rebuild by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/183
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.138.0...0.139.9
 
 ## [0.138.0]
 
 ## What's Changed
-* add terrabuild.environment by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/175
 
+* add terrabuild.environment by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/175
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.137.2...0.138.0
 
 ## [0.137.2]
 
 Fix labels output.
+
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.137.1...0.137.2
 
 ## [0.137.1]
 
 ## What's Changed
-* bold target on mermaid graph by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/174
 
+* bold target on mermaid graph by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/174
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.137.0...0.137.1
 
 ## [0.137.0]
 
 ## What's Changed
-* expose arch and os by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/173
 
+* expose arch and os by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/173
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.136.2...0.137.0
 
 ## [0.136.2]
 
 ## What's Changed
+
 * better console progress by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/171
 * remove unscheduled nodes by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/172
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.136.1...0.136.2
 
 ## [0.136.1]
 
 ## What's Changed
-* remove version by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/170
 
+* remove version by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/170
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.136.0...0.136.1
 
 ## [0.136.0]
 
 ## What's Changed
-* rename for consistency with project.id.version by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/169
 
+* rename for consistency with project.id.version by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/169
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.135.26...0.136.0
 
 ## [0.135.26]
 
 ## What's Changed
-* fix success computation when filter is used by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/168
 
+* fix success computation when filter is used by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/168
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.135.25...0.135.26
 
 ## [0.135.25]
 
 ## What's Changed
+
 * configuration is a collection of attributes now by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/133
 * use block syntax for defaults by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/134
 * HCL Parser + syntax change by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/135
@@ -2177,35 +2106,36 @@ Fix labels output.
 * enable multiple initializers by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/166
 * update error msg by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/167
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.134.0...0.135.25
 
 ## [0.134.0]
 
 ## What's Changed
+
 * add logs by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/128
 * remove // comments by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/129
 * string interpolation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/130
 * Add project locals by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/131
 * upgrade to .net 9.0.202 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/132
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.130.0...0.134.0
 
 ## [0.130.0]
 
 ## Breaking changes
+
 * `--logs` is no more, use `--log` instead
 
 ## What's Changed
-* log is no more linked to debug by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/127
 
+* log is no more linked to debug by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/127
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.129.2...0.130.0
 
 ## [0.129.2]
 
 ## What's Changed
+
 * Pending tasks must not raise error in build
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.129.1...0.129.2
@@ -2217,38 +2147,38 @@ Fix labels output.
 ## [0.129.0]
 
 ## What's Changed
-* add support for github actions commands by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/126
 
+* add support for github actions commands by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/126
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.128.0...0.129.0
 
 ## [0.128.0]
 
 ## What's Changed
+
 * Add exception area by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/121
 * rename tests by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/122
 * allow overriding sentry dsn by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/123
 * better reporting for pubsub by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/124
 * better cli handler by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/125
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.127.0...0.128.0
 
 ## [0.127.0]
 
 ## What's Changed
+
 * upgrade to .net 9.0.201 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/118
 * rename run-smoke-tests as smoke-tests by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/119
 * add case insensitive scan by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/120
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.126.4...0.127.0
 
 ## [0.126.4]
 
 ## What's Changed
-* add sentry to collect exception by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/117
 
+* add sentry to collect exception by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/117
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.125.2...0.126.4
 
@@ -2259,17 +2189,17 @@ Fix labels output.
 ## [0.126.0]
 
 ## What's Changed
-* add sentry to collect exception by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/117
 
+* add sentry to collect exception by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/117
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.125.2...0.126.0
 
 ## [0.125.2]
 
 ## What's Changed
+
 * Handle GitHub event by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/115
 * add timestamp by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/116
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.124.1...0.125.2
 
@@ -2283,8 +2213,8 @@ Fix labels output.
 ## [0.124.0]
 
 ## What's Changed
-* collect commit & subject by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/114
 
+* collect commit & subject by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/114
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.123.2...0.124.0
 
@@ -2295,33 +2225,33 @@ Fix labels output.
 ## [0.123.1]
 
 ## What's Changed
+
 * get commit log by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/112
 * qualify tag by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/113
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.122.1...0.123.1
 
 ## [0.122.1]
 
 ## What's Changed
-* use string instead of guid for workspace Id by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/111
 
+* use string instead of guid for workspace Id by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/111
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.122.0...0.122.1
 
 ## [0.122.0]
 
 ## What's Changed
-* change profile structure by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/110
 
+* change profile structure by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/110
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.121.3...0.122.0
 
 ## [0.121.3]
 
 ## What's Changed
-* add config for Terraform init by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/108
 
+* add config for Terraform init by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/108
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.121.2...0.121.3
 
@@ -2330,7 +2260,6 @@ Fix labels output.
 * fix start build api
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.121.1...0.121.2
-
 
 ## [0.121.1]
 
@@ -2341,11 +2270,11 @@ Fix labels output.
 ## [0.121.0]
 
 ## What's Changed
+
 * upgrade to .net 9.0.200 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/103
 * change api route by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/104
 * Adapt for new API by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/106
 * container platform support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/107
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.120.8...0.121.0
 
@@ -2381,49 +2310,49 @@ Fix labels output.
 ## [0.120.0]
 
 ## What's Changed
+
 * yarn ignore engines by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/102
 * allow dash in identifiers by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/101
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.119.0...0.120.0
 
 ## [0.119.0]
 
 ## What's Changed
-* change terrabuild location injection in makefile by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/100
 
+* change terrabuild location injection in makefile by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/100
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.118.0...0.119.0
 
 ## [0.118.0]
 
 ## What's Changed
-* track values not vars by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/99
 
+* track values not vars by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/99
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.117.4...0.118.0
 
 ## [0.117.4]
 
 ## What's Changed
-* container attribute is an expression by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/98
 
+* container attribute is an expression by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/98
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.117.3...0.117.4
 
 ## [0.117.3]
 
 ## What's Changed
-* restored task must send status at build time - not restore time by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/97
 
+* restored task must send status at build time - not restore time by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/97
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.117.2...0.117.3
 
 ## [0.117.2]
 
 ## What's Changed
-* default container was not explicit - feature discarded by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/96
 
+* default container was not explicit - feature discarded by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/96
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.117.1...0.117.2
 
@@ -2432,18 +2361,18 @@ Fix labels output.
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.117.0...0.117.1
 
 ## What's Changed
+
 * add open-api-generator extension by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/94
 * Container override on extension and project by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/95
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.116.0...0.117.1
 
 ## [0.116.0]
 
 ## What's Changed
+
 * Private dependencies as projects by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/92
 * Chore: required qualified on ast by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/93
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.115.6...0.116.0
 
@@ -2454,18 +2383,18 @@ Fix labels output.
 ## [0.115.5]
 
 ## What's Changed
+
 * add force to npm install by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/86
 * silent null extension by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/87
 * ignore subprojects on dependencies by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/88
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.115.4...0.115.5
 
 ## [0.115.4]
 
 ## What's Changed
-* add unit test for scan folders by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/85
 
+* add unit test for scan folders by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/85
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.115.3...0.115.4
 
@@ -2476,35 +2405,35 @@ Fix labels output.
 ## [0.115.1]
 
 ## What's Changed
-* do not forbid scripts if native - just this won't build by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/84
 
+* do not forbid scripts if native - just this won't build by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/84
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.115.0...0.115.1
 
 ## [0.115.0]
 
 ## What's Changed
+
 * disable scripts for native deployments by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/81
 * scanning is ignoring ignored folders by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/83
 * doc generator must use correct syntax for arguments by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/82
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.114.0...0.115.0
 
 ## [0.114.0]
 
 ## What's Changed
+
 * integration test with custom script by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/80
 * implement cache configuration at target level by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/78
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.113.0...0.114.0
 
 ## [0.113.0]
 
 ## What's Changed
-* fix script loading by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/79
 
+* fix script loading by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/79
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.112.0...0.113.0
 
@@ -2515,9 +2444,9 @@ Fix labels output.
 ## [0.108.0]
 
 ## What's Changed
+
 * Ability to ignores folders at workspace level by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/71
 * .terrabuild is no more required by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/72
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.107.1...0.108.0
 
@@ -2530,26 +2459,26 @@ Fix project scan issue when PROJECT and WORKSPACE are in the same sub-directory.
 ## [0.107.0]
 
 ## What's Changed
+
 * Serve by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/69
 * ignore sub workspace by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/70
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.106.0...0.107.0
 
 ## [0.106.0]
 
 ## What's Changed
+
 * Prepare brew environment by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/67
 * add & and | operator for booleans by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/68
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.104.0...0.106.0
 
 ## [0.104.0]
 
 ## What's Changed
-* new functions: better format (using template) and tostring by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/66
 
+* new functions: better format (using template) and tostring by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/66
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.102.1...0.104.0
 
@@ -2560,10 +2489,10 @@ Fix project scan issue when PROJECT and WORKSPACE are in the same sub-directory.
 ## [0.102.0]
 
 ## What's Changed
+
 * migrate to .net 9 by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/63
 * Rework Docker interface by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/64
 * Use kebab-case for arguments by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/65
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.100.4...0.102.0
 
@@ -2579,26 +2508,26 @@ Fix project scan issue when PROJECT and WORKSPACE are in the same sub-directory.
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.100.1...0.100.2
 
-
 ## [0.100.1]
 
 ## What's Changed
-* make some variables immediately available by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/62
 
+* make some variables immediately available by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/62
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.100.0...0.100.1
 
 ## [0.100.0]
 
 ## What's Changed
+
 * fix circular variable evaluation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/59
 * add yarn support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/60
 * Eager evaluation to avoid circular dependencies by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/61
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.98.0...0.100.0
 
 ## What's Changed
+
 * ignore WORKSPACE and PROJECT for hash computation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/55
 * Support add operator for list and map by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/56
 * add format support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/57
@@ -2608,14 +2537,13 @@ Fix project scan issue when PROJECT and WORKSPACE are in the same sub-directory.
 * add yarn support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/60
 * Eager evaluation to avoid circular dependencies by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/61
 
-
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.98.1...0.100.0
 
 ## [0.98.0]
 
 ## What's Changed
-* Add Podman support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/53
 
+* Add Podman support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/53
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.96.4...0.98.0
 
@@ -2629,8 +2557,8 @@ Bug fix:
 ## [0.96.3]
 
 ## What's Changed
-* container not part of hash by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/52
 
+* container not part of hash by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/52
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.96.2...0.96.3
 
@@ -2648,12 +2576,12 @@ Changes:
 ## [0.96.0]
 
 ## What's Changed
+
 * add terrabuild_debug var by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/47
 * remove BranchOrTag in command context by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/48
 * rename ProjectHash as Hash by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/49
 * Add replace function by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/50
 * Change accessors + add count function by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/51
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.94.1...0.96.0
 
@@ -2671,6 +2599,7 @@ Changes:
 ## [0.92.0]
 
 ## What's Changed
+
 * Optimizer is officially removed. Unused artifacts are still not downloaded.
 * No more universal binary for macOS: download correct version now (either arm64 or x64)
 * State can be synchronized with external state (Terraform for example). See --checkstate and Extensions for dynamic operations
@@ -2697,8 +2626,8 @@ Changes:
 ## [0.90.0]
 
 ## What's Changed
-* Remove batch build support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/43
 
+* Remove batch build support by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/43
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.88.1...0.90.0
 
@@ -2709,14 +2638,15 @@ Changes:
 ## [0.88.0]
 
 ## What's Changed
-* Notarize terrabuild by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/42
 
+* Notarize terrabuild by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/42
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.86.0...0.88.0
 
 ## [0.86.0]
 
 ## What's Changed
+
 * Cleanup exec commands in build by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/32
 * isolate consistency computation by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/33
 * add metadata to CI by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/34
@@ -2726,7 +2656,6 @@ Changes:
 * rename field (breaking change) by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/39
 * track artifact completion by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/40
 * implement links (loose dependencies) for build optimizations by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/41
-
 
 **Full Changelog**: https://github.com/MagnusOpera/Terrabuild/compare/0.84.5...0.86.0
 
@@ -2741,7 +2670,6 @@ Changes:
 * Add `@system`extension with `write` command
 * Add run command to `@npm` extension
 * Expose current project hash `$terrabuild_hash`
-
 
 ## [0.84.1]
 
@@ -3017,7 +2945,6 @@ Changes:
 Changes:
 * WhatIf is moved from top level to target
 
-
 ## [0.61.0]
 
 Changes:
@@ -3038,20 +2965,20 @@ Changes:
 ## [0.57.0]
 
 ## What's Changed
-* rebuild is an expression by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/12
 
+* rebuild is an expression by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/12
 
 ## [0.56.0]
 
 ## What's Changed
-* invalidate cache as required by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/11
 
+* invalidate cache as required by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/11
 
 ## [0.55.0]
 
 ## What's Changed
-* Fix tasks count by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/10
 
+* Fix tasks count by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/10
 
 ## [0.54.2]
 
@@ -3061,8 +2988,8 @@ Changes:
 ## [0.54.0]
 
 ## What's Changed
-* Use PubSub by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/9
 
+* Use PubSub by @pchalamet in https://github.com/MagnusOpera/Terrabuild/pull/9
 
 ## [0.53.0]
 
@@ -3165,7 +3092,6 @@ Changes:
 * add not equal operator (`!=`)
 * add try get item (`.?[ ]`)
 
-
 ## [0.38.0]
 
 Changes:
@@ -3187,7 +3113,6 @@ Changes:
 Changes:
 * Add support for map and list
 * Add item function (`.[ ]` syntax)
-
 
 ## [0.31.0]
 
@@ -3218,7 +3143,6 @@ Changes:
 * override variables using environment variables - override must respect variable type
 * add discovery of local dependency discovery for npm
 * fix error reporting (was not not complete) also add more context information
-
 
 ## [0.18.14]
 
@@ -3279,7 +3203,6 @@ Changes:
 * enable multiple auths so different spaces with different tokens can be used. NOTE: it's no more an error **not** to be authenticated in a space and still having a token for another space.
 * default environment variables **must** exist now (was empty env before if not found).
 * Add variables tracking on targets so this can safely impact project hash computation.
-
 
 ## [0.15.0]
 
