@@ -425,13 +425,13 @@ let ``writeImpactResultFile writes JSON`` () =
         json.GetProperty("impacts").GetProperty("app:build").GetString() |> shouldEqual "changed")
 
 [<Test>]
-let ``buildImpactResult reports changed and dependency impacts from target hashes`` () =
+let ``buildImpactResult reports changed target and parent hashes`` () =
     let currentGraph =
         buildGraph
             [ { buildGraphNode "lib-build" (Some "Lib") "src/Lib" "build" with
                     GraphDef.Node.TargetHash = "hash-lib-current" }
               { buildGraphNode "app-build" (Some "App") "src/App" "build" with
-                    GraphDef.Node.TargetHash = "hash-app"
+                    GraphDef.Node.TargetHash = "hash-app-current"
                     GraphDef.Node.Dependencies = Set [ "lib-build" ] }
               { buildGraphNode "batch" None ".terrabuild" "build" with
                     GraphDef.Node.Dependencies = Set [ "app-build" ] } ]
@@ -452,7 +452,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 Dependencies = []
                 PhaseDependencies = []
                 Transformations = []
-                TargetHashResolved = Some false
+                TargetHashResolved = Some true
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"
@@ -470,7 +470,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
                 Dependencies = [ "lib-build" ]
                 PhaseDependencies = []
                 Transformations = []
-                TargetHashResolved = Some false
+                TargetHashResolved = Some true
                 Artifacts = "Workspace"
                 Build = "Auto"
                 Batch = "Single"
@@ -492,7 +492,7 @@ let ``buildImpactResult reports changed and dependency impacts from target hashe
     impactResult.Base |> should equal "base-sha"
     impactResult.Head |> should equal "head-sha"
     impactResult.Impacts["lib:build"] |> should equal "changed"
-    impactResult.Impacts["app:build"] |> should equal "dependency"
+    impactResult.Impacts["app:build"] |> should equal "changed"
 
 [<Test>]
 let ``buildImpactResult marks missing base nodes as changed and skips unnamed nodes`` () =
@@ -520,3 +520,88 @@ let ``buildImpactResult marks missing base nodes as changed and skips unnamed no
 
     impactResult.Impacts.Count |> should equal 1
     impactResult.Impacts["root:build"] |> should equal "changed"
+
+let private storedImpactNode (node: GraphDef.Node) : Contracts.BuildGraphNode =
+    { Id = node.Id
+      ProjectId = node.ProjectId
+      ProjectName = node.ProjectName
+      ProjectDir = node.ProjectDir
+      Target = node.Target
+      Phase = node.Phase
+      ProjectHash = node.ProjectHash
+      TargetHash = node.TargetHash
+      Dependencies = Set.toList node.Dependencies
+      PhaseDependencies = Set.toList node.PhaseDependencies
+      Transformations = []
+      TargetHashResolved = Some true
+      Artifacts = "Workspace"
+      Build = "Auto"
+      Batch = "Single"
+      Action = "Exec"
+      Required = true
+      IsBatchNode = false }
+
+let private compareImpact currentNodes baseNodes =
+    let baseline: Contracts.CommitGraph =
+        { Repository = "acme/repo"
+          Commit = "base-sha"
+          GraphHash = "base-graph"
+          Nodes = baseNodes }
+    global.Program.buildImpactResult "base-sha"
+        { Sha = "head-sha"; Message = "head"; Author = "dev"; Email = "dev@example.com"; Timestamp = DateTime.UtcNow }
+        (Set [ "build" ]) (buildGraph currentNodes) baseline
+
+[<TestCase("added")>]
+[<TestCase("removed")>]
+[<TestCase("modified")>]
+[<TestCase("unchanged")>]
+let ``impact compares additions removals modifications and equality symmetrically`` change =
+    let node = buildGraphNode "app-build" (Some "App") "src/App" "build"
+    let current =
+        if change = "removed" then []
+        elif change = "modified" then [ { node with TargetHash = "new-hash" } ]
+        else [ node ]
+    let baseline = if change = "added" then [] else [ storedImpactNode node ]
+    let result = compareImpact current baseline
+    result.Impacts |> should equal (if change = "unchanged" then Map.empty else Map [ "app:build", "changed" ])
+
+[<TestCase(true)>]
+[<TestCase(false)>]
+let ``impact reports a hash added or removed within a project target`` adding =
+    let first = buildGraphNode "app-build-first" (Some "App") "src/App" "build"
+    let second = buildGraphNode "app-build-second" (Some "App") "src/App" "build"
+    let before, after = if adding then [ first ], [ first; second ] else [ first; second ], [ first ]
+    (compareImpact after (before |> List.map storedImpactNode)).Impacts
+    |> should equal (Map [ "app:build", "changed" ])
+
+[<Test>]
+let ``impact reports renamed projects as a removal and addition`` () =
+    let before = buildGraphNode "app-build" (Some "Old") "src/App" "build"
+    let after = { before with ProjectName = Some "New" }
+    (compareImpact [ after ] [ storedImpactNode before ]).Impacts
+    |> should equal (Map [ "old:build", "changed"; "new:build", "changed" ])
+
+[<TestCase("unresolved")>]
+[<TestCase("legacy")>]
+[<TestCase("blank")>]
+let ``impact rejects incomparable baseline hashes instead of inventing changes`` kind =
+    let node = buildGraphNode "app-build" (Some "App") "src/App" "build"
+    let baseline =
+        { storedImpactNode node with
+            TargetHashResolved = if kind = "legacy" then None else Some (kind <> "unresolved")
+            TargetHash = if kind = "blank" then "" else node.TargetHash }
+    let error = Assert.Throws<Errors.TerrabuildException>(fun () -> compareImpact [ node ] [ baseline ] |> ignore) |> nonNull
+    error.Message |> should contain "resolved target hash"
+
+[<Test>]
+let ``impact ignores synthetic batches and unnamed projects on both sides`` () =
+    let batch = buildGraphNode "batch" (Some "Batch") ".terrabuild" "build"
+    let unnamed = buildGraphNode "unnamed" None "src/Generated" "build"
+    let stored = { storedImpactNode batch with IsBatchNode = true; TargetHashResolved = None }
+    (compareImpact [] [ stored; storedImpactNode unnamed ]).Impacts |> should equal Map.empty<string, string>
+    let current = { buildGraph [ batch; unnamed ] with Batches = Map [ batch.Id, Set.empty ] }
+    let result = global.Program.buildImpactResult "base"
+                    { Sha = "head"; Message = ""; Author = "dev"; Email = "dev@example.com"; Timestamp = DateTime.UtcNow }
+                    (Set [ "build" ]) current
+                    { Repository = "repo"; Commit = "base"; GraphHash = "graph"; Nodes = [] }
+    result.Impacts |> should equal Map.empty<string, string>

@@ -208,6 +208,136 @@ let private runPipelineWithCache (cache: Cache.ICache) options =
       CascadedGraph = cascadedGraph
       FinalGraph = finalGraph }
 
+let private recordedImpactGraph (pipeline: PipelineStages) : Contracts.CommitGraph =
+    // Mirror Runner's full-graph upload: selected nodes are resolved, other nodes are not.
+    let nodes =
+        pipeline.FullGraph.Nodes
+        |> Map.map (fun id node -> pipeline.ResolvedGraph.Nodes |> Map.tryFind id |> Option.defaultValue node)
+        |> Map.values
+        |> Seq.map (fun node ->
+            { Contracts.BuildGraphNode.Id = node.Id
+              ProjectId = node.ProjectId
+              ProjectName = node.ProjectName
+              ProjectDir = node.ProjectDir
+              Target = node.Target
+              Phase = node.Phase
+              ProjectHash = node.ProjectHash
+              TargetHash = node.TargetHash
+              Dependencies = Set.toList node.Dependencies
+              PhaseDependencies = Set.toList node.PhaseDependencies
+              Transformations = []
+              TargetHashResolved = Some node.Provenance.IsSome
+              Artifacts = string node.Artifacts
+              Build = string node.Build
+              Batch = string node.Batch
+              Action = string node.Action
+              Required = node.Required
+              IsBatchNode = false })
+        |> Seq.toList
+    { Repository = "acme/repo"; Commit = "ancestor"; GraphHash = "graph"; Nodes = nodes }
+
+[<TestCase("unchanged")>]
+[<TestCase("command")>]
+[<TestCase("child")>]
+[<TestCase("added")>]
+[<TestCase("removed")>]
+[<TestCase("removed-target")>]
+let ``impact compares resolved Merkle graphs at ancestor and HEAD`` change =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build { depends_on = [ target.^build ] }
+target test {}
+"""
+        writeFile workspace "toolchain/PROJECT" """
+project toolchain { @shell {} }
+target build { @shell echo { args = "toolchain" } }
+"""
+        writeFile workspace "app/PROJECT" """
+project app { depends_on = [ project.toolchain ] @shell {} }
+target build { @shell echo { args = "app" } }
+target test { @shell echo { args = "test" } }
+"""
+        writeFile workspace "side/PROJECT" """
+project side { @shell {} }
+target build { @shell echo { args = "side" } }
+"""
+        let options = baseOptions workspace (Set [ "build" ])
+        let baseline = runPipelineWithCache (NoopCache() :> Cache.ICache) options
+        let stored = recordedImpactGraph baseline
+        match change with
+        | "command" ->
+            writeFile workspace "app/PROJECT" """
+project app { depends_on = [ project.toolchain ] @shell {} }
+target build { @shell echo { args = "new command" } }
+target test { @shell echo { args = "test" } }
+"""
+        | "child" ->
+            writeFile workspace "toolchain/PROJECT" """
+project toolchain { @shell {} }
+target build { @shell echo { args = "new toolchain command" } }
+"""
+        | "added" ->
+            writeFile workspace "extra/PROJECT" """
+project extra { @shell {} }
+target build { @shell echo { args = "extra" } }
+"""
+        | "removed" -> Directory.Delete(Path.Combine(workspace, "side"), true)
+        | "removed-target" ->
+            writeFile workspace "side/PROJECT" """
+project side { @shell {} }
+target test { @shell echo { args = "side" } }
+"""
+        | _ -> ()
+        let current = runPipelineWithCache (NoopCache() :> Cache.ICache) options
+        let baselineScope = global.Program.selectImpactBaseGraph current.Options current.Config stored
+        let result = global.Program.buildImpactResult "ancestor" current.Options.HeadCommit options.Targets current.ResolvedGraph baselineScope
+        let expected =
+            match change with
+            | "unchanged" -> []
+            | "command" -> [ "app:build" ]
+            | "child" -> [ "app:build"; "toolchain:build" ]
+            | "added" -> [ "extra:build" ]
+            | _ -> [ "side:build" ]
+        result.Impacts |> should equal (expected |> List.map (fun key -> key, "changed") |> Map.ofList)
+        if change = "child" then
+            let appId = current.ResolvedGraph.Nodes |> Map.values |> Seq.find (fun node -> node.ProjectName = Some "app") |> _.Id
+            current.ResolvedGraph.Nodes[appId].TargetHash |> should not' (equal baseline.ResolvedGraph.Nodes[appId].TargetHash)
+        // A narrower project selection must not turn unrelated stored projects into removals.
+        let filtered = runPipelineWithCache (NoopCache() :> Cache.ICache) { options with Projects = Some (Set [ "app" ]) }
+        let filteredBase = global.Program.selectImpactBaseGraph filtered.Options filtered.Config stored
+        let filteredImpact = global.Program.buildImpactResult "ancestor" filtered.Options.HeadCommit options.Targets filtered.ResolvedGraph filteredBase
+        let filteredExpected = expected |> List.filter (fun key -> key = "app:build" || key = "toolchain:build")
+        filteredImpact.Impacts |> should equal (filteredExpected |> List.map (fun key -> key, "changed") |> Map.ofList))
+
+[<Test>]
+let ``impact reports a requested target removed from the workspace and rejects unknown targets`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" "workspace {}\ntarget build {}\ntarget test {}"
+        writeFile workspace "app/PROJECT" """
+project app { @shell {} }
+target build { @shell echo { args = "build" } }
+"""
+        let options = baseOptions workspace (Set [ "build" ])
+        let stored = runPipelineWithCache (NoopCache() :> Cache.ICache) options |> recordedImpactGraph
+        writeFile workspace "WORKSPACE" "workspace {}\ntarget test {}"
+        writeFile workspace "app/PROJECT" """
+project app { @shell {} }
+target test { @shell echo { args = "test" } }
+"""
+        let options, config = Configuration.read options
+        let current =
+            global.Program.buildImpactNodes options config
+            |> GraphPipeline.Phase.build
+            |> GraphPipeline.Selection.build options config
+            |> GraphPipeline.Resolve.build options config
+        let baseline = global.Program.selectImpactBaseGraph options config stored
+        let result = global.Program.buildImpactResult "ancestor" options.HeadCommit options.Targets current baseline
+        result.Impacts |> should equal (Map [ "app:build", "changed" ])
+        let error = Assert.Throws<TerrabuildException>(fun () ->
+            global.Program.selectImpactBaseGraph { options with Targets = Set [ "typo" ] } config stored |> ignore) |> nonNull
+        error.Message |> should contain "not defined at HEAD or in the impact baseline")
+
 let private actionDecision nodeId =
     DiagnosticsTelemetry.snapshot().Actions
     |> List.find (fun decision -> decision.NodeId = nodeId)

@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Compare resolved target hashes for branch impact and report added and removed targets.
+
 - Upgrade the embedded FScript language and runtime to 0.88.0.
 
 ## [0.205.1]

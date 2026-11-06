@@ -216,7 +216,7 @@ Insights:
 terrabuild impact build --base <recorded-commit-sha> --out impact.json
 ```
 
-`impact` explains source-graph changes. [`explain`](../usage/explain.md) explains
+`impact` compares resolved target hashes between commits. [`explain`](../usage/explain.md) explains
 what this machine would execute or restore now. They answer different questions:
 a changed target might already have a reusable artifact from another machine.
 

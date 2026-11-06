@@ -58,7 +58,7 @@ Narrows the full graph to the selected execution scope.
 - Drops unrelated projects and targets before operation resolution.
 - Recomputes root nodes for the selected graph.
 
-This selected graph is the source graph used by run and impact. The web graph endpoint uses the same selected scope, then continues through resolve, action, cascade, and batch before rendering.
+This selected graph is the input to operation resolution for run and impact. Impact compares resolved Merkle target hashes against the equivalent scope in the stored base graph, reporting additions, removals, and differing hashes without a separate dependency propagation pass. The web graph endpoint uses the same selected scope, then continues through resolve, action, cascade, and batch before rendering.
 
 ## EnvironmentSensitivity.fs
 

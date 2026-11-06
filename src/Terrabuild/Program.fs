@@ -84,21 +84,48 @@ let normalizeTargetNames (targets: string seq) =
 let getImpactBaseGraph (api: Contracts.IApiClient) (options: ConfigOptions.Options) (baseCommit: string) =
     api.GetCommitGraph options.Repository baseCommit (graphEnvironmentKey options)
 
+// Impact must allow targets removed from HEAD: their baseline nodes still need reporting.
+let buildImpactNodes (options: ConfigOptions.Options) (configuration: Configuration.Workspace) =
+    let existingTargets = options.Targets |> Set.filter configuration.Targets.ContainsKey
+    GraphPipeline.Node.build { options with Targets = existingTargets } configuration
+
+// Insights stores the full workspace graph. Compare only the requested roots and their
+// dependency closure, just as Selection does for HEAD. Include deleted projects when
+// no project filter is active; filtered selection requires current project metadata.
+let selectImpactBaseGraph (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: Contracts.CommitGraph) =
+    let knownTargets = (configuration.Targets |> Map.keys |> Set.ofSeq) + (graph.Nodes |> Seq.map _.Target |> Set.ofSeq)
+    let unknownTargets = options.Targets - knownTargets
+    if not unknownTargets.IsEmpty then
+        let unknown = unknownTargets |> String.join ", "
+        raiseInvalidArg $"Target(s) {unknown} are not defined at HEAD or in the impact baseline."
+    let nodes =
+        graph.Nodes
+        |> Seq.filter (fun node -> not node.IsBatchNode)
+        |> Seq.map (fun node -> node.Id, node)
+        |> Map.ofSeq
+    let unfiltered = options.Projects.IsNone && options.Types.IsNone && options.Labels.IsNone
+    let roots =
+        nodes
+        |> Map.values
+        |> Seq.filter (fun node ->
+            options.Targets.Contains node.Target
+            && (unfiltered || configuration.SelectedProjects.Contains node.ProjectId))
+        |> Seq.map _.Id
+    let selected = System.Collections.Generic.HashSet<string>()
+    let pending = System.Collections.Generic.Stack<string>(roots)
+    while pending.Count > 0 do
+        let id = pending.Pop()
+        if selected.Add id then
+            match nodes |> Map.tryFind id with
+            | Some node -> node.Dependencies |> List.iter pending.Push
+            | None -> ()
+    { graph with Nodes = nodes |> Map.values |> Seq.filter (fun node -> selected.Contains node.Id) |> Seq.toList }
+
 let private mergeRunResultStatus currentStatus nextStatus =
     let priority status =
         match status with
         | "failure" -> 2
         | "success" -> 1
-        | _ -> 0
-
-    if priority nextStatus > priority currentStatus then nextStatus
-    else currentStatus
-
-let private mergeImpactStatus currentStatus nextStatus =
-    let priority status =
-        match status with
-        | "changed" -> 2
-        | "dependency" -> 1
         | _ -> 0
 
     if priority nextStatus > priority currentStatus then nextStatus
@@ -133,96 +160,41 @@ let buildRunResult (graph: GraphDef.Graph) (summary: Runner.Summary) =
       RunResult.EndedAt = summary.EndedAt
       RunResult.Results = results }
 
+// Both inputs must describe resolved logical targets, before cache decisions and batching.
+// A Merkle hash already incorporates dependency identities, so no propagation pass is needed.
 let buildImpactResult (baseCommit: string) (headCommit: Contracts.Commit) (targets: string set) (currentGraph: GraphDef.Graph) (baseGraph: Contracts.CommitGraph) =
-    let buildCurrentKeyMap (graph: GraphDef.Graph) =
-        graph.Nodes
-        |> Map.values
-        |> Seq.choose (fun node ->
-            node.ProjectName
-            |> Option.map (fun projectName -> buildResultKey projectName node.Target, node))
-        |> Seq.groupBy fst
-        |> Seq.map (fun (key, items) -> key, items |> Seq.map snd |> Seq.toList)
-        |> Map.ofSeq
-
-    let buildBaseKeyMap (graph: Contracts.CommitGraph) =
-        graph.Nodes
-        |> Seq.choose (fun node ->
-            node.ProjectName
-            |> Option.map (fun projectName -> buildResultKey projectName node.Target, node))
-        |> Seq.groupBy fst
-        |> Seq.map (fun (key, items) -> key, items |> Seq.map snd |> Seq.toList)
-        |> Map.ofSeq
-
-    let currentByKey = buildCurrentKeyMap currentGraph
-    let baseByKey = buildBaseKeyMap baseGraph
-
-    let hasChanged key (currentNodes: GraphDef.Node list) =
-        let currentHashes =
-            currentNodes
-            |> Seq.map (fun node -> node.TargetHash)
-            |> Set.ofSeq
-
-        match baseByKey |> Map.tryFind key with
-        | None -> true
-        | Some baseNodes ->
-            let baseHashes =
-                baseNodes
-                |> Seq.map (fun node -> node.TargetHash)
-                |> Set.ofSeq
-
-            if baseNodes |> List.exists (fun node -> String.IsNullOrWhiteSpace(node.TargetHash)) then true
-            else currentHashes <> baseHashes
-
-    let reverseDependencies =
+    let currentHashes =
         currentGraph.Nodes
         |> Map.values
-        |> Seq.collect (fun node -> node.Dependencies |> Seq.map (fun dependency -> dependency, node.Id))
+        |> Seq.filter (fun node -> not (currentGraph.Batches.ContainsKey node.Id))
+        |> Seq.choose (fun node ->
+            node.ProjectName
+            |> Option.map (fun projectName -> buildResultKey projectName node.Target, node.TargetHash))
         |> Seq.groupBy fst
-        |> Seq.map (fun (dependency, dependents) -> dependency, dependents |> Seq.map snd |> Set.ofSeq)
+        |> Seq.map (fun (key, nodes) -> key, nodes |> Seq.map snd |> Set.ofSeq)
         |> Map.ofSeq
 
-    let directChangedNodeIds =
-        currentByKey
-        |> Map.toSeq
-        |> Seq.choose (fun (key, currentNodes) ->
-            if hasChanged key currentNodes then
-                currentNodes |> Seq.map (fun node -> node.Id) |> Set.ofSeq |> Some
-            else None)
-        |> Seq.fold Set.union Set.empty
+    let baseHashes =
+        baseGraph.Nodes
+        |> Seq.filter (fun node -> not node.IsBatchNode)
+        |> Seq.choose (fun node ->
+            node.ProjectName
+            |> Option.map (fun projectName ->
+                if node.TargetHashResolved <> Some true || String.IsNullOrWhiteSpace node.TargetHash then
+                    raiseInvalidArg $"Impact baseline '{baseCommit}' has no resolved target hash for '{buildResultKey projectName node.Target}'. Record a build of the requested targets at the base commit before comparing impact."
+                buildResultKey projectName node.Target, node.TargetHash))
+        |> Seq.groupBy fst
+        |> Seq.map (fun (key, nodes) -> key, nodes |> Seq.map snd |> Set.ofSeq)
+        |> Map.ofSeq
 
-    let rec visit queue visited =
-        match queue with
-        | [] -> visited
-        | current::rest when visited |> Set.contains current -> visit rest visited
-        | current::rest ->
-            let next =
-                reverseDependencies
-                |> Map.tryFind current
-                |> Option.defaultValue Set.empty
-                |> Set.toList
-            visit (rest @ next) (visited |> Set.add current)
-
-    let impactedNodeIds = visit (directChangedNodeIds |> Set.toList) Set.empty
-
+    let keys = (currentHashes |> Map.keys |> Set.ofSeq) + (baseHashes |> Map.keys |> Set.ofSeq)
     let impacts =
-        impactedNodeIds
-        |> Seq.fold (fun state nodeId ->
-            match currentGraph.Nodes |> Map.tryFind nodeId with
-            | Some node ->
-                match node.ProjectName with
-                | Some projectName ->
-                    let key = buildResultKey projectName node.Target
-                    let status =
-                        if directChangedNodeIds |> Set.contains nodeId then "changed"
-                        else "dependency"
-                    let aggregated =
-                        match state |> Map.tryFind key with
-                        | Some existing -> mergeImpactStatus existing status
-                        | None -> status
-                    state |> Map.add key aggregated
-                | None -> state
-            | None -> state
-        ) Map.empty
+        keys
+        |> Seq.choose (fun key ->
+            let current = currentHashes |> Map.tryFind key |> Option.defaultValue Set.empty
+            let baseline = baseHashes |> Map.tryFind key |> Option.defaultValue Set.empty
+            if current = baseline then None else Some (key, "changed"))
+        |> Map.ofSeq
 
     { ImpactResult.Base = baseCommit
       ImpactResult.Head = headCommit.Sha
@@ -427,7 +399,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
         let cache = runPreparation (fun () -> Cache.Cache(storage, masterKey) :> Cache.ICache)
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
-        let nodeGraph = runPreparation (fun () -> runPhase "graph-node" (fun () -> GraphPipeline.Node.build options config))
+        let nodeGraph =
+            runPreparation (fun () -> runPhase "graph-node" (fun () ->
+                if runOptions.BaseCommit.IsSome then buildImpactNodes options config
+                else GraphPipeline.Node.build options config))
         checkpoint (Some nodeGraph) None None None None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Phase ]========================================================")
@@ -558,8 +533,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             | Some baseCommit -> baseCommit
             | None -> raiseInvalidArg "impact requires a base commit."
 
-        let baseGraph = getImpactBaseGraph api options baseCommit
-        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.SourceGraph baseGraph
+        let baseGraph =
+            getImpactBaseGraph api options baseCommit
+            |> selectImpactBaseGraph options prepared.Configuration
+        let impactResult = buildImpactResult baseCommit options.HeadCommit options.Targets prepared.ResolvedGraph baseGraph
         match runOptions.RunResultFile with
         | Some filePath -> writeImpactResultFile filePath impactResult
         | None -> raiseInvalidArg "impact requires an output file."
