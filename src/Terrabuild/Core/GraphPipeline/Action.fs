@@ -14,6 +14,27 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
     let scheduledNodeStatus = ConcurrentDictionary<string, bool>()
     use hub = Hub.Create(options.MaxConcurrency)
 
+    match cache with
+    | :? Cache.ICacheLookup as lookup ->
+        let reachable = System.Collections.Generic.HashSet<string>()
+        let rec visit nodeId =
+            if reachable.Add(nodeId) then
+                graph.Nodes[nodeId].Dependencies |> Seq.iter visit
+        graph.RootNodes |> Seq.iter visit
+        let entries =
+            reachable
+            |> Seq.map (fun nodeId -> graph.Nodes[nodeId])
+            |> Seq.filter (fun node -> isRemoteCacheable options node && node.Build <> BuildMode.Always && node.Artifacts <> ArtifactMode.None)
+            |> Seq.map buildCacheKey
+            |> Seq.distinct
+            |> Seq.toList
+        if not entries.IsEmpty then
+            let started = DiagnosticsTelemetry.offsetMs()
+            let timer = System.Diagnostics.Stopwatch.StartNew()
+            lookup.PrepareReads entries
+            DiagnosticsTelemetry.recordPhase "cache-prefetch" started timer.Elapsed.TotalMilliseconds
+    | _ -> ()
+
     let getNodeAction (node: Node) (buildingDependencies: string list) =
         let cacheScope =
             if isRemoteCacheable options node then "local-and-remote"
@@ -139,3 +160,17 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
             Graph.Nodes = nodes
             Graph.RootNodes = rootNodes }
     graph
+
+
+/// Keep explicitly requested cache hits as realization roots without expanding their build-time dependencies.
+let restoreSelectedOutputs (projects: Set<string>) (targets: Set<string>) (graph: Graph) =
+    let selected =
+        graph.Nodes.Values
+        |> Seq.filter (fun node ->
+            projects.Contains node.ProjectId && targets.Contains node.Target &&
+            node.Action = RunAction.Restore &&
+            (node.Artifacts = ArtifactMode.Managed || node.Artifacts = ArtifactMode.Workspace))
+        |> Seq.map _.Id
+        |> Set.ofSeq
+    let nodes = graph.Nodes |> Map.map (fun id node -> if selected.Contains id then { node with Required = true } else node)
+    { graph with Nodes = nodes; RootNodes = graph.RootNodes + selected }

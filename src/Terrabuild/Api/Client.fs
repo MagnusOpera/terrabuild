@@ -73,6 +73,7 @@ module private Http =
     let post<'req, 'resp when 'req: not struct> = request<'req, 'resp> false HttpMethod.Post
     let getArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Get
     let useArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Post
+    let lookupArtifacts<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Post
 
 
 
@@ -264,6 +265,15 @@ module internal Build =
 
 
 module internal Artifact =
+    type LookupInput = { Entries: string list }
+    type LookupOutput = { Entries: Contracts.ArtifactLookup list }
+
+    let lookupArtifacts headers entries =
+        try
+            let response = Http.lookupArtifacts<LookupInput, LookupOutput> headers "/artifacts/lookup" { Entries = entries }
+            Some response.Entries
+        with :? Contracts.ArtifactUnavailableException -> None
+
     [<RequireQualifiedAccess>]
     type ArtifactLocationOutput =
         { Uri: string
@@ -332,6 +342,9 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                                         run
                                         context
             resp.BuildId)
+
+    interface Contracts.IArtifactLookupApi with
+        member _.LookupArtifacts entries = Artifact.lookupArtifacts headers entries
 
     interface Contracts.IApiClient with
         member _.StartBuild () =

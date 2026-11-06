@@ -19,6 +19,7 @@ type RunTargetOptions = {
     RunResultFile: string option
     BaseCommit: string option
     DryRun: bool
+    RestoreOutputs: bool
     Debug: bool
     MaxConcurrency: int
     Force: bool
@@ -422,6 +423,10 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
 
         Log.Debug("====[ GraphPipeline Action ]========================================================")
         let graph = runPreparation (fun () -> runPhase "graph-action" (fun () -> GraphPipeline.Action.build options cache graph))
+        let graph =
+            if runOptions.RestoreOutputs then
+                GraphPipeline.Action.restoreSelectedOutputs config.SelectedProjects options.Targets graph
+            else graph
         checkpoint (Some phaseGraph) (Some sourceGraph) (Some resolvedGraph) (Some graph) None "preparing" "partial" None
 
         Log.Debug("====[ GraphPipeline Cascade ]========================================================")
@@ -577,6 +582,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.RunResultFile = runResultFile |> Option.map FS.fullPath
                         RunTargetOptions.BaseCommit = None
                         RunTargetOptions.DryRun = dryRun
+                        RunTargetOptions.RestoreOutputs = runArgs.Contains(RunArgs.Restore)
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = runArgs.Contains(RunArgs.Force)
                         RunTargetOptions.MaxConcurrency = maxConcurrency
@@ -619,6 +625,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
             RunTargetOptions.RunResultFile = None
             RunTargetOptions.BaseCommit = None
             RunTargetOptions.DryRun = true
+            RunTargetOptions.RestoreOutputs = false
             RunTargetOptions.Debug = debug
             RunTargetOptions.Force = explainArgs.Contains(ExplainArgs.Force)
             RunTargetOptions.MaxConcurrency = max 1 (Environment.ProcessorCount / 2)
@@ -686,6 +693,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.RunResultFile = Some (outputFile |> FS.fullPath)
                         RunTargetOptions.BaseCommit = Some baseCommit
                         RunTargetOptions.DryRun = false
+                        RunTargetOptions.RestoreOutputs = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = 1
@@ -724,6 +732,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.RunResultFile = None
                         RunTargetOptions.BaseCommit = None
                         RunTargetOptions.DryRun = false
+                        RunTargetOptions.RestoreOutputs = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = Int32.MaxValue
@@ -782,6 +791,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.RunResultFile = None
                         RunTargetOptions.BaseCommit = None
                         RunTargetOptions.DryRun = true
+                        RunTargetOptions.RestoreOutputs = false
                         RunTargetOptions.Debug = debug
                         RunTargetOptions.Force = false
                         RunTargetOptions.MaxConcurrency = 1

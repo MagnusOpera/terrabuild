@@ -56,6 +56,7 @@ type RunArgs =
     | [<Unique; AltCommandLine("-p")>] Project of projects:string list
     | [<Unique; AltCommandLine("-f")>] Force
     | [<Unique; AltCommandLine("-r")>] Retry
+    | [<Unique>] Restore
     | [<Unique>] Parallel of max:int
     | [<Unique>] Local_Only
     | [<Unique>] Note of note:string
@@ -78,6 +79,7 @@ with
             | Project _ -> "Select projects by identifier or workspace-relative path."
             | Force -> "Ignore cache when building target."
             | Retry -> "Retry failed task."
+            | Restore -> "Restore cached outputs of explicitly selected targets."
             | Parallel _ -> "Max parallel build concurrency (default to number of processors)."
             | Local_Only -> "Use local cache only."
             | Note _ -> "Note for the build."

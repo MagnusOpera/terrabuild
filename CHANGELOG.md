@@ -5,6 +5,9 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Explain cache-key changes across saved runs with offline `terrabuild compare`, including changed files, dependencies, operations, and evaluated inputs.
+- Restore cached outputs of explicitly selected targets with `terrabuild run --restore`, including test reports on fresh CI runners.
+- Prefetch remote cache metadata and availability checks concurrently instead of waiting along build dependency chains.
+- Speed up remote cache lookup with encrypted summary metadata and batched Insights artifact authorization, with legacy server and cache fallback.
 - Publish NuGet packages through trusted publishing and allow retrying existing release packages without rebuilding or signing again.
 
 ## [0.206.0]
