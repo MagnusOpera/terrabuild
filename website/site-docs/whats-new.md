@@ -6,7 +6,12 @@ slug: /whats-new
 
 For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusOpera/Terrabuild/blob/main/CHANGELOG.md) on GitHub.
 
-## 0.205.1
+## 0.205.2
+
+### 0.205.2
+
+- Compare resolved target hashes for branch impact and report added and removed targets.
+- Upgrade the embedded FScript language and runtime to 0.88.0.
 
 ### 0.205.1
 
@@ -19,4 +24,4 @@ For the complete history, see the full [CHANGELOG.md](https://github.com/MagnusO
 - Upgrade the embedded FScript language and runtime to 0.87.2.
 - Restore cached project outputs before native batch commands so builds can reuse prebuilt binaries.
 
-**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.204.1...0.205.1
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.204.1...0.205.2

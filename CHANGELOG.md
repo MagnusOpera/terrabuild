@@ -4,9 +4,12 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Compare resolved target hashes for branch impact and report added and removed targets.
+## [0.205.2]
 
+- Compare resolved target hashes for branch impact and report added and removed targets.
 - Upgrade the embedded FScript language and runtime to 0.88.0.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.205.1...0.205.2
 
 ## [0.205.1]
 
