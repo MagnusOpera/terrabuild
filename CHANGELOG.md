@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.207.2]
+
 - Load cached operation logs on demand when rendering build reports, avoiding crashes after metadata-only cache hits.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.207.1...0.207.2
 
 ## [0.207.1]
 
