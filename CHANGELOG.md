@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.205.3]
+
 - Fix the default production Insights API hostname after the Cloudflare migration.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.205.2...0.205.3
 
 ## [0.205.2]
 
