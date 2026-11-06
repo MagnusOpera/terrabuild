@@ -20,3 +20,5 @@ terrabuild serve --environment dev
 ```
 
 Use filters like `--project`, `--label`, or `--type` to narrow which projects are served.
+
+See [shared selection options](./index.md#shared-selection-options) for configuration, environment, variables, and filter behavior. `serve` selects the `serve` target automatically, uses local cache only, and enables retry of failed cached tasks. Projects must define that target to be served.

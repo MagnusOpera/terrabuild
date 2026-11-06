@@ -24,6 +24,19 @@ terrabuild explain deploy --environment staging
 terrabuild explain build --force
 ```
 
+## Options
+
+Use [shared selection options](./index.md#shared-selection-options) to match the workspace, configuration, environment, variables, and project filters of the run you want to inspect.
+
+| Option | Purpose |
+| --- | --- |
+| `--force` (`-f`) | Explain the decisions that would result from ignoring cached results. |
+| `--retry` (`-r`) | Explain retry behavior for failed cached tasks. |
+| `--local-only` | Look up local cache only. |
+| `--engine <engine>` | Choose `docker`, `podman`, or `host`; a configured `workspace.engine` takes precedence. |
+
+## Read the explanation
+
 For every selected node, the output distinguishes an explicit root from a
 dependency, reports the computed action, and states the final scheduling outcome
 with its reason. It also includes requirement, dependency, and cache evidence,

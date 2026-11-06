@@ -37,5 +37,7 @@ Use **Concepts and policies** to understand graph selection, execution, caching,
 and batching. Use **Reference** for configuration attributes, CLI options, and
 extension actions. [Troubleshooting](../troubleshooting.md) helps explain unexpected results.
 
+For day-to-day CLI tasks, start with the [Usage guide](../usage/index.md). It groups commands by purpose and explains how to select projects, inspect a planned run, measure branch impact, and compare saved runs.
+
 Still evaluating? [Why Terrabuild](./why-terrabuild.md) describes where it helps
 and how its responsibilities fit alongside your existing tools and CI.

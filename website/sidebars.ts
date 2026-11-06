@@ -109,9 +109,6 @@ const sidebars: SidebarsConfig = {
         'getting-started/caching',
         'getting-started/batch',
         'workspace/phase',
-        'usage/impact',
-        'usage/explain',
-        'usage/compare',
       ],
     },
     {
@@ -120,6 +117,39 @@ const sidebars: SidebarsConfig = {
       defaultStyle: true,
     },
     'getting-started/glossary',
+    {
+      type: 'category',
+      label: 'Usage',
+      link: {type: 'doc', id: 'usage/index'},
+      items: [
+        {
+          type: 'category',
+          label: 'Run targets',
+          items: ['usage/run', 'usage/serve', 'usage/logs'],
+        },
+        {
+          type: 'category',
+          label: 'Understand changes',
+          items: ['usage/explain', 'usage/impact', 'usage/compare'],
+        },
+        {
+          type: 'category',
+          label: 'Workspace and local tools',
+          items: [
+            'usage/scaffold',
+            'usage/console',
+            'usage/clear',
+            'usage/prune',
+            'usage/version',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Connect to Insights',
+          items: ['usage/login', 'usage/logout'],
+        },
+      ],
+    },
     {
       type: 'category',
       label: 'Syntax',
@@ -194,22 +224,6 @@ const sidebars: SidebarsConfig = {
         'extensibility/types',
         'extensibility/functions',
         'extensibility/container',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Usage',
-      link: {type: 'doc', id: 'usage/index'},
-      items: [
-        'usage/run',
-        'usage/logs',
-        'usage/serve',
-        'usage/scaffold',
-        'usage/console',
-        'usage/clear',
-        'usage/prune',
-        'usage/login',
-        'usage/logout',
       ],
     },
     'whats-new',

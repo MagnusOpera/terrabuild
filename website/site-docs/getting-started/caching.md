@@ -182,4 +182,4 @@ To improve cache reuse:
 4. Connect to Insights when machines need to share managed artifacts.
 5. Use `~external` only when the external system makes the artifact available independently of Terrabuild.
 
-Use `terrabuild explain <target>` to inspect the evaluated inputs, cache key, and action selected for each node.
+Use [`terrabuild explain <target>`](../usage/explain.md) to inspect the evaluated inputs, cache key, and action selected for each node. Use [`terrabuild compare`](../usage/compare.md) with two saved debug reports to identify which files, dependencies, or inputs changed a cache key.

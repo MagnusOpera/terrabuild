@@ -26,7 +26,25 @@ terrabuild run build --out run-result.json
 terrabuild run deploy --group deployment-123
 ```
 
-If `workspace.engine` is set in `WORKSPACE`, that workspace value overrides `--engine`.
+## Select targets and control execution
+
+Pass one or more workspace target names, followed by any options. Use [shared selection options](./index.md#shared-selection-options) to choose the workspace, configuration, environment, variables, and projects. Required target dependencies are included automatically.
+
+| Option | Purpose |
+| --- | --- |
+| `--force` (`-f`) | Ignore cached results and execute targets. |
+| `--retry` (`-r`) | Retry failed cached tasks. |
+| `--restore` | Materialize cached outputs of explicitly selected targets; see below. |
+| `--parallel <max>` | Limit build concurrency; defaults to the number of processors. |
+| `--local-only` | Use local cache only. |
+| `--engine <engine>` | Choose `docker`, `podman`, or `host`. A configured `workspace.engine` overrides this option. |
+| `--note <note>` | Attach a note to the build. |
+| `--group <group>` | Associate related builds with a group identifier. |
+| `--tag <tag>` | Attach a tag to the build. |
+| `--out <path>` | Write the run result as JSON; see below. |
+| `--dry-run` | Prepare the run without executing targets. |
+
+Use [explain](./explain) for a readable account of the planned decisions, [logs](./logs) to inspect stored logs, and [compare](./compare) to investigate cache-key changes between debug runs.
 
 ## Machine-readable output
 
@@ -68,8 +86,6 @@ terrabuild run build --dry-run
 ```
 
 In `--dry-run` mode Terrabuild does not invoke the runner, so no run result file is written.
-
-
 ## Restore selected cached outputs
 
 Use `--restore` when a later CI step needs files from a cached target:

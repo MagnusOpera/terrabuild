@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Make every CLI command discoverable under Usage and document version, shared selection options, and impact workflows.
 - Explain cache-key changes across saved runs with offline `terrabuild compare`, including changed files, dependencies, operations, and evaluated inputs.
 - Restore cached outputs of explicitly selected targets with `terrabuild run --restore`, including test reports on fresh CI runners.
 - Prefetch remote cache metadata and availability checks concurrently instead of waiting along build dependency chains.
