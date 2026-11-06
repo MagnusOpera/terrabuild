@@ -85,7 +85,16 @@ let copyFiles (targetDir: string) (baseDir: string) (entries: string list) =
         let target = FS.combinePath targetDir relative
         let targetDir = FS.parentDirectory target |> Option.get
         Directory.CreateDirectory targetDir |> ignore
-        File.Copy(entry, target, true)
+        // File.Copy dereferences links, which breaks launchers that resolve
+        // modules relative to their real path (for example node_modules/.bin).
+        match FileInfo(target).LinkTarget with
+        | NonNull _ -> File.Delete(target)
+        | Null -> ()
+        match FileInfo(entry).LinkTarget with
+        | NonNull linkTarget ->
+            File.Delete(target)
+            File.CreateSymbolicLink(target, linkTarget) |> ignore
+        | Null -> File.Copy(entry, target, true)
     if entries |> List.isEmpty then None
     else Some targetDir
 

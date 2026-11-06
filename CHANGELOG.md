@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Preserve hidden output files and symbolic file links in local and remote caches so restored npm launchers keep working.
+
 ## [0.207.0]
 
 - Keep generated website pages, version metadata, and new release snapshots out of Git after local website preparation.

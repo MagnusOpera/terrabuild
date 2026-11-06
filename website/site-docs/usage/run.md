@@ -97,3 +97,15 @@ terrabuild run test --project api_tests web_tests --restore
 Cached managed or workspace targets selected by the requested target names and project filters remain restoration roots. Their declared outputs, such as TRX and JUnit reports, are materialized without rerunning successful checks. Explicitly requesting several targets restores each selected cached target, even when one is also another target's dependency. Cached roots remain dependency barriers, so their build-time prerequisites are not restored merely to collect reports. External artifacts are not downloaded into the checkout.
 
 Cache misses and failures retain normal `run` semantics, including `--retry`, and `--dry-run` only previews the graph. `--restore` changes output materialization, not cache keys. File replacement uses the same transactional restoration and target locks as ordinary dependency restoration. Without this option, existing lazy restoration behavior is unchanged.
+
+### Cached launchers and hidden outputs
+
+New output snapshots preserve hidden files and symbolic file links, including npm launchers under `node_modules/.bin`. Remote restoration accepts relative links contained within the artifact. Absolute links, links escaping the extraction directory, and directory aliases are rejected as unreadable cache artifacts.
+
+Earlier snapshots may already have flattened links or omitted hidden files. After upgrading, regenerate affected outputs once, for example:
+
+```sh
+terrabuild run install --project my_web_project --force
+```
+
+Subsequent runs can reuse the corrected snapshot. No workspace-wide cache purge is required.
