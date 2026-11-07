@@ -1001,17 +1001,19 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                     match getSummaryOnly false id with
                     | Some (_, summary) -> summary.Outputs = OutputState.Stored && not (Directory.Exists(FS.combinePath entryDir "outputs"))
                     | None -> true)
-            match storage with
-            | :? Contracts.IBatchStorage as batch -> batch.PrepareReads pending
-            | _ -> ()
-            // Metadata I/O must not serialize along the target dependency chain or
-            // inherit the CPU execution limit. Keep legacy log downloads bounded too.
-            System.Threading.Tasks.Parallel.ForEach(
-                pending,
-                System.Threading.Tasks.ParallelOptions(MaxDegreeOfParallelism = 8),
-                fun id ->
-                    getSummaryOnly true id |> Option.iter (fun (_, summary) ->
-                        if summary.IsSuccessful then canRestore true id summary |> ignore)) |> ignore
+            let parallelOptions = System.Threading.Tasks.ParallelOptions(MaxDegreeOfParallelism = 8)
+            // Authorize each window just before reading it so large graphs do not
+            // spend the signing lifetime on earlier windows.
+            for window in pending |> List.chunkBySize 64 do
+                match storage with
+                | :? Contracts.IBatchStorage as batch -> batch.PrepareReads window
+                | _ -> ()
+                System.Threading.Tasks.Parallel.ForEach(
+                    window,
+                    parallelOptions,
+                    fun id ->
+                        getSummaryOnly true id |> Option.iter (fun (_, summary) ->
+                            if summary.IsSuccessful then canRestore true id summary |> ignore)) |> ignore
 
     interface ICache with
         member _.TryGetSummaryOnly useRemote id = getSummaryOnly useRemote id

@@ -71,9 +71,7 @@ module private Http =
 
     let get<'req, 'resp when 'req: not struct> = request<'req, 'resp> false HttpMethod.Get
     let post<'req, 'resp when 'req: not struct> = request<'req, 'resp> false HttpMethod.Post
-    let getArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Get
     let useArtifact<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Post
-    let lookupArtifacts<'req, 'resp when 'req: not struct> = request<'req, 'resp> true HttpMethod.Post
 
 
 
@@ -269,10 +267,8 @@ module internal Artifact =
     type LookupOutput = { Entries: Contracts.ArtifactLookup list }
 
     let lookupArtifacts headers entries =
-        try
-            let response = Http.lookupArtifacts<LookupInput, LookupOutput> headers "/artifacts/lookup" { Entries = entries }
-            Some response.Entries
-        with :? Contracts.ArtifactUnavailableException -> None
+        let response = Http.post<LookupInput, LookupOutput> headers "/artifacts/lookup" { Entries = entries }
+        response.Entries
 
     [<RequireQualifiedAccess>]
     type ArtifactLocationOutput =
@@ -283,11 +279,9 @@ module internal Artifact =
         provider
         |> Option.bind Option.ofObj
 
-    let getArtifact headers (path: string) (operation: string): ArtifactLocationOutput =
+    let getUploadLocation headers (path: string): ArtifactLocationOutput =
         let path = Uri.EscapeDataString(path)
-        let operation = Uri.EscapeDataString(operation)
-        let request = if operation = "put" then Http.get<Unit, ArtifactLocationOutput> else Http.getArtifact<Unit, ArtifactLocationOutput>
-        request headers $"/artifacts?path={path}&operation={operation}" ()
+        Http.get<Unit, ArtifactLocationOutput> headers $"/artifacts?path={path}&operation=put" ()
 
 
 type Client(workspaceId: string, token: string, options: ConfigOptions.Options) =
@@ -343,9 +337,6 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                                         context
             resp.BuildId)
 
-    interface Contracts.IArtifactLookupApi with
-        member _.LookupArtifacts entries = Artifact.lookupArtifacts headers entries
-
     interface Contracts.IApiClient with
         member _.StartBuild () =
             buildId.Force() |> ignore
@@ -362,8 +353,10 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
         member _.UseArtifact projectHash hash productionId =
             Build.useArtifact headers buildId.Value projectHash hash productionId
 
-        member _.GetArtifact path operation =
-            let resp = Artifact.getArtifact headers path operation
+        member _.LookupArtifacts entries = Artifact.lookupArtifacts headers entries
+
+        member _.GetUploadLocation path =
+            let resp = Artifact.getUploadLocation headers path
             Uri(resp.Uri), Artifact.normalizeProvider resp.Provider
 
         member _.GetCommitGraph repository commit environment =

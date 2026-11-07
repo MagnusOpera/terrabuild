@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Require the Insights batch lookup API for remote cache reads, and authorize each window just before reading it to limit signed URL expiry on large graphs.
+
 ## [0.207.2]
 
 - Load cached operation logs on demand when rendering build reports, avoiding crashes after metadata-only cache hits.

@@ -362,7 +362,8 @@ type private FakeApiClient(?failAddArtifact: bool, ?useArtifactError: exn) =
               Contracts.CommitGraph.GraphHash = "graph"
               Contracts.CommitGraph.Nodes = [] }
 
-        member _.GetArtifact(_path) (_operation) = Uri("https://example.invalid/artifact"), None
+        member _.LookupArtifacts _entries = failwith "Unused in this test"
+        member _.GetUploadLocation _path = Uri("https://example.invalid/artifact"), None
 
         member _.AddArtifact project projectName target projectHash targetHash files success startedAt endedAt _provenance =
             if failAddArtifact then

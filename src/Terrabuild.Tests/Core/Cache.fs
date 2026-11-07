@@ -843,6 +843,30 @@ let ``metadata prefetch overlaps independent reads and keeps concurrency bounded
             underlying.Downloads |> should equal downloaded
         ))
 
+[<Test>]
+let ``prefetch reads each authorization window before requesting the next`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let windows = ResizeArray<int * int>()
+            let manifestsRead = System.Collections.Concurrent.ConcurrentDictionary<string, byte>()
+            let storage =
+                { new Contracts.IStorage with
+                    member _.Name = "windowed fixture"
+                    member _.Upload _ _ = failwith "Unused in this test"
+                    member _.Exists _ = false
+                    member _.TryDownload path =
+                        if path.EndsWith("/manifest", StringComparison.Ordinal) then
+                            manifestsRead.TryAdd(path, 0uy) |> ignore
+                        None
+                  interface Contracts.IBatchStorage with
+                    member _.PrepareReads entries =
+                        windows.Add(entries.Length, manifestsRead.Count) }
+            let cache = Cache.Cache(storage, None) :> Cache.ICacheLookup
+            cache.PrepareReads [ for index in 1..130 -> $"project-{index}/build/hash" ]
+            windows |> Seq.toList |> shouldEqual [64, 0; 64, 64; 2, 128]
+            manifestsRead.Count |> shouldEqual 130
+        ))
+
 [<TestCase(false)>]
 [<TestCase(true)>]
 let ``restored npm launchers retain relative symbolic links`` remote =
