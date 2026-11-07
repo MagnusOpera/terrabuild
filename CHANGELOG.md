@@ -4,7 +4,11 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.207.3]
+
 - Require the Insights batch lookup API for remote cache reads, and authorize each window just before reading it to limit signed URL expiry on large graphs.
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.207.2...0.207.3
 
 ## [0.207.2]
 
