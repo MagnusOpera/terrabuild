@@ -83,7 +83,8 @@ type private RecordingImpactApiClient() =
         member _.CompleteBuild _success = ()
         member _.AddArtifact _project _projectName _target _projectHash _targetHash _files _success _startedAt _endedAt _provenance = ()
         member _.UseArtifact _projectHash _hash _productionId = ()
-        member _.GetArtifact _path _operation = Uri("https://example.invalid/artifact"), None
+        member _.LookupArtifacts _entries = failwith "Unused in this test"
+        member _.GetUploadLocation _path = Uri("https://example.invalid/artifact"), None
         member _.GetCommitGraph repository commit environment =
             lastLookup <- Some (repository, commit, environment)
             { CommitGraph.Repository = repository

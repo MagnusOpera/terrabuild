@@ -49,14 +49,12 @@ type ArtifactLookup = {
     Locations: ArtifactLocation list
 }
 
-type IArtifactLookupApi =
-    abstract LookupArtifacts: entries:string list -> ArtifactLookup list option
-
 type IApiClient =
     abstract StartBuild: Unit -> Unit
     abstract UploadBuildGraph: graphHash:string -> environment:string -> nodes:BuildGraphNode list -> Unit
     abstract CompleteBuild: success:bool -> Unit
     abstract AddArtifact: project:string -> projectName:string option -> target:string -> projectHash:string -> targetHash:string  -> files:string list -> success:bool -> startedAt:DateTime -> endedAt:DateTime -> provenance:ProvenanceDeclaration option -> Unit
     abstract UseArtifact: projectHash:string -> hash:string -> productionId:string option -> Unit
-    abstract GetArtifact: path:string -> operation:string -> Uri * string option
+    abstract LookupArtifacts: entries:string list -> ArtifactLookup list
+    abstract GetUploadLocation: path:string -> Uri * string option
     abstract GetCommitGraph: repository:string -> commit:string -> environment:string -> CommitGraph

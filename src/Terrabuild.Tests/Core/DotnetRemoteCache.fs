@@ -80,7 +80,8 @@ and private RecordingApiClient() =
         member _.CompleteBuild _success =
             lifecycle.Enqueue("complete")
 
-        member _.GetArtifact _path _operation =
+        member _.LookupArtifacts _entries = failwith "Unused in this test"
+        member _.GetUploadLocation _path =
             Uri("https://example.invalid/artifact"), None
 
         member _.GetCommitGraph _repository _commit _environment =
