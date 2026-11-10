@@ -1,5 +1,6 @@
 <Project>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="10.1.403" />
+    <!-- Match the FSharp.Core assembly version used by FScript extension providers. -->
+    <PackageReference Update="FSharp.Core" Version="10.1.404" />
   </ItemGroup>
 </Project>

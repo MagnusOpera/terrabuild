@@ -3,4 +3,4 @@
 # Paths below are relative to this manifest.
 [runtime]
 default-externs = false
-extern-assemblies = ["../../Terrabuild.Scripting/bin/Release/net10.0/Terrabuild.Scripting.dll"]
+extern-assemblies = ["../../Terrabuild.Scripting/bin/Release/net11.0/Terrabuild.Scripting.dll"]

@@ -20,7 +20,7 @@ brew upgrade magnusopera/tap/terrabuild
 
 ## .NET global tool
 
-If the .NET CLI is already installed:
+Use the .NET 11 SDK to install and run the tool:
 
 ```bash
 dotnet tool install --global Terrabuild
@@ -40,7 +40,7 @@ Download an archive from
 - macOS on Apple silicon;
 - Linux on x64 or ARM64;
 - Windows on x64 or ARM64;
-- the platform-independent .NET tool.
+- the platform-independent .NET build, which requires ASP.NET Core Runtime 11.
 
 Extract the executable into a directory on your `PATH`.
 

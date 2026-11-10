@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Terrabuild now runs on .NET 11. The .NET tool requires ASP.NET Core Runtime 11.
+
 ## [0.207.3]
 
 - Require the Insights batch lookup API for remote cache reads, and authorize each window just before reading it to limit signed URL expiry on large graphs.

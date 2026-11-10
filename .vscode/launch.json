@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Terrabuild/bin/Debug/net10.0/Terrabuild.dll",
+            "program": "${workspaceFolder}/src/Terrabuild/bin/Debug/net11.0/Terrabuild.dll",
             // self build
             // "args": ["run", "build", "--parallel", "1", "--debug", "--log", "--retry", "--local-only" ],
             // "args": ["run", "build", "test", "--workspace", "tests/simple", "--parallel", "1", "--debug", "--log" ],
@@ -53,9 +53,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/tools/DocGen/bin/Debug/net9.0/DocGen.dll",
+            "program": "${workspaceFolder}/tools/DocGen/bin/Debug/net11.0/DocGen.dll",
             "args": [
-                "src/Terrabuild.Extensions/bin/Debug/net9.0/Terrabuild.Extensions.xml", "../terrabuild.io/content/docs/extensions"
+                "src/Terrabuild.Extensions/bin/Debug/net11.0/Terrabuild.Extensions.xml", "../terrabuild.io/content/docs/extensions"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

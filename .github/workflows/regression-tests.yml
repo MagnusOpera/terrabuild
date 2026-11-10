@@ -24,6 +24,7 @@ jobs:
       - name: Setup Tools
         uses: ./.github/actions/setup-tools
         with:
+          install_dotnet: "true"
           install_terrabuild: "true"
           terrabuild_version: ${{ inputs.version }}
           terrabuild_prerelease: ${{ inputs.prerelease }}

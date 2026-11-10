@@ -274,7 +274,7 @@ Parameter XML documentation attributes:
 
 ## Typed invocation arguments
 
-Terrabuild uses the FScript Language and Runtime 0.90.1 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
+Terrabuild uses the FScript Language and Runtime 0.91.0 packages by default. `UseLocalFScript=true` switches to sibling project references for development; both build modes use the same argument adaptation, including FScript structural record constraints (`TRecordShape`).
 
 The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` and `TypeDefs` to adapt configuration values before invoking a function. Configuration maps remain FScript maps for map parameters and become `VRecord` for declared or structural record parameters. Nested records, lists, map values, and options are adapted recursively; omitted optional record fields become `None`. Enum strings become declared payload-free union cases, and CLR union values are qualified to the matching script type. Host-managed values retain their opaque representation and cannot be manufactured from configuration maps. FScript remains responsible for validating the resulting argument and return values against the signature.
 
@@ -284,9 +284,9 @@ The scripting bridge uses `ScriptHost.LoadedScript.ExportedFunctionSignatures` a
 
 The execution host explicitly grants FScript `IO | Threading` permissions. It supplies the standard registry filtered by those capabilities, without a function-name blacklist. `Interactive` and `Native` are not granted: terminal input and external provider code are unavailable. All Task functions are permitted; FScript joins outstanding workers before top-level or exported-function execution returns and collects fatal foreground/background failures. Filesystem IO retains the workspace root, symlink checks, and denied-path policy. The protocol itself forwards only the defaults supplied by its host and cannot grant permissions. Execution and DocGen load this same registration. Built-in contract fingerprints include a stable serialization of the registered schema and script sources, rather than a copied protocol file or assembly build identity.
 
-`src/Terrabuild.Extensions/Scripts/fscript.toml` selects the `Terrabuild.Scripting` assembly for CLI and VS Code authoring after a Release build. It disables automatic defaults because the provider supplies the approved extern set. Loading a provider only describes contracts; it does not execute an extension. Custom authors may copy the manifest beside their scripts and adjust the assembly path. Terrabuild itself always supplies its protocol, independently of editor manifest selection.
+`src/Terrabuild.Extensions/Scripts/fscript.toml` selects the `Terrabuild.Scripting` assembly for CLI and VS Code authoring after a Release build. The provider targets .NET 11 and requires FScript 0.91.0 or later. The manifest disables automatic defaults because the provider supplies the approved extern set. Loading a provider only describes contracts; it does not execute an extension. Custom authors may copy the manifest beside their scripts and adjust the assembly path. Terrabuild itself always supplies its protocol, independently of editor manifest selection.
 
-The default build uses the FScript 0.90.1 packages, including foreign union and set projection. A sibling checkout is only needed when explicitly developing FScript through `flags=fscript` or `/p:UseLocalFScript=true`.
+The default build uses the FScript 0.91.0 packages, including foreign union and set projection. A sibling checkout is only needed when explicitly developing FScript through `flags=fscript` or `/p:UseLocalFScript=true`.
 
 ## Independent SDK boundary
 
@@ -294,11 +294,11 @@ Attributed protocol contracts and the provider use `FScript.Extensibility` from 
 
 Terrabuild's embedding layer still references Language/Runtime and adapts the SDK registration with `ExtensionBridge.toLanguageRegistrationWithPermissions`. The scripting assembly hosts both contracts and embedding; standalone extension assemblies can reference only the SDK. Script syntax, constructible protocol types, sets, manifests, are unchanged; execution policy is now capability-based.
 
-Development checkouts now live under the FScript umbrella: `../FScript/FScript` for the product and `../FScript/FScript.Extensibility` for the SDK. `UseLocalFScript=true` selects product projects; the separate `UseLocalFScriptExtensibility=true` selects SDK sources. Make accepts `flags=fscript,fscript-sdk`. Normal builds and release CI use NuGet. The product package target is 0.90.1; ordinary builds restore it from NuGet without a sibling checkout.
+Development checkouts now live under the FScript umbrella: `../FScript/FScript` for the product and `../FScript/FScript.Extensibility` for the SDK. `UseLocalFScript=true` selects product projects; the separate `UseLocalFScriptExtensibility=true` selects SDK sources. Make accepts `flags=fscript,fscript-sdk`. Normal builds and release CI use NuGet. The product package target is 0.91.0; ordinary builds restore it from NuGet without a sibling checkout.
 
 ## Interpreted execution and purity metadata
 
-Terrabuild continues using the AST evaluator through `ScriptHost` for both loading and invocation. It does not depend on the compiler, LIR interpreter, or either backend. The shared `FScriptVersion` property pins Language and Runtime to 0.90.1 when packages are used; the extension SDK remains 1.0.0.
+Terrabuild continues using the AST evaluator through `ScriptHost` for both loading and invocation. It does not depend on the compiler, LIR interpreter, or either backend. The shared `FScriptVersion` property pins Language and Runtime to 0.91.0 when packages are used; the extension SDK remains 1.0.0.
 
 `FScriptProtocolProvider.FScriptPureTypes()` advertises the ten protocol records/unions as deeply immutable data contracts. Their registered fields and payloads contain only immutable values; no opaque mutable handles or effectful getters are exposed. `FScriptPureFunctions()` returns an empty sequence: approved runtime functions are not blanket-marked pure. The type list is an explicit allowlist: a newly registered type needs a separate immutability review. FScript purity is not inferred from Terrabuild cacheability or provenance flags. These optional BCL companion methods are only consumed by FScript compiler tooling and have no optimization effect on interpreted Terrabuild extensions. They do not memoize or reorder extension calls.
 
@@ -315,6 +315,6 @@ make self
 
 Add `flags=fscript` to these commands when validating changes in the sibling product checkout instead of the published packages.
 
-Local flags propagate to nested host MSBuild processes. Local self-builds select the host engine and `local` workspace configuration so sibling source projects remain accessible, and force execution because sibling source changes are not workspace cache inputs. The repository workspace permits the CLI engine selection; its default remains Docker. Normal self-builds retain the configured engine and configuration. `flags=fscript,fscript-sdk` also selects the local SDK checkout when developing the SDK itself. Package builds target the FScript 0.90.1 release; no compiler migration is needed for Terrabuild.
+Local flags propagate to nested host MSBuild processes. Local self-builds select the host engine and `local` workspace configuration so sibling source projects remain accessible, and force execution because sibling source changes are not workspace cache inputs. The repository workspace permits the CLI engine selection; its default remains Docker. Normal self-builds retain the configured engine and configuration. `flags=fscript,fscript-sdk` also selects the local SDK checkout when developing the SDK itself. Package builds target the FScript 0.91.0 release; no compiler migration is needed for Terrabuild.
 
-The permission-based host API is available in the published FScript 0.90.1 packages. Validate package-based integration using `make test`; use `make test flags=fscript` only when developing against the sibling source checkout.
+The permission-based host API is available in the published FScript 0.91.0 packages. Validate package-based integration using `make test`; use `make test flags=fscript` only when developing against the sibling source checkout.

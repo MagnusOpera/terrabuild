@@ -91,7 +91,7 @@ let private trimOptionSuffix (typeAnnotation: string) =
 
 let private tryFormatTerrabuildLiteral (typeAnnotation: string option) (raw: string) =
     let value = raw.Trim()
-    let startsWithAndEndsWith quote =
+    let startsWithAndEndsWith (quote: string) =
         value.Length >= 2 && value.StartsWith(quote, StringComparison.Ordinal) && value.EndsWith(quote, StringComparison.Ordinal)
 
     let isNumberLiteral =
