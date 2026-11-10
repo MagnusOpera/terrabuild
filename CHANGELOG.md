@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Show the five latest stable release lines in the docs selector, with a separate What's New section for each patch.
+
 ## [0.208.0]
 
 - Terrabuild now runs on .NET 11. The .NET tool requires ASP.NET Core Runtime 11.

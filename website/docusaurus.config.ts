@@ -4,18 +4,13 @@ import path from 'node:path';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-const docsDirs = ['site-docs'];
-if (existsSync(path.join(process.cwd(), 'versioned_docs'))) {
-  docsDirs.push('versioned_docs');
-}
 const versionsPath = path.join(process.cwd(), 'versions.json');
-const publishedVersions = existsSync(versionsPath)
+const publishedVersions: string[] = existsSync(versionsPath)
   ? JSON.parse(readFileSync(versionsPath, 'utf8'))
   : [];
-const hasPublishedVersions =
-  Array.isArray(publishedVersions) && publishedVersions.length > 0;
-const showVersionDropdown = hasPublishedVersions;
-const lastVersion = hasPublishedVersions ? publishedVersions[0] : 'current';
+const releaseLines = publishedVersions.filter((version) => /^\d+\.\d+$/.test(version));
+const lastVersion = releaseLines[0] ?? 'current';
+const docsDirs = ['site-docs', ...publishedVersions.map((version) => `versioned_docs/version-${version}`)];
 
 const config: Config = {
   title: 'Terrabuild',
@@ -138,12 +133,13 @@ const config: Config = {
           position: 'left',
         },
         {type: 'search', position: 'right'},
-        ...(showVersionDropdown
+        ...(releaseLines.length > 0
           ? [
               {
                 type: 'docsVersionDropdown' as const,
                 position: 'right' as const,
                 dropdownActiveClassDisabled: true,
+                versions: [...releaseLines, 'current'],
               },
             ]
           : []),

@@ -29,6 +29,9 @@ jobs:
         uses: ./.github/actions/setup-tools
         with:
           install_dotnet: "true"
+          dotnet_version: |
+            10.0.x
+            11.0.100
           install_node: "true"
           install_pnpm: "true"
           node_cache: pnpm

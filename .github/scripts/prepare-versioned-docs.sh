@@ -5,65 +5,78 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/../.." && pwd)"
 website_dir="$repo_root/website"
 
-latest_stable=""
+release_tags=()
+previous_line=""
 while IFS= read -r tag; do
-  if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-     git -C "$repo_root" cat-file -e "$tag:website" 2>/dev/null; then
-    latest_stable="$tag"
+  if [[ ! "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+     [[ "${tag%.*}" == "$previous_line" ]] ||
+     ! git -C "$repo_root" cat-file -e "$tag:website" 2>/dev/null; then
+    continue
+  fi
+  release_tags+=("$tag")
+  previous_line="${tag%.*}"
+  if (( ${#release_tags[@]} == 5 )); then
     break
   fi
-done < <(git -C "$repo_root" tag --list --sort=-creatordate)
+done < <(git -C "$repo_root" tag --merged HEAD --list --sort=-version:refname)
 
-if [[ -z "$latest_stable" ]]; then
-  echo "No stable application tag found; skipping released documentation snapshot."
-  exit 0
+if (( ${#release_tags[@]} > 0 )) && [[ ! -d "$website_dir/node_modules" ]]; then
+  echo "website/node_modules is required before preparing released documentation." >&2
+  exit 1
 fi
 
-snapshot_dir="$website_dir/versioned_docs/version-$latest_stable"
-snapshot_sidebar="$website_dir/versioned_sidebars/version-$latest_stable-sidebars.json"
+temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/terrabuild-doc-version.XXXXXX")"
+trap 'rm -rf "$temp_dir"' EXIT
 
-if [[ ! -d "$snapshot_dir" || ! -f "$snapshot_sidebar" ]]; then
-  if [[ ! -d "$website_dir/node_modules" ]]; then
-    echo "website/node_modules is required before preparing released documentation." >&2
-    exit 1
-  fi
+for tag in "${release_tags[@]}"; do
+  release_line="${tag%.*}"
+  archive_dir="$temp_dir/$release_line"
+  mkdir "$archive_dir"
+  git -C "$repo_root" archive "$tag" | tar -x -C "$archive_dir"
+  ln -s "$website_dir/node_modules" "$archive_dir/website/node_modules"
 
-  temp_dir="$(mktemp -d "${TMPDIR:-/tmp}/terrabuild-doc-version.XXXXXX")"
-  trap 'rm -rf "$temp_dir"' EXIT
-
-  git -C "$repo_root" archive "$latest_stable" | tar -x -C "$temp_dir"
-  ln -s "$website_dir/node_modules" "$temp_dir/website/node_modules"
-
-  # Release pages are generated locally rather than committed in release tags.
-  "${script_dir}/generate-whats-new.sh" "$latest_stable" "$temp_dir/CHANGELOG.md" \
-    "$temp_dir/website/site-docs/whats-new.md" "$latest_stable"
-  make -C "$temp_dir" docs
+  "$script_dir/generate-whats-new.sh" "$tag" "$archive_dir/CHANGELOG.md" \
+    "$archive_dir/website/site-docs/whats-new.md"
+  make -C "$archive_dir" docs
 
   (
-    cd "$temp_dir/website"
-    ./node_modules/.bin/docusaurus docs:version "$latest_stable"
+    cd "$archive_dir/website"
+    ./node_modules/.bin/docusaurus docs:version "$release_line"
   )
+  echo "Documentation for $release_line generated from $tag."
+done
 
-  mkdir -p "$website_dir/versioned_docs" "$website_dir/versioned_sidebars"
-  cp -R "$temp_dir/website/versioned_docs/version-$latest_stable" "$snapshot_dir"
-  cp "$temp_dir/website/versioned_sidebars/version-$latest_stable-sidebars.json" "$snapshot_sidebar"
-fi
-
-node - "$website_dir" "$latest_stable" <<'NODE'
+node - "$repo_root" "$temp_dir" "${release_tags[@]}" <<'NODE'
+const {execFileSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const [websiteDir, latestStable] = process.argv.slice(2);
-const versionsPath = path.join(websiteDir, 'versions.json');
-// Rebuild the registry from complete snapshots, including historical tracked
-// versions, so a fresh checkout does not need a generated versions.json.
-const versions = fs.readdirSync(path.join(websiteDir, 'versioned_sidebars'))
-  .map((file) => /^version-(\d+\.\d+\.\d+)-sidebars\.json$/.exec(file)?.[1])
-  .filter((version) => version && fs.existsSync(path.join(websiteDir, 'versioned_docs', `version-${version}`)))
+const [repoRoot, tempDir, ...tags] = process.argv.slice(2);
+const websiteDir = path.join(repoRoot, 'website');
+const docsDir = path.join(websiteDir, 'versioned_docs');
+const sidebarsDir = path.join(websiteDir, 'versioned_sidebars');
+const releaseLines = tags.map((tag) => tag.slice(0, tag.lastIndexOf('.')));
+
+fs.mkdirSync(docsDir, {recursive: true});
+fs.mkdirSync(sidebarsDir, {recursive: true});
+for (const line of releaseLines) {
+  const source = path.join(tempDir, line, 'website');
+  const snapshot = `version-${line}`;
+  const destination = path.join(docsDir, snapshot);
+  fs.rmSync(destination, {recursive: true, force: true});
+  fs.cpSync(path.join(source, 'versioned_docs', snapshot), destination, {recursive: true});
+  const sidebar = `${snapshot}-sidebars.json`;
+  fs.copyFileSync(path.join(source, 'versioned_sidebars', sidebar), path.join(sidebarsDir, sidebar));
+}
+
+// Keep historical routes from Git while excluding stale generated snapshots.
+const historicalVersions = execFileSync('git', [
+  '-C', repoRoot, 'ls-files', '-z', '--', 'website/versioned_sidebars/',
+], {encoding: 'utf8'}).split('\0')
+  .map((file) => /^version-(\d+\.\d+\.\d+)-sidebars\.json$/.exec(path.basename(file))?.[1])
+  .filter((version) => version && fs.existsSync(path.join(docsDir, `version-${version}`)))
   .sort((left, right) => right.localeCompare(left, 'en', {numeric: true}));
-const updated = [latestStable, ...versions.filter((version) => version !== latestStable)];
 
-fs.writeFileSync(versionsPath, `${JSON.stringify(updated, null, 2)}\n`);
+const versions = [...releaseLines, ...historicalVersions];
+fs.writeFileSync(path.join(websiteDir, 'versions.json'), `${JSON.stringify(versions, null, 2)}\n`);
 NODE
-
-echo "Released documentation version: $latest_stable"
