@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Preview the website locally without rebuilding docs from older releases.
+- Suppress known .NET 11 nullability warnings when generating older website docs.
 - Update pnpm and refresh compatible dependencies for the Terrabuild UI and website.
 - Clean up compiler warnings when building with .NET 11.
 - Reuse platform-sensitive artifacts only for matching execution platforms, and let extensions declare portable outputs.

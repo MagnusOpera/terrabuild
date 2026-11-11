@@ -105,13 +105,13 @@ test-release-notes:
 
 website-prepare: website-whats-new
 	cd website && pnpm install --frozen-lockfile
-	./.github/scripts/prepare-versioned-docs.sh
 	$(MAKE) docs
 
 website: website-prepare
-	cd website && pnpm start
+	cd website && TERRABUILD_WEBSITE_CURRENT_ONLY=true pnpm start
 
 website-build: website-prepare
+	./.github/scripts/prepare-versioned-docs.sh
 	cd website && pnpm build
 
 self: clean publish

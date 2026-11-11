@@ -37,7 +37,13 @@ for tag in "${release_tags[@]}"; do
 
   "$script_dir/generate-whats-new.sh" "$tag" "$archive_dir/CHANGELOG.md" \
     "$archive_dir/website/site-docs/whats-new.md"
-  make -C "$archive_dir" docs
+  case "$tag" in
+    0.204.1|0.205.3|0.206.0|0.207.3|0.208.0)
+      # These snapshots predate the .NET 11 nullability fixes.
+      NoWarn="${NoWarn:+$NoWarn;}3261;3262" make -C "$archive_dir" docs
+      ;;
+    *) make -C "$archive_dir" docs ;;
+  esac
 
   (
     cd "$archive_dir/website"

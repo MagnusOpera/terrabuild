@@ -4,8 +4,9 @@ import path from 'node:path';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+const currentOnly = process.env.TERRABUILD_WEBSITE_CURRENT_ONLY === 'true';
 const versionsPath = path.join(process.cwd(), 'versions.json');
-const publishedVersions: string[] = existsSync(versionsPath)
+const publishedVersions: string[] = !currentOnly && existsSync(versionsPath)
   ? JSON.parse(readFileSync(versionsPath, 'utf8'))
   : [];
 const releaseLines = publishedVersions.filter((version) => /^\d+\.\d+$/.test(version));
@@ -45,10 +46,12 @@ const config: Config = {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
           lastVersion,
+          onlyIncludeVersions: currentOnly ? ['current'] : undefined,
           versions: {
             current: {
               label: 'Next',
               banner: 'none',
+              path: 'next',
             },
           },
           editUrl: 'https://github.com/MagnusOpera/Terrabuild/tree/main/',

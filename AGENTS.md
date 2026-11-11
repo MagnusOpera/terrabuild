@@ -163,5 +163,5 @@ Rules:
 - Website tags do not trigger application releases.
 - Website builds regenerate the rolling `Next` page from current `Unreleased` entries followed by all releases in the latest `-next` family, retaining a subtitle for each section and comparing that family with the exact commit being built.
 - Production website generation happens in the workflow runner and must not commit generated changes back to `main`.
-- Local `make website` and `make website-build` also generate ignored `What's New`, version registry, extension docs, and release snapshots; these outputs must not be added to Git. Historical tracked snapshots remain versioned.
+- Local `make website` previews the current checkout and generates ignored `What's New` and extension docs. `make website-build` also generates the version registry and release snapshots. These generated outputs must not be added to Git. Historical tracked snapshots remain versioned.
 - Release tags and maintenance branches do not build or publish the website.
