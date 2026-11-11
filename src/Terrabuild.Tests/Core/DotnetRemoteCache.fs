@@ -203,6 +203,7 @@ target build {
 
 extension @dotnet {
   image = "mcr.microsoft.com/dotnet/sdk:9.0.202"
+  platform = "linux/${terrabuild.arch}"
 }
 """
 

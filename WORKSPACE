@@ -58,6 +58,7 @@ target dist {
 extension @dotnetsdk {
     script = "src/Terrabuild.Extensions/Scripts/dotnet.fss"
     image = "ghcr.io/magnusopera/terrabuild/dotnet-sdk:${project.dotnet_sdk.version}"
+    platform = "linux/${terrabuild.arch}"
     defaults {
         runtime = local.runtimes.dotnet
         configuration = local.dotnet.config
@@ -73,6 +74,7 @@ extension @docker {
 
 extension @pnpm {
     image = "ghcr.io/magnusopera/terrabuild/pnpm:${project.pnpm.version}"
+    platform = "linux/${terrabuild.arch}"
     defaults {
         frozen = true
     }

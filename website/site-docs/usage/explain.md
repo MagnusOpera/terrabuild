@@ -40,8 +40,9 @@ Use [shared selection options](./index.md#shared-selection-options) to match the
 For every selected node, the output distinguishes an explicit root from a
 dependency, reports the computed action, and states the final scheduling outcome
 with its reason. It also includes requirement, dependency, and cache evidence,
-the cache key, evaluated input names, and resolved operation metadata. Values
-that could contain secrets remain hashed.
+the cache key, evaluated input names, and resolved operations. Each operation’s
+`cache platform` line shows its platform sensitivity and the execution platform
+used for caching when applicable. Values that could contain secrets remain hashed.
 
 For a completed debug run, the action remains the scheduler's original decision
 while the outcome describes the logical disposition of that node. For example, if

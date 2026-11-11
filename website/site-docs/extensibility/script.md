@@ -24,7 +24,8 @@ export let install (context: {| Directory: string |}) (args: string option) : Pr
     | "" -> "ci"
     | value -> $"ci {value}"
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations =
       [ { Command = "npm"
@@ -78,7 +79,8 @@ Terrabuild first looks for an exported function whose name matches the requested
 ```fsharp
 export let dispatch (context: {| Command: string |}) (args: string option) : Protocol.CommandResult =
   let arguments = args |> Option.defaultValue ""
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations =
       [ { Command = "your-tool"

@@ -132,6 +132,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                   Node.Outputs = targetOutput
 
                   Node.ClusterHash = None
+                  Node.CanReuseCache = true
                   Node.ProjectHash = projectConfig.Hash
                   Node.TargetHash = targetHash
                   Node.Action = RunAction.Ignore

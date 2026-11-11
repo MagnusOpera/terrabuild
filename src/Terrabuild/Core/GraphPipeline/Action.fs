@@ -69,6 +69,9 @@ let build (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: Graph) 
         elif buildingDependencies <> [] then
             (record RunAction.Exec "dependency-executed" buildingDependencies None, DateTime.MaxValue)
 
+        elif not node.CanReuseCache then
+            (record RunAction.Exec "execution-platform-unknown" [] None, DateTime.MaxValue)
+
         // cache related rules
         elif node.Artifacts <> ArtifactMode.None then
             let useRemote = isRemoteCacheable options node

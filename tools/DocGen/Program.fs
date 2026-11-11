@@ -19,6 +19,7 @@ type Command = {
     mutable Title: string option
     Cacheability: string option
     Batchability: bool
+    PlatformSensitivity: string
     mutable Summary: string
     mutable Parameters: Parameter list
 }
@@ -41,6 +42,7 @@ type private ScriptCommandDoc = {
     Name: string
     mutable Summary: string option
     mutable Title: string option
+    PlatformSensitivity: string option
     mutable Args: ScriptArgDoc list
 }
 
@@ -160,6 +162,11 @@ let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
                 |> Seq.tryHead
                 |> Option.map (fun e -> collapseText e.Value)
                 |> Option.filter (fun x -> x <> "")
+            let platformSensitivity =
+                root.Elements(XName.Get "platform-sensitivity")
+                |> Seq.tryHead
+                |> Option.map (fun e -> collapseText e.Value)
+                |> Option.filter (fun x -> x <> "")
             let args =
                 root.Elements(XName.Get "param")
                 |> Seq.map (fun e ->
@@ -180,7 +187,7 @@ let private parseXmlDocBlock (scriptPath: string) (docLines: string list) =
                     let summary = collapseText e.Value
                     { Name = name; Required = required; Summary = summary; Example = example; DefaultValue = defaultValue })
                 |> List.ofSeq
-            Some(summary, title, args)
+            Some(summary, title, platformSensitivity, args)
         with ex ->
             failwith $"Invalid XML doc comment in {scriptPath}: {ex.Message}"
 
@@ -199,18 +206,23 @@ let private parseScriptDocs (scriptPath: string) (extensionName: string) : Scrip
 
     let applyAsExtensionDoc () =
         match parseXmlDocBlock scriptPath pendingDoc with
-        | Some(summary, _, _) ->
+        | Some(summary, _, _, _) ->
             extSummary <- summary
         | None -> ()
         clearPending ()
 
     let applyAsCommandDoc (commandName: string) =
-        let summary, title, args =
+        let summary, title, platformSensitivity, args =
             match parseXmlDocBlock scriptPath pendingDoc with
-            | Some(summary, title, args) -> summary, title, args
-            | None -> None, None, []
+            | Some value -> value
+            | None -> None, None, None, []
         clearPending ()
-        let value = { Name = commandName; Summary = summary; Title = title; Args = args }
+        let value =
+            { Name = commandName
+              Summary = summary
+              Title = title
+              PlatformSensitivity = platformSensitivity
+              Args = args }
         commands.[commandName] <- value
 
     for rawLine in lines do
@@ -257,7 +269,7 @@ let private parseExportedFunctionParameters (scriptContent: string) =
         yield name, { Name = name; Parameters = parameters } ]
     |> Map.ofList
 
-let private parseExportedFunctionBatchability (scriptContent: string) =
+let private parseExportedFunctionResultProperties (scriptContent: string) =
     let functionMatches =
         Regex.Matches(
             scriptContent,
@@ -287,13 +299,25 @@ let private parseExportedFunctionBatchability (scriptContent: string) =
             |> Seq.distinct
             |> List.ofSeq
 
-        let value =
+        let batchability =
             match matches with
             | [] -> None
-            | [single] -> Some single
             // If multiple assignments are present, consider batchable if any path enables it.
-            | many -> Some (many |> List.exists id)
-        name, value)
+            | values -> Some (values |> List.exists id)
+
+        let platformSensitivity =
+            Regex.Matches(body, @"^[ \t]*\{?[ \t]*PlatformSensitivity[ \t]*=[ \t]*([^\r\n;}]+)", RegexOptions.Multiline)
+            |> Seq.cast<Match>
+            |> Seq.map (fun assignment -> collapseText assignment.Groups[1].Value)
+            |> Seq.distinct
+            |> List.ofSeq
+            |> function
+                | [] | ["None"] -> "Unknown"
+                | ["Some Sensitive"] -> "Sensitive"
+                | ["Some Portable"] -> "Portable"
+                | _ -> "Depends on command inputs"
+
+        name, (batchability, platformSensitivity))
     |> Map.ofList
 
 let private parseDescriptorFlags (scriptContent: string) =
@@ -357,7 +381,7 @@ let private buildScriptExtension (scriptPath: string) : Extension =
 
     let directives = parseScriptDocs scriptPath extensionName
     let functionParams = parseExportedFunctionParameters content
-    let functionBatchability = parseExportedFunctionBatchability content
+    let functionProperties = parseExportedFunctionResultProperties content
     let descriptor = parseDescriptorFlags content
 
     let commandDocs = directives.Commands
@@ -450,15 +474,14 @@ let private buildScriptExtension (scriptPath: string) : Extension =
                 else
                     fromFunctionOrder
 
+            let batchability, platformSensitivity = functionProperties[functionName]
             { Name = commandName
               IsDispatch = flags |> List.contains "dispatch"
               Weight = None
               Title = commandDoc.Title
               Cacheability = toCacheability flags
-              Batchability =
-                match functionBatchability |> Map.tryFind functionName with
-                | Some (Some value) -> value
-                | _ -> flags |> List.contains "batchable"
+              Batchability = batchability |> Option.defaultWith (fun () -> flags |> List.contains "batchable")
+              PlatformSensitivity = commandDoc.PlatformSensitivity |> Option.defaultValue platformSensitivity
               Summary = commandDoc.Summary |> Option.defaultValue ""
               Parameters = commandParameters })
 
@@ -610,12 +633,13 @@ let writeCommand extensionDir (command: Command) (batchCommand: Command option) 
                 "}"
             "```"
 
-            "### Capabilities"
+            "## Caching and batching"
             ""
-            "| Capability | Info |"
-            "|------------|------|"
-            $"| Cache      | {cacheInfo}"
-            $"| Bach      | {batchInfo}"
+            "| Setting | Value |"
+            "|---------|-------|"
+            $"| Cache mode | {cacheInfo} |"
+            $"| Batchable | {batchInfo} |"
+            $"| [Platform sensitivity](../../getting-started/caching.md#execution-platform) | {command.PlatformSensitivity} |"
             ""
 
 

@@ -66,6 +66,7 @@ let private buildNode id projectDir projectHash targetHash =
       GraphDef.Node.ProjectHash = projectHash
       GraphDef.Node.TargetHash = targetHash
       GraphDef.Node.ClusterHash = Some "cluster"
+      GraphDef.Node.CanReuseCache = true
       GraphDef.Node.Provenance = None
       GraphDef.Node.Operations = []
       GraphDef.Node.EvaluationInputs = []

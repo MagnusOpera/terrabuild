@@ -28,6 +28,7 @@ Check the node's action reason in `terrabuild explain <target>`:
 | `configured-always` | The target uses `build = ~always`. |
 | `dependency-executed` | An ordinary non-lazy prerequisite executes and propagates work. Inspect the reported action dependencies. |
 | `non-cacheable` | The target retains no reusable result, commonly because it uses `artifacts = ~none`. |
+| `execution-platform-unknown` | The target or a content dependency has a command with sensitive or unknown platform sensitivity whose execution platform could not be determined. For container commands, check the extension’s `platform` setting. |
 | `cache-miss` | No summary exists for the computed cache key and permitted cache scope. |
 | `cache-outputs-missing` | A successful workspace or managed summary exists, but its declared output archive is unavailable. Terrabuild rebuilds instead of claiming an impossible restore. |
 | `retry-failed-cache` | `--retry` replaces a cached failed result with a new execution. |

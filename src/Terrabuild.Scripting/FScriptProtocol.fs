@@ -10,18 +10,18 @@ module FScriptProtocol =
             Types =
                 [ HostTypes.describe<ExtensionContext>(); HostTypes.describe<BatchContext>()
                   HostTypes.describe<ActionContext>(); HostTypes.describe<ProjectInfo>()
-                  HostTypes.describe<ShellOperation>(); HostTypes.describe<CommandResult>() ]
+                  HostTypes.describe<ShellOperation>(); HostTypes.describe<CommandResult>(); HostTypes.describe<LegacyCommandResult>() ]
             Unions =
                 [ HostTypes.describeUnion<DependencyResolution>(); HostTypes.describeUnion<ProvenanceEffect>()
-                  HostTypes.describeUnion<Cacheability>(); HostTypes.describeUnion<ExportFlag>() ] }
+                  HostTypes.describeUnion<PlatformSensitivity>(); HostTypes.describeUnion<Cacheability>(); HostTypes.describeUnion<ExportFlag>() ] }
 
     /// Compiler-only guarantees for our deeply immutable data contracts.
     /// Runtime functions supplied by the host remain conservative.
     let pureTypeNames =
         // Review new types explicitly; registration alone must never imply purity.
         [ "Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"
-          "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"
-          "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"
+          "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"; "Protocol.LegacyCommandResult"
+          "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"; "Protocol.PlatformSensitivity"
           "Protocol.Cacheability"; "Protocol.ExportFlag" ]
         |> List.sort
 

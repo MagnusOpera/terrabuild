@@ -23,7 +23,8 @@ export let dispatch (context: Protocol.ActionContext) (args: string option) =
     ""
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -41,7 +42,8 @@ export let init (context: Protocol.ActionContext) (config: string option) (args:
     |> Helpers.append_part "-reconfigure"
     |> Helpers.append_part config
     |> Helpers.append_part args
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -57,7 +59,8 @@ export let validate (context: Protocol.ActionContext) (args: string option) =
     ""
     |> Helpers.append_part "validate"
     |> Helpers.append_part args
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preservation
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -79,7 +82,8 @@ export let select (context: Protocol.ActionContext) (workspace: string option) (
     |> Helpers.append_part create
     |> Helpers.append_part workspace
     |> Helpers.append_part args
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = None
+    PreserveProvenance = preservation
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -98,7 +102,8 @@ export let plan (context: Protocol.ActionContext) (variables: string map option)
     |> Helpers.append_part "-out=terrabuild.planfile"
     |> Helpers.append_part vars
     |> Helpers.append_part args
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -117,7 +122,8 @@ export let apply (context: Protocol.ActionContext) (plan: bool option) (args: st
     |> Helpers.append_part "-input=false"
     |> Helpers.append_part planfile
     |> Helpers.append_part args
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command
@@ -136,7 +142,8 @@ export let destroy (context: Protocol.ActionContext) (variables: string map opti
     |> Helpers.append_part "-input=false"
     |> Helpers.append_part vars
     |> Helpers.append_part args
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "terraform"
                      Arguments = command

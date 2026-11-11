@@ -16,6 +16,7 @@ let ``docker build in ci includes push`` () =
               "platforms", list [ str "linux/amd64" ] ]
 
     let result = invokeResult "@docker" "build" context args
+    result.PlatformSensitivity |> shouldEqual (Some PlatformSensitivity.Sensitive)
 
     result.Operations
     |> normalizeOps

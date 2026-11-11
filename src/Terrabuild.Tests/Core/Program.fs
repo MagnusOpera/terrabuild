@@ -47,6 +47,7 @@ let private buildGraphNode id projectName projectDir target =
       GraphDef.Node.ProjectHash = $"project-{id}"
       GraphDef.Node.TargetHash = $"target-{id}"
       GraphDef.Node.ClusterHash = None
+      GraphDef.Node.CanReuseCache = true
       GraphDef.Node.Provenance = None
       GraphDef.Node.Operations = []
       GraphDef.Node.EvaluationInputs = []

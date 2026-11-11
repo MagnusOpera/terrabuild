@@ -22,7 +22,8 @@ let format_build_args build_args =
 /// <param name="args" default="" example="&quot;image prune -f&quot;">Extra arguments for the Docker subcommand.</param>
 export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "docker"
                      Arguments = command
@@ -63,7 +64,8 @@ export let build (context: Protocol.ActionContext) (image: string) (dockerfile: 
           Arguments = command
           ErrorLevel = 0 } ]
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = false
     Operations = operations }
 
@@ -87,7 +89,8 @@ export let push (context: Protocol.ActionContext) (image: string) (tag: string) 
       |> Helpers.append_part $"{image}:{context.Hash}"
       |> Helpers.append_part $"{image}:{tag}"
       |> Helpers.append_part args
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preservation
     Batchable = false
     Operations = [ { Command = "docker"
                      Arguments = command

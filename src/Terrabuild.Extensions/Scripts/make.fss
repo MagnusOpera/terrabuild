@@ -28,7 +28,8 @@ export let dispatch (context: Protocol.ActionContext) (variables: string map opt
     | (_, "") -> $"{context.Command} {variables}"
     | _ -> $"{context.Command} {variables} {args}"
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "make"
                      Arguments = command

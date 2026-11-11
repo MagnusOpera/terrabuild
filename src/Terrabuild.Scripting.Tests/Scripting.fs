@@ -19,7 +19,7 @@ let preservationIsARequiredCommandOutputIncludingDispatchFallback() =
 type LegacyCommandResult = { Batchable: bool; Operations: string list }
 export let build context = { Batchable = false; Operations = []; PreserveProvenance = Preserved }
 export let dispatch context = { Batchable = false; Operations = []; PreserveProvenance = Broken }
-export let notify context = { Batchable = false; Operations = []; PreserveProvenance = Unaffected }
+export let notify context : Protocol.CommandResult = { Batchable = false; Operations = []; PreserveProvenance = Unaffected; PlatformSensitivity = Some Portable }
 export let legacy context = { Batchable = false; Operations = [] }
 { [nameof build] = [Cache Remote]
   [nameof dispatch] = [Dispatch; Cache Never]
@@ -30,9 +30,11 @@ export let legacy context = { Batchable = false; Operations = [] }
     let context: ActionContext = { Debug = false; CI = false; Command = "build"; Hash = "test"; Directory = root; Batch = None }
     let arguments = Value.Map (Map ["context", Value.Object context])
     let invoke name = script.GetMethod(script.ResolveCommandMethod(name).Value).Value.Invoke<CommandResult> arguments
+    (invoke "build").PlatformSensitivity |> Option.isNone |> should equal true
     (invoke "build").PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Preserved
     (invoke "fallback").PreserveProvenance |> should equal Terrabuild.ScriptingContracts.ProvenanceEffect.Broken
     (fun () -> invoke "legacy" |> ignore) |> should throw typeof<TerrabuildException>
+    (invoke "notify").PlatformSensitivity |> shouldEqual (Some PlatformSensitivity.Portable)
     (invoke "notify").PreserveProvenance |> should equal ProvenanceEffect.Unaffected
 
 [<Test>]
@@ -645,8 +647,8 @@ let sharedProtocolIsConstructibleAndUsesHostPermissions() =
     let context: FScript.Runtime.HostContext = { Permissions = FScript.Language.HostPermissions.IO ||| FScript.Language.HostPermissions.Threading; RootDirectory = root; DeniedPathGlobs = [] }
     let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
     let registration = Terrabuild.FScriptProtocol.registration (FScript.Extensibility.HostContext(root, [], defaults))
-    registration.Types.Length |> should equal 6
-    registration.Unions.Length |> should equal 4
+    registration.Types.Length |> should equal 7
+    registration.Unions.Length |> should equal 5
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Cache:of Protocol.Cacheability"
     Terrabuild.FScriptProtocol.fingerprint |> should contain "Remote:nullary"
     registration.Types |> List.forall (fun descriptor -> not descriptor.HostManaged) |> should equal true
@@ -671,8 +673,8 @@ Host.capture project
 [<Test>]
 let protocolPurityMetadataIsLimitedToImmutableTypes() =
     let names=Terrabuild.FScriptProtocolProvider.FScriptPureTypes() |> Set.ofSeq
-    names.Count |> should equal 10
-    names |> should equal (set ["Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"; "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"; "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"; "Protocol.Cacheability"; "Protocol.ExportFlag"])
+    names.Count |> should equal 12
+    names |> should equal (set ["Protocol.ExtensionContext"; "Protocol.BatchContext"; "Protocol.ActionContext"; "Protocol.ProjectInfo"; "Protocol.ShellOperation"; "Protocol.CommandResult"; "Protocol.LegacyCommandResult"; "Protocol.DependencyResolution"; "Protocol.ProvenanceEffect"; "Protocol.PlatformSensitivity"; "Protocol.Cacheability"; "Protocol.ExportFlag"])
     Terrabuild.FScriptProtocolProvider.FScriptPureFunctions() |> Seq.isEmpty |> should equal true
     typeof<Terrabuild.FScriptProtocolProvider>.Assembly.GetReferencedAssemblies()
     |> Array.exists (fun assembly ->

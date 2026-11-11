@@ -92,17 +92,28 @@ type ShellOperation =
 Every command handler returns:
 
 ```fsharp
+type PlatformSensitivity = Sensitive | Portable
+
 type CommandResult =
   { Batchable: bool
     Operations: ShellOperation list
-    PreserveProvenance: ProvenanceEffect }
+    PreserveProvenance: ProvenanceEffect
+    PlatformSensitivity: PlatformSensitivity option }
 ```
 
 - `Batchable = true` means the returned operation is valid for the supplied batch context.
 - `Batchable = false` requires individual execution.
 - `Operations` may contain one or more ordered shell operations.
 
-Batchability belongs to the result, not the descriptor.
+The result also declares platform sensitivity for the returned operations:
+
+- `Some Portable` allows reuse across execution platforms when the other cache inputs match.
+- `Some Sensitive` includes the effective execution OS and architecture in the cache key.
+- `None` represents unknown sensitivity and uses the conservative platform-sensitive behavior. Older handlers with inferred return types can omit the field. Handlers typed as `Protocol.CommandResult` can use `None` to select the default.
+
+Use `None` for a dispatch handler that forwards arbitrary commands. Declare `Some Portable` when the command’s outputs and cached result are valid across execution platforms.
+
+For host commands, Terrabuild uses the host platform. For container commands, it uses the configured container platform. If the platform is unknown, Terrabuild executes affected targets without reusing or publishing cache entries.
 
 ## Descriptor flags
 

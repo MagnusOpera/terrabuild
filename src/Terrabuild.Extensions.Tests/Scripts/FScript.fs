@@ -23,6 +23,7 @@ let ``fscript execute runs script with project root sandbox and forwarded args``
               "args", list [ str "arg1"; str "arg 2" ] ]
 
     let result = invokeResult "@fscript" "execute" context args
+    result.PlatformSensitivity |> shouldEqual (Some PlatformSensitivity.Portable)
 
     result.Operations
     |> normalizeOps

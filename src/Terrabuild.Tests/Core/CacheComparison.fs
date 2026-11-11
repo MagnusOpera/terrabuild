@@ -63,6 +63,7 @@ let ``comparison reports upstream configuration and evaluated input changes with
           ArgumentsHash = "args-hash"
           Container = Some "private-secret-sentinel"
           Platform = None
+          PlatformSensitivity = "portable"
           Cpus = None
           ForwardedVariableNames = []
           ForwardedVariablesFingerprint = None

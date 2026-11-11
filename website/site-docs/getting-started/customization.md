@@ -46,7 +46,8 @@ Create a `tools` directory at the workspace root and add:
 
 ```fsharp title="tools/workflow.fss"
 export let build (context: {| Directory: string |}) : Protocol.CommandResult =
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations =
       [ { Command = "sh"

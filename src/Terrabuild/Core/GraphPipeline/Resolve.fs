@@ -27,6 +27,7 @@ let internal resolveTargetOperations
     let transformations = ResizeArray<Contracts.ProvenanceTransformation>()
     let mutable cacheability = ArtifactMode.Managed
     let mutable batchable = true
+    let hostPlatform = hostCachePlatform ()
 
     for index, step in targetConfig.Steps |> List.indexed do
         let optContext =
@@ -59,10 +60,13 @@ let internal resolveTargetOperations
             Preservation = executionResult.PreserveProvenance; Origin = step.Script.ProvenanceOrigin
             ScriptIdentity = step.Script.Identity; ContractFingerprint = step.Script.ContractFingerprint }
 
+        let cachePlatform =
+            resolveOperationPlatform hostPlatform options.Engine step.Image step.Platform executionResult.PlatformSensitivity
         for shellOperation in executionResult.Operations do
             operations.Add {
                 ContaineredShellOperation.Image = step.Image
                 ContaineredShellOperation.Platform = step.Platform
+                ContaineredShellOperation.CachePlatform = cachePlatform
                 ContaineredShellOperation.Cpus = step.Cpus
                 ContaineredShellOperation.Variables = step.ContainerVariables
                 ContaineredShellOperation.Envs = step.Envs
@@ -92,6 +96,10 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
             let cachable, batchable, ops, declaration =
                 resolveTargetOperations options projectConfig targetConfig projectConfig.Hash None
 
+            let contentDependencies = sourceNode.Dependencies - sourceNode.PhaseDependencies
+            let canReuseCache =
+                List.forall operationHasKnownPlatform ops
+                && (contentDependencies |> Seq.forall (fun childId -> allNodes[childId].CanReuseCache))
             let opsCmds = ops |> List.map operationCacheInput
             let outputsHash =
                 targetConfig.Outputs
@@ -103,7 +111,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     yield targetConfig.Hash
                     yield outputsHash
                     yield!
-                        sourceNode.Dependencies - sourceNode.PhaseDependencies
+                        contentDependencies
                         |> Seq.map (fun childId -> allNodes[childId].TargetHash)
                 ]
             let targetHash = targetContent |> Hash.sha256strings
@@ -125,6 +133,7 @@ let build (options: ConfigOptions.Options) (configuration: Configuration.Workspa
                     Artifacts = cache
                     Outputs = targetOutput
                     ClusterHash = targetClusterHash
+                    CanReuseCache = canReuseCache
                     TargetHash = targetHash }
 
             if allNodes.TryAdd(nodeId, node) |> not then raiseBugError "Unexpected graph resolving race"

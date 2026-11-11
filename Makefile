@@ -197,11 +197,12 @@ define diff_file
 endef
 
 define diff_results
-	jq 'del(.results[].provenance) | del(.run.terrabuildVersion, .run.workspace, .run.startedAt, .run.endedAt, .run.durationMs) | .executions |= map((if has("lockWaitMs") then .lockWaitMs = (.lockWaitMs >= 0) else . end) | .events |= map(.event) | .operations |= map(del(.durationMs, .log)) | del(.durationMs)) | .performance.phases |= map(.name) | .performance.configurationProjects |= map(.projectId) | .performance.slowestPhases |= (map(.name) | sort) | .performance.slowestTasks |= (map({id, kind}) | sort_by(.id, .kind)) | .performance.criticalChain |= (length > 0) | .performance.fScript |= {scriptLoads, scriptCacheHits, invocations, scriptEvaluations, toFScriptConversions, fromFScriptConversions, functions: [.functions[] | {id: (.id | split("/") | last), count}]}' $(1)/terrabuild-debug.json > $(1)/terrabuild-debug.normalized.json
+	jq 'del(.results[].provenance) | del(.run.terrabuildVersion, .run.workspace, .run.startedAt, .run.endedAt, .run.durationMs) | .executions |= map((if has("lockWaitMs") then .lockWaitMs = (.lockWaitMs >= 0) else . end) | .events |= map(.event) | .operations |= map(del(.durationMs, .log)) | del(.durationMs)) | .performance.phases |= map(.name) | .performance.configurationProjects |= map(.projectId) | .performance.slowestPhases |= (map(.name) | sort) | .performance.slowestTasks |= (map({id, kind}) | sort_by(.id, .kind)) | .performance.criticalChain |= (length > 0) | .performance.fScript |= {scriptLoads, scriptCacheHits, invocations, scriptEvaluations, toFScriptConversions, fromFScriptConversions, functions: [.functions[] | {id: (.id | split("/") | last), count}]}' $(1)/terrabuild-debug.json | jq -f $(ROOT_DIR).github/scripts/normalize-smoke-cache-keys.jq > $(1)/terrabuild-debug.normalized.json
 	@if [ "$(refresh)" = "true" ]; then \
 		cp $(1)/terrabuild-debug.normalized.json $(1)/results/terrabuild-debug.json; \
 	fi
-	diff $(1)/results/terrabuild-debug.json $(1)/terrabuild-debug.normalized.json
+	jq -f $(ROOT_DIR).github/scripts/normalize-smoke-cache-keys.jq $(1)/results/terrabuild-debug.json | diff - $(1)/terrabuild-debug.normalized.json
+	jq -e 'all(.nodes[] | .fingerprint | select(. != null); .targetHash as $$hash | ($$hash | test("^[A-F0-9]{64}$$")) and (.cacheKey | endswith("/" + $$hash)))' $(1)/terrabuild-debug.json >/dev/null
 	jq -e '.schemaVersion == 6 and .run.completeness == "complete" and (.nodes | type == "array") and (.performance.criticalChain | type == "array") and ([.performance.criticalChain[]] - [.executions[].id] | length == 0) and ([.performance.phases[].durationMs, .performance.configurationProjects[].durationMs, .executions[].lockWaitMs // 0, .executions[].durationMs // 0, .executions[].events[].offsetMs, .performance.fScript.scriptLoadMs, .performance.fScript.invocationMs] | all(. >= 0)) and ([.results[].message // ""] | all(contains("Task execution not yet completed") | not))' $(1)/terrabuild-debug.json >/dev/null
 endef
 

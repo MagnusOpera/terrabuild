@@ -436,65 +436,73 @@ let private createBatchNodes (options: ConfigOptions.Options) (configuration: Co
             let _, _, ops, _ =
                 Resolve.resolveTargetOperations options projectConfig mergedTargetConfig batch.ClusterHash batchContext
 
-            let batchTargetHash = computeBatchTargetHash batch ops
+            let platformInputs operations = operations |> Seq.choose operationPlatformInput |> Set.ofSeq
+            let batchPlatforms = platformInputs ops
+            // A batch writes artifacts under its members' keys.
+            let compatible =
+                batch.Nodes |> List.forall (fun node -> Set.isSubset batchPlatforms (platformInputs node.Operations))
+            if not compatible then None
+            else
+                let batchTargetHash = computeBatchTargetHash batch ops
 
-            // Dependencies of the batch node:
-            // union of member deps, minus members themselves.
-            // NOTE: keep raw ids; runner will map member->batch at schedule time.
-            let memberSet = nodeIds |> Set.ofList
-            let dependencySet = batch.Nodes |> Seq.collect (fun n -> n.Dependencies) |> Set.ofSeq
-            let batchDependencies = dependencySet - memberSet
-            let phaseDependencySet = batch.Nodes |> Seq.collect (fun n -> n.PhaseDependencies) |> Set.ofSeq
-            let batchPhaseDependencies = phaseDependencySet - memberSet
+                // Dependencies of the batch node:
+                // union of member deps, minus members themselves.
+                // NOTE: keep raw ids; runner will map member->batch at schedule time.
+                let memberSet = nodeIds |> Set.ofList
+                let dependencySet = batch.Nodes |> Seq.collect (fun n -> n.Dependencies) |> Set.ofSeq
+                let batchDependencies = dependencySet - memberSet
+                let phaseDependencySet = batch.Nodes |> Seq.collect (fun n -> n.PhaseDependencies) |> Set.ofSeq
+                let batchPhaseDependencies = phaseDependencySet - memberSet
 
-            let batchNode =
-                { GraphDef.Node.Id = batch.BatchId
-                  GraphDef.Node.ProjectId = batch.BatchId
-                  GraphDef.Node.ProjectName = None
-                  GraphDef.Node.ProjectDir = "."
-                  GraphDef.Node.Target = headNode.Target
-                  GraphDef.Node.Phase = batch.Phase
-                  GraphDef.Node.Locks = batch.Nodes |> Seq.collect _.Locks |> Set.ofSeq
-                  Node.Provenance = None
-                  GraphDef.Node.Operations = ops
-                  GraphDef.Node.EvaluationInputs =
-                    batch.Nodes
-                    |> Seq.collect _.EvaluationInputs
-                    |> Seq.distinctBy (fun input -> input.Name, input.ValueHash)
-                    |> Seq.sortBy _.Name
-                    |> List.ofSeq
-                  GraphDef.Node.EnvironmentSensitive =
-                    if batch.Nodes |> List.exists (fun node -> node.EnvironmentSensitive = Some true) then
-                        Some true
-                    elif batch.Nodes |> List.forall (fun node -> node.EnvironmentSensitive = Some false) then
-                        Some false
-                    else
-                        None
-                  GraphDef.Node.Artifacts = headNode.Artifacts
-                  GraphDef.Node.Dependencies = batchDependencies
-                  GraphDef.Node.PhaseDependencies = batchPhaseDependencies
-                  GraphDef.Node.Outputs = Set.empty
-                  GraphDef.Node.ClusterHash = Some batch.ClusterHash
-                  GraphDef.Node.ProjectHash = batch.BatchId
-                  GraphDef.Node.TargetHash = batchTargetHash
-                  GraphDef.Node.Action = RunAction.Exec
-                  GraphDef.Node.Build = headNode.Build
-                  GraphDef.Node.Batch = headNode.Batch
-                  GraphDef.Node.Required = true }
-            Some (batch.BatchId, batchNode)
+                let batchNode =
+                    { GraphDef.Node.Id = batch.BatchId
+                      GraphDef.Node.ProjectId = batch.BatchId
+                      GraphDef.Node.ProjectName = None
+                      GraphDef.Node.ProjectDir = "."
+                      GraphDef.Node.Target = headNode.Target
+                      GraphDef.Node.Phase = batch.Phase
+                      GraphDef.Node.Locks = batch.Nodes |> Seq.collect _.Locks |> Set.ofSeq
+                      Node.Provenance = None
+                      GraphDef.Node.Operations = ops
+                      GraphDef.Node.EvaluationInputs =
+                        batch.Nodes
+                        |> Seq.collect _.EvaluationInputs
+                        |> Seq.distinctBy (fun input -> input.Name, input.ValueHash)
+                        |> Seq.sortBy _.Name
+                        |> List.ofSeq
+                      GraphDef.Node.EnvironmentSensitive =
+                        if batch.Nodes |> List.exists (fun node -> node.EnvironmentSensitive = Some true) then
+                            Some true
+                        elif batch.Nodes |> List.forall (fun node -> node.EnvironmentSensitive = Some false) then
+                            Some false
+                        else
+                            None
+                      GraphDef.Node.Artifacts = headNode.Artifacts
+                      GraphDef.Node.Dependencies = batchDependencies
+                      GraphDef.Node.PhaseDependencies = batchPhaseDependencies
+                      GraphDef.Node.Outputs = Set.empty
+                      GraphDef.Node.ClusterHash = Some batch.ClusterHash
+                      GraphDef.Node.CanReuseCache = batch.Nodes |> List.forall _.CanReuseCache
+                      GraphDef.Node.ProjectHash = batch.BatchId
+                      GraphDef.Node.TargetHash = batchTargetHash
+                      GraphDef.Node.Action = RunAction.Exec
+                      GraphDef.Node.Build = headNode.Build
+                      GraphDef.Node.Batch = headNode.Batch
+                      GraphDef.Node.Required = true }
+                Some (batch.BatchId, batchNode)
     )
     |> Map.ofList
 
 let build (options: ConfigOptions.Options) (configuration: Configuration.Workspace) (graph: GraphDef.Graph) =
     let components = computeBatches graph
+    let batchNodes = createBatchNodes options configuration graph components
 
     // Graph.Batches: BatchId -> member ids
     let batches =
         components
+        |> Seq.filter (fun batch -> batchNodes |> Map.containsKey batch.BatchId)
         |> Seq.map (fun c -> c.BatchId, (c.Nodes |> Seq.map (fun n -> n.Id) |> Set.ofSeq))
         |> Map.ofSeq
-
-    let batchNodes = createBatchNodes options configuration graph components
 
     // Add batch nodes to the graph; keep original nodes intact for logging
     { graph with

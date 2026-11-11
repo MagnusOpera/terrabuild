@@ -17,6 +17,7 @@ let format_properties properties =
   | None -> ""
 
 /// <summary>Generates an API client via `openapi-generator-cli generate`.</summary>
+/// <platform-sensitivity>Portable when `args` is omitted. Unknown when extra arguments are supplied.</platform-sensitivity>
 /// <param name="generator" example="&quot;typescript-axios&quot;">Generator name.</param>
 /// <param name="input" example="&quot;src/api.json&quot;">Input OpenAPI file.</param>
 /// <param name="output" example="&quot;src/api/client&quot;">Output directory.</param>
@@ -24,6 +25,7 @@ let format_properties properties =
 /// <param name="args" default="" example="&quot;--type-mappings ClassA=ClassB&quot;">Extra generator arguments.</param>
 export let generate (context: Protocol.ActionContext) (generator: string) (input: string) (output: string) (properties: string map option) (args: string option) =
   let properties = format_properties properties
+  let sensitivity = if Option.isNone args then Some Portable else None
   let args = args |> Option.defaultValue ""
 
   let command =
@@ -35,7 +37,8 @@ export let generate (context: Protocol.ActionContext) (generator: string) (input
     |> Helpers.append_part properties
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = sensitivity
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "docker-entrypoint.sh"
                      Arguments = command

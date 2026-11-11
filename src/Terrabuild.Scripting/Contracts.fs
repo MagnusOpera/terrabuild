@@ -64,11 +64,26 @@ module ScriptingContracts =
         | Broken
         | Unaffected
 
+    // FScript infers records by their field names. Keep the previous shape
+    // constructible so existing unannotated commands can omit the new field.
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.LegacyCommandResult", ScriptConstructible = true)>]
+    type LegacyCommandResult = {
+        [<FScriptVisible>] Batchable: bool
+        [<FScriptVisible>] Operations: ShellOperations
+        [<FScriptVisible>] PreserveProvenance: ProvenanceEffect
+    }
+
+    [<RequireQualifiedAccess; FScriptHostType("Protocol.PlatformSensitivity", ScriptConstructible = true)>]
+    type PlatformSensitivity =
+        | Sensitive
+        | Portable
+
     [<RequireQualifiedAccess; FScriptHostType("Protocol.CommandResult", ScriptConstructible = true)>]
     type CommandResult = {
         [<FScriptVisible>] Batchable: bool
         [<FScriptVisible>] Operations: ShellOperations
         [<FScriptVisible>] PreserveProvenance: ProvenanceEffect
+        [<FScriptVisible>] PlatformSensitivity: PlatformSensitivity option
     }
 
     [<RequireQualifiedAccess; FScriptHostType("Protocol.Cacheability", ScriptConstructible = true)>]

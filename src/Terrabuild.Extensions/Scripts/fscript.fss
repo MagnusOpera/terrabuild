@@ -40,7 +40,8 @@ export let execute (context: Protocol.ActionContext) (script: string) (args: str
     |> append_quoted_part script
     |> Helpers.append_part forwardedArgs
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Portable
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "fscript"
                      Arguments = operationArgs

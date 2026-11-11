@@ -416,7 +416,7 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
                     | true, production -> Some production
                     | _ ->
                         match graph.Nodes |> Map.tryFind id with
-                        | Some dependency when dependency.Action = GraphDef.RunAction.Ignore ->
+                        | Some dependency when dependency.Action = GraphDef.RunAction.Ignore && dependency.CanReuseCache ->
                             let cached = cache.TryGetSummaryOnly (GraphDef.isRemoteCacheable options dependency) (GraphDef.buildCacheKey dependency)
                             let production = cached |> Option.bind (fun (_, summary) -> if summary.IsSuccessful then summary.Provenance else None)
                             try
@@ -940,12 +940,12 @@ let run (options: ConfigOptions.Options) (cache: Cache.ICache) (api: Contracts.I
 
 let loadSummary (options: ConfigOptions.Options) (cache: Cache.ICache) (graph: GraphDef.Graph) =
     let startedAt = DateTime.UtcNow
-    let allowRemoteCache = options.LocalOnly |> not
 
     let nodeStatus =
         let getDependencyStatus _ (node: GraphDef.Node) =
             let cacheEntryId = GraphDef.buildCacheKey node
-            match cache.TryGetSummary allowRemoteCache cacheEntryId with
+            let useRemote = node.CanReuseCache && not options.LocalOnly
+            match cache.TryGetSummary useRemote cacheEntryId with
             | Some summary ->
                 let status =
                     if summary.IsSuccessful then TaskStatus.Success summary.EndedAt

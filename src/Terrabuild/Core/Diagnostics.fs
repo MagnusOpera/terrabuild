@@ -51,6 +51,8 @@ type ResolvedOperationReport = {
     ArgumentsHash: string
     Container: string option
     Platform: string option
+    [<JsonIgnore>]
+    PlatformSensitivity: string
     Cpus: int option
     ForwardedVariableNames: string list
     ForwardedVariablesFingerprint: string option
@@ -314,6 +316,7 @@ let renderExplanation (report: Report) =
                 builder.AppendLine($"      command: {operation.Command}") |> ignore
                 builder.AppendLine($"      arguments hash: {operation.ArgumentsHash}") |> ignore
                 operation.Container |> Option.iter (fun value -> builder.AppendLine($"      container: {value}") |> ignore)
+                builder.AppendLine($"      cache platform: {operation.PlatformSensitivity}") |> ignore
                 operation.Platform |> Option.iter (fun value -> builder.AppendLine($"      platform: {value}") |> ignore)
                 operation.Cpus |> Option.iter (fun value -> builder.AppendLine($"      cpus: {value}") |> ignore)
                 appendValues builder "    forwarded variables" "none" operation.ForwardedVariableNames
@@ -515,6 +518,13 @@ let private nodeReports
                     ArgumentsHash = operation.Arguments |> normalizeOperationArguments options |> Hash.sha256
                     Container = operation.Image
                     Platform = operation.Platform
+                    PlatformSensitivity =
+                        match operation.CachePlatform with
+                        | GraphDef.OperationPlatform.Portable -> "portable"
+                        | GraphDef.OperationPlatform.Sensitive platform ->
+                            "platform-sensitive (" + Option.defaultValue "unknown execution platform" platform + ")"
+                        | GraphDef.OperationPlatform.Unknown platform ->
+                            "unknown sensitivity (" + Option.defaultValue "unknown execution platform" platform + ")"
                     Cpus = operation.Cpus
                     ForwardedVariableNames = operation.Variables |> Seq.sort |> List.ofSeq
                     ForwardedVariablesFingerprint =

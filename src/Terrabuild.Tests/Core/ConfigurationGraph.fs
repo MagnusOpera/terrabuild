@@ -64,6 +64,7 @@ let ``forwarded environment values affect operation cache identity without being
     let operation =
         { ContaineredShellOperation.Image = Some "example/image"
           ContaineredShellOperation.Platform = None
+          ContaineredShellOperation.CachePlatform = GraphDef.OperationPlatform.Portable
           ContaineredShellOperation.Cpus = None
           ContaineredShellOperation.Variables = Set [ "TB_SECRET_CACHE_INPUT" ]
           ContaineredShellOperation.Envs = Map.empty
@@ -82,6 +83,46 @@ let ``forwarded environment values affect operation cache identity without being
     firstHash |> should not' (equal secondHash)
     firstInput |> should not' (contain "first-secret-value")
     secondInput |> should not' (contain "second-secret-value")
+
+[<Test>]
+let ``cache inputs distinguish execution platforms only for sensitive commands or commands with unknown sensitivity`` () =
+    let operation: ContaineredShellOperation =
+        { ContaineredShellOperation.Image = Some "example/image"
+          Platform = Some "linux/amd64"
+          CachePlatform = OperationPlatform.Portable
+          Cpus = None
+          Variables = Set.empty
+          Envs = Map.empty
+          MetaCommand = "@example build"
+          Command = "build"
+          Arguments = ""
+          ErrorLevel = 0 }
+
+    let resolve host engine platform sensitivity =
+        let cachePlatform = resolveOperationPlatform (Some host) engine operation.Image platform sensitivity
+        { operation with Platform = platform; CachePlatform = cachePlatform }
+
+    let host = ConfigOptions.Engine.Host
+    let docker = ConfigOptions.Engine.Docker
+    let pinned = operation.Platform
+    let sensitive = Some Terrabuild.ScriptingContracts.PlatformSensitivity.Sensitive
+    let portable = Some Terrabuild.ScriptingContracts.PlatformSensitivity.Portable
+    let linux = resolve "linux/amd64" host pinned sensitive
+    let mac = resolve "darwin/amd64" host pinned sensitive
+    let arm = resolve "linux/arm64" host pinned sensitive
+    let linuxContainer = resolve "linux/amd64" docker pinned sensitive
+    let macContainer = resolve "darwin/arm64" docker pinned sensitive
+
+    operationCacheHash linux |> should not' (equal (operationCacheHash mac))
+    operationCacheHash linux |> should not' (equal (operationCacheHash arm))
+    operationCacheHash linux |> should not' (equal (operationCacheHash linuxContainer))
+    operationCacheHash linuxContainer |> shouldEqual (operationCacheHash macContainer)
+    operationCacheHash (resolve "linux/amd64" host pinned None) |> shouldEqual (operationCacheHash linux)
+    operationCacheHash (resolve "darwin/arm64" host pinned portable) |> shouldEqual (operationCacheHash operation)
+    operationCacheInput operation |> shouldEqual (Json.Serialize operation)
+    operationCacheInput operation |> should not' (contain "cachePlatform")
+    operationHasKnownPlatform (resolve "darwin/arm64" docker None sensitive) |> shouldEqual false
+    operationHasKnownPlatform (resolve "darwin/arm64" docker None portable) |> shouldEqual true
 
 let private writeDotnetProject root dir name references =
     let refs =
@@ -235,6 +276,40 @@ let private recordedImpactGraph (pipeline: PipelineStages) : Contracts.CommitGra
               IsBatchNode = false })
         |> Seq.toList
     { Repository = "acme/repo"; Commit = "ancestor"; GraphHash = "graph"; Nodes = nodes }
+
+[<Test>]
+let ``unknown container platform prevents reuse by the target and consumers`` () =
+    withTempWorkspace (fun workspace ->
+        writeFile workspace "WORKSPACE" """
+workspace {}
+target build { artifacts = ~managed }
+target package { artifacts = ~managed depends_on = [ target.build ] }
+extension @shell { image = "example/image" }
+"""
+        writeFile workspace "app/PROJECT" """
+project app { @shell {} @null {} }
+target build { @shell echo { args = "native output" } }
+target package { @null fake {} }
+"""
+        let options =
+            { baseOptions workspace (Set.singleton "package") with
+                Force = false
+                LocalOnly = false
+                Engine = ConfigOptions.Engine.Docker }
+        let baseline = runPipelineWithCache (NoopCache() :> Cache.ICache) options
+        let nodes = baseline.ResolvedGraph.Nodes |> Map.values |> Seq.toList
+        nodes |> List.map _.Target |> Set.ofList |> shouldEqual (Set [ "build"; "package" ])
+        let cached = nodes |> List.map buildCacheKey |> successCache
+        let current = runPipelineWithCache cached options
+        for node in current.ActionGraph.Nodes.Values do
+            node.CanReuseCache |> shouldEqual false
+            isRemoteCacheable options node |> shouldEqual false
+            node.Action |> shouldEqual RunAction.Exec
+
+        let host = runPipelineWithCache (NoopCache() :> Cache.ICache) { options with Engine = ConfigOptions.Engine.Host }
+        for node in host.ResolvedGraph.Nodes.Values do
+            node.CanReuseCache |> shouldEqual true
+            node.TargetHash |> should not' (equal baseline.ResolvedGraph.Nodes[node.Id].TargetHash))
 
 [<TestCase("unchanged")>]
 [<TestCase("command")>]
@@ -1812,6 +1887,7 @@ let ``Action evaluation fails closed when dependencies cannot be fulfilled`` () 
               ProjectHash = $"project-{id}"
               TargetHash = $"target-{id}"
               ClusterHash = None
+              Node.CanReuseCache = true
               Provenance = None
               Operations = []
               EvaluationInputs = []

@@ -109,6 +109,8 @@ Extensions own the declaration and any computation used to obtain it. Terrabuild
 **MUST NOT** inspect shell commands, arguments, ecosystem identities or lock files
 to infer preservation. The declaration **MUST NOT** enter operation hash serialization.
 
+Platform sensitivity is a command output. `Some Portable` permits reuse across execution platforms when other cache inputs match. `Some Sensitive` includes the effective execution platform in the target hash. `None` represents unknown sensitivity. It and a field omitted from an older inferred result use the platform-sensitive default. A handler explicitly returning `Protocol.CommandResult` can select that default with `PlatformSensitivity = None`.
+
 ## 6. Method Resolution
 
 1. Command resolution **MUST** use exact exported function name when present.
@@ -139,10 +141,13 @@ type ProvenanceEffect =
   | Broken
   | Unaffected
 
+type PlatformSensitivity = Sensitive | Portable
+
 type CommandResult =
     { Batchable: bool
       Operations: ShellOperations
-      PreserveProvenance: ProvenanceEffect }
+      PreserveProvenance: ProvenanceEffect
+      PlatformSensitivity: PlatformSensitivity option }
 
 type DependencyResolution =
     | Path
@@ -175,7 +180,8 @@ This is independent from `DependencyResolution`. For example, a pnpm extension c
 Command handler example:
 
 ```fsharp
-{ PreserveProvenance = Broken
+{ PlatformSensitivity = None
+  PreserveProvenance = Broken
   Batchable = false
   Operations = [ { Command = "make"; Arguments = "build"; ErrorLevel = 0 } ] }
 ```
@@ -225,6 +231,7 @@ export let dispatch (context: Protocol.ActionContext) (args: string option) : Pr
 
     { Batchable = false
       PreserveProvenance = Broken
+      PlatformSensitivity = None
       Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Specific command entrypoint example
@@ -238,6 +245,7 @@ export let build (context: Protocol.ActionContext) (configuration: string option
 
     { Batchable = false
       PreserveProvenance = Broken
+      PlatformSensitivity = None
       Operations = [ { Command = "your-tool"; Arguments = command; ErrorLevel = 0 } ] }
 
 // Script descriptor: exported function name -> flag list
@@ -271,6 +279,7 @@ Parameter XML documentation attributes:
    - `default=""`: parameter is optional
    - `default="..."`: parameter is optional with a documented default value
 3. When `default` is set to a non-empty value, DocGen appends `Default value is <value>.` to the generated argument description.
+4. Use `<platform-sensitivity>` on a command to explain when its computed platform sensitivity changes. DocGen reads literal values directly from command results.
 
 ## Typed invocation arguments
 

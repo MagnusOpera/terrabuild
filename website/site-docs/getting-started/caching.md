@@ -14,6 +14,7 @@ For each task in the build graph, Terrabuild computes a unique cache key (hash) 
 - tracked project file contents
 - dependency fingerprints
 - resolved commands and arguments
+- the [execution platform](#execution-platform) for commands with sensitive or unknown platform sensitivity
 - evaluated inputs used by the target
 - a one-way aggregate fingerprint of host environment values selected through extension `variables`
 
@@ -122,6 +123,12 @@ target deploy {
 
 Use this for work whose purpose is the action itself rather than a reusable result. The target executes whenever selected and does not create a cache entry that a later run could mistake for completion of a new deployment.
 
+## Execution platform
+
+Extensions can declare that a command produces portable artifacts. Other commands include the effective execution OS and architecture in their cache keys. Host commands use the host platform. Container commands use their configured `platform`, so two hosts running the same pinned container platform can share artifacts.
+
+Terrabuild skips cache reuse and publication for a platform-sensitive command when its execution platform is unknown, such as an unpinned container. Targets that consume its outputs also execute. When the platform is known, those targets inherit the distinction through their dependency hashes. See [CommandResult](../extensibility/types#commandresult) for the extension contract.
+
 ## Cache invalidation
 
 Caches are invalidated (and tasks built) when:
@@ -129,6 +136,7 @@ Caches are invalidated (and tasks built) when:
 - File contents change (hash changes)
 - Dependencies change (dependency hash changes)
 - Commands or arguments change
+- The execution platform changes for a command with sensitive or unknown platform sensitivity
 - Variables change (if used in hash computation)
 - `--force` flag is used
 - `build = ~always` is set on a target

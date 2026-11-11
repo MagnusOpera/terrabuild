@@ -17,7 +17,8 @@ export let test (context: Protocol.ActionContext) (browser: string option) (proj
     |> Helpers.append_part project
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "npx"
                      Arguments = command

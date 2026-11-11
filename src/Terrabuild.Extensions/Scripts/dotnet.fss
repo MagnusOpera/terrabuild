@@ -106,7 +106,8 @@ export let defaults (context: Protocol.ExtensionContext) =
 /// <param name="args" default="" example="&quot;run -- -v&quot;">Extra arguments for `dotnet`.</param>
 export let dispatch (context: Protocol.ActionContext) (args: string option) =
   let command = Helpers.with_args args |> Helpers.append_part context.Command
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [command_op command] }
 
@@ -117,7 +118,8 @@ export let tool (context: Protocol.ActionContext) (args: string option) =
     ""
     |> Helpers.append_part "tool"
     |> Helpers.append_part (Helpers.with_args args)
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [command_op command] }
 
@@ -144,7 +146,8 @@ export let restore (context: Protocol.ActionContext) (locked: bool option) (eval
     |> Helpers.append_part args
     |> command_op
 
-  { PreserveProvenance = preserves
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preserves
     Batchable = true
     Operations = with_batch_solution context create_command }
 
@@ -180,7 +183,9 @@ export let build (context: Protocol.ActionContext) (configuration: string option
     |> Helpers.append_part args
     |> command_op
 
-  { PreserveProvenance = preservation
+  // Executable projects can emit a native apphost even for a framework-dependent build.
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preservation
     Batchable = true
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
@@ -210,7 +215,8 @@ export let pack (context: Protocol.ActionContext) (configuration: string option)
     |> Helpers.append_part version
     |> Helpers.append_part args
 
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = None
+    PreserveProvenance = preservation
     Batchable = false
     Operations = [command_op command] }
 
@@ -248,7 +254,8 @@ export let publish (context: Protocol.ActionContext) (configuration: string opti
     |> Helpers.append_part args
     |> command_op
 
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preservation
     Batchable = true
     Operations = with_batch_solution_with_configuration context configuration create_command }
 
@@ -277,7 +284,8 @@ export let test (context: Protocol.ActionContext) (configuration: string option)
     |> Helpers.append_part args
     |> command_op
 
-  { PreserveProvenance = preservation
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preservation
     Batchable = true
     Operations = with_batch_solution context create_command }
 

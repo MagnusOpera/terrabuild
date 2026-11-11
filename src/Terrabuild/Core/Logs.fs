@@ -148,7 +148,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
             let dumpLogs =
                 let cacheEntryId = GraphDef.buildCacheKey representative
-                let logSummary = cache.TryGetSummary (not options.LocalOnly) cacheEntryId
+                let logSummary = cache.TryGetSummary (representative.CanReuseCache && not options.LocalOnly) cacheEntryId
                 match logSummary with
                 | Some summary ->
                     let dumpLogs () =
@@ -289,7 +289,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
 
             let (logStart, logEnd), dumpLogs =
                 let cacheEntryId = GraphDef.buildCacheKey node
-                let logSummary = cache.TryGetSummary (not options.LocalOnly) cacheEntryId
+                let logSummary = cache.TryGetSummary (node.CanReuseCache && not options.LocalOnly) cacheEntryId
                 match logSummary with
                 | Some summary ->
                     let dumpLogs () =
@@ -346,7 +346,7 @@ let dumpLogs (logId: Guid) (options: ConfigOptions.Options) (cache: ICache) (gra
                 summary
                 |> Option.bind (fun (_, metadata) ->
                     if metadata.IsSuccessful then None
-                    else cache.TryGetSummary (not options.LocalOnly) cacheEntryId)
+                    else cache.TryGetSummary (node.CanReuseCache && not options.LocalOnly) cacheEntryId)
             match failedSummary with
             | Some summary ->
                 if summary.IsSuccessful |> not then

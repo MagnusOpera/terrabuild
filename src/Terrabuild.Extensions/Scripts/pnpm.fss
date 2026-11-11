@@ -72,7 +72,8 @@ export let dispatch (context: Protocol.ActionContext) (args: string option) =
     |> Helpers.append_part context.Command
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command
@@ -98,7 +99,8 @@ export let install (context: Protocol.ActionContext) (force: bool option) (froze
     |> Helpers.append_part force
     |> Helpers.append_part args
 
-  { PreserveProvenance = preserves
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = preserves
     Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
@@ -116,7 +118,8 @@ export let build (context: Protocol.ActionContext) (args: string option) =
     |> Helpers.append_part "run build"
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
@@ -134,7 +137,8 @@ export let test (context: Protocol.ActionContext) (args: string option) =
     |> Helpers.append_part "run test"
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = true
     Operations = [ { Command = "pnpm"
                      Arguments = command
@@ -154,7 +158,8 @@ export let run (context: Protocol.ActionContext) (target: string) (recursive: bo
     |> Helpers.append_part $"run {target}"  
     |> Helpers.append_part args
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [ { Command = "pnpm"
                      Arguments = command

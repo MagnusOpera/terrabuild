@@ -102,7 +102,8 @@ export let dispatch (context: Protocol.ActionContext) (args: string option) =
     ""
     |> Helpers.append_part context.Command
     |> Helpers.append_part (Helpers.with_args args)
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = None
+    PreserveProvenance = Broken
     Batchable = false
     Operations = [command_op command] }
 
@@ -123,7 +124,8 @@ export let install (context: Protocol.ActionContext) (packages: string list opti
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = batchable
     Operations = operations }
 
@@ -146,7 +148,8 @@ export let build (context: Protocol.ActionContext) (packages: string list option
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = batchable
     Operations = operations }
 
@@ -166,7 +169,8 @@ export let test (context: Protocol.ActionContext) (packages: string list option)
           |> Helpers.append_part (with_packages packages)
         [command_op command]
 
-  { PreserveProvenance = Broken
+  { PlatformSensitivity = Some Sensitive
+    PreserveProvenance = Broken
     Batchable = batchable
     Operations = operations }
 

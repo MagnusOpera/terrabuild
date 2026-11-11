@@ -59,6 +59,7 @@ let ``dotnet build supports no-dependencies flag`` () =
     let args = Map.ofList [ "dependencies", bool false ]
 
     let result = invokeResult "@dotnet" "build" context args
+    result.PlatformSensitivity |> shouldEqual (Some PlatformSensitivity.Sensitive)
 
     result.Operations
     |> normalizeOps
@@ -75,6 +76,7 @@ let ``dotnet pack supports no restore build dependencies flags`` () =
               "dependencies", bool false ]
 
     let result = invokeResult "@dotnet" "pack" context args
+    result.PlatformSensitivity |> shouldEqual (None)
 
     result.Operations
     |> normalizeOps
@@ -90,6 +92,7 @@ let ``dotnet publish supports no restore dependencies flags`` () =
               "dependencies", bool false ]
 
     let result = invokeResult "@dotnet" "publish" context args
+    result.PlatformSensitivity |> shouldEqual (Some PlatformSensitivity.Sensitive)
 
     result.Operations
     |> normalizeOps
