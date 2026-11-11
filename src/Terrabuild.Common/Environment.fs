@@ -30,6 +30,15 @@ let isPosixHost () =
 let envVar (varName: string) =
     varName |> Environment.GetEnvironmentVariable |> Option.ofObj
 
+let homeDirectory () =
+    match envVar "HOME" with
+    | Some home when not (String.IsNullOrWhiteSpace(home)) -> home
+    | _ ->
+        let home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        if String.IsNullOrWhiteSpace(home) then
+            Errors.raiseInvalidArg "Terrabuild could not determine the user home directory."
+        home
+
 let currentDir() = System.Environment.CurrentDirectory
 
 let envVars() =

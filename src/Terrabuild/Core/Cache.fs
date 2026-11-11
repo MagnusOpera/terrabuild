@@ -132,7 +132,7 @@ type private ProfileUsageLease(stream: FileStream, path: string) =
             | :? DirectoryNotFoundException -> ()
 
 let createTerrabuildProfile() =
-    let tbDir = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
+    let tbDir = FS.combinePath (Environment.homeDirectory ()) ".terrabuild"
     IO.createDirectory tbDir
     tbDir
 
@@ -722,7 +722,8 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             if Directory.Exists stagingDir then IO.deleteAny stagingDir
 
 
-type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
+type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWrites: bool, ?onDecryptionFailure: unit -> unit) =
+    let allowRemoteWrites = defaultArg allowRemoteWrites true
     let manifests = System.Collections.Concurrent.ConcurrentDictionary<string, RemoteManifest>()
     let availableOutputs = System.Collections.Concurrent.ConcurrentDictionary<string, bool>()
 
@@ -753,7 +754,9 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                         decompressedFile <- Compression.uncompress decrypted
                         Compression.untar targetDir (decompressedFile |> nonNull)
                         true
-                    | _ -> false
+                    | None ->
+                        onDecryptionFailure |> Option.iter (fun report -> report ())
+                        false
             with exn ->
                 Log.Warning(exn, "Ignoring unreadable remote cache payload for {CacheEntryId}", id)
                 false
@@ -792,7 +795,9 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
                         decompressedFile <- Compression.uncompress decryptedFile
                         Compression.untar targetDir (decompressedFile |> nonNull)
                         true
-                    | _ -> false
+                    | None ->
+                        onDecryptionFailure |> Option.iter (fun report -> report ())
+                        false
                 with exn ->
                     Log.Warning(exn, "Ignoring unreadable legacy remote cache blob {BlobPath}", $"{id}/{name}")
                     false
@@ -1052,4 +1057,4 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option) =
 
         member _.GetEntry useRemote id : IEntry =
             let entryDir = FS.combinePath (createCache()) id
-            new NewEntry(entryDir, useRemote, id, storage, masterKey)
+            new NewEntry(entryDir, useRemote && allowRemoteWrites, id, storage, masterKey)

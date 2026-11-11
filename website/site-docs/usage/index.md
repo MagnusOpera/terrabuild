@@ -19,7 +19,8 @@ Use the Terrabuild CLI to run targets, inspect build decisions, compare changes,
 | Reset local caches | [clear](./clear) | Remove selected local cache data. |
 | Reclaim cache space | [prune](./prune) | Remove local cache entries older than an access-age threshold. |
 | Connect shared cache and Insights | [login](./login) | Save an Insights workspace connection on this machine or CI runner. |
-| Remove an Insights connection | [logout](./logout) | Delete a saved connection. |
+| Restore shared artifacts with a user account | [insights login](./login#download-artifacts-with-an-insights-account) | Sign in for download-only access and import the workspace key. |
+| Remove a workspace token connection | [logout](./logout) | Delete saved workspace token credentials. |
 | Check the installed binary | [version](./version) | Print the installed Terrabuild version. |
 
 `explain` answers what a run would do now. `impact` answers which logical targets changed since a recorded commit. `compare` answers why cache keys or decisions differ between two saved runs. Only `impact` requires an Insights baseline.
@@ -45,6 +46,7 @@ SUBCOMMANDS:
     prune <options>       Prune stale local build cache entries.
     login <options>       Connect to backend.
     logout <options>      Disconnect from backend.
+    insights <options>    Manage Insights user sign-in and artifact decryption keys.
 
     Use 'terrabuild <subcommand> --help' for additional information.
 ```

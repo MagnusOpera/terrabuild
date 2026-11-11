@@ -37,7 +37,6 @@ jobs:
           install_node: "true"
           install_pnpm: "true"
           install_fscript: "true"
-          install_terrabuild: "true"
 
       - name: Login to Insights Staging
         env:
@@ -45,8 +44,7 @@ jobs:
           TERRABUILD_TOKEN: ${{ secrets.TERRABUILD_TOKEN }}
           TERRABUILD_MASTER_KEY: ${{ secrets.TERRABUILD_MASTER_KEY }}
         run: |
-          terrabuild version
-          terrabuild login \
+          dotnet run --project src/Terrabuild -- login \
             --workspace "6a842b8575d8c63f4ae71c4e" \
             --token "$TERRABUILD_TOKEN" \
             --masterkey "$TERRABUILD_MASTER_KEY"
@@ -60,7 +58,7 @@ jobs:
 
       - name: Logout from Insights Staging
         if: always()
-        run: terrabuild logout --space "6a842b8575d8c63f4ae71c4e"
+        run: dotnet run --project src/Terrabuild -- logout --space "6a842b8575d8c63f4ae71c4e"
 
       - name: Create Test Report
         uses: magnusopera/test-reporter@main

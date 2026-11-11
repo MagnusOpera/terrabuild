@@ -11,6 +11,18 @@ module internal Endpoint =
         |> Uri
 
 
+    let current () =
+        Environment.GetEnvironmentVariable("TERRABUILD_API_URL")
+        |> Option.ofObj
+        |> resolve
+
+    let origin () =
+        let configured = current ()
+        if configured.Scheme <> "https" && not (configured.Scheme = "http" && configured.IsLoopback) then
+            Errors.raiseInvalidArg "Insights credentials require HTTPS."
+        Uri(configured.GetLeftPart(UriPartial.Authority))
+
+
 module private Http =
     open Serilog
     open System.Net
@@ -18,31 +30,31 @@ module private Http =
     open System.Net.Security
 
 
-    let apiUrl =
-        Environment.GetEnvironmentVariable("TERRABUILD_API_URL")
-        |> Option.ofObj
-        |> Endpoint.resolve
+    let apiUrl = Endpoint.current ()
 
     let insecureSSL =
         match DotNetEnv.Env.GetString("TERRABUILD_API_INSECURE_SSL", "") with
         | "true" -> true
         | _ -> false
 
-    let private customizeRequest (req: HttpWebRequest) =
-        if insecureSSL then
+    let private customizeRequest credentialExchange (req: HttpWebRequest) =
+        if credentialExchange then
+            req.AllowAutoRedirect <- false
+        elif insecureSSL then
             req.ServerCertificateValidationCallback <- RemoteCertificateValidationCallback(fun _ _ _ _ -> true)
             Log.Warning("SSL certificate validation disabled (TERRABUILD_INSECURE_SSL=true)")
         req
 
     let private request<'req, 'resp when 'req : not struct> cacheRead method headers (path: string) (request: 'req): 'resp =
         let url = Uri($"{apiUrl}{path}").ToString()
+        let credentialExchange = path = "/auth/login"
         let body =
             match request |> box with
             | NonNull request -> request |> Json.Serialize |> TextRequest |> Some
             | _ -> None
 
         try
-            let response = Http.RequestString(url = url, headers = headers, ?body = body, httpMethod = method, customizeHttpRequest = customizeRequest)
+            let response = Http.RequestString(url = url, headers = headers, ?body = body, httpMethod = method, customizeHttpRequest = customizeRequest credentialExchange)
 
             if typeof<'resp> <> typeof<Unit> then response |> Json.Deserialize<'resp>
             else Unchecked.defaultof<'resp>
@@ -61,6 +73,9 @@ module private Http =
             match statusCode exn with
             | Some HttpStatusCode.NotFound when cacheRead ->
                 raise (ArtifactUnavailableException(path))
+            | Some HttpStatusCode.Unauthorized when credentialExchange -> raise (TerrabuildException("Invalid workspace credentials.", ErrorArea.Auth))
+            | Some HttpStatusCode.Forbidden when credentialExchange -> raise (TerrabuildException("Workspace access was denied.", ErrorArea.Auth))
+            | _ when credentialExchange -> raiseExternalError "The workspace token exchange failed."
             | status ->
                 Log.Error(exn, "API error: {method} {url}", method, url)
                 match status with
@@ -75,7 +90,7 @@ module private Http =
 
 
 
-module private Auth =
+module internal Auth =
     [<RequireQualifiedAccess>]
     type LoginSpaceInput = {
         Id: string
@@ -87,7 +102,10 @@ module private Auth =
         AccessToken: string
     }
 
-    let loginSpace headers workspaceId token: LoginSpaceOutput =
+    let loginSpace workspaceId token: LoginSpaceOutput =
+        let headers =
+            [ HttpRequestHeaders.Accept HttpContentTypes.Json
+              HttpRequestHeaders.ContentType HttpContentTypes.Json ]
         { LoginSpaceInput.Id = workspaceId
           LoginSpaceInput.Token = token }
         |> Http.post headers "/auth/login"
@@ -285,12 +303,7 @@ module internal Artifact =
 
 
 type Client(workspaceId: string, token: string, options: ConfigOptions.Options) =
-    let accesstoken =
-        let headers =
-            [ HttpRequestHeaders.Accept HttpContentTypes.Json
-              HttpRequestHeaders.ContentType HttpContentTypes.Json ]
-        let resp = Auth.loginSpace headers workspaceId token
-        resp.AccessToken
+    let accesstoken = (Auth.loginSpace workspaceId token).AccessToken
 
     let headers =
         [ HttpRequestHeaders.Accept HttpContentTypes.Json

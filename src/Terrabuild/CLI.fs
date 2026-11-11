@@ -59,6 +59,7 @@ type RunArgs =
     | [<Unique>] Restore
     | [<Unique>] Parallel of max:int
     | [<Unique>] Local_Only
+    | [<Unique>] Publish
     | [<Unique>] Note of note:string
     | [<Unique>] Group of group:string
     | [<Unique>] Tag of tag:string
@@ -82,6 +83,7 @@ with
             | Restore -> "Restore cached outputs of explicitly selected targets."
             | Parallel _ -> "Max parallel build concurrency (default to number of processors)."
             | Local_Only -> "Use local cache only."
+            | Publish -> "Use workspace token credentials to publish artifacts and report the build."
             | Note _ -> "Note for the build."
             | Group _ -> "Group identifier for related builds."
             | Tag _ -> "Tag for build."
@@ -247,14 +249,24 @@ type InsightsLoginArgs =
         member _.Usage = "Print the device sign-in URL without opening a browser."
 
 [<RequireQualifiedAccess>]
+type InsightsKeyArgs =
+    | [<ExactlyOnce>] Workspace of id:string
+    interface IArgParserTemplate with
+        member _.Usage = "Workspace ID for the artifact decryption key."
+
+[<RequireQualifiedAccess>]
 type InsightsArgs =
     | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<InsightsLoginArgs>
     | [<CliPrefix(CliPrefix.None)>] Logout
+    | [<CliPrefix(CliPrefix.None)>] Import_Key of ParseResults<InsightsKeyArgs>
+    | [<CliPrefix(CliPrefix.None)>] Forget_Key of ParseResults<InsightsKeyArgs>
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Login _ -> "Sign in with an Insights user account."
             | Logout -> "Revoke the Insights user credential."
+            | Import_Key _ -> "Store a workspace artifact decryption key from a hidden prompt or stdin."
+            | Forget_Key _ -> "Remove the imported workspace artifact decryption key."
 
 [<RequireQualifiedAccess>]
 type TerrabuildArgs =

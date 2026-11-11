@@ -6,6 +6,7 @@ let checkAuthError msg f  =
     try
         f()
     with
+    | :? TerrabuildException -> reraise()
     | exn ->
         let errorCode =
             match exn.InnerException with

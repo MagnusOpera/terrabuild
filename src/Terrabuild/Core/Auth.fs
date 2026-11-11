@@ -1,65 +1,64 @@
 module Auth
-open System
 
+open System
+open System.IO
+open System.Security.Cryptography
 
 type SpaceAuth = {
-    Id: string
     Token: string
-    MasterKey: string
+    Key: string
 }
 
-[<RequireQualifiedAccess>]
-type Configuration = {
-    SpaceAuths: SpaceAuth list
-}
+let private account workspaceId =
+    "publisher/" + CredentialStore.identifier workspaceId
 
+let private readAccounts (store: CredentialStore.Store) workspaceId =
+    store.Read (account workspaceId)
+    |> Option.map CredentialStore.deserialize<Map<string, SpaceAuth>>
+    |> Option.defaultValue Map.empty
 
-let private removeAuthToken (workspaceId: string) =
-    let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
-    let config =
-        if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
-        else { Configuration.SpaceAuths = List.empty }
+let internal read (store: CredentialStore.Store) (origin: Uri) workspaceId =
+    readAccounts store workspaceId |> Map.tryFind origin.AbsoluteUri
 
-    let config = { config with SpaceAuths = config.SpaceAuths |> List.filter (fun sa -> sa.Id <> workspaceId )}
+let private lockAccount lockDirectory workspaceId =
+    Directory.CreateDirectory(lockDirectory) |> ignore
+    let lockFile = Path.Combine(lockDirectory, CredentialStore.identifier (account workspaceId) + ".lock")
+    ExclusiveFileLock.acquire "workspace credential" lockFile
 
-    config
+let internal save (store: CredentialStore.Store) lockDirectory (origin: Uri) workspaceId auth =
+    use lease = lockAccount lockDirectory workspaceId
+    readAccounts store workspaceId
+    |> Map.add origin.AbsoluteUri auth
     |> Json.Serialize
-    |> IO.writeTextFile configFile
+    |> store.Write (account workspaceId)
 
+let internal remove (store: CredentialStore.Store) lockDirectory workspaceId =
+    use lease = lockAccount lockDirectory workspaceId
+    store.Delete (account workspaceId)
 
-let private addAuthToken (workspaceId: string) (token: string) (masterKey: string) =
-    let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
-    let config =
-        if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
-        else { SpaceAuths = [] }
+let internal deriveKey workspaceId masterKey =
+    let key = Encryption.masterKeyFromString workspaceId masterKey
+    try Convert.ToBase64String(key)
+    finally CryptographicOperations.ZeroMemory(key)
 
-    // remove previous config
-    let config =
-        { config with SpaceAuths = config.SpaceAuths |> List.filter (fun x -> x.Id <> workspaceId ) }
+let internal decodeKey (value: string) =
+    match Convert.FromBase64String(value) with
+    | key when key.Length = 32 -> key
+    | _ -> Errors.raiseInvalidArg "The stored workspace key is invalid. Import it again."
 
-    let config =
-        { config with SpaceAuths = { Id = workspaceId; Token = token; MasterKey = masterKey } :: config.SpaceAuths }
-
-    config
-    |> Json.Serialize
-    |> IO.writeTextFile configFile
-
-
-let readAuth (workspaceId: string) =
-    let configFile = FS.combinePath (Cache.createTerrabuildProfile()) "config.json"
-    let config =
-        if configFile |> FS.fileExists then configFile |> IO.readTextFile |> Json.Deserialize<Configuration>
-        else { Configuration.SpaceAuths = List.empty }
-
-    match config.SpaceAuths |> List.tryFind (fun sa -> sa.Id = workspaceId) with
-    | Some spaceAuth -> Some spaceAuth
-    | _ -> None
-
-
+let readAuth workspaceId =
+    let origin = Api.Endpoint.origin ()
+    let store, _ = CredentialStore.publisher ()
+    read store origin workspaceId
 
 let login workspaceId token masterKey =
-    Api.Factory.create (Some workspaceId) (Some token) |> ignore
-    addAuthToken workspaceId token masterKey
+    let origin = Api.Endpoint.origin ()
+    if String.IsNullOrWhiteSpace(masterKey) then
+        Errors.raiseInvalidArg "The master key must not be empty."
+    Api.Auth.loginSpace workspaceId token |> ignore
+    let store, lockDirectory = CredentialStore.publisher ()
+    save store lockDirectory origin workspaceId { Token = token; Key = deriveKey workspaceId masterKey }
 
-let logout space =
-    removeAuthToken space
+let logout workspaceId =
+    let store, lockDirectory = CredentialStore.publisher ()
+    remove store lockDirectory workspaceId

@@ -765,7 +765,7 @@ let ``encrypted summary lookup does not download operation logs or outputs`` () 
             File.WriteAllText(log, String.replicate 10000 "operation output\n")
             entry.Complete(summary None) |> ignore
             IO.deleteAny (Path.Combine(root, ".terrabuild", "cache"))
-            let consumer = Cache.Cache(storage, key) :> Cache.ICache
+            let consumer = Cache.Cache(storage, key, allowRemoteWrites = false) :> Cache.ICache
             let found = consumer.TryGetSummaryOnly true id
             found.IsSome |> should equal true
             storage.DownloadPaths |> List.exists (fun path -> path.Contains("/logs-")) |> should equal false
@@ -894,3 +894,16 @@ let ``restored npm launchers retain relative symbolic links`` remote =
             let launcher = Path.Combine(project, "node_modules", ".bin", "tool")
             Assert.That(String.Equals(FileInfo(launcher).LinkTarget, "../package/launcher.js", StringComparison.Ordinal), Is.True)
             File.ReadAllText(launcher) |> should equal "launcher"))
+
+[<Test>]
+let ``read-only remote cache saves a cache miss locally without uploading`` () =
+    withTempDir (fun root ->
+        withHomeDir root (fun () ->
+            let storage = FakeStorage()
+            let cache = Cache.Cache(storage, None, allowRemoteWrites = false) :> Cache.ICache
+            let id = "project-hash/build/local-miss"
+            cache.TryGetSummaryOnly true id |> shouldEqual None
+            use entry = cache.GetEntry true id
+            entry.Complete(summary None) |> shouldEqual []
+            storage.Uploads |> shouldEqual []
+            cache.TryGetSummary false id |> Option.map _.Target |> shouldEqual (Some "build")))

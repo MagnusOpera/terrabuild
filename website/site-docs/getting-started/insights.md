@@ -73,20 +73,43 @@ terrabuild login \
   --masterkey "<master-key>"
 ```
 
-The workspace ID must match `workspace.id`. Credentials are saved in the local
-Terrabuild profile for that workspace.
+The workspace ID must match `workspace.id`. Terrabuild saves the workspace token
+and derived artifact key in the OS credential store on workstations and in a
+private job directory on ephemeral CI runners. See [Login](../usage/login) for
+credential storage and upgrade details.
 
 ### Sign in with your Insights account
 
-Run `terrabuild insights login` and approve the device code in your browser.
-Use `terrabuild insights logout` to revoke this user session. Build reporting
-and managed artifacts still use the workspace token and master key configured
-with `terrabuild login`.
+For download-only access, use your Insights account and get the workspace master
+key from your team’s password manager. Workspace owners, admins, and contributors
+can download artifacts from eligible workspaces.
+
+```bash
+terrabuild insights login
+terrabuild insights import-key --workspace "$WORKSPACE_ID"
+terrabuild run build --restore
+```
+
+Approve the device code in your browser, then enter the key at the hidden prompt.
+The last command restores a matching artifact when available. A cache miss
+builds locally. With both logins configured, use `--publish` to select the
+workspace token when you intend to publish.
+
+If Insights sign-in expires, run `terrabuild insights login` again. If the key is
+missing or an artifact cannot be decrypted, confirm the workspace and reimport
+the key. If the OS store is unavailable, unlock it and retry. Linux requires
+libsecret’s `secret-tool` and a running desktop Secret Service.
+
+Use `terrabuild insights logout` to revoke the session and
+`terrabuild insights forget-key --workspace "$WORKSPACE_ID"` to remove the key
+from this workstation. Revocation ends new artifact lookups. Download URLs
+already issued remain usable until expiry, and copies of keys or restored files
+remain usable by their holders.
 
 ## 4. Publish managed artifacts
 
-Reporting works for every connected run. To share a target's declared files,
-set its artifact policy to `~managed`:
+Builds using a contributor workspace token can report to Insights. To share a
+target's declared files, set its artifact policy to `~managed`:
 
 ```terrabuild title="WORKSPACE"
 target build {
@@ -122,8 +145,10 @@ records.
 
 ## CI example
 
-Store the token and master key as protected secrets and authenticate before the
-run:
+Store the token and master key as protected GitHub Actions secrets. Terrabuild
+keeps them in the job’s runner temp directory, so only the login step needs the
+secret inputs. Other ephemeral runners can supply a private, job-scoped
+`TERRABUILD_CI_CREDENTIAL_DIR`.
 
 ```yaml
 - name: Connect Terrabuild to Insights

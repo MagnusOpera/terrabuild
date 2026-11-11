@@ -6,7 +6,8 @@ open Serilog
 
 
 type internal RemoteStorage(
-    api: Contracts.IApiClient,
+    lookupArtifacts: string list -> Contracts.ArtifactLookup list,
+    getUploadLocation: (string -> Uri * string option) option,
     ?azureBackend: IRemoteStorageBackend,
     ?cloudflareBackend: IRemoteStorageBackend
 ) =
@@ -26,7 +27,7 @@ type internal RemoteStorage(
         if separator < 0 then path else path.Substring(0, separator)
 
     let lookup entries =
-        let results = api.LookupArtifacts entries |> Seq.map (fun result -> result.Entry, result) |> Map.ofSeq
+        let results = lookupArtifacts entries |> Seq.map (fun result -> result.Entry, result) |> Map.ofSeq
         for entry in entries do
             match results |> Map.tryFind entry with
             | Some result ->
@@ -61,6 +62,9 @@ type internal RemoteStorage(
             | _ -> refresh ()
         location |> Option.map (fun item -> Uri(item.Uri), backend item.Provider)
 
+    new(api: Contracts.IApiClient, ?azureBackend: IRemoteStorageBackend, ?cloudflareBackend: IRemoteStorageBackend) =
+        RemoteStorage(api.LookupArtifacts, Some api.GetUploadLocation, ?azureBackend = azureBackend, ?cloudflareBackend = cloudflareBackend)
+
     interface Contracts.IBatchStorage with
         member _.PrepareReads entries =
             for chunk in entries |> List.distinct |> List.chunkBySize 64 do
@@ -82,11 +86,18 @@ type internal RemoteStorage(
             | None -> None
 
         override _.Upload id summaryFile =
-            let uri, provider = api.GetUploadLocation id
-            (backend provider).Upload id uri summaryFile
-            lookups.TryRemove(entryOf id) |> ignore
+            match getUploadLocation with
+            | None -> raiseBugError "Upload attempted with read-only artifact storage."
+            | Some locate ->
+                let uri, provider = locate id
+                (backend provider).Upload id uri summaryFile
+                lookups.TryRemove(entryOf id) |> ignore
 
 let create api: Contracts.IStorage =
     match api with
     | None -> Local()
     | Some api -> RemoteStorage(api)
+
+
+let createReadOnly lookupArtifacts: Contracts.IStorage =
+    RemoteStorage(lookupArtifacts, None)

@@ -198,12 +198,15 @@ let encrypt masterKey artifactId inputFile =
 let tryDecrypt masterKey artifactId inputFile =
     match masterKey with
     | Some masterKey ->
+        let mutable outputFile = None
         try
-            let outputFile = IO.getTempFilename()
+            let file = IO.getTempFilename()
+            outputFile <- Some file
             let encKey, macKey = SecureArchive.deriveKeys masterKey artifactId
-            SecureArchive.decryptFileArchive encKey macKey inputFile outputFile
-            Some outputFile
+            SecureArchive.decryptFileArchive encKey macKey inputFile file
+            Some file
         with _ ->
+            outputFile |> Option.iter IO.deleteAny
             None
     | _ ->
         if isEncrypted inputFile then None

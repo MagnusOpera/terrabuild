@@ -1,49 +1,42 @@
 module Terrabuild.Tests.Core.Auth
+
 open System
 open System.IO
-open FsUnit
 open FsUnitTyped
 open NUnit.Framework
 
-let private withTempHome action =
+let private withJobStore action =
     let root = Path.Combine(Path.GetTempPath(), $"terrabuild-auth-tests-{Guid.NewGuid():N}")
-    let previousHome = Environment.GetEnvironmentVariable("HOME")
     Directory.CreateDirectory(root) |> ignore
-    Environment.SetEnvironmentVariable("HOME", root)
-    try
-        action root
-    finally
-        Environment.SetEnvironmentVariable("HOME", previousHome)
-        if Directory.Exists(root) then
-            Directory.Delete(root, true)
+    try action (CredentialStore.job root) root
+    finally Directory.Delete(root, true)
 
-let private workspaceAuth id token masterKey : Auth.SpaceAuth =
-    { Id = id
-      Token = token
-      MasterKey = masterKey }
-
-let private writeConfiguration root spaceAuths =
-    let profile = Path.Combine(root, ".terrabuild")
-    Directory.CreateDirectory(profile) |> ignore
-    { Auth.Configuration.SpaceAuths = spaceAuths }
-    |> Json.Serialize
-    |> fun config -> File.WriteAllText(Path.Combine(profile, "config.json"), config)
+let private staging = Uri("https://staging.example/")
+let private production = Uri("https://production.example/")
+let private workspaceAuth token masterKey : Auth.SpaceAuth =
+    { Token = token; Key = Auth.deriveKey "workspace-a" masterKey }
 
 [<Test>]
-let ``logout removes only the selected workspace credentials`` () =
-    withTempHome (fun root ->
-        let selected = workspaceAuth "workspace-a" "token-a" "master-key-a"
-        let other = workspaceAuth "workspace-b" "token-b" "master-key-b"
-        writeConfiguration root [ selected; other ]
+let ``workspace credentials are origin scoped and logout works without an origin`` () =
+    withJobStore (fun store root ->
+        let stagingAuth = workspaceAuth "staging-token" "staging-key"
+        let productionAuth = workspaceAuth "production-token" "production-key"
+        let other = workspaceAuth "other-token" "other-key"
+        Auth.save store root staging "workspace-a" stagingAuth
+        Auth.save store root staging "workspace-b" other
+        Auth.read store production "workspace-a" |> shouldEqual None
 
-        Auth.logout selected.Id
+        Auth.save store root production "workspace-a" productionAuth
+        let nextProcess = CredentialStore.job root
+        Auth.read nextProcess staging "workspace-a" |> shouldEqual (Some stagingAuth)
+        Auth.read nextProcess production "workspace-a" |> shouldEqual (Some productionAuth)
+        Auth.decodeKey stagingAuth.Key |> shouldEqual (Encryption.masterKeyFromString "workspace-a" "staging-key")
+        if not (OperatingSystem.IsWindows()) then
+            for file in Directory.EnumerateFiles(root) |> Seq.filter (fun path -> not (path.EndsWith(".lock"))) do
+                File.GetUnixFileMode(file) |> shouldEqual (UnixFileMode.UserRead ||| UnixFileMode.UserWrite)
 
-        Auth.readAuth selected.Id |> shouldEqual None
-        Auth.readAuth other.Id |> shouldEqual (Some other))
-
-[<Test>]
-let ``logout is safe when no authentication configuration exists`` () =
-    withTempHome (fun _ ->
-        Auth.logout "missing-workspace"
-
-        Auth.readAuth "missing-workspace" |> shouldEqual None)
+        Auth.remove nextProcess root "workspace-a"
+        Auth.remove nextProcess root "workspace-a"
+        Auth.read store staging "workspace-a" |> shouldEqual None
+        Auth.read store production "workspace-a" |> shouldEqual None
+        Auth.read store staging "workspace-b" |> shouldEqual (Some other))

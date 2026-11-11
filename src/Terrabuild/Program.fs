@@ -279,7 +279,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
 
     DiagnosticsTelemetry.reset debug
 
-    let prepareRunTarget enforceEnvironmentSensitivity (runOptions: RunTargetOptions) =
+    let prepareRunTarget enforceEnvironmentSensitivity preferPublisher (runOptions: RunTargetOptions) =
         System.Environment.CurrentDirectory <- runOptions.Workspace
         Log.Debug("Changing current directory to {directory}", runOptions.Workspace)
         Log.Debug("ProcessorCount = {procCount}", Environment.ProcessorCount)
@@ -383,21 +383,62 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
 
         checkpoint None None None None None "preparing" "partial" None
 
-        let auth =
+        let api, storage, masterKey =
             runPreparation (fun () ->
-                if options.LocalOnly then None
-                else config.Id |> Option.bind Auth.readAuth)
-        let token = auth |> Option.map (fun auth -> auth.Token)
-        let masterKey = auth |> Option.map (fun auth -> Encryption.masterKeyFromString auth.Id auth.MasterKey)
-        if masterKey |> Option.isSome then Log.Debug("Artifacts encryption on")
+                let local () = None, Storages.Factory.create None, None
+                let publisher workspaceId =
+                    match Auth.readAuth workspaceId with
+                    | Some auth ->
+                        let key = Auth.decodeKey auth.Key
+                        let api = Api.Factory.create (Some workspaceId) (Some auth.Token) options
+                        api, Storages.Factory.create api, Some key
+                    | None -> local ()
 
-        let api = runPreparation (fun () -> Api.Factory.create config.Id token options)
-        if api |> Option.isSome then
-            Log.Debug("Connected to API")
+                match options.LocalOnly, config.Id with
+                | true, _ | _, None -> local ()
+                | false, Some workspaceId when preferPublisher -> publisher workspaceId
+                | false, Some workspaceId ->
+                    let origin = Api.Endpoint.origin ()
+                    let session =
+                        try Ok (Insights.session origin)
+                        with :? TerrabuildException as ex ->
+                            Error (ex.Message)
+                    match session with
+                    | Error message ->
+                        eprintfn $"Could not read the credential store. {message} Using local builds."
+                        local ()
+                    | Ok None -> publisher workspaceId
+                    | Ok (Some credential) when credential.ExpiresAt <= DateTimeOffset.UtcNow ->
+                        eprintfn "Insights sign-in expired. Run terrabuild insights login again. Using local builds."
+                        local ()
+                    | Ok (Some credential) ->
+                        let key =
+                            try Insights.readKey origin workspaceId
+                            with
+                            | :? FormatException
+                            | :? TerrabuildException -> None
+                        match key with
+                        | Some key ->
+                            let storage = Insights.artifactLookup origin workspaceId credential |> Storages.Factory.createReadOnly
+                            None, storage, Some key
+                        | None ->
+                            eprintfn $"Workspace decryption key unavailable. Run terrabuild insights import-key --workspace {workspaceId}. Using local builds."
+                            local ())
+
+        if masterKey.IsSome then
+            Log.Debug("Artifacts encryption on")
             $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Connected to Insights" |> Terminal.writeLine
 
-        let storage = runPreparation (fun () -> Storages.Factory.create api)
-        let cache = runPreparation (fun () -> Cache.Cache(storage, masterKey) :> Cache.ICache)
+        let onDecryptionFailure =
+            if api.IsNone && masterKey.IsSome then
+                let reported = ref 0
+                Some (fun () ->
+                    if Threading.Interlocked.Exchange(reported, 1) = 0 then
+                        eprintfn "Could not decrypt an Insights cache entry. Check the imported workspace key. Affected targets will build locally.")
+            else None
+        let cache =
+            runPreparation (fun () ->
+                Cache.Cache(storage, masterKey, allowRemoteWrites = api.IsSome, ?onDecryptionFailure = onDecryptionFailure) :> Cache.ICache)
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
         let nodeGraph =
@@ -447,8 +488,8 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
           ResolvedGraph = resolvedGraph
           Graph = graph }
 
-    let runTarget (options: RunTargetOptions) =
-        let prepared = prepareRunTarget true options
+    let runTarget preferPublisher (options: RunTargetOptions) =
+        let prepared = prepareRunTarget true preferPublisher options
         let runOptions = prepared.RunOptions
         let options = prepared.Options
         let cache = prepared.Cache
@@ -523,7 +564,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
         Terminal.mute()
         let prepared =
             try
-                prepareRunTarget true options
+                prepareRunTarget true true options
             finally
                 Terminal.unmute()
         let runOptions = prepared.RunOptions
@@ -601,7 +642,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
                         RunTargetOptions.Engine = engine }
-        runTarget options
+        runTarget (runArgs.Contains(RunArgs.Publish)) options
 
     let explain (explainArgs: ParseResults<ExplainArgs>) =
         let wsDir =
@@ -650,7 +691,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
         Terminal.mute()
         let prepared =
             try
-                prepareRunTarget false options
+                prepareRunTarget false false options
             finally
                 Terminal.unmute()
 
@@ -751,7 +792,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
                         RunTargetOptions.Engine = None }
-        runTarget options
+        runTarget false options
 
     let console (consoleArgs: ParseResults<ConsoleArgs>) =
         let workspaceResult =
@@ -810,7 +851,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
                         RunTargetOptions.Projects = projects
                         RunTargetOptions.Variables = variables
                         RunTargetOptions.Engine = None }
-        runTarget options
+        runTarget false options
 
     let clear (clearArgs: ParseResults<ClearArgs>) =
         if clearArgs.Contains(ClearArgs.Cache) || clearArgs.Contains(ClearArgs.All) then Cache.clearCache()
@@ -884,7 +925,13 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             match args.TryGetResult(InsightsArgs.Login) with
             | Some login -> Insights.login (login.Contains(InsightsLoginArgs.No_Open))
             | _ when args.Contains(InsightsArgs.Logout) -> Insights.logout ()
-            | _ -> args.Parser.PrintUsage() |> Terminal.writeLine
+            | _ ->
+                match args.TryGetResult(InsightsArgs.Import_Key) with
+                | Some key -> Insights.importKey (key.GetResult(InsightsKeyArgs.Workspace))
+                | None ->
+                    match args.TryGetResult(InsightsArgs.Forget_Key) with
+                    | Some key -> Insights.forgetKey (key.GetResult(InsightsKeyArgs.Workspace))
+                    | None -> args.Parser.PrintUsage() |> Terminal.writeLine
             0
         | None -> processWorkspaceCommandLine parser result
 
@@ -913,6 +960,7 @@ let main _ =
     let mutable debug = false
     let retCode =
         try
+            CredentialStore.initialize ()
             DotNetEnv.Env.TraversePath().Load() |> ignore
             Terminal.hideCursor()
             Console.CancelKeyPress.Add (fun _ -> $"{Ansi.Emojis.bolt} Aborted{Ansi.Styles.cursorShow}" |> Terminal.writeLine)

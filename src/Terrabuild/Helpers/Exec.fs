@@ -203,7 +203,7 @@ let private forceRemoveContainer engine name =
         failwithf "%s failed to remove container '%s' (exit %d): %s" engine name proc.ExitCode stderr
 
 let reapContainers () =
-    let profile = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
+    let profile = FS.combinePath (Environment.homeDirectory ()) ".terrabuild"
     reapContainerRecordsAt profile forceRemoveContainer
     |> ignore
 
@@ -246,7 +246,7 @@ let private createProcess workingDir command arguments envs redirect =
     let containerRecord =
         tryContainerIdentity command arguments
         |> Option.map (fun (engine, name) ->
-            let profile = FS.combinePath ("HOME" |> Environment.envVar |> Option.get) ".terrabuild"
+            let profile = FS.combinePath (Environment.homeDirectory ()) ".terrabuild"
             engine, name, registerContainerRecordAt profile engine name)
 
     let proc = new Process(StartInfo = psi)

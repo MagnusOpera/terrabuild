@@ -9,38 +9,64 @@ open System.Text
 open System.Text.Json
 open Errors
 
-let private origin () =
-    let configured =
-        Environment.GetEnvironmentVariable("TERRABUILD_API_URL")
-        |> Option.ofObj
-        |> Api.Endpoint.resolve
-    if configured.Scheme <> "https" && not (configured.Scheme = "http" && configured.IsLoopback) then
-        raiseInvalidArg "Insights user sign-in requires HTTPS."
-    Uri(configured.GetLeftPart(UriPartial.Authority))
+type internal Credential = { Token: string; ExpiresAt: DateTimeOffset }
 
-let private credentialPath (origin: Uri) =
-    let key = Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(origin.AbsoluteUri)) |> Convert.ToHexString
-    Path.Combine(Cache.createTerrabuildProfile(), "insights-" + key + ".json")
+let private sessionAccount (origin: Uri) =
+    "insights-session/" + CredentialStore.identifier origin.AbsoluteUri
 
-type private Credential = { Token: string; ExpiresAt: DateTimeOffset }
+let private keyAccount (origin: Uri) workspaceId =
+    "insights-key/" + CredentialStore.identifier (origin.AbsoluteUri + workspaceId)
 
-let private writeCredential path credential =
-    let temporary = path + "." + Guid.NewGuid().ToString("N")
-    let options = FileStreamOptions(Mode = FileMode.CreateNew, Access = FileAccess.Write)
-    if not (OperatingSystem.IsWindows()) then
-        options.UnixCreateMode <- Nullable (UnixFileMode.UserRead ||| UnixFileMode.UserWrite)
-    try
-        do
-            use stream = new FileStream(temporary, options)
-            use writer = new StreamWriter(stream)
-            writer.Write(Json.Serialize credential)
-        File.Move(temporary, path, true)
-    finally
-        File.Delete(temporary)
+let private readCredential (store: CredentialStore.Store) origin =
+    store.Read (sessionAccount origin) |> Option.map CredentialStore.deserialize<Credential>
 
-let private readCredential path =
-    if File.Exists(path) then Some (File.ReadAllText(path) |> Json.Deserialize<Credential>)
-    else None
+let private preferencePath (origin: Uri) =
+    Path.Combine(Cache.createTerrabuildProfile(), "insights-preferences", CredentialStore.identifier origin.AbsoluteUri)
+
+let private lockSession origin =
+    let preference = preferencePath origin
+    Directory.CreateDirectory(Path.GetDirectoryName(preference) |> nonNull) |> ignore
+    ExclusiveFileLock.acquire "Insights session" (preference + ".lock")
+
+let internal session origin =
+    if CredentialStore.isCi () then None
+    else
+        match readCredential (CredentialStore.desktop ()) origin with
+        | None when File.Exists(preferencePath origin) ->
+            raiseInvalidArg "Insights sign-in is unavailable. Run terrabuild insights login again."
+        | credential -> credential
+
+let internal readKey origin workspaceId =
+    let store = CredentialStore.desktop ()
+    store.Read (keyAccount origin workspaceId) |> Option.map Auth.decodeKey
+
+let importKey workspaceId =
+    let origin = Api.Endpoint.origin ()
+    let secret =
+        if Console.IsInputRedirected then
+            Console.ReadLine() |> Option.ofObj |> Option.defaultValue ""
+        else
+            eprintf "Workspace master key: "
+            let buffer = StringBuilder()
+            let mutable complete = false
+            while not complete do
+                let key = Console.ReadKey(intercept = true)
+                match key.Key with
+                | ConsoleKey.Enter -> complete <- true
+                | ConsoleKey.Backspace when buffer.Length > 0 -> buffer.Length <- buffer.Length - 1
+                | _ when not (Char.IsControl(key.KeyChar)) -> buffer.Append(key.KeyChar) |> ignore
+                | _ -> ()
+            eprintfn ""
+            buffer.ToString()
+    if String.IsNullOrWhiteSpace(secret) then raiseInvalidArg "The master key must not be empty."
+    let store = CredentialStore.desktop ()
+    store.Write (keyAccount origin workspaceId) (Auth.deriveKey workspaceId secret)
+    eprintfn "Workspace key stored."
+
+let forgetKey workspaceId =
+    let origin = Api.Endpoint.origin ()
+    let store = CredentialStore.desktop ()
+    store.Delete (keyAccount origin workspaceId)
 
 let private openBrowser (url: string) =
     match Uri.TryCreate(url, UriKind.Absolute) with
@@ -91,7 +117,7 @@ let private fail status data =
     raiseExternalError message
 
 let login noOpen =
-    let origin = origin ()
+    let origin = Api.Endpoint.origin ()
     use http = client ()
     let body = Json.Serialize {| client_id = "terrabuild" |} |> Some
     let status, ok, code = request http origin HttpMethod.Post "/api/auth/device/code" None body
@@ -120,17 +146,52 @@ let login noOpen =
             | _ when status = HttpStatusCode.TooManyRequests -> poll (interval + 5)
             | _ -> fail status data
     let credential = poll (max 1 (requiredInt "interval" code))
-    let path = credentialPath origin
-    writeCredential path credential
+    let store = CredentialStore.desktop ()
+    try
+        use lease = lockSession origin
+        // Keep Insights selected if the keyring later loses or hides the session.
+        File.WriteAllBytes(preferencePath origin, Array.empty)
+        store.Write (sessionAccount origin) (Json.Serialize credential)
+    with _ ->
+        try request http origin HttpMethod.Delete "/api/cli/session" (Some credential.Token) None |> ignore
+        with _ -> ()
+        reraise()
     eprintfn "Signed in to Insights."
 
 let logout () =
-    let origin = origin ()
-    let path = credentialPath origin
-    match readCredential path with
+    let origin = Api.Endpoint.origin ()
+    use lease = lockSession origin
+    let store = CredentialStore.desktop ()
+    match readCredential store origin with
     | None -> ()
     | Some credential ->
         use http = client ()
         let status, ok, data = request http origin HttpMethod.Delete "/api/cli/session" (Some credential.Token) None
         if not ok then fail status data
-        File.Delete(path)
+        store.Delete (sessionAccount origin)
+    File.Delete(preferencePath origin)
+
+
+let internal artifactLookup (origin: Uri) (workspaceId: string) (credential: Credential) =
+    let workspace = Uri.EscapeDataString(workspaceId)
+    let path = $"/terrabuild/cli/workspaces/{workspace}/artifacts/lookup"
+    let warned = ref 0
+    let missing entries =
+        entries |> List.map (fun entry -> ({ Entry = entry; Found = false; Locations = [] }: Contracts.ArtifactLookup))
+    fun entries ->
+        if credential.ExpiresAt <= DateTimeOffset.UtcNow then
+            if Threading.Interlocked.Exchange(warned, 1) = 0 then
+                eprintfn "Insights sign-in expired. Run terrabuild insights login again."
+            missing entries
+        else
+            use http = client ()
+            let body = Json.Serialize {| Entries = entries |} |> Some
+            let status, ok, data = request http origin HttpMethod.Post path (Some credential.Token) body
+            if ok then (data.GetRawText() |> Json.Deserialize<Api.Artifact.LookupOutput>).Entries
+            else
+                if Threading.Interlocked.Exchange(warned, 1) = 0 then
+                    match status with
+                    | HttpStatusCode.Unauthorized -> eprintfn "Insights sign-in expired or was revoked. Run terrabuild insights login again."
+                    | HttpStatusCode.Forbidden -> eprintfn "Insights denied artifact access to this workspace."
+                    | _ -> eprintfn $"Insights artifact lookup failed ({int status}). Using local builds."
+                missing entries
