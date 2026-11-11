@@ -65,7 +65,7 @@ type Provider(assembly: Assembly) =
             let key = normalizePath subpath
             match resourceMap.TryGetValue(key) with
             | true, resourceName ->
-                let fileName = Path.GetFileName(key) |> Option.ofObj |> Option.defaultValue key
+                let fileName = Path.GetFileName(key)
                 EmbeddedUiFileInfo(resourceName, fileName, assembly) :> IFileInfo
             | _ -> NotFoundFileInfo(subpath) :> IFileInfo
 

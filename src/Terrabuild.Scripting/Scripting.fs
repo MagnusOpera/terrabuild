@@ -784,7 +784,7 @@ let private loadFScript (rootDirectory: string) (deniedPathGlobs: string list) (
 
     let fullPath = Path.GetFullPath(scriptFile)
     let registration = createFScriptRegistration (createFScriptHostContext rootDirectory deniedPathGlobs)
-    let scriptName = Path.GetFileName(fullPath) |> Option.ofObj
+    let scriptName = Some (Path.GetFileName(fullPath))
     let entrySource = File.ReadAllText(fullPath) |> prependEnvironmentBinding scriptName []
     let loaded =
         FScript.Runtime.ScriptHost.loadSourceWithIncludesAndRegistration
@@ -805,7 +805,7 @@ let private loadFScriptFromSourceWithIncludes
     (entrySource: string)
     (resolveImportedSource: string -> string option) =
     let registration = createFScriptRegistration (createFScriptHostContext hostRootDirectory deniedPathGlobs)
-    let scriptName = Path.GetFileName(entryFile) |> Option.ofObj
+    let scriptName = Some (Path.GetFileName(entryFile))
     let entrySource = entrySource |> prependEnvironmentBinding scriptName []
     let loaded =
         FScript.Runtime.ScriptHost.loadSourceWithIncludesAndRegistration
@@ -822,11 +822,7 @@ let loadScriptWithDeniedPathGlobs (rootDirectory: string) (_references: string l
     let deniedToken = deniedPathGlobs |> deniedPathGlobsCacheToken
     let cacheKey = $"{fullRootDirectory}::{deniedToken}::{fullScriptPath}"
     loadCachedScript cacheKey (fun () ->
-        let extension =
-            match Path.GetExtension(fullScriptPath) with
-            | null
-            | "" -> ""
-            | value -> value.ToLowerInvariant()
+        let extension = Path.GetExtension(fullScriptPath).ToLowerInvariant()
 
         if extension <> ".fss" then
             raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{scriptFile}' to '.fss'"

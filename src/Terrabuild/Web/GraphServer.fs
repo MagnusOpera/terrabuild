@@ -228,11 +228,7 @@ let private pickPort () =
     port
 
 let private isDotnetHost (path: string) =
-    let file =
-        Path.GetFileName(path)
-        |> Option.ofObj
-        |> Option.defaultValue ""
-        |> fun name -> name.ToLowerInvariant()
+    let file = Path.GetFileName(path).ToLowerInvariant()
     file = "dotnet" || file = "dotnet.exe"
 
 let private openBrowser (url: string) =

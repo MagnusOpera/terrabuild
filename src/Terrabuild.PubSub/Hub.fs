@@ -27,7 +27,10 @@ type private Signal<'T>(name, eventQueue: IEventQueue, kind: Priority) as this =
 
     interface ISignal with
         member _.Name = name
-        member _.IsRaised() = Volatile.Read(&raised).IsSome
+        member _.IsRaised() =
+            match Volatile.Read(&raised) with
+            | Some _ -> true
+            | _ -> false
         member _.Subscribe(onCompleted: SignalCompleted) =
             if eventQueue.HasError then
                 ()

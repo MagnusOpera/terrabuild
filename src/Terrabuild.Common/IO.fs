@@ -41,9 +41,7 @@ let getTempFilename () =
     Path.GetTempFileName()
 
 let getFilename (path: string) =
-    match Path.GetFileName(path) with
-    | NonNull filename -> filename
-    | Null -> Errors.raiseBugError $"Path '{path}' does not have a filename"
+    Path.GetFileName(path)
 
 let exists path =
     Path.Exists(path)

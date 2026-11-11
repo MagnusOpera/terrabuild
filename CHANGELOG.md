@@ -4,6 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Clean up compiler warnings when building with .NET 11.
 - Reuse platform-sensitive artifacts only for matching execution platforms, and let extensions declare portable outputs.
 - Restore shared artifacts with download-only Insights sign-in and protect workstation credentials with the OS credential store.
 - Add Insights user sign-in.

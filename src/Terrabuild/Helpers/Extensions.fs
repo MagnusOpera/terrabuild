@@ -110,11 +110,7 @@ let private ensureHttpsUri (extensionName: string) (uri: Uri) =
     uri
 
 let private ensureFScriptOrigin (displayPath: string) =
-    let extension =
-        match Path.GetExtension(displayPath) with
-        | null
-        | "" -> ""
-        | value -> value.ToLowerInvariant()
+    let extension = Path.GetExtension(displayPath).ToLowerInvariant()
 
     if extension <> ".fss" then
         raiseInvalidArg $"Legacy F# extension scripts are no longer supported; migrate '{displayPath}' to '.fss'"

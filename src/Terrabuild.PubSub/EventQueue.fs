@@ -52,7 +52,8 @@ type EventQueue(maxConcurrency: int) =
     let mutable backgroundPending = 0
     let mutable normalWorkerCount = 0
     let mutable backgroundWorkerCount = 0
-    let mutable lastError : ExceptionDispatchInfo option = None
+    let mutable lastError: ExceptionDispatchInfo | null = null
+    let hasError () = not (isNull (Volatile.Read(&lastError)))
 
     let workers = ResizeArray<Task>()
 
@@ -75,14 +76,10 @@ type EventQueue(maxConcurrency: int) =
 
     let trySetError (ex: exn) =
         // fast path: already failed
-        if (Volatile.Read(&lastError) |> Option.isSome) then
-            ()
-        else
+        if not (hasError ()) then
             lock gate (fun () ->
-                match lastError with
-                | Some _ -> ()
-                | None ->
-                    lastError <- Some (ExceptionDispatchInfo.Capture ex)
+                if isNull lastError then
+                    Volatile.Write(&lastError, ExceptionDispatchInfo.Capture ex)
 
                     // IMPORTANT: do not fault the channel, otherwise WaitToReadAsync throws
                     normal.Writer.TryComplete() |> ignore
@@ -145,7 +142,7 @@ type EventQueue(maxConcurrency: int) =
                 nullArg (nameof action)
 
             // Once we have an error, no new work is accepted.
-            if Volatile.Read(&lastError) |> Option.isSome then
+            if hasError () then
                 ()
             else
                 Interlocked.Increment(&pending) |> ignore
@@ -189,10 +186,9 @@ type EventQueue(maxConcurrency: int) =
             // Ensure workers are done
             Task.WaitAll(workerSnapshot())
 
-            lastError
+            Volatile.Read(&lastError) |> Option.ofObj
 
-        member _.HasError =
-            Volatile.Read(&lastError) |> Option.isSome
+        member _.HasError = hasError ()
 
         member _.Dispose() =
             cts.Cancel()

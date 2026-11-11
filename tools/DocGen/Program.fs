@@ -373,10 +373,7 @@ let private toCacheability flags =
         | _ -> None)
 
 let private buildScriptExtension (scriptPath: string) : Extension =
-    let extensionName =
-        match Path.GetFileNameWithoutExtension(scriptPath) with
-        | null -> failwith $"Unable to resolve extension name from script path '{scriptPath}'"
-        | name -> name.ToLowerInvariant()
+    let extensionName = Path.GetFileNameWithoutExtension(scriptPath).ToLowerInvariant()
     let content = File.ReadAllText(scriptPath)
 
     let directives = parseScriptDocs scriptPath extensionName
@@ -495,10 +492,8 @@ let private getExtensionScriptPaths () =
     let scriptsDir = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "../../src/Terrabuild.Extensions/Scripts"))
     Directory.EnumerateFiles(scriptsDir, "*.fss")
     |> Seq.filter (fun path ->
-        let fileName = Path.GetFileName(path)
-        match fileName with
-        | null -> false
-        | name -> name <> "null.fss" && not (name.StartsWith("_")))
+        let name = Path.GetFileName(path)
+        name <> "null.fss" && not (name.StartsWith("_")))
     |> Seq.toList
 
 let private validateExtensionScripts () =
