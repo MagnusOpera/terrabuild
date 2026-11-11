@@ -139,7 +139,7 @@ const config: Config = {
                 type: 'docsVersionDropdown' as const,
                 position: 'right' as const,
                 dropdownActiveClassDisabled: true,
-                versions: [...releaseLines, 'current'],
+                versions: ['current', ...releaseLines],
               },
             ]
           : []),

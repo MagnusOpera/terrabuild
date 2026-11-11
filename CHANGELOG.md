@@ -5,6 +5,7 @@ All notable changes to Terrabuild are documented in this file.
 ## [Unreleased]
 
 - Show the five latest stable release lines in the docs selector, with a separate What's New section for each patch.
+- List Next first in the docs selector and default to the latest stable release for first-time visitors.
 
 ## [0.208.0]
 
