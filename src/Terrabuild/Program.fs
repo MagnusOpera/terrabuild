@@ -878,7 +878,15 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
             comparison |> Json.Serialize |> IO.writeTextFile path)
         CacheComparison.render comparison |> Terminal.writeLine
         0
-    | None -> processWorkspaceCommandLine parser result
+    | None ->
+        match result.TryGetResult(TerrabuildArgs.Insights) with
+        | Some args ->
+            match args.TryGetResult(InsightsArgs.Login) with
+            | Some login -> Insights.login (login.Contains(InsightsLoginArgs.No_Open))
+            | _ when args.Contains(InsightsArgs.Logout) -> Insights.logout ()
+            | _ -> args.Parser.PrintUsage() |> Terminal.writeLine
+            0
+        | None -> processWorkspaceCommandLine parser result
 
 [<EntryPoint>]
 let main _ =

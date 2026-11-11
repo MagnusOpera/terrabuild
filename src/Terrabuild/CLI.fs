@@ -241,6 +241,22 @@ with
             | Space _ -> "Slug of space to remove"
 
 [<RequireQualifiedAccess>]
+type InsightsLoginArgs =
+    | [<Unique>] No_Open
+    interface IArgParserTemplate with
+        member _.Usage = "Print the device sign-in URL without opening a browser."
+
+[<RequireQualifiedAccess>]
+type InsightsArgs =
+    | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<InsightsLoginArgs>
+    | [<CliPrefix(CliPrefix.None)>] Logout
+    interface IArgParserTemplate with
+        member this.Usage =
+            match this with
+            | Login _ -> "Sign in with an Insights user account."
+            | Logout -> "Revoke the Insights user credential."
+
+[<RequireQualifiedAccess>]
 type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Scaffold of ParseResults<ScaffoldArgs>
     | [<CliPrefix(CliPrefix.None)>] Logs of ParseResults<LogsArgs>
@@ -254,6 +270,7 @@ type TerrabuildArgs =
     | [<CliPrefix(CliPrefix.None)>] Prune of ParseResults<PruneArgs>
     | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<LoginArgs>
     | [<CliPrefix(CliPrefix.None)>] Logout of ParseResults<LogoutArgs>
+    | [<CliPrefix(CliPrefix.None)>] Insights of ParseResults<InsightsArgs>
     | [<CliPrefix(CliPrefix.None)>] Version
     | [<Hidden; Unique; Inherit>] Log
     | [<Hidden; Unique; Inherit>] Debug
@@ -273,6 +290,7 @@ with
             | Prune _ -> "Prune stale local build cache entries."
             | Login _ -> "Connect to backend."
             | Logout _ -> "Disconnect from backend."
+            | Insights _ -> "Use Insights services as a signed-in user."
             | Version -> "Show current Terrabuild version."
             | Log -> "Enable logging."
             | Debug -> "Enable debug logs."

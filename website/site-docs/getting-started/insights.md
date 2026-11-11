@@ -76,6 +76,13 @@ terrabuild login \
 The workspace ID must match `workspace.id`. Credentials are saved in the local
 Terrabuild profile for that workspace.
 
+### Sign in with your Insights account
+
+Run `terrabuild insights login` and approve the device code in your browser.
+Use `terrabuild insights logout` to revoke this user session. Build reporting
+and managed artifacts still use the workspace token and master key configured
+with `terrabuild login`.
+
 ## 4. Publish managed artifacts
 
 Reporting works for every connected run. To share a target's declared files,
