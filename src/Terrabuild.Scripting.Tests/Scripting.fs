@@ -547,6 +547,26 @@ type ExportFlag =
         script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "ok"
         File.ReadAllText(Path.Combine(root, "task-finished.txt")) |> should equal "done")
 
+[<Test>]
+let fscriptPermissionsAllowMailboxCallbacks() =
+    withTemporaryWorkspace (fun root ->
+        let source =
+            """
+export let inspect (context: {| Command: string |}) =
+  let inbox = Mailbox.start 1 (fun state message ->
+    Fs.writeText "mailbox-finished.txt" message |> ignore
+    state + 1) 0
+  Mailbox.post "done" inbox
+  Mailbox.finish inbox
+
+{ [nameof inspect] = [Cache Remote] }
+"""
+        let script =
+            loadScriptFromSourceWithIncludes root root (Path.Combine(root, "Mailbox.fss")) source (fun _ -> None)
+        let arguments = Value.Map (Map [ "context", Value.Map (Map [ "Command", Value.String "inspect" ]) ])
+        script.GetMethod("inspect").Value.Invoke<int> arguments |> should equal 1
+        File.ReadAllText(Path.Combine(root, "mailbox-finished.txt")) |> should equal "done")
+
 type MapKeyResult = { Number: int }
 
 let private withMapKeyScript key result descriptor test =
@@ -669,6 +689,27 @@ Host.capture project
     project.Outputs |> should equal (set ["bin"])
     let duplicate = { registration with Unions = registration.Unions @ registration.Unions }
     (fun () -> FScript.Extensibility.HostInterop.typeDefinitions duplicate [] |> ignore) |> should throw typeof<FScript.Extensibility.ExtensionException>
+
+[<Test>]
+let cliProviderLoadsAlongsideRuntimeTypes() =
+    let root = Path.GetTempPath()
+    let assemblyPath = typeof<Terrabuild.FScriptProtocolProvider>.Assembly.Location
+    let settings = FScript.Runtime.EnvironmentConfiguration.merge root root None None false [assemblyPath]
+    let registration =
+        match FScript.Runtime.EnvironmentLoader.loadWithPermissions FScript.Language.HostPermissions.All settings with
+        | Ok registration -> registration
+        | Error message -> failwith message
+    let loaded = FScript.Runtime.ScriptHost.loadSourceWithRegistration registration """
+let directory =
+  match Fs.kind "." with
+  | FsKind.Directory _ -> true
+  | _ -> false
+let inbox = Mailbox.start 1 (fun state message -> state + message) 0
+Mailbox.post 1 inbox
+Mailbox.finish inbox |> ignore
+let flag = Protocol.ExportFlag.Cache Protocol.Cacheability.Remote
+"""
+    loaded.TypeDefs.ContainsKey "Protocol.ExportFlag" |> should equal true
 
 [<Test>]
 let protocolPurityMetadataIsLimitedToImmutableTypes() =

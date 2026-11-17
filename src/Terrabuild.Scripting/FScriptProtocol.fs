@@ -46,7 +46,9 @@ module FScriptProtocol =
 
 type FScriptProtocolProvider =
     [<FScriptExternProvider>]
-    static member Provide(context: HostContext) : ExtensionRegistration = FScriptProtocol.registration context
+    static member Provide(context: HostContext) : ExtensionRegistration =
+        // The CLI supplies runtime functions together with their type descriptors.
+        { FScriptProtocol.registration context with Functions = [] }
 
     // Optional compiler companions use only BCL types. AST interpretation ignores them.
     static member FScriptPureTypes() : System.Collections.Generic.IEnumerable<string> = FScriptProtocol.pureTypeNames

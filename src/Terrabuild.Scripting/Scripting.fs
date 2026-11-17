@@ -767,9 +767,14 @@ let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
 
 // Interpreter adaptation belongs to embedding; protocol authoring uses only the SDK.
 let private createFScriptRegistration (context: FScript.Runtime.HostContext) =
-    let defaults = FScript.Runtime.Registry.all context |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
-    FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, defaults))
-    |> FScript.Runtime.ExtensionBridge.toLanguageRegistrationWithPermissions context.Permissions
+    let runtime = FScript.Runtime.Registry.registration context
+    let defaults = runtime.Functions |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
+    let protocol =
+        FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, defaults))
+        |> FScript.Runtime.ExtensionBridge.toLanguageRegistrationWithPermissions context.Permissions
+    { protocol with
+        Types = runtime.Types @ protocol.Types
+        Unions = runtime.Unions @ protocol.Unions }
 
 let private createFScriptHostContext (rootDirectory: string) (deniedPathGlobs: string list) =
     let fullRoot = Path.GetFullPath(rootDirectory)

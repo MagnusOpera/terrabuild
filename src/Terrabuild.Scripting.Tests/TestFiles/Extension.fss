@@ -13,6 +13,6 @@ type ExportFlag =
   | External
   | Remote
 
-{ [nameof run] = [Local]
-  [nameof dispatch] = [Dispatch]
-  [nameof defaults] = [Default] }
+{ [nameof run] = [ExportFlag.Local]
+  [nameof dispatch] = [ExportFlag.Dispatch]
+  [nameof defaults] = [ExportFlag.Default] }
