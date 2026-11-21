@@ -125,4 +125,49 @@ if "$generator" 0.3.0 "$changelog" "$preserved" >/dev/null 2>&1; then
 fi
 grep -qxF preserved "$preserved"
 
+since_output="${tmp_dir}/since.md"
+"$generator" since:0.2.9 "$changelog" "$since_output" website-commit
+# Include every section above Stable, regardless of release channel.
+grep -qxF '### Unreleased' "$since_output"
+grep -qxF '### 0.2.10-next' "$since_output"
+grep -qxF '### 0.2.10' "$since_output"
+grep -qxF '**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.2.9...website-commit' "$since_output"
+if grep -q -- 'stable nine\|preview nine\|old stable\|old preview' "$since_output"; then
+  echo "ERROR: Next included changes at or before Stable." >&2
+  exit 1
+fi
+
+# Next also works before the first preview tag exists.
+cat > "${tmp_dir}/no-preview.md" <<'EOF'
+## [Unreleased]
+
+- new change
+
+## [1.0.0]
+
+- shipped change
+EOF
+"$generator" since:1.0.0 "${tmp_dir}/no-preview.md" "$since_output" website-commit
+grep -qxF -- '- new change' "$since_output"
+if grep -q -- 'shipped change' "$since_output"; then
+  echo "ERROR: Next included the Stable release." >&2
+  exit 1
+fi
+if "$generator" since:0.9.0 "${tmp_dir}/no-preview.md" "$preserved" >/dev/null 2>&1; then
+  echo "ERROR: Missing Stable baseline unexpectedly succeeded." >&2
+  exit 1
+fi
+grep -qxF preserved "$preserved"
+
+# New tags have v prefixes, while headings and displayed versions stay numeric.
+"$generator" v0.2.10 "$changelog" "$since_output"
+grep -qxF '## 0.2.10' "$since_output"
+grep -qxF '**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.1.4...v0.2.10' "$since_output"
+"$generator" since:v0.2.9 "$changelog" "$since_output" website-commit
+grep -qxF '**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/v0.2.9...website-commit' "$since_output"
+# Subsequent release families can have prefixed compare endpoints too.
+sed 's/0.1.4-next...0.2.9-next/v0.1.4-next...v0.2.9-next/' "$changelog" > "${tmp_dir}/prefixed.md"
+"$generator" v0.2.9-next "${tmp_dir}/prefixed.md" "$since_output"
+grep -qxF '**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/v0.1.4-next...v0.2.9-next' "$since_output"
+
 echo "What's New generator tests passed."

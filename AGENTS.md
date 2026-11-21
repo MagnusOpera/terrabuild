@@ -129,8 +129,8 @@ For broad/core changes:
 
 Terrabuild uses a draft-based release flow:
 
-1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview).
-   - Optional preview mode: `make release-prepare version=X.Y.Z[-next] dryrun=true`
+1. Run `make release-prepare version=vX.Y.Z` (stable) or `make release-prepare version=vX.Y.Z-next` (preview).
+   - Optional preview mode: `make release-prepare version=vX.Y.Z[-next] dryrun=true`
 2. The command updates and commits `CHANGELOG.md`, generates the ignored current `What's New` documentation page, and creates a local annotated tag.
 3. Push commit and tag:
    - `git push origin main --follow-tags`
@@ -139,11 +139,12 @@ Terrabuild uses a draft-based release flow:
 
 Rules:
 
-- Tag workflow sources draft release notes from `CHANGELOG.md` section `## [X.Y.Z]`.
+- Tag workflow sources draft release notes from `CHANGELOG.md` section `## [X.Y.Z]` (the tag’s leading `v` is removed).
 - Tag workflow fails if version section is missing/empty, has no bullet, or has no compare link.
 - `on-release-published.yml` consumes release artifacts from the published release, signs macOS binaries, and publishes NuGet/Homebrew.
-- `make release-prepare` supports `X.Y.Z` and `X.Y.Z-next` only.
+- `make release-prepare` requires `vX.Y.Z` and `vX.Y.Z-next` tags; package versions and changelog headings remain `X.Y.Z` and `X.Y.Z-next`.
 - `make release-prepare` updates release metadata and generates `What's New` by aggregating same-family, same-channel release sections through the target version, with one subtitle per revision; it does not snapshot, build, or publish the website.
+- Release preparation rejects existing versions under either tag spelling and resolves comparison baselines from both historical unprefixed tags and new `v` tags. Website publication tags remain `website-X.Y.Z`.
 - Compare link policy:
   - stable release compares against previous stable tag.
   - preview release compares against previous `-next` tag.
@@ -152,16 +153,17 @@ Rules:
 
 Terrabuild publishes its website independently from application releases:
 
-1. Keep website and documentation sources on `main`.
-2. Create and push an annotated `website-X.Y.Z` tag for the commit to publish.
-3. The `Publish Website` workflow checks out that exact tag, generates extension documentation, builds the website, and deploys it to GitHub Pages.
+1. Push website, documentation, or application changes to `main`.
+2. The `Publish Website` workflow automatically checks out that exact pushed commit, generates extension documentation, builds and validates the website, and deploys it to Cloudflare.
+3. Manual runs publish `main`; annotated `website-X.Y.Z` tags remain supported for publishing a specific commit.
 
 Rules:
 
-- Production website deployments use `website-*.*.*` tags independently of Terrabuild application versions.
+- Every push to `main` automatically deploys the website. Optional `website-*.*.*` tags can also deploy a specific commit independently of Terrabuild application versions.
 - The workflow may be run manually to publish `main` without creating a documentation version.
 - Website tags do not trigger application releases.
-- Website builds regenerate the rolling `Next` page from current `Unreleased` entries followed by all releases in the latest `-next` family, retaining a subtitle for each section and comparing that family with the exact commit being built.
+- The website publishes only Stable and Next. `website/stable.json` pins Stable to an application tag (currently `0.208.0`); promoting Stable requires updating that file. Application releases do not automatically promote documentation.
+- Website builds regenerate the rolling `Next` page from current `Unreleased` entries followed by release sections above the Stable baseline, retaining a subtitle for each section and comparing Stable with the exact commit being built.
 - Production website generation happens in the workflow runner and must not commit generated changes back to `main`.
-- Local `make website` previews the current checkout and generates ignored `What's New` and extension docs. `make website-build` also generates the version registry and release snapshots. These generated outputs must not be added to Git. Historical tracked snapshots remain versioned.
+- Local `make website` previews the current checkout and generates ignored `What's New` and extension docs. `make website-build` also generates the Stable-only version registry and snapshot. These generated outputs must not be added to Git. Historical snapshots are not retained.
 - Release tags and maintenance branches do not build or publish the website.

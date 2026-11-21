@@ -2,18 +2,21 @@
 
 set -euo pipefail
 
-TERRABUILD_VERSION="${1}"
+TERRABUILD_TAG="${1}"
+TERRABUILD_VERSION="${TERRABUILD_TAG#v}"
 pat="([^-]*)-?([^-]*)"
 [[ $TERRABUILD_VERSION =~ $pat ]]
 export TERRABUILD_SUFFIX=${BASH_REMATCH[2]^}
-export TERRABUILD_VERSION="${1}"
+export TERRABUILD_VERSION
 TAP_FILE="$(realpath "${2}")"
 
-cd "$(mktemp -d)"
+temp_dir="$(mktemp -d)"
+trap 'rm -rf "$temp_dir"' EXIT
+cd "$temp_dir"
 
 >&2 echo "::info Generating Homebrew Tap..."
 >&2 echo "::group::Download release assets"
->&2 gh release download --repo magnusopera/terrabuild "${TERRABUILD_VERSION}" -p 'terrabuild*darwin*.zip' -p 'terrabuild*linux*.zip' --skip-existing
+>&2 gh release download --repo magnusopera/terrabuild "${TERRABUILD_TAG}" -p 'terrabuild*darwin*.zip' -p 'terrabuild*linux*.zip' --skip-existing
 >&2 echo "::endgroup::"
 
 for i in \
@@ -31,7 +34,7 @@ for i in \
   SHA256_VAR="${ENV_VAR}_SHA256"
   URL_VAR="${ENV_VAR}_URL"
   printf -v "${SHA256_VAR}" "%s" "${SHA256}"
-  printf -v "${URL_VAR}" "%s" "https://github.com/magnusopera/terrabuild/releases/download/${TERRABUILD_VERSION}/terrabuild-${TERRABUILD_VERSION}-${OS}-${ARCH}.zip"
+  printf -v "${URL_VAR}" "%s" "https://github.com/magnusopera/terrabuild/releases/download/${TERRABUILD_TAG}/terrabuild-${TERRABUILD_VERSION}-${OS}-${ARCH}.zip"
 
   export "${SHA256_VAR?}"
   export "${URL_VAR?}"

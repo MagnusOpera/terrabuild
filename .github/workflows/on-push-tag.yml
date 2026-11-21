@@ -4,15 +4,11 @@ run-name: Prepare release ${{github.ref_name}}
 on:
   push:
     tags:
-      - '**'
-      - '!website-*.*.*'
+      - 'v[0-9]*.[0-9]*.[0-9]*'
 
 permissions:
   contents: write
   packages: write
-
-env:
-  BUILD_VERSION: ${{ github.ref_name }}
 
 jobs:
   build-and-release:
@@ -24,6 +20,17 @@ jobs:
 
       - name: Cloning repository
         uses: actions/checkout@v4
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-next)?$ ]]; then
+            echo "::error::Expected vX.Y.Z or vX.Y.Z-next."
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          echo "BUILD_VERSION=$version" >> "$GITHUB_ENV"
+          echo "BUILD_VERSION_SUFFIX=${BASH_REMATCH[4]:-}" >> "$GITHUB_ENV"
 
       - name: Setup Tools
         uses: ./.github/actions/setup-tools
@@ -45,15 +52,6 @@ jobs:
           (cd .out/linux/arm64; zip ../../terrabuild-${BUILD_VERSION}-linux-arm64.zip ./*)
           cp entitlements.plist .out/darwin/entitlements.plist
           (cd .out/darwin; zip -r ../terrabuild-${BUILD_VERSION}-darwin-unsigned.zip ./*)
-
-      - name: Extract Version Suffix
-        run: |
-          s=${{github.ref_name}}
-          pat="([^-]*)-?([^-]*)"
-          [[ $s =~ $pat ]]
-          BUILD_VERSION_SUFFIX=${BASH_REMATCH[2]}
-          echo "BUILD_VERSION_SUFFIX=$BUILD_VERSION_SUFFIX" >> $GITHUB_ENV
-          echo "BUILD_VERSION_SUFFIX: $BUILD_VERSION_SUFFIX"
 
       - name: Extract release notes from changelog
         shell: bash

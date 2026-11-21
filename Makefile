@@ -29,7 +29,7 @@ dryrun ?= false
 current_dir = $(shell pwd)
 
 
-.PHONY: docs try-docs website website-build website-prepare website-whats-new test-release-notes
+.PHONY: docs try-docs website website-build website-prepare website-whats-new test-release-notes test-release-tags
 
 
 #
@@ -98,7 +98,11 @@ try-docs:
 	dotnet run --project tools/DocGen /p:GenerateDocumentationFile=true $(dotnet_props) -- .out/try-docs
 
 website-whats-new:
-	./.github/scripts/generate-whats-new.sh latest-next CHANGELOG.md website/site-docs/whats-new.md
+	./.github/scripts/generate-whats-new.sh "since:$$(node -p "require('./website/stable.json').tag")" CHANGELOG.md website/site-docs/whats-new.md
+
+test-release-tags:
+	node ./.github/scripts/test-release-tags.mjs
+	./.github/scripts/test-release-changelog.sh
 
 test-release-notes:
 	./.github/scripts/test-generate-whats-new.sh

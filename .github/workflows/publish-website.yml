@@ -3,6 +3,8 @@ run-name: Publish website from ${{ github.event_name == 'push' && github.ref_nam
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'website-*.*.*'
   workflow_dispatch:
@@ -21,7 +23,7 @@ jobs:
       - name: Checkout website source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'push' && github.ref || 'main' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -40,6 +42,9 @@ jobs:
 
       - name: Generate documentation and build website
         run: make website-build
+
+      - name: Validate documentation and release tooling
+        run: make check-changelog-format test-release-notes test-release-tags
 
       - name: Publish website to Cloudflare
         uses: cloudflare/wrangler-action@v3

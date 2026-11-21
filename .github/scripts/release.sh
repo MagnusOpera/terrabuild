@@ -3,16 +3,17 @@ set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
   echo "Usage: $0 <version> [dryrun]"
-  echo "  version: X.Y.Z or X.Y.Z-next"
+  echo "  version: vX.Y.Z or vX.Y.Z-next"
   echo "  dryrun : true|false (default: false)"
   exit 2
 fi
 
-version="$1"
+tag="$1"
+version="${tag#v}"
 dryrun="${2:-false}"
 
-if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-next)?$ ]]; then
-  echo "ERROR: Invalid version '$version'. Expected X.Y.Z or X.Y.Z-next."
+if [[ ! "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-next)?$ ]]; then
+  echo "ERROR: Invalid release tag '$tag'. Expected vX.Y.Z or vX.Y.Z-next."
   exit 1
 fi
 
@@ -29,8 +30,9 @@ if [[ "$dryrun" != "true" && -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-if git rev-parse -q --verify "refs/tags/${version}" >/dev/null; then
-  echo "ERROR: Tag '${version}' already exists."
+if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null ||
+   git rev-parse -q --verify "refs/tags/${version}" >/dev/null; then
+  echo "ERROR: Release '${version}' already has a tag (with or without v)."
   exit 1
 fi
 
@@ -45,36 +47,24 @@ if [[ "$version" == *-next ]]; then
   is_next=true
 fi
 
+# Normalize historical tags before sorting, then resolve the actual Git ref.
+# Website tags and unrelated prereleases must never become compare baselines.
+channel_pattern='^[0-9]+\.[0-9]+\.[0-9]+$'
 if [[ "$is_next" == "true" ]]; then
-  next_tags="$(git tag --list '*-next' | sort -Vu)"
-  previous_tag="$(
-    {
-      printf "%s\n" "$next_tags"
-      printf "%s\n" "$version"
-    } \
-    | sort -Vu \
-    | awk -v target="$version" '
-        $0 == target { print prev; exit }
-        { prev = $0 }
-      '
-  )"
-else
-  stable_tags="$(
-    git tag --list \
-    | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-    | sort -Vu || true
-  )"
-  previous_tag="$(
-    {
-      printf "%s\n" "$stable_tags"
-      printf "%s\n" "$version"
-    } \
-    | sort -Vu \
-    | awk -v target="$version" '
-        $0 == target { print prev; exit }
-        { prev = $0 }
-      '
-  )"
+  channel_pattern='^[0-9]+\.[0-9]+\.[0-9]+-next$'
+fi
+previous_version="$(
+  {
+    git tag --list | sed -E 's/^v//' | grep -E "$channel_pattern" || true
+    printf '%s\n' "$version"
+  } | sort -Vu | awk -v target="$version" '
+    $0 == target { print prev; exit }
+    { prev = $0 }
+  '
+)"
+previous_tag="$previous_version"
+if [[ -n "$previous_version" ]] && git show-ref --verify --quiet "refs/tags/v$previous_version"; then
+  previous_tag="v$previous_version"
 fi
 
 if [[ -z "$previous_tag" ]]; then
@@ -104,12 +94,12 @@ if [[ "$is_next" == "true" ]]; then
   fi
   section_body="$unreleased_body"
 else
-  if ! grep -q "^## \[${previous_tag}\]$" CHANGELOG.md; then
-    echo "ERROR: CHANGELOG section '## [${previous_tag}]' not found."
+  if ! grep -q "^## \[${previous_version}\]$" CHANGELOG.md; then
+    echo "ERROR: CHANGELOG section '## [${previous_version}]' not found."
     exit 1
   fi
   stable_source="$(
-    awk -v prev="$previous_tag" '
+    awk -v prev="$previous_version" '
       BEGIN { in_section = 0 }
       $0 == "## [Unreleased]" { in_section = 1; next }
       in_section && $0 == ("## [" prev "]") { exit }
@@ -132,7 +122,7 @@ else
   fi
 fi
 
-compare_link="**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/${previous_tag}...${version}"
+compare_link="**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/${previous_tag}...${tag}"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -191,10 +181,10 @@ if ! grep -q "^## \[${version}\]$" "$updated_changelog"; then
   exit 1
 fi
 
-./.github/scripts/generate-whats-new.sh "$version" "$updated_changelog" "$updated_whats_new" "$version"
+./.github/scripts/generate-whats-new.sh "$version" "$updated_changelog" "$updated_whats_new" "$tag"
 
 if [[ "$dryrun" == "true" ]]; then
-  echo "[DRY RUN] Would update and commit CHANGELOG.md, generate ignored website/site-docs/whats-new.md, and create annotated tag '${version}'."
+  echo "[DRY RUN] Would update and commit CHANGELOG.md, generate ignored website/site-docs/whats-new.md, and create annotated tag '${tag}'."
   if [[ "$is_next" == "true" ]]; then
     echo "[DRY RUN] Mode: preview family aggregation."
   else
@@ -211,7 +201,7 @@ cp "$updated_whats_new" website/site-docs/whats-new.md
 git add CHANGELOG.md
 
 git commit -m "chore(release): ${version}"
-git tag -a "${version}" -m "Release ${version}"
+git tag -a "${tag}" -m "Release ${version}"
 
 echo "Release prepared successfully."
 echo "Next steps:"

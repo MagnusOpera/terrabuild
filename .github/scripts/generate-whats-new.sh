@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 3 || $# -gt 4 ]]; then
-  echo "Usage: $0 <version|latest-next> <changelog> <output> [compare-endpoint]" >&2
+  echo "Usage: $0 <version|latest-next|since:stable-version> <changelog> <output> [compare-endpoint]" >&2
   exit 2
 fi
 
@@ -20,7 +20,28 @@ versions="$({
   sed -nE 's/^## \[([0-9]+\.[0-9]+\.[0-9]+(-next)?)\]$/\1/p' "$changelog"
 } | sort -Vu)"
 
-if [[ "$selector" == "latest-next" ]]; then
+if [[ "$selector" == since:* ]]; then
+  baseline="${selector#since:}"
+  baseline_version="${baseline#v}"
+  if [[ ! "$baseline_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+     ! grep -qxF "$baseline_version" <<<"$versions"; then
+    echo "ERROR: Stable baseline '$baseline' not found in '$changelog'." >&2
+    exit 1
+  fi
+  heading="Next"
+  include_unreleased=true
+  compare_endpoint="${compare_endpoint:-$(git rev-parse HEAD)}"
+  siblings=()
+  # Changelog order defines changes since Stable, including preview releases.
+  while IFS= read -r candidate; do
+    [[ -n "$candidate" ]] && siblings+=("$candidate")
+  done < <(awk -v baseline="## [$baseline_version]" '
+    $0 == baseline { exit }
+    /^## \[[0-9]+\.[0-9]+\.[0-9]+(-next)?\]$/ {
+      sub(/^## \[/, ""); sub(/\]$/, ""); print
+    }
+  ' "$changelog" | awk '{ lines[NR] = $0 } END { for (i = NR; i > 0; i--) print lines[i] }')
+elif [[ "$selector" == "latest-next" ]]; then
   target="$(grep -- '-next$' <<<"$versions" | tail -1 || true)"
   if [[ -z "$target" ]]; then
     echo "ERROR: No preview release section found in '$changelog'." >&2
@@ -31,45 +52,13 @@ if [[ "$selector" == "latest-next" ]]; then
   if [[ -z "$compare_endpoint" ]]; then
     compare_endpoint="$(git rev-parse HEAD)"
   fi
-elif [[ "$selector" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-next)?$ ]]; then
-  target="$selector"
+elif [[ "$selector" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-next)?$ ]]; then
+  target="${selector#v}"
   heading="$target"
   include_unreleased=false
-  compare_endpoint="${compare_endpoint:-$target}"
+  compare_endpoint="${compare_endpoint:-$selector}"
 else
-  echo "ERROR: Invalid selector '$selector'. Expected X.Y.Z, X.Y.Z-next, or latest-next." >&2
-  exit 1
-fi
-
-if ! grep -qxF "$target" <<<"$versions"; then
-  echo "ERROR: Release section '## [$target]' not found in '$changelog'." >&2
-  exit 1
-fi
-
-if [[ ! "$target" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next)?$ ]]; then
-  echo "ERROR: Could not parse target version '$target'." >&2
-  exit 1
-fi
-
-family_major="${BASH_REMATCH[1]}"
-family_minor="${BASH_REMATCH[2]}"
-target_revision="${BASH_REMATCH[3]}"
-channel="${BASH_REMATCH[4]:-}"
-
-siblings=()
-while IFS= read -r candidate; do
-  [[ -z "$candidate" ]] && continue
-  if [[ "$candidate" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next)?$ ]] \
-    && [[ "${BASH_REMATCH[1]}" == "$family_major" ]] \
-    && [[ "${BASH_REMATCH[2]}" == "$family_minor" ]] \
-    && [[ "${BASH_REMATCH[4]:-}" == "$channel" ]] \
-    && (( 10#${BASH_REMATCH[3]} <= 10#$target_revision )); then
-    siblings+=("$candidate")
-  fi
-done <<<"$versions"
-
-if (( ${#siblings[@]} == 0 )); then
-  echo "ERROR: No sibling releases found for '$target'." >&2
+  echo "ERROR: Invalid selector '$selector'. Expected X.Y.Z, X.Y.Z-next, latest-next, or since:X.Y.Z." >&2
   exit 1
 fi
 
@@ -85,29 +74,64 @@ extract_bullets() {
   ' "$changelog"
 }
 
-earliest="${siblings[0]}"
-earliest_body="$(
-  awk -v header="## [$earliest]" '
-    BEGIN { in_section = 0 }
-    $0 == header { in_section = 1; next }
-    in_section && /^## \[/ { exit }
-    in_section { print }
-  ' "$changelog"
-)"
-compare_line="$(grep -m1 '^\*\*Full Changelog\*\*: https://github.com/magnusopera/terrabuild/compare/' <<<"$earliest_body" || true)"
+if [[ "$selector" != since:* ]]; then
+  if ! grep -qxF "$target" <<<"$versions"; then
+    echo "ERROR: Release section '## [$target]' not found in '$changelog'." >&2
+    exit 1
+  fi
 
-if [[ -z "$compare_line" ]]; then
-  echo "ERROR: Earliest sibling '$earliest' has no valid Full Changelog link." >&2
-  exit 1
-fi
+  if [[ ! "$target" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next)?$ ]]; then
+    echo "ERROR: Could not parse target version '$target'." >&2
+    exit 1
+  fi
 
-compare_range="${compare_line##*/compare/}"
-baseline="${compare_range%%...*}"
-earliest_endpoint="${compare_range#*...}"
-if [[ -z "$baseline" || "$earliest_endpoint" != "$earliest" ]]; then
-  echo "ERROR: Full Changelog link for '$earliest' does not end at that release." >&2
-  exit 1
-fi
+  family_major="${BASH_REMATCH[1]}"
+  family_minor="${BASH_REMATCH[2]}"
+  target_revision="${BASH_REMATCH[3]}"
+  channel="${BASH_REMATCH[4]:-}"
+
+  siblings=()
+  while IFS= read -r candidate; do
+    [[ -z "$candidate" ]] && continue
+    if [[ "$candidate" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-next)?$ ]] \
+      && [[ "${BASH_REMATCH[1]}" == "$family_major" ]] \
+      && [[ "${BASH_REMATCH[2]}" == "$family_minor" ]] \
+      && [[ "${BASH_REMATCH[4]:-}" == "$channel" ]] \
+      && (( 10#${BASH_REMATCH[3]} <= 10#$target_revision )); then
+      siblings+=("$candidate")
+    fi
+  done <<<"$versions"
+
+  if (( ${#siblings[@]} == 0 )); then
+    echo "ERROR: No sibling releases found for '$target'." >&2
+    exit 1
+  fi
+
+  earliest="${siblings[0]}"
+  earliest_body="$(
+    awk -v header="## [$earliest]" '
+      BEGIN { in_section = 0 }
+      $0 == header { in_section = 1; next }
+      in_section && /^## \[/ { exit }
+      in_section { print }
+    ' "$changelog"
+  )"
+  compare_line="$(grep -m1 '^\*\*Full Changelog\*\*: https://github.com/magnusopera/terrabuild/compare/' <<<"$earliest_body" || true)"
+
+  if [[ -z "$compare_line" ]]; then
+    echo "ERROR: Earliest sibling '$earliest' has no valid Full Changelog link." >&2
+    exit 1
+  fi
+
+  compare_range="${compare_line##*/compare/}"
+  baseline="${compare_range%%...*}"
+  earliest_endpoint="${compare_range#*...}"
+  if [[ -z "$baseline" || "${earliest_endpoint#v}" != "$earliest" ]]; then
+    echo "ERROR: Full Changelog link for '$earliest' does not end at that release." >&2
+    exit 1
+  fi
+
+fi # Exact releases and legacy preview-family selection.
 
 output_dir="$(dirname "$output")"
 if [[ ! -d "$output_dir" ]]; then

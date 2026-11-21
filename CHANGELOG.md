@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Automatically update the website on every push to main while keeping Stable documentation pinned.
+- Use v-prefixed application release tags and validate their format during release preparation.
+- Simplify documentation to Stable (0.208.0) and Next, with all newer changes shown in Next.
 - Upgrade extension scripting to FScript 0.95.2 and FScript.Extensibility 3.0.0, including generic JSON decoding.
 - Preview the website locally without rebuilding docs from older releases.
 - Suppress known .NET 11 nullability warnings when generating older website docs.
@@ -12,7 +15,6 @@ All notable changes to Terrabuild are documented in this file.
 - Reuse platform-sensitive artifacts only for matching execution platforms, and let extensions declare portable outputs.
 - Restore shared artifacts with download-only Insights sign-in and protect workstation credentials with the OS credential store.
 - Add Insights user sign-in.
-- Show the five latest stable release lines in the docs selector, with a separate What's New section for each patch.
 - List Next first in the docs selector and default to the latest stable release for first-time visitors.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.2-next...0.209.0-next

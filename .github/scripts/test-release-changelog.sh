@@ -97,17 +97,29 @@ git commit -qm fixture
 git tag 0.1.0
 git tag 0.1.0-next
 
+# Reject bare tags, unsupported channels, and malformed semantic versions.
+for invalid in 0.2.0 0.2.0-next v01.2.0 v0.2.0-beta website-0.2.0; do
+  if .github/scripts/release.sh "$invalid" true > "$fixture/invalid.log" 2>&1; then
+    echo "ERROR: Accepted invalid release tag: $invalid" >&2
+    exit 1
+  fi
+  grep -q 'Expected vX.Y.Z or vX.Y.Z-next' "$fixture/invalid.log"
+done
+# Unrelated tags must not become preview baselines.
+git tag website-99.0.0-next
+git tag unrelated-next
+
 # A dry run must leave both content and Git state untouched.
 head_before="$(git rev-parse HEAD)"
-.github/scripts/release.sh "$first_version" true > "$fixture/dryrun.log" 2>&1 || { cat "$fixture/dryrun.log"; exit 1; }
+.github/scripts/release.sh "v$first_version" true > "$fixture/dryrun.log" 2>&1 || { cat "$fixture/dryrun.log"; exit 1; }
 [[ "$(git rev-parse HEAD)" == "$head_before" ]]
 git diff --exit-code
-if git rev-parse --verify "refs/tags/$first_version" >/dev/null 2>&1; then
+if git rev-parse --verify "refs/tags/v$first_version" >/dev/null 2>&1; then
   echo "ERROR: Dry run created a release tag." >&2
   exit 1
 fi
 
-.github/scripts/release.sh "$first_version" > "$fixture/first-release.log" 2>&1 || { cat "$fixture/first-release.log"; exit 1; }
+.github/scripts/release.sh "v$first_version" > "$fixture/first-release.log" 2>&1 || { cat "$fixture/first-release.log"; exit 1; }
 "$scripts/format-changelog.sh" --check CHANGELOG.md
 cat > "$fixture/expected-release.md" <<CHANGELOG
 # Changelog
@@ -121,7 +133,7 @@ Introductory text.
 - First change.
 - Second change.
 
-**Full Changelog**: https://github.com/$slug/compare/$first_baseline...$first_version
+**Full Changelog**: https://github.com/$slug/compare/$first_baseline...v$first_version
 
 ## [0.1.0]
 
@@ -137,10 +149,32 @@ awk '{ print; if ($0 == "## [Unreleased]") print "\n\n- Third change.\n\n" }' CH
 cat "$fixture/next.md" > CHANGELOG.md
 git add CHANGELOG.md
 git commit -qm 'Add another change'
-.github/scripts/release.sh "$second_version" > "$fixture/second-release.log" 2>&1 || { cat "$fixture/second-release.log"; exit 1; }
+.github/scripts/release.sh "v$second_version" > "$fixture/second-release.log" 2>&1 || { cat "$fixture/second-release.log"; exit 1; }
 "$scripts/format-changelog.sh" --check CHANGELOG.md
 grep -q '^- First change\.$' CHANGELOG.md
 grep -q '^- Second change\.$' CHANGELOG.md
 grep -q '^- Third change\.$' CHANGELOG.md
 git diff --exit-code
+# New releases use annotated v tags while changelog headings stay numeric.
+[[ "$(git cat-file -t "refs/tags/v$first_version")" == tag ]]
+[[ "$(git cat-file -t "refs/tags/v$second_version")" == tag ]]
+if git show-ref --verify --quiet "refs/tags/$second_version"; then
+  echo "ERROR: Created a bare release tag." >&2
+  exit 1
+fi
+# A mixed history must resolve the actual prefixed previous tag by channel.
+awk '{ print; if ($0 == "## [Unreleased]") print "\n- Fourth change." }' CHANGELOG.md > "$fixture/next.md"
+cat "$fixture/next.md" > CHANGELOG.md
+.github/scripts/release.sh v0.3.0-next true > "$fixture/preview-dryrun.log"
+grep -qF "Previous tag: v$first_version" "$fixture/preview-dryrun.log"
+.github/scripts/release.sh v0.3.0 true > "$fixture/stable-dryrun.log"
+grep -qF "Previous tag: v$second_version" "$fixture/stable-dryrun.log"
+grep -qF "compare/v$second_version...v0.3.0" "$fixture/stable-dryrun.log"
+# Duplicate legacy tags are also rejected before changing anything.
+git tag 0.4.0
+if .github/scripts/release.sh v0.4.0 true > "$fixture/duplicate.log" 2>&1; then
+  echo "ERROR: Accepted an existing legacy release." >&2
+  exit 1
+fi
+grep -q 'already has a tag' "$fixture/duplicate.log"
 printf 'Changelog formatting and consecutive-release tests passed.\n'

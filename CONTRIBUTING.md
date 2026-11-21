@@ -89,12 +89,18 @@ Magnus Opera employees have write access to Magnus Opera repositories and must p
 
 Terrabuild uses a draft-based release flow:
 
-1. Run `make release-prepare version=X.Y.Z` (stable) or `make release-prepare version=X.Y.Z-next` (preview). This updates and commits `CHANGELOG.md` and generates the current documentation's ignored `What's New` page from the release notes.
+1. Run `make release-prepare version=vX.Y.Z` (stable) or `make release-prepare version=vX.Y.Z-next` (preview). This updates and commits `CHANGELOG.md` and generates the current documentation's ignored `What's New` page from the release notes.
 2. Push commit and tag with `git push origin main --follow-tags`.
 3. Wait for CI to create a draft GitHub release and upload artifacts.
 4. Publish that existing draft release.
 
-`make release-prepare` supports `X.Y.Z` and `X.Y.Z-next` only. Use `dryrun=true` to validate release preparation without writing changes.
+`make release-prepare` requires `vX.Y.Z` and `vX.Y.Z-next` tags; package versions and changelog headings remain `X.Y.Z` and `X.Y.Z-next`. Use `dryrun=true` to validate release preparation without writing changes. Existing unprefixed tags remain valid comparison baselines; release preparation rejects duplicate versions under either spelling.
+
+Run `make test-release-notes test-release-tags` after installing website dependencies (`cd website && pnpm install --frozen-lockfile`) to validate release preparation and package, artifact, and Homebrew version handling. Website publishing runs these checks before deployment.
+
+## Website publishing
+
+Every push to `main` automatically builds, validates, and deploys the website to Cloudflare. Next reflects that exact pushed commit; Stable remains pinned by `website/stable.json`. Manual runs publish `main`, and optional `website-X.Y.Z` tags publish a specific commit. Application release tags do not trigger website deployment.
 
 ## Getting Help
 

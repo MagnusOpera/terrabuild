@@ -23,9 +23,12 @@ Terrabuild public documentation is being moved from `../terrabuild.io` into this
 ## Versioning Policy
 
 - The working documentation from `main` is exposed as `Next`.
-- Each website build snapshots the latest stable application tag (excluding `-next` tags) and exposes that exact snapshot as the default released documentation version.
-- Existing Docusaurus snapshots remain available as historical documentation.
-- Application releases do not publish the website; the next website build discovers the new stable tag.
+- Only two editions are published: Stable at `/docs` and Next at `/docs/next`. Historical documentation versions are removed.
+- `website/stable.json` explicitly pins Stable to application tag `0.208.0`. Each production build regenerates that exact snapshot, including its extension reference.
+- New application tags use `vX.Y.Z` or `vX.Y.Z-next`; historical unprefixed tags remain valid documentation sources. Changelog headings keep numeric versions.
+- To promote Stable, update the tag in `website/stable.json` and publish the website. Application releases do not automatically promote documentation or publish the website.
+- Next uses the current checkout. Its What’s New page contains Unreleased and every release section above the Stable baseline, with a comparison from that tag to the built commit.
+- `make website` previews Next only without rebuilding Stable. `make website-build` builds both editions; all generated documentation remains ignored.
 - Product documentation and generated extension documentation are published together.
 
 ## Content Migration
@@ -43,8 +46,8 @@ The sync script is intentionally conservative and is expected to be refined as v
 
 - Application release preparation updates the changelog and creates a tag without preparing or publishing the website.
 - Release preparation generates `What's New` by aggregating all same-family stable siblings for a stable target or all same-family preview siblings for a `-next` target, retaining each revision as a subtitle.
-- Pushing a `website-*.*.*` tag runs the `Publish Website` workflow from that exact tagged commit, snapshots documentation from the latest non-`-next` application tag, regenerates extension documentation and a rolling `Next` page from the latest preview family plus `Unreleased`, builds the website, and deploys it to GitHub Pages; the website tag remains independent of the Terrabuild application version.
-- The workflow can still be run manually to publish `main` when an unversioned deployment is needed.
+- Every push to `main` runs the `Publish Website` workflow from the exact pushed commit, snapshots documentation from the configured Stable tag, regenerates extension documentation and a rolling `Next` page with changes since Stable, builds the website, and deploys it to Cloudflare. Optional `website-*.*.*` tags also publish their exact commit independently of application versions.
+- The workflow can also be run manually to publish `main`.
 - Website tags are excluded from the application release workflow.
 - Generated documentation from the publishing workflow is never committed back to `main`.
 

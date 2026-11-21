@@ -6,7 +6,7 @@ if [[ $# -ne 1 ]]; then
   exit 2
 fi
 
-version="$1"
+version="${1#v}"
 section_header="## [${version}]"
 
 if [[ ! -f CHANGELOG.md ]]; then

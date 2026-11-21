@@ -7,10 +7,11 @@ import type * as Preset from '@docusaurus/preset-classic';
 const currentOnly = process.env.TERRABUILD_WEBSITE_CURRENT_ONLY === 'true';
 const versionsPath = path.join(process.cwd(), 'versions.json');
 const publishedVersions: string[] = !currentOnly && existsSync(versionsPath)
-  ? JSON.parse(readFileSync(versionsPath, 'utf8'))
+  ? JSON.parse(readFileSync(versionsPath, 'utf8')).filter((version: string) => version === 'stable')
   : [];
-const releaseLines = publishedVersions.filter((version) => /^\d+\.\d+$/.test(version));
-const lastVersion = releaseLines[0] ?? 'current';
+const stableTag: string = JSON.parse(readFileSync(path.join(process.cwd(), 'stable.json'), 'utf8')).tag;
+const hasStable = publishedVersions.includes('stable');
+const lastVersion = hasStable ? 'stable' : 'current';
 const docsDirs = ['site-docs', ...publishedVersions.map((version) => `versioned_docs/version-${version}`)];
 
 const config: Config = {
@@ -46,15 +47,20 @@ const config: Config = {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
           lastVersion,
-          onlyIncludeVersions: currentOnly ? ['current'] : undefined,
+          onlyIncludeVersions: hasStable ? ['current', 'stable'] : ['current'],
           versions: {
             current: {
               label: 'Next',
-              banner: 'none',
+              banner: 'unreleased',
               path: 'next',
             },
+            ...(hasStable ? {stable: {label: `Stable (${stableTag.replace(/^v/, '')})`, banner: 'none' as const, path: ''}} : {}),
           },
-          editUrl: 'https://github.com/MagnusOpera/Terrabuild/tree/main/',
+          editUrl: ({version, docPath}) => {
+            const ref = version === 'stable' ? stableTag : 'main';
+            const file = docPath === 'whats-new.md' ? 'CHANGELOG.md' : `website/site-docs/${docPath}`;
+            return `https://github.com/MagnusOpera/Terrabuild/blob/${ref}/${file}`;
+          },
         },
         blog: false,
         pages: false,
@@ -136,13 +142,13 @@ const config: Config = {
           position: 'left',
         },
         {type: 'search', position: 'right'},
-        ...(releaseLines.length > 0
+        ...(hasStable
           ? [
               {
                 type: 'docsVersionDropdown' as const,
                 position: 'right' as const,
                 dropdownActiveClassDisabled: true,
-                versions: ['current', ...releaseLines],
+                versions: ['current', 'stable'],
               },
             ]
           : []),

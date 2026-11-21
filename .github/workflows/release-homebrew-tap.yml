@@ -52,7 +52,7 @@ jobs:
 
       - name: Prepare formula name
         run: |
-          refname=${{github.ref_name}}
+          refname="${TERRABUILD_VERSION#v}"
           pat="([^-]*)-?([^-]*)"
           [[ $refname =~ $pat ]]
 
