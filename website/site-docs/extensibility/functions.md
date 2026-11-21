@@ -31,7 +31,7 @@ Filesystem access is confined to the workspace root. Paths matching `workspace.d
 - `Regex.matchGroups`
 - `Hash.md5`
 - `Guid.new`
-- `Json.deserialize`
+- `Json.deserialize<T> json` (returns `T option`; the type may also be inferred)
 - `Json.serialize`
 - `Xml.queryValues`
 

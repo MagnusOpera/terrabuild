@@ -2,5 +2,6 @@
 # dotnet build terrabuild.slnx -c Release
 # Paths below are relative to this manifest.
 [runtime]
+permissions = ["IO", "Threading", "Native"]
 default-externs = true
 extern-assemblies = ["../../Terrabuild.Scripting/bin/Release/net11.0/Terrabuild.Scripting.dll"]

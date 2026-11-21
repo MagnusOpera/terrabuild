@@ -21,6 +21,7 @@ export let defaults (context: Protocol.ExtensionContext) =
     Dependencies = [] }
 
 /// <summary>Executes a `.fss` file through the `fscript` CLI with the current project as sandbox root.</summary>
+/// <remarks>FScript 0.95 defaults to no permissions. Declare required permissions in `fscript.toml` beside the script, for example `permissions = ["IO"]` under `[runtime]` for filesystem access.</remarks>
 /// <param name="script" example="&quot;scripts/write-version.fss&quot;">Path to the FScript file, relative to the current project unless absolute.</param>
 /// <param name="args" default="" example="[ &quot;arg1&quot; &quot;arg 2&quot; ]">Arguments forwarded after `--`.</param>
 export let execute (context: Protocol.ActionContext) (script: string) (args: string list option) =

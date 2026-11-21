@@ -489,14 +489,15 @@ type ExportFlag =
         let result = invocable.Value.Invoke<string> args
         result |> should equal "true|false")
 
-[<Test>]
-let fscriptRegistryExcludesConsoleReadLine() =
+[<TestCase("Console.readLine ()")>]
+[<TestCase("Process.exec \"echo\" [\"blocked\"] Process.defaults")>]
+let fscriptRegistryExcludesUngrantedFunctions(expression: string) =
     withTemporaryWorkspace (fun root ->
         let entryFile = Path.Combine(root, "ConsoleReadLineBlocked.fss")
         let source =
             """
 export let inspect (context: {| Command: string |}) =
-  Console.readLine ()
+  FORBIDDEN
 
 type ExportFlag =
   | Dispatch
@@ -508,6 +509,7 @@ type ExportFlag =
 
 { [nameof inspect] = [Remote] }
 """
+            |> fun source -> source.Replace("FORBIDDEN", expression)
 
         (fun () ->
             Terrabuild.Scripting.loadScriptFromSourceWithIncludes
@@ -662,6 +664,26 @@ export let inspect (context: {| Command: string |}) (items: Item map) =
         script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "kept")
 
 [<Test>]
+let genericJsonDeserializationPreservesRuntimeTypeInference() =
+    withTemporaryWorkspace (fun root ->
+        let source = """
+type Package = { name: string; dependencies: string map option }
+let decode<'value> (json: string) : 'value option = Json.deserialize<'value> json
+let decodeInferred (json: string) : Package option = Json.deserialize json
+export let inspect (context: {| Command: string |}) =
+  let explicit = decode<Package> "{\"name\":\"explicit\"}"
+  let inferred = decodeInferred "{\"name\":\"inferred\"}"
+  let invalid = Json.deserialize<Package> "invalid"
+  match (explicit, inferred, invalid) with
+  | (Some first, Some second, None) -> $"{first.name}:{second.name}"
+  | _ -> "unexpected"
+{ [nameof inspect] = [Cache Remote] }
+"""
+        let script = loadScriptFromSourceWithIncludes root root (Path.Combine(root, "generic-json.fss")) source (fun _ -> None)
+        let arguments = Value.Map(Map ["context", Value.Map(Map ["Command", Value.String "inspect"])])
+        script.GetMethod("inspect").Value.Invoke<string> arguments |> should equal "explicit:inferred")
+
+[<Test>]
 let sharedProtocolIsConstructibleAndUsesHostPermissions() =
     let root = Path.GetTempPath()
     let context: FScript.Runtime.HostContext = { Permissions = FScript.Language.HostPermissions.IO ||| FScript.Language.HostPermissions.Threading; RootDirectory = root; DeniedPathGlobs = [] }
@@ -694,7 +716,12 @@ Host.capture project
 let cliProviderLoadsAlongsideRuntimeTypes() =
     let root = Path.GetTempPath()
     let assemblyPath = typeof<Terrabuild.FScriptProtocolProvider>.Assembly.Location
-    let settings = FScript.Runtime.EnvironmentConfiguration.merge root root None None false [assemblyPath]
+    let manifest = Path.Combine(__SOURCE_DIRECTORY__, "../Terrabuild.Extensions/Scripts/fscript.toml")
+    let configuration =
+        match FScript.Runtime.EnvironmentConfiguration.read manifest with
+        | Ok configuration -> { configuration with ExternAssemblies = Some [assemblyPath] }
+        | Error message -> failwith message
+    let settings = FScript.Runtime.EnvironmentConfiguration.merge root root (Some configuration) None false []
     let registration =
         match FScript.Runtime.EnvironmentLoader.loadWithPermissions FScript.Language.HostPermissions.All settings with
         | Ok registration -> registration
@@ -708,6 +735,7 @@ let inbox = Mailbox.start 1 (fun state message -> state + message) 0
 Mailbox.post 1 inbox
 Mailbox.finish inbox |> ignore
 let flag = Protocol.ExportFlag.Cache Protocol.Cacheability.Remote
+let decoded = Json.deserialize<string> "\"package\""
 """
     loaded.TypeDefs.ContainsKey "Protocol.ExportFlag" |> should equal true
 

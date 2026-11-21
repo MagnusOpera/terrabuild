@@ -768,11 +768,13 @@ let private deniedPathGlobsCacheToken (deniedPathGlobs: string list) =
 // Interpreter adaptation belongs to embedding; protocol authoring uses only the SDK.
 let private createFScriptRegistration (context: FScript.Runtime.HostContext) =
     let runtime = FScript.Runtime.Registry.registration context
-    let defaults = runtime.Functions |> FScript.Runtime.ExtensionBridge.toExtensionFunctions
     let protocol =
-        FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, defaults))
+        FScriptProtocol.registration (FScript.Extensibility.HostContext(context.RootDirectory, context.DeniedPathGlobs, []))
         |> FScript.Runtime.ExtensionBridge.toLanguageRegistrationWithPermissions context.Permissions
+    // Preserve native generic intrinsics such as Json.deserialize. The SDK bridge
+    // exposes their type tokens explicitly for providers and is not a round trip.
     { protocol with
+        Functions = runtime.Functions @ protocol.Functions
         Types = runtime.Types @ protocol.Types
         Unions = runtime.Unions @ protocol.Unions }
 

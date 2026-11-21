@@ -9,7 +9,7 @@ type Package =
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
   let content = Fs.readText package_file |> Option.defaultValue ""
-  Json.deserialize (typeof Package) content
+  Json.deserialize<Package> content
 
 let collect_workspace_dependency acc key value =
   match value with

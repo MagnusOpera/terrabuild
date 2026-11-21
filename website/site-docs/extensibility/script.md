@@ -171,14 +171,15 @@ Imports in local scripts are resolved to workspace files. Imports in remote scri
 
 ## Editor configuration
 
-For the built-in extensions, build with `dotnet build terrabuild.slnx -c Release`, then open a script under `src/Terrabuild.Extensions/Scripts`. Its `fscript.toml` selects the shared protocol provider for FScript diagnostics, completion, and hover. Use FScript CLI 0.81.7 or later and VS Code extension 0.81.7 or later. The extension must bundle versioned server assemblies so providers built against the published packages can load.
+For the built-in extensions, build with `dotnet build terrabuild.slnx -c Release`, then open a script under `src/Terrabuild.Extensions/Scripts`. Its `fscript.toml` selects the shared protocol provider for FScript diagnostics, completion, and hover. Use FScript CLI and VS Code extension 0.95.2 or later with FScript.Extensibility 3.0.0. The extension must bundle versioned server assemblies so providers built against the published packages can load.
 
 For custom scripts, put a manifest beside them and point `extern-assemblies` at the built `Terrabuild.Scripting.dll`:
 
 ```toml
 [runtime]
-default-externs = false
+permissions = ["IO", "Threading", "Native"]
+default-externs = true
 extern-assemblies = ["path/to/Terrabuild.Scripting.dll"]
 ```
 
-Paths resolve relative to the manifest. Select it with **FScript: Select Configuration** when the workspace contains several manifests. Trust the workspace to enable provider loading. The provider exposes Terrabuild's approved host functions; it does not run your extension handlers.
+Paths resolve relative to the manifest. Select it with **FScript: Select Configuration** when the workspace contains several manifests. Trust the workspace to enable provider loading. `Native` is required to load the trusted protocol provider in authoring tools. Terrabuild itself grants extensions only `IO | Threading`, independently of this manifest. The runtime supplies standard functions under the declared permissions; the provider adds Terrabuild protocol types without running your extension handlers.

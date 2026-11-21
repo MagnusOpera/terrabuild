@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <UseLocalFScript Condition="'$(UseLocalFScript)' == ''">false</UseLocalFScript>
-    <FScriptVersion Condition="'$(FScriptVersion)' == ''">0.94.0</FScriptVersion>
+    <FScriptVersion Condition="'$(FScriptVersion)' == ''">0.95.2</FScriptVersion>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(UseLocalFScriptExtensibility)' != 'true'">
-    <PackageReference Include="MagnusOpera.FScript.Extensibility" Version="2.0.0" />
+    <PackageReference Include="MagnusOpera.FScript.Extensibility" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalFScriptExtensibility)' == 'true'">
     <ProjectReference Include="../../../FScript/FScript.Extensibility/src/FScript.Extensibility/FScript.Extensibility.fsproj" />

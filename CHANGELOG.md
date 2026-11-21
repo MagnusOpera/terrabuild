@@ -4,7 +4,7 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
-- Upgrade extension scripting to FScript 0.94.0 and FScript.Extensibility 2.0.0.
+- Upgrade extension scripting to FScript 0.95.2 and FScript.Extensibility 3.0.0, including generic JSON decoding.
 - Preview the website locally without rebuilding docs from older releases.
 - Suppress known .NET 11 nullability warnings when generating older website docs.
 - Update pnpm and refresh compatible dependencies for the Terrabuild UI and website.

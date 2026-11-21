@@ -18,7 +18,7 @@ let shell_op command arguments =
 let load_package directory =
   let package_file = Fs.combinePath directory "package.json"
   let content = Fs.readText package_file |> Option.defaultValue ""
-  Json.deserialize (typeof Package) content
+  Json.deserialize<Package> content
 
 let collect_local_dependency acc key value =
   match Regex.matchGroups "^file:(.*)$" value with
