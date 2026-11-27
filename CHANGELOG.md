@@ -4,6 +4,9 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Set up artifact identities and CI tokens in Insights, and unlock CLI access through browser sign-in.
+- Share encrypted Insights artifacts through account sign-in or a single workspace CI token.
+- Use stable libsodium for Insights artifact sharing.
 - Automatically update the website on every push to main while keeping Stable documentation pinned.
 - Use v-prefixed application release tags and validate their format during release preparation.
 - Simplify documentation to Stable (0.208.0) and Next, with all newer changes shown in Next.

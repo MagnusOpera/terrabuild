@@ -1,33 +1,39 @@
 ---
-title: login
+title: Login
 ---
 
-`terrabuild login` connects a workstation or CI job to an Insights workspace using a workspace token. The token's permissions determine whether Terrabuild can publish artifacts, report builds, and resolve features such as `impact`.
+## Sign in with an Insights account
+
+Run `terrabuild insights login` and approve the code in your browser. Insights
+walks new accounts through artifact identity setup. Save your personal Recovery
+Kit in a password manager, download it, or print it, then confirm that it is saved.
+Your recovery key is generated in your browser and is never sent to Insights.
+
+If the browser is locked, enter the recovery key from your kit. Approving the
+CLI request transfers your account bundle encrypted to that request's temporary
+key. Terrabuild stores the identity in macOS Keychain, Windows Credential Manager,
+or Linux Secret Service. On Linux, install `secret-tool` and unlock your desktop
+keyring. Repeat the same sign-in flow on another machine to use the same identity.
+
+Use **Account recovery** in Insights to create a new Recovery Kit while your
+identity is unlocked. If every copy and your kit are lost, replace the identity
+there. A workspace Owner or Admin who can still decrypt its root can grant your
+replacement access to existing artifacts without rotating the workspace.
+
+Use `terrabuild insights logout` to revoke your current CLI session.
+
+## Sign in to a CI job
+
+A workspace Owner or Admin creates a token on the Insights Security page before the job
+can use it. Follow the [Insights setup guide](../getting-started/insights.md) to
+issue the token and grant it access. Configure the resulting token as the job’s
+`TERRABUILD_TOKEN` secret.
 
 ```bash
-terrabuild login --workspace "$WORKSPACE_ID" --token "$TERRABUILD_TOKEN" --masterkey "$TERRABUILD_MASTER_KEY"
-terrabuild run build
-terrabuild logout --space "$WORKSPACE_ID"
+printf '%s\n' "$TERRABUILD_TOKEN" | terrabuild login --workspace "$WORKSPACE_ID"
 ```
 
-On a workstation, Terrabuild stores the token and the derived artifact key in macOS Keychain, Windows Credential Manager, or Linux Secret Service. Linux requires the `secret-tool` executable from libsecret and an available desktop keyring. Unlock the keyring and retry if the store is unavailable.
-
-In GitHub Actions, Terrabuild stores the credentials in a private directory under `RUNNER_TEMP` so they are available to later steps in the same job. For another ephemeral CI runner, set `TERRABUILD_CI_CREDENTIAL_DIR` to an absolute, private directory shared by the steps of that job and removed at job teardown. Provide this variable in the job environment. Keep the directory outside the repository, CI caches, and job artifacts. `terrabuild logout --space` removes saved token credentials for that workspace, including credentials for different Insights origins.
-
-## Download artifacts with an Insights account
-
-```bash
-terrabuild insights login
-terrabuild insights import-key --workspace "$WORKSPACE_ID"
-terrabuild run build --restore
-```
-
-Approve the device code in the browser, then enter the workspace master key at the hidden prompt. The import command also accepts a single line from stdin. The session and derived decryption key are stored separately in the OS credential store.
-
-A run using the Insights session can download artifacts. Cache misses build and save locally. If you also saved a workspace token, use `terrabuild run build --publish` to explicitly select token-based publishing. `--local-only` bypasses remote caching and build reporting.
-
-Use `terrabuild insights logout` to revoke the session and `terrabuild insights forget-key --workspace "$WORKSPACE_ID"` to remove the imported decryption key.
-
-## Upgrading from plaintext credentials
-
-Remove the old `~/.terrabuild/config.json` and `~/.terrabuild/insights-*.json` files, then run the appropriate login command again. For Insights account access, import the workspace key again as well.
+Terrabuild uses the runner’s private credential directory across job steps.
+Set `TERRABUILD_CI_CREDENTIAL_DIR` to a private job directory when your runner
+does not supply one automatically. Run `terrabuild logout --space "$WORKSPACE_ID"`
+during teardown.

@@ -1,4 +1,5 @@
 module Terrabuild.Common.Tests.Helpers.Encryption
+open System.IO
 open FsUnit
 open NUnit.Framework
 open Encryption
@@ -93,3 +94,32 @@ let ``decrypting unencrypted file with no master key shall succeed``() =
     decryptedArchive.Value |> should equal plainArchive
 
     IO.deleteAny plainArchive
+
+[<Test>]
+let ``workspace archive authenticates context and ciphertext before opening plaintext`` () =
+    let input = IO.getTempFilename()
+    let root = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)
+    let directory = Directory.CreateTempSubdirectory()
+    let output = Path.Combine(directory.FullName, "plain")
+    let mutable archives = []
+    try
+        File.WriteAllText(input, "workspace artifact")
+        let first = encryptWorkspace root "workspace/repository/entry/generation/logs" input
+        archives <- first :: archives
+        let second = encryptWorkspace root "workspace/repository/entry/generation/logs" input
+        archives <- second :: archives
+        let digest = File.ReadAllBytes(first) |> System.Security.Cryptography.SHA256.HashData
+        Assert.That(File.ReadAllBytes(second)[8..23], Is.Not.EqualTo(File.ReadAllBytes(first)[8..23]))
+        Assert.Throws<System.InvalidOperationException>(fun () ->
+            decryptWorkspace root "workspace/other-repository/entry/generation/logs" digest first output) |> ignore
+        Assert.That(File.Exists(output), Is.False)
+        let wrongDigest = Array.zeroCreate<byte> 32
+        Assert.Throws<System.InvalidOperationException>(fun () ->
+            decryptWorkspace root "workspace/repository/entry/generation/logs" wrongDigest first output) |> ignore
+        Assert.That(File.Exists(output), Is.False)
+        decryptWorkspace root "workspace/repository/entry/generation/logs" digest first output
+        Assert.That(File.ReadAllText(output), Is.EqualTo("workspace artifact"))
+    finally
+        archives |> List.iter IO.deleteAny
+        IO.deleteAny input
+        directory.Delete(true)

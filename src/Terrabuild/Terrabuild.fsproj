@@ -23,7 +23,6 @@
     <Compile Include="Helpers/Extensions.fs" />
     <Compile Include="Helpers/Version.fs" />
     <Compile Include="Api/Client.fs" />
-    <Compile Include="Api/Factory.fs" />
     <Compile Include="Core/Notification.fs" />
     <Compile Include="Core/GraphDef.fs" />
     <Compile Include="Core/ExclusiveFileLock.fs" />
@@ -32,7 +31,12 @@
     <Compile Include="Core/DiagnosticsTelemetry.fs" />
     <Compile Include="Core/CredentialStore.fs" />
     <Compile Include="Core/Auth.fs" />
+    <Compile Include="Security/Sodium.fs" />
+    <Compile Include="Core/VaultCrypto.fs" />
+    <Compile Include="Core/AccountIdentity.fs" />
     <Compile Include="Core/Insights.fs" />
+    <Compile Include="Core/WorkspaceVault.fs" />
+    <Compile Include="Core/WorkspaceArtifacts.fs" />
     <Compile Include="Core/Scaffold.fs" />
     <Compile Include="Core/Configuration.fs" />
     <Compile Include="Core/GraphPipeline/Topology.fs" />
@@ -82,6 +86,7 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
+    <PackageReference Include="libsodium" Version="1.0.22" />
     <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
     <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="2.0.324" />
   </ItemGroup>

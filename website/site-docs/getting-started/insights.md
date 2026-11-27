@@ -49,66 +49,52 @@ workspace {
 The workspace ID is not a secret. It identifies the Insights workspace that
 receives Terrabuild data.
 
-## 2. Create credentials
+## 2. Initialize the workspace and approve users
 
-Create a workspace-scoped contributor token under **Settings → Security**. It is
-shown once. Store it with the master key in your password manager or CI secret
-store.
+Link the repository in Insights. Complete your account identity setup and save
+the Recovery Kit when prompted. In workspace **Security**, unlock your artifact
+identity and choose **Initialize workspace key** as the workspace Owner.
 
-- The token authorizes Terrabuild to report runs and publish artifacts.
-- The master key encrypts and decrypts managed artifact contents on the
-  Terrabuild machine.
+Other users complete their own account setup. A decrypting Owner or Admin opens
+**Security** and selects **Grant workspace access** beside the user's account.
+The grant applies on every machine using that account identity. Replacement
+identities can receive existing workspace roots through the same page.
 
-Losing the master key makes previously uploaded artifacts unreadable. Insights
-does not receive the plaintext key.
-
-## 3. Authenticate Terrabuild
-
-Run:
-
-```bash
-terrabuild login \
-  --workspace "<workspace-id>" \
-  --token "<token>" \
-  --masterkey "<master-key>"
-```
-
-The workspace ID must match `workspace.id`. Terrabuild saves the workspace token
-and derived artifact key in the OS credential store on workstations and in a
-private job directory on ephemeral CI runners. See [Login](../usage/login) for
-credential storage and upgrade details.
-
-### Sign in with your Insights account
-
-For download-only access, use your Insights account and get the workspace master
-key from your team’s password manager. Workspace owners, admins, and contributors
-can download artifacts from eligible workspaces.
+On your computer, run:
 
 ```bash
 terrabuild insights login
-terrabuild insights import-key --workspace "$WORKSPACE_ID"
-terrabuild run build --restore
 ```
 
-Approve the device code in your browser, then enter the key at the hidden prompt.
-The last command restores a matching artifact when available. A cache miss
-builds locally. With both logins configured, use `--publish` to select the
-workspace token when you intend to publish.
+Approve the displayed code in Insights. Unlock with your Recovery Kit if needed.
+The CLI receives the identity through an encrypted handoff and saves it in the
+OS credential store. No device enrollment or per-device key management is needed.
 
-If Insights sign-in expires, run `terrabuild insights login` again. If the key is
-missing or an artifact cannot be decrypted, confirm the workspace and reimport
-the key. If the OS store is unavailable, unlock it and retry. Linux requires
-libsecret’s `secret-tool` and a running desktop Secret Service.
+## 3. Provision CI
 
-Use `terrabuild insights logout` to revoke the session and
-`terrabuild insights forget-key --workspace "$WORKSPACE_ID"` to remove the key
-from this workstation. Revocation ends new artifact lookups. Download URLs
-already issued remain usable until expiry, and copies of keys or restored files
-remain usable by their holders.
+A workspace Owner or Admin opens **Security**, unlocks their artifact identity,
+and selects **Create CI token**. Choose a name and whether the job may publish.
+The browser generates the token locally, proves possession of its derived
+wrapping and signing keys, registers it, and grants workspace access.
+
+Copy the token directly into the CI provider's secret store as `TERRABUILD_TOKEN`.
+It is displayed once. Save it before dismissing the panel. Jobs that only restore
+artifacts should leave publishing permission disabled.
+
+Issue a different token for each Insights origin and workspace. Insights receives
+a derived authentication credential and public keys. The raw token can derive
+the private keys, so anyone who obtains it can use that CI identity.
+
+A revoked token stops authenticating immediately. Previously signed artifact
+URLs can work until they expire, and revocation cannot remove keys or files
+already copied. A decrypting administrator can rotate the workspace key from
+**Security**. If every holder loses the root, the Owner can reset it there and
+rebuild the remote cache. Anyone holding a workspace root can decrypt every
+artifact encrypted under it across that workspace's repositories.
 
 ## 4. Publish managed artifacts
 
-Builds using a contributor workspace token can report to Insights. To share a
+A workspace contributor or administrator can publish using an approved account key or contributor CI token. To share a
 target's declared files, set its artifact policy to `~managed`:
 
 ```terrabuild title="WORKSPACE"
@@ -119,8 +105,8 @@ target build {
 ```
 
 Terrabuild compresses and encrypts the selected files before upload. Another
-connected machine with the same master key can restore them when it computes the
-same target identity.
+connected machine with a workspace grant can restore them when it computes the
+same target identity in the same repository.
 
 Use `~external` for artifacts owned by a registry and `~none` for side effects.
 See [Caching](./caching) for the complete ownership model.
@@ -145,21 +131,14 @@ records.
 
 ## CI example
 
-Store the token and master key as protected GitHub Actions secrets. Terrabuild
-keeps them in the job’s runner temp directory, so only the login step needs the
-secret inputs. Other ephemeral runners can supply a private, job-scoped
-`TERRABUILD_CI_CREDENTIAL_DIR`.
+Only the login step needs the CI secret.
 
 ```yaml
 - name: Connect Terrabuild to Insights
   env:
     TERRABUILD_TOKEN: ${{ secrets.TERRABUILD_TOKEN }}
-    TERRABUILD_MASTER_KEY: ${{ secrets.TERRABUILD_MASTER_KEY }}
   run: |
-    terrabuild login \
-      --workspace "<workspace-id>" \
-      --token "$TERRABUILD_TOKEN" \
-      --masterkey "$TERRABUILD_MASTER_KEY"
+    printf '%s\n' "$TERRABUILD_TOKEN" | terrabuild login --workspace "<workspace-id>"
 
 - name: Build and test
   run: terrabuild run build test --group "${{ github.repository }}:${{ github.run_id }}"

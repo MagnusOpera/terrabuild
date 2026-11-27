@@ -49,7 +49,7 @@ and recurring behavior, with the underlying evidence available for inspection.
 Targets with managed artifacts can publish encrypted outputs to Insights.
 Another authorized machine can restore the same result when Terrabuild computes
 the same cache identity. Encryption and decryption happen on the Terrabuild
-machine with the workspace master key.
+machine with an approved workspace key grant.
 
 ## Product boundary
 

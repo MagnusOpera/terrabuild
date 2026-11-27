@@ -108,8 +108,12 @@ let compress (inputFileName: string) =
 
 let uncompress (inputFileName: string) =
     let outputFileName = IO.getTempFilename()
-    use input = File.OpenRead(inputFileName)
-    use output = File.Create(outputFileName)
-    use decompressor = new BrotliStream(input, CompressionMode.Decompress)
-    decompressor.CopyTo(output)
-    outputFileName
+    try
+        use input = File.OpenRead(inputFileName)
+        use output = File.Create(outputFileName)
+        use decompressor = new BrotliStream(input, CompressionMode.Decompress)
+        decompressor.CopyTo(output)
+        outputFileName
+    with _ ->
+        IO.deleteAny outputFileName
+        reraise()

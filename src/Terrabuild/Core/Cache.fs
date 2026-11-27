@@ -223,7 +223,8 @@ let private createStagingDirectory entryDir =
     IO.createDirectory parent
     let name = IO.getFilename entryDir
     let stagingDir = FS.combinePath parent $".{name}.tmp-{Guid.NewGuid():N}"
-    IO.createDirectory stagingDir
+    if OperatingSystem.IsWindows() then IO.createDirectory stagingDir
+    else Directory.CreateDirectory(stagingDir, UnixFileMode.UserRead ||| UnixFileMode.UserWrite ||| UnixFileMode.UserExecute) |> ignore
     stagingDir
 
 let private acquireStagingLease stagingDir =
@@ -675,8 +676,12 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             let files =
                 if useRemote then
                     let manifestFile = FS.combinePath stagingDir remoteManifestFilename
+                    let generation = Guid.NewGuid().ToString("N")
+                    let workspaceStorage =
+                        match storage with
+                        | :? Contracts.IWorkspaceStorage as workspace -> Some workspace
+                        | _ -> None
                     try
-                        let generation = Guid.NewGuid().ToString("N")
                         // Insights authorizes one artifact filename below the
                         // project/target/hash identity. Keep generations flat so
                         // atomic cache publication works with that storage contract.
@@ -702,11 +707,19 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
                               RemoteManifest.Outputs = outputs
                               RemoteManifest.Metadata = Some metadata }
                         manifest |> Json.Serialize |> IO.writeTextFile manifestFile
-                        storage.Upload $"{id}/manifest" manifestFile
-                        [ if outputs.IsSome then yield outputsFilename
-                          yield logsFilename
-                          yield "manifest" ]
+                        match workspaceStorage with
+                        | Some workspace ->
+                            storage.Upload $"{id}/manifest-{generation}" manifestFile
+                            workspace.Commit id generation (summary.Provenance |> Option.map _.ProductionId) summary.IsSuccessful
+                        | None -> storage.Upload $"{id}/manifest" manifestFile
+                        match workspaceStorage with
+                        | Some _ -> [] // The accepted publication tracks its objects independently of build reporting.
+                        | None ->
+                            [ if outputs.IsSome then yield outputsFilename
+                              yield logsFilename
+                              yield "manifest" ]
                     with exn ->
+                        workspaceStorage |> Option.iter (fun workspace -> workspace.Abort id generation)
                         IO.deleteAny manifestFile
                         Log.Warning(exn, "Remote cache publication failed for {CacheEntryId}; retaining the completed local entry", id)
                         []
@@ -722,8 +735,16 @@ type NewEntry(entryDir: string, useRemote: bool, id: string, storage: Contracts.
             if Directory.Exists stagingDir then IO.deleteAny stagingDir
 
 
-type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWrites: bool, ?onDecryptionFailure: unit -> unit) =
+type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWrites: bool, ?onDecryptionFailure: unit -> unit, ?cacheScope: string) =
     let allowRemoteWrites = defaultArg allowRemoteWrites true
+    let workspaceStorage = storage :? Contracts.IWorkspaceStorage
+
+    let entryDirectory id =
+        let cache = createCache()
+        match cacheScope with
+        | Some scope -> FS.combinePath cache ("workspace-v2-" + scope + "-" + id)
+        | None -> FS.combinePath cache id
+
     let manifests = System.Collections.Concurrent.ConcurrentDictionary<string, RemoteManifest>()
     let availableOutputs = System.Collections.Concurrent.ConcurrentDictionary<string, bool>()
 
@@ -897,8 +918,9 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
                 match manifestResult with
                 | RemoteManifestResult.Found manifest ->
                     tryDownloadBlob stagingLogs id manifest.Logs, Some manifest
-                | RemoteManifestResult.Missing ->
+                | RemoteManifestResult.Missing when not workspaceStorage ->
                     tryDownloadLegacy stagingLogs id "logs", None
+                | RemoteManifestResult.Missing -> false, None
                 | RemoteManifestResult.Invalid -> false, None
 
             if not downloadedLogs then
@@ -913,7 +935,8 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
                             manifest.Outputs
                             |> Option.map (tryDownloadBlob stagingOutputs id)
                             |> Option.defaultValue false
-                        | true, OutputState.Stored, None -> tryDownloadLegacy stagingOutputs id "outputs"
+                        | true, OutputState.Stored, None when not workspaceStorage -> tryDownloadLegacy stagingOutputs id "outputs"
+                        | true, OutputState.Stored, None -> false
                         | _ -> true
 
                     if outputsReady then
@@ -954,7 +977,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
         | _ -> downloadEntry id false entryDir
 
     let getSummaryOnly useRemote (id: string) =
-        let entryDir = FS.combinePath (createCache()) id
+        let entryDir = entryDirectory id
         withEntryLock entryDir (fun () ->
             recoverReplacedDirectory entryDir
             match tryLoadCompleteEntry entryDir with
@@ -976,7 +999,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
         | OutputState.NotManaged
         | OutputState.Empty -> true
         | OutputState.Stored ->
-            let entryDir = FS.combinePath (createCache()) id
+            let entryDir = entryDirectory id
             if Directory.Exists(FS.combinePath entryDir "outputs") then true
             elif useRemote then
                 match tryLoadLocalRemoteManifest entryDir with
@@ -990,7 +1013,8 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
                         manifest.Outputs
                         |> Option.map (fun blob -> outputExists blob.Path)
                         |> Option.defaultValue false
-                    | RemoteManifestResult.Missing -> outputExists $"{id}/outputs"
+                    | RemoteManifestResult.Missing when not workspaceStorage -> outputExists $"{id}/outputs"
+                    | RemoteManifestResult.Missing -> false
                     | RemoteManifestResult.Invalid -> false
             else false
 
@@ -1002,7 +1026,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
             let pending =
                 entries
                 |> List.filter (fun id ->
-                    let entryDir = FS.combinePath (createCache()) id
+                    let entryDir = entryDirectory id
                     match getSummaryOnly false id with
                     | Some (_, summary) -> summary.Outputs = OutputState.Stored && not (Directory.Exists(FS.combinePath entryDir "outputs"))
                     | None -> true)
@@ -1025,7 +1049,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
         member _.CanRestore useRemote id summary = canRestore useRemote id summary
 
         member _.TryGetSummary useRemote id =
-            let entryDir = FS.combinePath (createCache()) id
+            let entryDir = entryDirectory id
             withEntryLock entryDir (fun () ->
                 recoverReplacedDirectory entryDir
                 match tryLoadCompleteEntry entryDir with
@@ -1034,7 +1058,7 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
                 | _ -> None)
 
         member _.Restore useRemote id outputs projectDirectory =
-            let entryDir = FS.combinePath (createCache()) id
+            let entryDir = entryDirectory id
             let originSummary =
                 withEntryLock entryDir (fun () ->
                     recoverReplacedDirectory entryDir
@@ -1056,5 +1080,5 @@ type Cache(storage: Contracts.IStorage, masterKey: byte[] option, ?allowRemoteWr
             originSummary |> Option.map snd
 
         member _.GetEntry useRemote id : IEntry =
-            let entryDir = FS.combinePath (createCache()) id
+            let entryDir = entryDirectory id
             new NewEntry(entryDir, useRemote && allowRemoteWrites, id, storage, masterKey)

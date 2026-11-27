@@ -223,15 +223,11 @@ with
 [<RequireQualifiedAccess>]
 type LoginArgs =
     | [<ExactlyOnce>] Workspace of id:string
-    | [<ExactlyOnce>] Token of token:string
-    | [<ExactlyOnce>] MasterKey of masterKey:string
 with
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Workspace _ -> "Workspace Id to connect to"
-            | Token _ -> "Token to connect to space"
-            | MasterKey _ -> "Master key to encrypt artifacts"
 
 [<RequireQualifiedAccess>]
 type LogoutArgs =
@@ -249,24 +245,14 @@ type InsightsLoginArgs =
         member _.Usage = "Print the device sign-in URL without opening a browser."
 
 [<RequireQualifiedAccess>]
-type InsightsKeyArgs =
-    | [<ExactlyOnce>] Workspace of id:string
-    interface IArgParserTemplate with
-        member _.Usage = "Workspace ID for the artifact decryption key."
-
-[<RequireQualifiedAccess>]
 type InsightsArgs =
     | [<CliPrefix(CliPrefix.None)>] Login of ParseResults<InsightsLoginArgs>
     | [<CliPrefix(CliPrefix.None)>] Logout
-    | [<CliPrefix(CliPrefix.None)>] Import_Key of ParseResults<InsightsKeyArgs>
-    | [<CliPrefix(CliPrefix.None)>] Forget_Key of ParseResults<InsightsKeyArgs>
     interface IArgParserTemplate with
         member this.Usage =
             match this with
             | Login _ -> "Sign in with an Insights user account."
             | Logout -> "Revoke the Insights user credential."
-            | Import_Key _ -> "Store a workspace artifact decryption key from a hidden prompt or stdin."
-            | Forget_Key _ -> "Remove the imported workspace artifact decryption key."
 
 [<RequireQualifiedAccess>]
 type TerrabuildArgs =

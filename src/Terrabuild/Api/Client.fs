@@ -90,27 +90,6 @@ module private Http =
 
 
 
-module internal Auth =
-    [<RequireQualifiedAccess>]
-    type LoginSpaceInput = {
-        Id: string
-        Token: string
-    }
-
-    [<RequireQualifiedAccess>]
-    type LoginSpaceOutput = {
-        AccessToken: string
-    }
-
-    let loginSpace workspaceId token: LoginSpaceOutput =
-        let headers =
-            [ HttpRequestHeaders.Accept HttpContentTypes.Json
-              HttpRequestHeaders.ContentType HttpContentTypes.Json ]
-        { LoginSpaceInput.Id = workspaceId
-          LoginSpaceInput.Token = token }
-        |> Http.post headers "/auth/login"
-
-
 module internal Build =
 
     [<RequireQualifiedAccess>]
@@ -302,13 +281,14 @@ module internal Artifact =
         Http.get<Unit, ArtifactLocationOutput> headers $"/artifacts?path={path}&operation=put" ()
 
 
-type Client(workspaceId: string, token: string, options: ConfigOptions.Options) =
-    let accesstoken = (Auth.loginSpace workspaceId token).AccessToken
+type Client(workspaceId: string, accessToken: string, options: ConfigOptions.Options, repositoryId: string) =
 
     let headers =
         [ HttpRequestHeaders.Accept HttpContentTypes.Json
           HttpRequestHeaders.ContentType HttpContentTypes.Json
-          HttpRequestHeaders.Authorization $"Bearer {accesstoken}" ]
+          HttpRequestHeaders.Authorization $"Bearer {accessToken}"
+          "X-Terrabuild-Workspace", workspaceId
+          "X-Terrabuild-Repository", repositoryId ]
 
     let buildId =
         lazy(
@@ -349,6 +329,8 @@ type Client(workspaceId: string, token: string, options: ConfigOptions.Options) 
                                         run
                                         context
             resp.BuildId)
+
+    member _.BuildId = buildId.Value
 
     interface Contracts.IApiClient with
         member _.StartBuild () =

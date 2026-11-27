@@ -42,7 +42,7 @@ module private SecureArchive =
     // [ tag (HMAC-SHA256, 32 bytes) ]
 
     [<Literal>]
-    let private MAGIC_TAG = "TBARCH01"
+    let MAGIC_TAG = "TBARCH01"
 
     let isEncryptedArchive (filePath: string) =
         if not (File.Exists filePath) then
@@ -60,12 +60,12 @@ module private SecureArchive =
             | :? UnauthorizedAccessException ->
                 false
 
-    let encryptFileArchive (encKey: byte[]) (macKey: byte[]) (inputPath: string) (outputPath: string) =
+    let encryptFileArchive (encKey: byte[]) (macKey: byte[]) (magicTag: string) (inputPath: string) (outputPath: string) =
         // 1. Encrypt (streaming) to output (without MAC)
         use input = File.OpenRead inputPath
         use output = File.Open(outputPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None)
 
-        let magic = Encoding.ASCII.GetBytes MAGIC_TAG
+        let magic = Encoding.ASCII.GetBytes magicTag
         output.Write(magic, 0, magic.Length)
 
         let iv = RandomNumberGenerator.GetBytes 16
@@ -106,79 +106,58 @@ module private SecureArchive =
         output.Flush()
 
 
-    let decryptFileArchive (encKey: byte[]) (macKey: byte[]) (inputPath: string) (outputPath: string) =
-        use input = File.OpenRead inputPath
+    let decryptFileArchive (encKey: byte[]) (macKey: byte[]) (magicTag: string) (expectedDigest: byte[] option) (inputPath: string) (outputPath: string) =
+        use input = File.Open(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read)
+        let magic = Encoding.ASCII.GetBytes magicTag
+        let headerSize = int64 magic.Length + 16L
+        let tagSize = 32L
+        let ciphertextSize = input.Length - headerSize - tagSize
+        if ciphertextSize < 16L || ciphertextSize % 16L <> 0L then
+            invalidOp "Invalid encrypted archive length"
 
-        // Basic length check: must at least fit magic + iv + tag
-        if input.Length < 8L + 16L + 32L then
-            invalidOp "Invalid encrypted archive (too short)"
+        let header = Array.zeroCreate<byte> (int headerSize)
+        input.ReadExactly(header)
+        if not (header.AsSpan(0, magic.Length).SequenceEqual(magic)) then
+            invalidOp "Not a supported Terrabuild encrypted archive"
 
-        // 1. Verify HMAC
-        let totalLen = input.Length
-        let tagLen = 32
-        let dataLen = totalLen - int64 tagLen
-
-        use hmac = new HMACSHA256(macKey)
-        let buf = Array.zeroCreate<byte> 8192
-
-        input.Position <- 0L
-        let mutable remaining = dataLen
+        use mac = IncrementalHash.CreateHMAC(HashAlgorithmName.SHA256, macKey)
+        use digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256)
+        mac.AppendData(header)
+        digest.AppendData(header)
+        let buffer = Array.zeroCreate<byte> 8192
+        let mutable remaining = ciphertextSize
         while remaining > 0L do
-            let toRead = int (min (int64 buf.Length) remaining)
-            let read = input.Read(buf, 0, toRead)
-            if read <= 0 then invalidOp "Unexpected EOF while verifying MAC"
-            hmac.TransformBlock(buf, 0, read, null, 0) |> ignore
-            remaining <- remaining - int64 read
+            let count = int (min (int64 buffer.Length) remaining)
+            input.ReadExactly(buffer, 0, count)
+            mac.AppendData(buffer, 0, count)
+            digest.AppendData(buffer, 0, count)
+            remaining <- remaining - int64 count
 
-        hmac.TransformFinalBlock(Array.empty, 0, 0) |> ignore
-        let computedTag = hmac.Hash |> nonNull
-
-        // Read stored tag
-        let storedTag = Array.zeroCreate<byte> tagLen
-        let readTag = input.Read(storedTag, 0, tagLen)
-        if readTag <> tagLen then invalidOp "Failed to read tag"
-
-        // Constant-time compare
-        let mutable diff = 0
-        for i in 0 .. tagLen - 1 do
-            diff <- diff ||| (int computedTag[i] ^^^ int storedTag[i])
-
-        if diff <> 0 then
+        let tag = Array.zeroCreate<byte> (int tagSize)
+        input.ReadExactly(tag)
+        if not (CryptographicOperations.FixedTimeEquals(tag, mac.GetHashAndReset())) then
             invalidOp "MAC verification failed"
+        digest.AppendData(tag)
+        match expectedDigest with
+        | Some expected when not (CryptographicOperations.FixedTimeEquals(expected, digest.GetHashAndReset())) ->
+            invalidOp "Ciphertext digest verification failed"
+        | _ -> ()
 
-        // 2. Decrypt (second streaming pass)
-        use input2 = File.OpenRead inputPath
+        // Read the same file handle that was authenticated before opening any plaintext output.
+        input.Position <- headerSize
         use output = File.Open(outputPath, FileMode.Create, FileAccess.Write, FileShare.None)
-
-        let magic = Encoding.ASCII.GetBytes MAGIC_TAG
-        let headerMagic = Array.zeroCreate<byte> magic.Length
-        input2.Read(headerMagic, 0, headerMagic.Length) |> ignore
-        if not (System.Linq.Enumerable.SequenceEqual(headerMagic, magic)) then
-            invalidOp "Not a Terrabuild encrypted archive"
-
-        let iv = Array.zeroCreate<byte> 16
-        input2.Read(iv, 0, iv.Length) |> ignore
-
         use aes = Aes.Create()
         aes.Key <- encKey
-        aes.IV <- iv
+        aes.IV <- header[magic.Length..]
         aes.Mode <- CipherMode.CBC
         aes.Padding <- PaddingMode.PKCS7
-
-        // Limit decryption to [dataLen - (magic + iv)] bytes (exclude tag)
-        let cipherLen = dataLen - int64 (magic.Length + iv.Length)
-
         use cryptoStream = new CryptoStream(output, aes.CreateDecryptor(), CryptoStreamMode.Write)
-
-        let buf2 = Array.zeroCreate<byte> 8192
-        let mutable remaining2 = cipherLen
-        while remaining2 > 0L do
-            let toRead = int (min (int64 buf2.Length) remaining2)
-            let read = input2.Read(buf2, 0, toRead)
-            if read <= 0 then invalidOp "Unexpected EOF while decrypting"
-            cryptoStream.Write(buf2, 0, read)
-            remaining2 <- remaining2 - int64 read
-
+        remaining <- ciphertextSize
+        while remaining > 0L do
+            let count = int (min (int64 buffer.Length) remaining)
+            input.ReadExactly(buffer, 0, count)
+            cryptoStream.Write(buffer, 0, count)
+            remaining <- remaining - int64 count
         cryptoStream.FlushFinalBlock()
 
 
@@ -191,7 +170,7 @@ let encrypt masterKey artifactId inputFile =
     | Some masterKey ->
         let outputFile = IO.getTempFilename()
         let encKey, macKey = SecureArchive.deriveKeys masterKey artifactId
-        SecureArchive.encryptFileArchive encKey macKey inputFile outputFile
+        SecureArchive.encryptFileArchive encKey macKey SecureArchive.MAGIC_TAG inputFile outputFile
         outputFile
     | _ -> inputFile
  
@@ -203,7 +182,7 @@ let tryDecrypt masterKey artifactId inputFile =
             let file = IO.getTempFilename()
             outputFile <- Some file
             let encKey, macKey = SecureArchive.deriveKeys masterKey artifactId
-            SecureArchive.decryptFileArchive encKey macKey inputFile file
+            SecureArchive.decryptFileArchive encKey macKey SecureArchive.MAGIC_TAG None inputFile file
             Some file
         with _ ->
             outputFile |> Option.iter IO.deleteAny
@@ -211,3 +190,36 @@ let tryDecrypt masterKey artifactId inputFile =
     | _ ->
         if isEncrypted inputFile then None
         else Some inputFile
+
+// A binary-safe context supplied by the workspace protocol separates the keys
+// for each publication and payload while keeping the streaming archive cipher.
+let private workspaceMagic = "TBARCH02"
+
+let private workspaceKeys root context =
+    SecureArchive.deriveKeys root ("workspace:v2:" + context)
+
+let encryptWorkspace root context inputFile =
+    let output = IO.getTempFilename()
+    let encryptionKey, macKey = workspaceKeys root context
+    try
+        try
+            SecureArchive.encryptFileArchive encryptionKey macKey workspaceMagic inputFile output
+            output
+        with _ ->
+            IO.deleteAny output
+            reraise()
+    finally
+        CryptographicOperations.ZeroMemory(encryptionKey)
+        CryptographicOperations.ZeroMemory(macKey)
+
+let decryptWorkspace root context expectedDigest inputFile outputFile =
+    let encryptionKey, macKey = workspaceKeys root context
+    try
+        try
+            SecureArchive.decryptFileArchive encryptionKey macKey workspaceMagic (Some expectedDigest) inputFile outputFile
+        with _ ->
+            IO.deleteAny outputFile
+            reraise()
+    finally
+        CryptographicOperations.ZeroMemory(encryptionKey)
+        CryptographicOperations.ZeroMemory(macKey)

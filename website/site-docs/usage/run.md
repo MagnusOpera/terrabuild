@@ -37,7 +37,7 @@ Pass one or more workspace target names, followed by any options. Use [shared se
 | `--restore` | Materialize cached outputs of explicitly selected targets; see below. |
 | `--parallel <max>` | Limit build concurrency; defaults to the number of processors. |
 | `--local-only` | Use local cache only. |
-| `--publish` | Select workspace token credentials for artifact publication and build reporting. See [Login](./login). |
+| `--publish` | Prefer workspace CI credentials when both CI and account sign-in are available. See [Login](./login). |
 | `--engine <engine>` | Choose `docker`, `podman`, or `host`. A configured `workspace.engine` overrides this option. |
 | `--note <note>` | Attach a note to the build. |
 | `--group <group>` | Associate related builds with a group identifier. |

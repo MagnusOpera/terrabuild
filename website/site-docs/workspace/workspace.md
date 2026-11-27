@@ -104,7 +104,7 @@ The following arguments are supported:
 If you use a managed shared cache, set `workspace.id` to the workspace identifier and authenticate through the CLI:
 
 ```bash
-terrabuild login --workspace <workspace-id> --token <token> --masterkey <master-key>
+printf '%s\n' "$TERRABUILD_TOKEN" | terrabuild login --workspace "<workspace-id>"
 ```
 
 Use `--local-only` when you want to ignore the shared cache for a run.

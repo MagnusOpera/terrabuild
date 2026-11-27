@@ -383,62 +383,33 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
 
         checkpoint None None None None None "preparing" "partial" None
 
-        let api, storage, masterKey =
+        let api, cache =
             runPreparation (fun () ->
-                let local () = None, Storages.Factory.create None, None
-                let publisher workspaceId =
-                    match Auth.readAuth workspaceId with
-                    | Some auth ->
-                        let key = Auth.decodeKey auth.Key
-                        let api = Api.Factory.create (Some workspaceId) (Some auth.Token) options
-                        api, Storages.Factory.create api, Some key
-                    | None -> local ()
-
+                let local cacheScope = None, Cache.Cache(Storages.Factory.create None, None, ?cacheScope = cacheScope) :> Cache.ICache
                 match options.LocalOnly, config.Id with
-                | true, _ | _, None -> local ()
-                | false, Some workspaceId when preferPublisher -> publisher workspaceId
+                | true, _ | _, None -> local None
+                | false, Some _ when String.IsNullOrWhiteSpace(options.Repository) -> local None
                 | false, Some workspaceId ->
                     let origin = Api.Endpoint.origin ()
-                    let session =
-                        try Ok (Insights.session origin)
-                        with :? TerrabuildException as ex ->
-                            Error (ex.Message)
-                    match session with
-                    | Error message ->
-                        eprintfn $"Could not read the credential store. {message} Using local builds."
-                        local ()
-                    | Ok None -> publisher workspaceId
-                    | Ok (Some credential) when credential.ExpiresAt <= DateTimeOffset.UtcNow ->
-                        eprintfn "Insights sign-in expired. Run terrabuild insights login again. Using local builds."
-                        local ()
-                    | Ok (Some credential) ->
-                        let key =
-                            try Insights.readKey origin workspaceId
-                            with
-                            | :? FormatException
-                            | :? TerrabuildException -> None
-                        match key with
-                        | Some key ->
-                            let storage = Insights.artifactLookup origin workspaceId credential |> Storages.Factory.createReadOnly
-                            None, storage, Some key
-                        | None ->
-                            eprintfn $"Workspace decryption key unavailable. Run terrabuild insights import-key --workspace {workspaceId}. Using local builds."
-                            local ())
-
-        if masterKey.IsSome then
-            Log.Debug("Artifacts encryption on")
-            $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Connected to Insights" |> Terminal.writeLine
-
-        let onDecryptionFailure =
-            if api.IsNone && masterKey.IsSome then
-                let reported = ref 0
-                Some (fun () ->
-                    if Threading.Interlocked.Exchange(reported, 1) = 0 then
-                        eprintfn "Could not decrypt an Insights cache entry. Check the imported workspace key. Affected targets will build locally.")
-            else None
-        let cache =
-            runPreparation (fun () ->
-                Cache.Cache(storage, masterKey, allowRemoteWrites = api.IsSome, ?onDecryptionFailure = onDecryptionFailure) :> Cache.ICache)
+                    let fallback () = local (WorkspaceArtifacts.cachedScope origin workspaceId options.Repository)
+                    try
+                        let session = Insights.session origin
+                        let ciAuth = if session.IsNone || preferPublisher then Auth.readAuth workspaceId else None
+                        match WorkspaceArtifacts.connect origin workspaceId options.Repository ciAuth session with
+                        | Some (storage, cacheScope, canWrite, token, repositoryId) ->
+                            $" {Ansi.Styles.green}{Ansi.Emojis.arrow}{Ansi.Styles.reset} Connected to Insights" |> Terminal.writeLine
+                            let api =
+                                if canWrite || runOptions.BaseCommit.IsSome then
+                                    let client = Api.Client(workspaceId, token, options, repositoryId)
+                                    (storage :?> Contracts.IWorkspaceStorage).BindBuild(fun () -> client.BuildId)
+                                    Some (client :> Contracts.IApiClient)
+                                else None
+                            api, Cache.Cache(storage, None, allowRemoteWrites = canWrite, cacheScope = cacheScope) :> Cache.ICache
+                        | None -> fallback ()
+                    with
+                    | :? TerrabuildException as ex ->
+                        eprintfn "%s Using local cache." ex.Message
+                        fallback ())
 
         Log.Debug("====[ GraphPipeline Node ]========================================================")
         let nodeGraph =
@@ -871,10 +842,7 @@ let private processWorkspaceCommandLine (parser: ArgumentParser<TerrabuildArgs>)
 
     let login (loginArgs: ParseResults<LoginArgs>) =
         let workspaceId = loginArgs.GetResult(LoginArgs.Workspace)
-        let token = loginArgs.GetResult(LoginArgs.Token)
-        let masterKey = loginArgs.GetResult(LoginArgs.MasterKey)
-
-        Auth.login workspaceId token masterKey
+        WorkspaceVault.loginCi workspaceId
         0
 
     let logout (logoutArgs: ParseResults<LogoutArgs>) =
@@ -922,16 +890,10 @@ let processCommandLine (parser: ArgumentParser<TerrabuildArgs>) (result: ParseRe
     | None ->
         match result.TryGetResult(TerrabuildArgs.Insights) with
         | Some args ->
-            match args.TryGetResult(InsightsArgs.Login) with
-            | Some login -> Insights.login (login.Contains(InsightsLoginArgs.No_Open))
-            | _ when args.Contains(InsightsArgs.Logout) -> Insights.logout ()
-            | _ ->
-                match args.TryGetResult(InsightsArgs.Import_Key) with
-                | Some key -> Insights.importKey (key.GetResult(InsightsKeyArgs.Workspace))
-                | None ->
-                    match args.TryGetResult(InsightsArgs.Forget_Key) with
-                    | Some key -> Insights.forgetKey (key.GetResult(InsightsKeyArgs.Workspace))
-                    | None -> args.Parser.PrintUsage() |> Terminal.writeLine
+            match args.GetAllResults() with
+            | [ InsightsArgs.Login login ] -> Insights.login (login.Contains(InsightsLoginArgs.No_Open))
+            | [ InsightsArgs.Logout ] -> Insights.logout ()
+            | _ -> args.Parser.PrintUsage() |> Terminal.writeLine
             0
         | None -> processWorkspaceCommandLine parser result
 
@@ -962,6 +924,7 @@ let main _ =
         try
             CredentialStore.initialize ()
             DotNetEnv.Env.TraversePath().Load() |> ignore
+            System.Environment.SetEnvironmentVariable("TERRABUILD_TOKEN", null)
             Terminal.hideCursor()
             Console.CancelKeyPress.Add (fun _ -> $"{Ansi.Emojis.bolt} Aborted{Ansi.Styles.cursorShow}" |> Terminal.writeLine)
             let parser = ArgumentParser.Create<CLI.TerrabuildArgs>(programName = "terrabuild")
