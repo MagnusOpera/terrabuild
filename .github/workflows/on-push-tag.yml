@@ -45,13 +45,13 @@ jobs:
 
       - name: Pack
         run: |
-          (cd .out/dotnet; zip ../terrabuild-${BUILD_VERSION}-dotnet.zip ./*)
-          (cd .out/windows/x64; zip ../../terrabuild-${BUILD_VERSION}-windows-x64.zip ./*)
-          (cd .out/windows/arm64; zip ../../terrabuild-${BUILD_VERSION}-windows-arm64.zip ./*)
-          (cd .out/linux/x64; zip ../../terrabuild-${BUILD_VERSION}-linux-x64.zip ./*)
-          (cd .out/linux/arm64; zip ../../terrabuild-${BUILD_VERSION}-linux-arm64.zip ./*)
+          (cd .out/dotnet; zip -r "../terrabuild-${BUILD_VERSION}-dotnet.zip" ./*)
+          (cd .out/windows/x64; zip "../../terrabuild-${BUILD_VERSION}-windows-x64.zip" ./*)
+          (cd .out/windows/arm64; zip "../../terrabuild-${BUILD_VERSION}-windows-arm64.zip" ./*)
+          (cd .out/linux/x64; zip "../../terrabuild-${BUILD_VERSION}-linux-x64.zip" ./*)
+          (cd .out/linux/arm64; zip "../../terrabuild-${BUILD_VERSION}-linux-arm64.zip" ./*)
           cp entitlements.plist .out/darwin/entitlements.plist
-          (cd .out/darwin; zip -r ../terrabuild-${BUILD_VERSION}-darwin-unsigned.zip ./*)
+          (cd .out/darwin; zip -r "../terrabuild-${BUILD_VERSION}-darwin-unsigned.zip" ./*)
 
       - name: Extract release notes from changelog
         shell: bash

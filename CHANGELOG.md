@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+- Include native runtime libraries in portable .NET release archives.
+
 ## [0.209.1-next]
 
 - Set up artifact identities and CI tokens in Insights, and unlock CLI access through browser sign-in.
