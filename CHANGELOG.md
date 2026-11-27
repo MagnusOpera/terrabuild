@@ -4,6 +4,8 @@ All notable changes to Terrabuild are documented in this file.
 
 ## [Unreleased]
 
+## [0.209.0-next]
+
 - Set up artifact identities and CI tokens in Insights, and unlock CLI access through browser sign-in.
 - Share encrypted Insights artifacts through account sign-in or a single workspace CI token.
 - Use stable libsodium for Insights artifact sharing.
@@ -21,6 +23,8 @@ All notable changes to Terrabuild are documented in this file.
 - List Next first in the docs selector and default to the latest stable release for first-time visitors.
 
 **Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.2-next...0.209.0-next
+
+**Full Changelog**: https://github.com/magnusopera/terrabuild/compare/0.200.2-next...v0.209.0-next
 
 ## [0.208.0]
 
